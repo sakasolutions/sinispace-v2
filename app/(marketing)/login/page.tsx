@@ -3,7 +3,28 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4">
+    <div className="relative flex min-h-[80vh] items-center justify-center px-4">
+      {/* Zurück-Button */}
+      <Link
+        href="/"
+        className="absolute top-4 left-4 md:top-8 md:left-8 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+        Zurück
+      </Link>
+
       <div className="w-full max-w-sm space-y-6 rounded-lg border border-zinc-200 p-8 shadow-sm">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-bold tracking-tight">Willkommen zurück</h1>
