@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { Navbar } from "@/components/marketing/navbar";
 
 // --- ANIMATION CONFIG ---
 const fadeUp = (delay = 0) => ({
@@ -30,6 +31,7 @@ const marqueeVariants = {
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-zinc-900 selection:bg-orange-100 selection:text-orange-900 overflow-x-hidden font-sans">
+      <Navbar />
       
       {/* VIBRANT BACKGROUND ACCENTS */}
       <div className="fixed inset-0 -z-10 h-full w-full bg-white">
@@ -38,60 +40,7 @@ export default function LandingPage() {
         <div className="absolute bottom-[10%] left-[-5%] h-[400px] w-[400px] rounded-full bg-blue-200/40 blur-[120px] mix-blend-multiply"></div>
       </div>
 
-      {/* NAVIGATION BAR */}
-      <motion.header 
-        className="sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-xl"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2 font-bold text-zinc-900 group">
-            {/* LOGO CONTAINER - Jetzt breiter und ohne 'object-cover' cropping */}
-            <div className="relative h-10 w-32 overflow-hidden transition-transform group-hover:scale-105">
-                 <Image 
-                   src="/assets/logos/logo.webp" 
-                   alt="Sinispace Logo" 
-                   fill
-                   className="object-contain object-left" // 'object-left' sorgt dafür, dass es linksbündig bleibt
-                   priority
-                 />
-            </div>
-            {/* TEXT ENTFERNT - Da das Logo wahrscheinlich schon den Namen enthält */}
-          </Link>
-
-          <nav className="hidden gap-8 md:flex">
-            {['Features', 'Meinungen', 'Preise'].map((item) => (
-              <Link 
-                key={item}
-                href={item === 'Preise' ? '/pricing' : item === 'Features' ? '#features' : '#testimonials'} 
-                className="text-sm font-bold text-zinc-500 hover:text-orange-600 transition-colors"
-              >
-                {item}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-4">
-            <Link 
-              href="/login" 
-              className="text-sm font-bold text-zinc-600 hover:text-zinc-900 transition-colors"
-            >
-              Login
-            </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/register"
-                className="hidden rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/30 sm:inline-flex"
-              >
-                Account erstellen
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </motion.header>
-
-      <main>
+      <main className="pt-16">
         {/* HERO SECTION */}
         <section className="relative pt-24 pb-20 lg:pt-36 lg:pb-32 overflow-hidden">
           <div className="container mx-auto px-4 text-center md:px-6 relative z-10">
