@@ -19,7 +19,7 @@ export function Navbar() {
   return (
     <>
       {/* Fixed Navbar Wrapper */}
-      <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-white/80 backdrop-blur-xl border-b border-zinc-100">
+      <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-100 dark:border-zinc-800">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo - Links */}
           <Link href="/" className="flex items-center">
@@ -38,19 +38,19 @@ export function Navbar() {
           <nav className="hidden gap-8 md:flex">
             <Link
               href="#features"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
+              className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
             >
               Features
             </Link>
             <Link
               href="#testimonials"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
+              className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
             >
               Meinungen
             </Link>
             <Link
               href="/pricing"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
+              className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
             >
               Preise
             </Link>
@@ -60,13 +60,13 @@ export function Navbar() {
           <div className="hidden items-center gap-4 md:flex">
             <Link
               href="/login"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
+              className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
             >
               Login
             </Link>
             <Link
               href="/register"
-              className="bg-zinc-900 text-white px-5 py-2 rounded-full hover:bg-zinc-800 transition-colors text-sm font-medium"
+              className="bg-zinc-900 dark:bg-gradient-to-r dark:from-orange-500 dark:to-pink-500 text-white px-5 py-2 rounded-full hover:bg-zinc-800 dark:hover:opacity-90 transition-colors text-sm font-medium"
             >
               Account erstellen
             </Link>
@@ -75,7 +75,7 @@ export function Navbar() {
           {/* Mobile Hamburger Button - Rechts im Flex-Flow */}
           <button
             onClick={toggleMobileMenu}
-            className="md:hidden p-2 text-zinc-600 hover:text-zinc-900 transition-colors"
+            className="md:hidden p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (

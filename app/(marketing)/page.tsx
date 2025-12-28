@@ -33,42 +33,79 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white text-zinc-900 selection:bg-orange-100 selection:text-orange-900 overflow-x-hidden font-sans">
       <Navbar />
       
-      {/* VIBRANT BACKGROUND ACCENTS */}
-      <div className="fixed inset-0 -z-10 h-full w-full bg-white">
-        <div className="absolute top-0 h-screen w-screen bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))]"></div>
-        <div className="absolute top-[10%] right-[-5%] h-[400px] w-[400px] rounded-full bg-orange-200/40 blur-[120px] mix-blend-multiply"></div>
-        <div className="absolute bottom-[10%] left-[-5%] h-[400px] w-[400px] rounded-full bg-blue-200/40 blur-[120px] mix-blend-multiply"></div>
-      </div>
-
       <main className="pt-16">
-        {/* HERO SECTION */}
-        <section className="relative pt-24 pb-20 lg:pt-36 lg:pb-32 overflow-hidden">
+        {/* HERO SECTION - CINEMATIC DARK */}
+        <section className="relative min-h-[90vh] pt-24 pb-20 lg:pt-36 lg:pb-32 overflow-hidden bg-zinc-950">
+          {/* Animated Grid Background */}
+          <div className="absolute inset-0 opacity-20">
+            <div 
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+                `,
+                backgroundSize: '50px 50px',
+              }}
+            />
+          </div>
+
+          {/* Spotlight Effects */}
+          <div className="absolute inset-0 overflow-hidden">
+            <motion.div
+              className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-orange-500/20 blur-[120px]"
+              animate={{
+                x: [0, 100, 0],
+                y: [0, 50, 0],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+            <motion.div
+              className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500/20 blur-[120px]"
+              animate={{
+                x: [0, -100, 0],
+                y: [0, -50, 0],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          </div>
+
           <div className="container mx-auto px-4 text-center md:px-6 relative z-10">
             
             <motion.div
-              className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm font-bold text-zinc-600 shadow-sm hover:border-orange-200 hover:text-orange-600 transition-colors cursor-default"
+              className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm px-4 py-1.5 text-sm font-bold text-zinc-300 shadow-lg hover:border-orange-500/50 hover:text-orange-400 transition-colors cursor-default"
               {...fadeUp(0.1)}
             >
-              <span className="flex h-2 w-2 rounded-full bg-orange-500"></span>
+              <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse"></span>
               Prompt Engineering war gestern.
             </motion.div>
 
             <motion.h1
-              className="mx-auto max-w-5xl text-5xl font-extrabold tracking-tighter text-zinc-900 sm:text-7xl md:text-8xl"
+              className="mx-auto max-w-5xl text-5xl font-extrabold tracking-tighter text-white sm:text-7xl md:text-8xl"
               {...fadeUp(0.2)}
             >
               Ergebnisse auf <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent pb-2 inline-block">
+              <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 bg-clip-text text-transparent pb-2 inline-block">
                 Knopfdruck.
               </span>
             </motion.h1>
 
             <motion.p
-              className="mx-auto mt-8 max-w-[640px] text-lg font-medium text-zinc-500 md:text-xl leading-relaxed"
+              className="mx-auto mt-8 max-w-[640px] text-lg font-medium text-zinc-300 md:text-xl leading-relaxed"
               {...fadeUp(0.3)}
             >
               Keine Lust auf komplexe Prompts? Sinispace liefert dir fertige KI-Helfer. 
-              Klick drauf, fertig. <span className="text-zinc-900 font-bold">Und wenn du doch mal frei chatten willst?</span> Haben wir auch.
+              Klick drauf, fertig. <span className="text-white font-bold">Und wenn du doch mal frei chatten willst?</span> Haben wir auch.
             </motion.p>
 
             <motion.div 
@@ -78,7 +115,7 @@ export default function LandingPage() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                 <Link
                   href="/register" 
-                  className="flex w-full items-center justify-center rounded-xl bg-zinc-900 px-8 py-4 text-base font-bold text-white shadow-xl shadow-zinc-900/20 transition-all hover:bg-orange-600"
+                  className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-8 py-4 text-base font-bold text-white shadow-xl shadow-orange-500/30 transition-all hover:shadow-orange-500/50 hover:scale-105"
                 >
                   Kostenlos registrieren
                 </Link>
@@ -86,17 +123,101 @@ export default function LandingPage() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                 <Link
                   href="#features"
-                  className="flex w-full items-center justify-center rounded-xl border-2 border-zinc-100 bg-white px-8 py-4 text-base font-bold text-zinc-900 transition-colors hover:border-zinc-200 hover:bg-zinc-50"
+                  className="flex w-full items-center justify-center rounded-xl border-2 border-zinc-700 bg-zinc-900/50 backdrop-blur-sm px-8 py-4 text-base font-bold text-white transition-colors hover:border-zinc-600 hover:bg-zinc-800/50"
                 >
                   So funktioniert's
                 </Link>
               </motion.div>
             </motion.div>
+
+            {/* Mockup Container - Chat Interface */}
+            <motion.div
+              className="mt-16 mx-auto max-w-2xl"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+            >
+              <motion.div
+                className="relative rounded-2xl border border-zinc-800 bg-zinc-900/80 backdrop-blur-xl shadow-2xl overflow-hidden"
+                style={{
+                  perspective: '1000px',
+                }}
+                animate={{
+                  y: [0, -10, 0],
+                  rotateX: [0, 2, 0],
+                }}
+                transition={{
+                  duration: 6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                {/* Glassmorphism Header */}
+                <div className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                    <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
+                    <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                    <div className="ml-4 flex-1 text-left">
+                      <div className="h-2 w-32 rounded bg-zinc-700"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chat Messages */}
+                <div className="p-6 space-y-4 min-h-[300px]">
+                  {/* User Message */}
+                  <div className="flex justify-end">
+                    <div className="max-w-[70%] rounded-2xl rounded-tr-sm bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30 p-4">
+                      <p className="text-sm text-zinc-200">
+                        Erstelle einen LinkedIn Post über KI-Tools
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* AI Response */}
+                  <div className="flex justify-start">
+                    <div className="max-w-[70%] rounded-2xl rounded-tl-sm bg-zinc-800/50 border border-zinc-700 p-4">
+                      <div className="space-y-2">
+                        <div className="h-2 w-full rounded bg-zinc-700 animate-pulse"></div>
+                        <div className="h-2 w-3/4 rounded bg-zinc-700 animate-pulse"></div>
+                        <div className="h-2 w-5/6 rounded bg-zinc-700 animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Typing Indicator */}
+                  <div className="flex justify-start gap-2">
+                    <div className="h-2 w-2 rounded-full bg-orange-500 animate-bounce"></div>
+                    <div className="h-2 w-2 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="h-2 w-2 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+
+                {/* Input Area */}
+                <div className="border-t border-zinc-800 bg-zinc-900/50 backdrop-blur-sm p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-10 rounded-lg bg-zinc-800/50 border border-zinc-700 px-4 flex items-center">
+                      <div className="h-2 w-full rounded bg-zinc-700"></div>
+                    </div>
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m22 2-7 20-4-9-9-4Z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
           </div>
+
+          {/* Gradient Transition to Marquee */}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+        </section>
           
           {/* MARQUEE */}
           <motion.div 
-            className="mt-24 w-full overflow-hidden border-y border-zinc-100 bg-zinc-50/50 py-6"
+            className="w-full overflow-hidden border-y border-zinc-100 bg-zinc-50/50 py-6 -mt-32 relative z-20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
@@ -118,7 +239,6 @@ export default function LandingPage() {
                </motion.div>
             </div>
           </motion.div>
-        </section>
 
         {/* BENTO GRID */}
         <section id="features" className="w-full py-24 bg-white">
