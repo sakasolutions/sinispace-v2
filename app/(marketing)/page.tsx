@@ -1,349 +1,387 @@
 "use client";
 
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { Navbar } from "@/components/marketing/navbar";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
+
+// --- CONFIG & DATA ---
+
+const toolsColumn1 = [
+  { icon: "IN", label: "LinkedIn Viral", color: "text-blue-600 bg-blue-50" },
+  { icon: "SEO", label: "SEO Analyse", color: "text-green-600 bg-green-50" },
+  { icon: "JS", label: "Code Fixer", color: "text-yellow-600 bg-yellow-50" },
+  { icon: "BLOG", label: "Blog Artikel", color: "text-purple-600 bg-purple-50" },
+  { icon: "ADS", label: "Ad Copy", color: "text-pink-600 bg-pink-50" },
+];
+
+const toolsColumn2 = [
+  { icon: "XL", label: "Excel Formel", color: "text-emerald-600 bg-emerald-50" },
+  { icon: "§", label: "Rechtstext", color: "text-zinc-600 bg-zinc-100" },
+  { icon: "TR", label: "Übersetzer", color: "text-indigo-600 bg-indigo-50" },
+  { icon: "SUM", label: "Summary", color: "text-cyan-600 bg-cyan-50" },
+  { icon: "BIO", label: "Bio Gen", color: "text-rose-600 bg-rose-50" },
+];
+
+const faqData = [
+  { 
+    q: "Wie lange werden meine Daten gespeichert?", 
+    a: "Wir praktizieren strikte Datensparsamkeit. Deine Chat-Verläufe und generierten Texte werden maximal 30 Tage gespeichert, damit du Zugriff darauf hast. Danach werden sie automatisch und unwiderruflich von unseren Servern gelöscht." 
+  },
+  { 
+    q: "Nutzt ihr meine Eingaben zum KI-Training?", 
+    a: "Nein. Deine Daten gehören dir. Wir nutzen deine Eingaben und Ergebnisse explizit NICHT, um unsere KI-Modelle zu trainieren. Deine Geschäftsgeheimnisse bleiben sicher." 
+  },
+  { 
+    q: "Sind die Ergebnisse urheberrechtlich geschützt?", 
+    a: "Du erhältst die vollen Nutzungsrechte an allen generierten Texten. Du kannst sie uneingeschränkt kommerziell für deine Projekte, Kunden oder Social Media nutzen." 
+  },
+  { 
+    q: "Ist das DSGVO-konform?", 
+    a: "Ja. Wir arbeiten nach strengen europäischen Datenschutzstandards. Transparenz und Sicherheit stehen an erster Stelle, weshalb wir auch auf unnötige Cookies und Tracker verzichten." 
+  },
+  { 
+    q: "Habe ich eine Kündigungsfrist?", 
+    a: "Nein, denn es gibt keine automatische Verlängerung. Du buchst einen Jahreszugang (12 Monate), der automatisch endet. Du musst nicht kündigen und tappst in keine Abo-Falle." 
+  }
+];
+
+const testimonialData = [
+  { text: "Ich habe keine Ahnung von 'Prompts'. Hier klicke ich auf 'E-Mail' und es passt. Genial.", author: "Sandra K.", role: "Immobilienmaklerin" },
+  { text: "Die Kombination aus festen Tools und dem freien Chat ist genau das, was mir gefehlt hat.", author: "Timo B.", role: "Agentur Inhaber" },
+  { text: "Super fair, dass man sich erst anmelden und umschauen kann. Das Premium-Upgrade war ein No-Brainer.", author: "Jonas L.", role: "Freelancer" }
+];
 
 // --- ANIMATION CONFIG ---
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 30 },
+
+const fadeUp = (delay = 0, reducedMotion = false) => ({
+  initial: reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true },
-  transition: { duration: 0.5, delay: delay, ease: "easeOut" },
+  viewport: { once: true, margin: "-100px" },
+  transition: reducedMotion ? { duration: 0 } : { duration: 0.6, delay: delay, ease: [0.21, 0.47, 0.32, 0.98] },
 });
 
-// Marquee Animation für die Helfer-Liste
-const marqueeVariants = {
-  animate: {
+const marqueeVariants = (reducedMotion = false) => ({
+  animate: reducedMotion ? {} : {
     x: [0, -1035],
     transition: {
-      x: {
-        repeat: Infinity,
-        repeatType: "loop",
-        duration: 25,
-        ease: "linear",
-      },
+      x: { repeat: Infinity, repeatType: "loop", duration: 40, ease: "linear" },
     },
   },
-};
+});
+
+// --- ICONS ---
+const MenuIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-8 6h8" /></svg>;
+const CloseIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
+
+// --- HEADER COMPONENT ---
+function Header() {
+  const [scrolled, setScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Navigation Items
+  const navItems = [
+    { name: "Features", href: "#features" },
+    { name: "Meinungen", href: "#testimonials" },
+    { name: "FAQ", href: "#faq" },
+    { name: "Preis", href: "/pricing" }, // Link zur Pricing Page
+  ];
+
+  return (
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled || isMenuOpen ? "bg-zinc-950/90 backdrop-blur-md border-b border-white/10" : "bg-transparent border-transparent"
+      }`}
+    >
+      <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3 group" onClick={() => setIsMenuOpen(false)}>
+           <div className="relative h-9 w-9 overflow-hidden rounded-xl shadow-lg shadow-orange-500/10 border border-white/10 bg-white hover:scale-105 transition-transform duration-300">
+             <Image 
+               src="/assets/logos/logo.webp" 
+               alt="Sinispace Logo" 
+               fill 
+               className="object-contain p-1" 
+               priority 
+             />
+           </div>
+        </Link>
+
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-8">
+          {navItems.map((item) => (
+            <Link 
+              key={item.name} 
+              href={item.href} 
+              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              {item.name}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center gap-4">
+          <Link href="/login" className="text-sm font-medium text-white hover:text-white/80 transition-colors">Login</Link>
+          <Link href="/register" className="px-5 py-2.5 rounded-full bg-white text-zinc-950 text-sm font-bold hover:bg-zinc-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+            Kostenlos starten
+          </Link>
+        </div>
+
+        {/* Mobile Toggle */}
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-white p-2">
+          {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden bg-zinc-950 border-b border-zinc-800 overflow-hidden"
+          >
+            <div className="p-6 space-y-4">
+              {navItems.map((item) => (
+                <Link 
+                  key={item.name} 
+                  href={item.href} 
+                  onClick={() => setIsMenuOpen(false)} 
+                  className="block text-zinc-300 font-medium text-lg"
+                >
+                  {item.name}
+                </Link>
+              ))}
+              <div className="h-px bg-zinc-800 my-4" />
+              <Link href="/login" onClick={() => setIsMenuOpen(false)} className="block text-white font-medium">Login</Link>
+              <Link href="/register" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-3 bg-white text-zinc-950 rounded-xl font-bold">
+                Kostenlos starten
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+}
+
+// --- MAIN PAGE ---
 
 export default function LandingPage() {
+  const prefersReducedMotion = useReducedMotion();
+  
+  // Memoized configs
+  const fadeConfigs = useMemo(() => ({
+    badge: fadeUp(0.1, prefersReducedMotion),
+    title: fadeUp(0.2, prefersReducedMotion),
+    sub: fadeUp(0.3, prefersReducedMotion),
+    btn: fadeUp(0.4, prefersReducedMotion),
+  }), [prefersReducedMotion]);
+
   return (
-    <div className="min-h-screen bg-white text-zinc-900 selection:bg-orange-100 selection:text-orange-900 overflow-x-hidden font-sans">
-      <Navbar />
+    <div className="min-h-screen bg-zinc-950 text-zinc-900 font-sans selection:bg-orange-500/30 selection:text-orange-100">
+      <Header />
       
-      <main className="pt-16">
-        {/* HERO SECTION - CINEMATIC DARK */}
-        <section className="relative min-h-[90vh] pt-24 pb-20 lg:pt-36 lg:pb-32 overflow-hidden bg-zinc-950">
-          {/* Animated Grid Background */}
-          <div className="absolute inset-0 opacity-20">
-            <div 
-              className="absolute inset-0"
-              style={{
-                backgroundImage: `
-                  linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
-                `,
-                backgroundSize: '50px 50px',
-              }}
+      <main>
+        {/* --- HERO SECTION --- */}
+        <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-zinc-950 min-h-[95vh] flex flex-col justify-center">
+          
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+            <motion.div 
+              animate={prefersReducedMotion ? {} : { scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3], x: [0, 50, 0] }} 
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-0 left-1/4 -translate-x-1/2 h-[500px] w-[500px] rounded-full bg-orange-500/20 blur-[120px]" 
+            />
+            <motion.div 
+              animate={prefersReducedMotion ? {} : { scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2], x: [0, -50, 0] }} 
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="absolute bottom-0 right-1/4 h-[600px] w-[600px] rounded-full bg-purple-500/10 blur-[120px]" 
             />
           </div>
 
-          {/* Spotlight Effects */}
-          <div className="absolute inset-0 overflow-hidden">
-            <motion.div
-              className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-orange-500/20 blur-[120px]"
-              animate={{
-                x: [0, 100, 0],
-                y: [0, 50, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-            <motion.div
-              className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500/20 blur-[120px]"
-              animate={{
-                x: [0, -100, 0],
-                y: [0, -50, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 10,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </div>
-
-          <div className="container mx-auto px-4 text-center md:px-6 relative z-10">
-            
-            <motion.div
-              className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm px-4 py-1.5 text-sm font-bold text-zinc-300 shadow-lg hover:border-orange-500/50 hover:text-orange-400 transition-colors cursor-default"
-              {...fadeUp(0.1)}
-            >
-              <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse"></span>
+          <div className="container mx-auto px-4 text-center relative z-10">
+            <motion.div {...fadeConfigs.badge} className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-4 py-1.5 text-sm font-medium text-zinc-300">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+              </span>
               Prompt Engineering war gestern.
             </motion.div>
 
-            <motion.h1
-              className="mx-auto max-w-5xl text-5xl font-extrabold tracking-tighter text-white sm:text-7xl md:text-8xl"
-              {...fadeUp(0.2)}
-            >
+            <motion.h1 {...fadeConfigs.title} className="mx-auto max-w-5xl text-5xl font-extrabold tracking-tighter text-white sm:text-7xl md:text-8xl leading-[1.1]">
               Ergebnisse auf <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 bg-clip-text text-transparent pb-2 inline-block">
                 Knopfdruck.
               </span>
             </motion.h1>
 
-            <motion.p
-              className="mx-auto mt-8 max-w-[640px] text-lg font-medium text-zinc-300 md:text-xl leading-relaxed"
-              {...fadeUp(0.3)}
-            >
+            <motion.p {...fadeConfigs.sub} className="mx-auto mt-8 max-w-2xl text-lg text-zinc-400 md:text-xl leading-relaxed">
               Keine Lust auf komplexe Prompts? Sinispace liefert dir fertige KI-Helfer. 
-              Klick drauf, fertig. <span className="text-white font-bold">Und wenn du doch mal frei chatten willst?</span> Haben wir auch.
+              Klick drauf, fertig. <span className="text-zinc-100 font-bold">Und wenn du doch mal frei chatten willst?</span> Haben wir auch.
             </motion.p>
 
-            <motion.div 
-              className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row" 
-              {...fadeUp(0.4)}
-            >
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-                <Link
-                  href="/register" 
-                  className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-8 py-4 text-base font-bold text-white shadow-xl shadow-orange-500/30 transition-all hover:shadow-orange-500/50 hover:scale-105"
-                >
+            <motion.div {...fadeConfigs.btn} className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link href="/register" className="flex items-center justify-center w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-zinc-950 font-bold text-lg hover:bg-zinc-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.15)]">
                   Kostenlos registrieren
                 </Link>
               </motion.div>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-                <Link
-                  href="#features"
-                  className="flex w-full items-center justify-center rounded-xl border-2 border-zinc-700 bg-zinc-900/50 backdrop-blur-sm px-8 py-4 text-base font-bold text-white transition-colors hover:border-zinc-600 hover:bg-zinc-800/50"
-                >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link href="#features" className="flex items-center justify-center w-full sm:w-auto px-8 py-4 rounded-xl border border-zinc-700 bg-zinc-900/50 text-white font-bold hover:bg-zinc-800 transition-all backdrop-blur-sm">
                   So funktioniert's
                 </Link>
               </motion.div>
             </motion.div>
 
-            {/* Mockup Container - Chat Interface */}
-            <motion.div
-              className="mt-16 mx-auto max-w-2xl"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
+            <motion.div 
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, delay: 0.5 }}
+              className="mt-24 mx-auto max-w-4xl"
             >
-              <motion.div
-                className="relative rounded-2xl border border-zinc-800 bg-zinc-900/80 backdrop-blur-xl shadow-2xl overflow-hidden"
-                style={{
-                  perspective: '1000px',
-                }}
-                animate={{
-                  y: [0, -10, 0],
-                  rotateX: [0, 2, 0],
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
-                {/* Glassmorphism Header */}
-                <div className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                    <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-                    <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                    <div className="ml-4 flex-1 text-left">
-                      <div className="h-2 w-32 rounded bg-zinc-700"></div>
-                    </div>
+               <motion.div 
+                 animate={prefersReducedMotion ? {} : { y: [0, -10, 0] }}
+                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                 className="rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl p-2 shadow-2xl ring-1 ring-white/5"
+               >
+                  <div className="rounded-xl bg-zinc-950/80 border border-white/5 overflow-hidden">
+                     <div className="h-12 border-b border-white/5 bg-white/5 flex items-center px-4 gap-2">
+                        <div className="h-3 w-3 rounded-full bg-red-500/20"></div>
+                        <div className="h-3 w-3 rounded-full bg-yellow-500/20"></div>
+                        <div className="h-3 w-3 rounded-full bg-green-500/20"></div>
+                        <div className="ml-4 h-6 w-1/3 bg-white/5 rounded-full"></div>
+                     </div>
+                     <div className="p-6 md:p-10 min-h-[300px] flex flex-col justify-end space-y-6">
+                        <div className="flex gap-4">
+                           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold shadow-lg">AI</div>
+                           <div className="bg-zinc-800/80 border border-zinc-700 p-4 rounded-2xl rounded-tl-none text-zinc-300 text-sm max-w-[85%] leading-relaxed shadow-sm">
+                              Hier ist dein fertiger LinkedIn Post zum Thema "SaaS Growth". Soll ich noch passende Hashtags hinzufügen?
+                           </div>
+                        </div>
+                        <div className="flex gap-4 flex-row-reverse">
+                           <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-xs border border-zinc-700">DU</div>
+                           <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-2xl rounded-tr-none text-orange-200 text-sm max-w-[85%] leading-relaxed">
+                              Ja, bitte generiere 5 relevante Hashtags.
+                           </div>
+                        </div>
+                        <div className="h-14 w-full bg-zinc-900 rounded-xl border border-zinc-800 flex items-center px-4 gap-4 shadow-inner">
+                           <div className="h-2 w-full bg-zinc-800/50 rounded"></div>
+                           <div className="h-10 w-10 bg-orange-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-600/20">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                           </div>
+                        </div>
+                     </div>
                   </div>
-                </div>
-
-                {/* Chat Messages */}
-                <div className="p-6 space-y-4 min-h-[300px]">
-                  {/* User Message */}
-                  <div className="flex justify-end">
-                    <div className="max-w-[70%] rounded-2xl rounded-tr-sm bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30 p-4">
-                      <p className="text-sm text-zinc-200">
-                        Erstelle einen LinkedIn Post über KI-Tools
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* AI Response */}
-                  <div className="flex justify-start">
-                    <div className="max-w-[70%] rounded-2xl rounded-tl-sm bg-zinc-800/50 border border-zinc-700 p-4">
-                      <div className="space-y-2">
-                        <div className="h-2 w-full rounded bg-zinc-700 animate-pulse"></div>
-                        <div className="h-2 w-3/4 rounded bg-zinc-700 animate-pulse"></div>
-                        <div className="h-2 w-5/6 rounded bg-zinc-700 animate-pulse"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Typing Indicator */}
-                  <div className="flex justify-start gap-2">
-                    <div className="h-2 w-2 rounded-full bg-orange-500 animate-bounce"></div>
-                    <div className="h-2 w-2 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="h-2 w-2 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-
-                {/* Input Area */}
-                <div className="border-t border-zinc-800 bg-zinc-900/50 backdrop-blur-sm p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-10 rounded-lg bg-zinc-800/50 border border-zinc-700 px-4 flex items-center">
-                      <div className="h-2 w-full rounded bg-zinc-700"></div>
-                    </div>
-                    <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m22 2-7 20-4-9-9-4Z"/>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+               </motion.div>
             </motion.div>
           </div>
-
-          {/* Gradient Transition to Marquee */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-zinc-950 to-transparent pointer-events-none z-10"></div>
         </section>
-          
-          {/* MARQUEE */}
-          <motion.div 
-            className="w-full overflow-hidden border-y border-zinc-100 bg-zinc-50/50 py-6 -mt-32 relative z-20"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            <div className="relative flex w-full overflow-hidden">
-               <div className="absolute left-0 z-10 h-full w-24 bg-gradient-to-r from-white to-transparent"></div>
-               <div className="absolute right-0 z-10 h-full w-24 bg-gradient-to-l from-white to-transparent"></div>
-               
-               <motion.div className="flex gap-8 whitespace-nowrap" variants={marqueeVariants} animate="animate">
-                 {[...Array(2)].map((_, i) => (
-                   <div key={i} className="flex gap-8">
-                     {["E-Mail Generator", "SEO Optimierer", "Code Review", "Rechtstexte", "Blog Post", "Instagram Caption", "Meeting Protokoll", "Excel Formeln", "Verkaufsstrategie", "Newsletter", "Übersetzung", "Zusammenfassung"].map((text) => (
-                       <div key={text} className="inline-flex items-center rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-bold text-zinc-600 shadow-sm">
-                         <span className="mr-2 text-orange-500">⚡️</span> {text}
-                       </div>
-                     ))}
+
+        {/* --- MARQUEE --- */}
+        <section className="bg-zinc-950 border-y border-white/5 py-10 relative overflow-hidden z-20">
+           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-zinc-950 to-transparent z-10"></div>
+           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-zinc-950 to-transparent z-10"></div>
+           <motion.div className="flex gap-8" variants={marqueeVariants(prefersReducedMotion)} animate="animate">
+             {[...Array(2)].map((_, i) => (
+               <div key={i} className="flex gap-8 whitespace-nowrap">
+                 {["LinkedIn Viral", "SEO Analyse", "Code Review", "Rechtstexte", "Blog Post", "Instagram Caption", "Meeting Protokoll", "Excel Formeln", "Sales E-Mail", "Zusammenfassung"].map((text) => (
+                   <div key={text} className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-zinc-800 bg-zinc-900/50 text-zinc-400 font-medium text-sm hover:border-orange-500/30 hover:text-orange-400 transition-colors cursor-default">
+                     <span className="text-orange-500">⚡️</span> {text}
                    </div>
                  ))}
-               </motion.div>
-            </div>
-          </motion.div>
+               </div>
+             ))}
+           </motion.div>
+        </section>
 
-        {/* BENTO GRID */}
-        <section id="features" className="w-full py-24 bg-white">
+        {/* --- FEATURES (Compact) --- */}
+        <section id="features" className="py-20 bg-white text-zinc-900">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="mb-16 md:text-center max-w-3xl mx-auto">
-              <h2 className="text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl">
+            <motion.div className="mb-12 md:text-center max-w-3xl mx-auto" {...fadeUp(0.1)}>
+              <h2 className="text-4xl font-extrabold tracking-tight sm:text-6xl mb-6 text-zinc-900">
                 Kein Studium nötig.
               </h2>
-              <p className="mt-6 text-xl text-zinc-500">
+              <p className="text-xl text-zinc-500 leading-relaxed">
                 Wir nehmen dir die technische Last ab. Du drückst den Knopf, die KI macht die Arbeit.
               </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-2 gap-6 h-auto md:h-[600px]">
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-[auto,auto] gap-6">
               
-              {/* CARD 1: Big Feature */}
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="md:col-span-2 row-span-2 rounded-3xl border border-zinc-200 bg-zinc-50 p-8 flex flex-col justify-between overflow-hidden relative group"
-              >
-                <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-gradient-to-br from-orange-400/20 to-purple-400/20 blur-3xl group-hover:scale-110 transition-transform duration-500"></div>
-                
-                <div className="relative z-10">
-                  <div className="h-12 w-12 rounded-2xl bg-zinc-900 flex items-center justify-center mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                  </div>
-                  <h3 className="text-3xl font-bold text-zinc-900 mb-4">Hunderte fertige Helfer.</h3>
-                  <p className="text-lg text-zinc-600 max-w-md">
-                    Warum Prompts schreiben, wenn wir das schon perfektioniert haben? 
-                    Wähle dein Ziel (z.B. "LinkedIn Post"), gib deine Stichpunkte ein, fertig. 
-                    Professionelle Ergebnisse ohne Lernkurve.
-                  </p>
+              {/* CARD 1: TOOLBOX (Compact Layout) */}
+              <motion.div whileHover={{ y: -5 }} className="md:col-span-2 row-span-2 rounded-[2.5rem] border border-zinc-200 bg-zinc-50 overflow-hidden relative group flex flex-col md:flex-row h-auto md:h-96 shadow-sm hover:shadow-2xl transition-all duration-500">
+                <div className="p-8 flex flex-col justify-center relative z-10 md:w-1/2">
+                   <div className="h-12 w-12 rounded-2xl bg-white border border-zinc-200 shadow-sm flex items-center justify-center mb-6">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                   </div>
+                   <h3 className="text-3xl font-bold text-zinc-900 mb-4 leading-tight">Hunderte <br/> <span className="text-zinc-400">fertige Helfer.</span></h3>
+                   <p className="text-base text-zinc-500 leading-relaxed mb-6">Wähle dein Ziel (z.B. "LinkedIn Post"), gib Stichpunkte ein, fertig. Professionelle Ergebnisse ohne Lernkurve.</p>
+                   <Link href="/register" className="inline-flex items-center gap-2 text-sm font-bold text-orange-600 group-hover:gap-3 transition-all">Alle Tools ansehen <span>&rarr;</span></Link>
                 </div>
-
-                {/* Simulated UI */}
-                <div className="mt-8 grid grid-cols-2 gap-3 opacity-80">
-                   <div className="rounded-xl bg-white p-4 shadow-sm border border-zinc-100 flex items-center gap-3">
-                     <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">IN</div>
-                     <span className="font-bold text-sm text-zinc-800">LinkedIn Viral</span>
-                   </div>
-                   <div className="rounded-xl bg-white p-4 shadow-sm border border-zinc-100 flex items-center gap-3">
-                     <div className="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center text-green-600 text-xs font-bold">XL</div>
-                     <span className="font-bold text-sm text-zinc-800">Excel Experte</span>
-                   </div>
-                   <div className="rounded-xl bg-white p-4 shadow-sm border border-zinc-100 flex items-center gap-3">
-                     <div className="h-8 w-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-bold">EM</div>
-                     <span className="font-bold text-sm text-zinc-800">Kunden E-Mail</span>
-                   </div>
+                <div className="relative h-64 md:h-full md:w-1/2 bg-white/60 border-t md:border-t-0 md:border-l border-zinc-200 overflow-hidden">
+                    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-zinc-50 to-transparent z-20 pointer-events-none"></div>
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-zinc-50 to-transparent z-20 pointer-events-none"></div>
+                    <div className="flex gap-4 justify-center h-full p-6 overflow-hidden">
+                        <motion.div animate={{ y: ["0%", "-50%"] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-3">
+                           {[...toolsColumn1, ...toolsColumn1, ...toolsColumn1].map((tool, i) => (
+                             <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-zinc-100 shadow-sm w-40 shrink-0 hover:scale-105 transition-transform"><div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold ${tool.color}`}>{tool.icon}</div><span className="text-sm font-medium text-zinc-700">{tool.label}</span></div>
+                           ))}
+                        </motion.div>
+                        <motion.div animate={{ y: ["-50%", "0%"] }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-3">
+                           {[...toolsColumn2, ...toolsColumn2, ...toolsColumn2].map((tool, i) => (
+                             <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-zinc-100 shadow-sm w-40 shrink-0 hover:scale-105 transition-transform"><div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold ${tool.color}`}>{tool.icon}</div><span className="text-sm font-medium text-zinc-700">{tool.label}</span></div>
+                           ))}
+                        </motion.div>
+                    </div>
                 </div>
               </motion.div>
 
-              {/* CARD 2: Free Chat */}
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="rounded-3xl border border-zinc-200 bg-white p-8 flex flex-col justify-between relative overflow-hidden group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              {/* CARD 2 */}
+              <motion.div whileHover={{ y: -5 }} className="rounded-[2.5rem] border border-zinc-200 bg-white p-8 flex flex-col justify-between relative overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div className="relative z-10">
-                   <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center mb-4">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                   </div>
-                   <h3 className="text-xl font-bold text-zinc-900">Freier Chat.</h3>
-                   <p className="mt-2 text-sm text-zinc-500">
-                     Manchmal willst du die Kontrolle. Nutze unsere ChatGPT-Anbindung (Fair Use) für deine eigenen Ideen.
-                   </p>
+                   <div className="h-12 w-12 rounded-2xl bg-blue-600 flex items-center justify-center mb-6 text-white shadow-lg shadow-blue-200"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+                   <h3 className="text-2xl font-bold text-zinc-900 mb-3">Freier Chat.</h3>
+                   <p className="text-zinc-500 leading-relaxed text-sm">Manchmal willst du die Kontrolle. Nutze unsere ChatGPT-Anbindung (Fair Use) für deine eigenen Ideen.</p>
                 </div>
               </motion.div>
 
-              {/* CARD 3: Business Model */}
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className="rounded-3xl border border-zinc-200 bg-zinc-900 p-8 flex flex-col justify-between relative overflow-hidden text-white"
-              >
-                <div className="absolute top-0 right-0 h-full w-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+              {/* CARD 3 */}
+              <motion.div whileHover={{ y: -5 }} className="rounded-[2.5rem] border border-zinc-800 bg-zinc-900 p-8 flex flex-col justify-between relative overflow-hidden text-white shadow-xl hover:shadow-2xl transition-all duration-500">
+                <div className="absolute top-0 right-0 h-64 w-64 bg-orange-500/10 blur-[80px] rounded-full pointer-events-none"></div>
                 <div className="relative z-10">
-                   <div className="h-10 w-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center mb-4">
-                     <span className="text-xl">🔓</span>
-                   </div>
-                   <h3 className="text-xl font-bold text-white">Kostenlos anmelden.</h3>
-                   <p className="mt-2 text-sm text-zinc-400">
-                     Erstell deinen Account unverbindlich. Schau dich im Dashboard um. Premium brauchst du erst für die Power-Features.
-                   </p>
+                   <div className="h-12 w-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center mb-6"><span className="text-2xl">🔓</span></div>
+                   <h3 className="text-2xl font-bold text-white mb-3">Kostenlos anmelden.</h3>
+                   <p className="text-zinc-400 leading-relaxed text-sm">Erstell deinen Account unverbindlich. Schau dich im Dashboard um. Premium brauchst du erst für die Power-Features.</p>
                 </div>
               </motion.div>
-
             </div>
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
-        <section id="testimonials" className="w-full py-24 bg-zinc-50 border-t border-zinc-200">
+        {/* --- TESTIMONIALS --- */}
+        <section id="testimonials" className="py-24 bg-zinc-50 border-t border-zinc-200">
            <div className="container mx-auto px-4 md:px-6">
+             <div className="text-center mb-16">
+                <h2 className="text-3xl font-bold text-zinc-900">Von Profis genutzt.</h2>
+             </div>
              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-               {[
-                 { text: "Ich habe keine Ahnung von 'Prompts'. Hier klicke ich auf 'E-Mail' und es passt. Genial.", author: "Sandra K.", role: "Immobilienmaklerin" },
-                 { text: "Die Kombination aus festen Tools und dem freien Chat ist genau das, was mir gefehlt hat.", author: "Timo B.", role: "Agentur Inhaber" },
-                 { text: "Super fair, dass man sich erst anmelden und umschauen kann. Das Premium-Upgrade war ein No-Brainer.", author: "Jonas L.", role: "Freelancer" }
-               ].map((item, i) => (
-                 <motion.div 
-                    key={i}
-                    whileHover={{ scale: 1.02 }}
-                    className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-sm border border-zinc-100"
-                 >
-                   <p className="text-zinc-700 font-medium italic">"{item.text}"</p>
-                   <div className="mt-6 border-t border-zinc-100 pt-4">
+               {testimonialData.map((item, i) => (
+                 <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} whileHover={{ scale: 1.02 }} className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-sm border border-zinc-200/60">
+                   <div className="flex gap-1 mb-4 text-orange-400">{[1,2,3,4,5].map(s => <svg key={s} width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>)}</div>
+                   <p className="text-zinc-700 font-medium italic mb-6 leading-relaxed">"{item.text}"</p>
+                   <div className="mt-auto pt-6 border-t border-zinc-100">
                      <p className="text-sm font-bold text-zinc-900">{item.author}</p>
                      <p className="text-xs text-zinc-400 uppercase tracking-wide">{item.role}</p>
                    </div>
@@ -353,55 +391,46 @@ export default function LandingPage() {
            </div>
         </section>
 
-        {/* FAQ */}
-        <section className="w-full py-24 bg-white">
+        {/* --- PRICING TEASER --- */}
+        <section className="py-24 bg-white border-t border-zinc-100 relative overflow-hidden">
+          <div className="container mx-auto px-4 text-center">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="max-w-4xl mx-auto rounded-[2.5rem] bg-zinc-950 px-6 py-20 text-white shadow-2xl relative overflow-hidden group">
+               <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[300px] w-[500px] bg-purple-500/20 blur-[100px] rounded-full pointer-events-none group-hover:bg-purple-500/30 transition-colors duration-700"></div>
+               <div className="relative z-10">
+                 <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Ein Zugang. Keine monatlichen Kosten.</h2>
+                 <p className="text-lg text-zinc-300 max-w-2xl mx-auto mb-10 leading-relaxed">Wir glauben nicht an komplizierte Abo-Modelle oder versteckte Gebühren. Hol dir den Jahrespass für Sinispace und nutze die Power von zwei Top-KIs ohne Limits.</p>
+                 <Link href="/pricing" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-zinc-950 font-bold text-lg hover:bg-zinc-200 hover:scale-105 transition-all shadow-lg shadow-white/10">Preismodell ansehen <span>&rarr;</span></Link>
+                 <p className="mt-6 text-xs text-zinc-500 uppercase tracking-widest font-medium">Fair Use Policy • 14 Tage Geld-zurück</p>
+               </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* --- FAQ --- */}
+        <section id="faq" className="py-32 bg-white">
           <div className="container mx-auto px-4 md:px-6 max-w-3xl">
-            <h2 className="text-3xl font-extrabold text-zinc-900 mb-10 text-center">Kurz erklärt.</h2>
+            <h2 className="text-3xl font-extrabold text-zinc-900 mb-12 text-center">Kurz erklärt.</h2>
             <div className="space-y-4">
-              {[
-                  { q: "Brauche ich einen API Key?", a: "Nein. Wir stellen die Technik. Du nutzt einfach die App." },
-                  { q: "Ist die Anmeldung wirklich kostenlos?", a: "Ja. Die Registrierung ist komplett kostenlos. Du bezahlst erst, wenn du die Premium-Funktionen nutzen möchtest." },
-                  { q: "Was bedeutet 'Fair Use' im freien Chat?", a: "Du kannst frei mit der KI schreiben. Wir haben großzügige Limits, damit alle Nutzer performant arbeiten können." }
-              ].map((faq, i) => (
-                  <div 
-                    key={i} 
-                    className="group rounded-xl border border-zinc-200 bg-white p-6 transition-all hover:border-orange-200 hover:shadow-md"
-                  >
-                    <h3 className="text-lg font-bold text-zinc-900 group-hover:text-orange-600 transition-colors">{faq.q}</h3>
-                    <p className="mt-2 text-zinc-600">{faq.a}</p>
-                  </div>
+              {faqData.map((faq, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                    <details className="group rounded-2xl border border-zinc-200 bg-white open:border-zinc-300 open:shadow-md transition-all duration-300 overflow-hidden">
+                      <summary className="flex cursor-pointer items-center justify-between p-6 font-bold text-zinc-900 list-none hover:bg-zinc-50 transition-colors">{faq.q}<span className="transition-transform duration-300 group-open:rotate-180 text-zinc-400">▼</span></summary>
+                      <div className="px-6 pb-6 text-zinc-600 leading-relaxed border-t border-zinc-100 pt-4 text-sm bg-zinc-50/30">{faq.a}</div>
+                    </details>
+                  </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* FINAL CTA */}
-        <section className="w-full py-32 relative overflow-hidden bg-zinc-900 text-white">
-           <div className="absolute inset-0 z-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#4b5563 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
-           
-           <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
-             <motion.h2 
-                className="text-4xl font-extrabold tracking-tighter sm:text-6xl mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-             >
-               Bereit für das Upgrade?
-             </motion.h2>
-             <p className="mx-auto max-w-[600px] text-zinc-400 text-xl mb-12">
-               Erstelle jetzt deinen Account. Kostenlos. <br />
-               Starte in wenigen Sekunden.
-             </p>
-             <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-             >
-               <Link
-                  href="/register"
-                  className="inline-flex h-16 items-center justify-center rounded-full bg-white px-12 text-lg font-bold text-zinc-900 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] transition-all hover:bg-orange-50"
-                >
-                  Account erstellen & loslegen
-                </Link>
+        {/* --- FINAL CTA --- */}
+        <section className="relative py-40 bg-zinc-950 overflow-hidden text-center">
+           <div className="absolute inset-0 opacity-20"><div className="absolute inset-0 bg-[radial-gradient(#ffffff33_1px,transparent_1px)] [background-size:16px_16px]"></div></div>
+           <div className="container mx-auto px-4 relative z-10">
+             <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-6xl font-extrabold text-white mb-8 tracking-tighter">Bereit für das Upgrade?</motion.h2>
+             <p className="mx-auto max-w-[600px] text-zinc-400 text-xl mb-12">Erstelle jetzt deinen Account. Kostenlos. <br className="hidden sm:block"/>Starte in wenigen Sekunden.</p>
+             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
+               <Link href="/register" className="inline-flex h-16 items-center justify-center rounded-full bg-white px-12 text-lg font-bold text-zinc-950 shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)] hover:bg-zinc-200 transition-colors">Account erstellen & loslegen</Link>
              </motion.div>
              <p className="mt-8 text-sm text-zinc-500">Keine Kreditkarte für die Registrierung nötig.</p>
            </div>
@@ -409,27 +438,18 @@ export default function LandingPage() {
 
       </main>
 
-      {/* FOOTER */}
+      {/* --- FOOTER --- */}
       <footer className="border-t border-zinc-100 bg-white py-12">
-        <div className="container mx-auto flex flex-col items-center justify-between gap-6 px-4 md:flex-row">
-        <div className="flex items-center gap-2">
-            {/* LOGO FOOTER */}
-            <div className="relative h-8 w-24 overflow-hidden">
-               <Image 
-                  src="/assets/logos/logo.webp" 
-                  alt="Sinispace Logo" 
-                  fill
-                  className="object-contain object-left"
-               />
-            </div>
-            {/* Auch hier Text entfernen, falls er im Bild ist */}
+        <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+          <div className="flex items-center gap-2">
+             <div className="relative h-10 w-40">
+               <Image src="/assets/logos/logo-full.webp" alt="Sinispace Logo Full" fill className="object-contain object-left"/>
+             </div>
           </div>
-          <p className="text-sm text-zinc-500 text-center md:text-left">
-            &copy; {new Date().getFullYear()} Sinispace. Made in Germany.
-          </p>
+          <p className="text-sm text-zinc-500 text-center md:text-left">&copy; {new Date().getFullYear()} Sinispace. Made in Germany.</p>
           <div className="flex gap-8">
-            <Link href="#" className="text-sm font-medium text-zinc-500 hover:text-zinc-900">Impressum</Link>
-            <Link href="#" className="text-sm font-medium text-zinc-500 hover:text-zinc-900">Datenschutz</Link>
+            <Link href="#" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">Impressum</Link>
+            <Link href="#" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">Datenschutz</Link>
           </div>
         </div>
       </footer>

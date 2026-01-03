@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { chatWithAI } from '@/actions/ai-actions';
-import { createChat, saveMessage } from '@/actions/chat-actions';
-// KEIN Sidebar Import mehr nötig!
-// KEINE Icons (Menu, X) mehr nötig!
+import { getChat, saveMessage } from '@/actions/chat-actions';
+import { ChatSidebar } from '@/components/platform/chat-sidebar';
+import { Menu, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -18,14 +19,16 @@ type Message = {
   content: string;
 };
 
-export default function ChatPage() {
+export default function ChatDetailPage() {
+  const params = useParams();
   const router = useRouter();
+  const chatId = params.id as string;
+  
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  
-  // sidebarOpen State ist WEG (macht jetzt das Layout)
+  const [isLoadingChat, setIsLoadingChat] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -33,39 +36,40 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Chat beim Laden aus DB holen
+  useEffect(() => {
+    async function loadChat() {
+      if (!chatId) return;
+      
+      const chat = await getChat(chatId);
+      if (chat) {
+        setMessages(chat.messages);
+      } else {
+        // Chat nicht gefunden, zurück zur Chat-Liste
+        router.push('/chat');
+      }
+      setIsLoadingChat(false);
+    }
+    loadChat();
+  }, [chatId, router]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !chatId) return;
 
     const userMessage: Message = { role: 'user', content: input };
     const newHistory = [...messages, userMessage];
     
     setMessages(newHistory);
-    const messageContent = input;
     setInput('');
     setIsLoading(true);
 
-    let chatIdToUse = currentChatId;
-
-    // Wenn noch kein Chat existiert, erstelle einen neuen
-    if (!chatIdToUse) {
-      const chatResult = await createChat(messageContent);
-      if (chatResult.success && chatResult.chatId) {
-        chatIdToUse = chatResult.chatId;
-        setCurrentChatId(chatIdToUse);
-        // URL ändern ohne Reload
-        window.history.pushState({}, '', `/chat/${chatIdToUse}`); // Soft Navigation
-      }
-    }
-
-    // User-Nachricht speichern
-    if (chatIdToUse) {
-      await saveMessage(chatIdToUse, 'user', messageContent);
-    }
+    // User-Nachricht in DB speichern
+    await saveMessage(chatId, 'user', input);
 
     const response = await chatWithAI(newHistory);
 
@@ -73,27 +77,56 @@ export default function ChatPage() {
       const assistantMessage: Message = { role: 'assistant', content: response.result };
       setMessages([...newHistory, assistantMessage]);
       
-      // Assistant-Nachricht speichern
-      if (chatIdToUse) {
-        await saveMessage(chatIdToUse, 'assistant', response.result);
-      }
+      // Assistant-Nachricht in DB speichern
+      await saveMessage(chatId, 'assistant', response.result);
     } else {
-      setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
+      const errorMessage: Message = { role: 'assistant', content: "⚠️ Fehler: " + response.error };
+      setMessages([...newHistory, errorMessage]);
     }
     
     setIsLoading(false);
   }
 
-  return (
-    // WICHTIG: Nur noch ein einfacher Container, der den Platz vom Layout füllt.
-    // Keine Sidebar-Komponente mehr hier drin!
-    <div className="flex flex-col h-full w-full bg-white">
-      
-      {/* HEADER: Nur noch Titel, kein Logo/Burger mehr (macht das Layout auf Mobile) */}
-      <div className="shrink-0 px-4 py-2 border-b border-transparent sm:border-zinc-100 mt-2 sm:mt-0">
-        <h1 className="text-xl sm:text-2xl font-bold text-zinc-900">Freier Chat</h1>
-        <p className="text-sm sm:text-base text-zinc-500">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+  if (isLoadingChat) {
+    return (
+      <div className="flex h-full w-full bg-white" data-no-padding>
+        <ChatSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="flex flex-col h-full w-full md:flex-1 bg-white items-center justify-center">
+          <div className="text-zinc-400">Lade Chat...</div>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full w-full bg-white" data-no-padding>
+      {/* Chat Sidebar */}
+      <ChatSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      {/* Chat Content - Volle Breite auf Mobile */}
+      <div className="flex flex-col h-full w-full md:flex-1 bg-white">
+        {/* HEADER mit Logo und Burger-Button */}
+        <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-zinc-200 bg-white">
+          {/* Logo (Links) */}
+          <Link href="/dashboard" className="flex items-center">
+            <span className="text-lg font-bold text-zinc-900">Sinispace</span>
+          </Link>
+          
+          {/* Burger-Button (Rechts) - Nur Mobile */}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-zinc-100 transition-colors"
+            aria-label="Chats öffnen"
+          >
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+        
+        {/* Chat Titel */}
+        <div className="shrink-0 px-4 py-2 border-b border-transparent sm:border-zinc-100">
+          <h1 className="text-xl sm:text-2xl font-bold text-zinc-900">Freier Chat</h1>
+          <p className="text-sm sm:text-base text-zinc-500">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+        </div>
 
       {/* NACHRICHTEN BEREICH */}
       <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-4 space-y-6 scroll-smooth">
@@ -109,14 +142,12 @@ export default function ChatPage() {
             key={i}
             className={`flex w-full gap-2 sm:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            {/* AI Avatar */}
             {msg.role === 'assistant' && (
               <div className="hidden sm:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-green-100 text-lg border border-green-200 mt-1">
                 ✨
               </div>
             )}
 
-            {/* Chat Bubble */}
             <div
               className={`relative max-w-[90%] sm:max-w-[85%] rounded-2xl px-4 py-3 shadow-sm text-sm leading-relaxed ${
                 msg.role === 'user'
@@ -125,7 +156,6 @@ export default function ChatPage() {
               }`}
             >
               {msg.role === 'assistant' ? (
-                // Markdown Rendering
                 <div className="prose prose-zinc prose-sm max-w-none dark:prose-invert 
                   prose-p:my-1 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 
                   prose-headings:mt-4 prose-headings:mb-2 prose-headings:font-bold
@@ -185,7 +215,6 @@ export default function ChatPage() {
               )}
             </div>
 
-            {/* User Avatar */}
             {msg.role === 'user' && (
               <div className="hidden sm:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600 border border-zinc-300 mt-1">
                 DU
@@ -229,6 +258,8 @@ export default function ChatPage() {
           KI kann Fehler machen. Überprüfe wichtige Informationen.
         </p>
       </div>
+      </div>
     </div>
   );
 }
+

@@ -55,15 +55,26 @@ model Session {
 }
 
 model Chat {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
   title     String
-  createdAt DateTime @default(now())
-  
-  // Da wir Chats nach 30 Tagen löschen, brauchen wir hier keine komplexe Historie-Logik,
-  // speichern die Nachrichten aber als JSON oder Relation. 
-  // Für MVP speichern wir Messages als JSON-Blob, das ist performant für LLM-Kontext.
-  messages  String   // JSON Stringified Array of Messages
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relationen
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  chatId    String
+  content   String   // Text für lange Nachrichten
+  role      String   // 'user' oder 'assistant'
+  createdAt DateTime @default(now())
+
+  // Relationen
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
 }

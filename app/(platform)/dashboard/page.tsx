@@ -93,7 +93,7 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-5xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-zinc-900">
-          Guten Tag, {session?.user?.name || 'Nutzer'}.
+        Guten Tag, {session?.user?.name || session?.user?.email || 'Nutzer'}.
         </h1>
         <p className="text-zinc-500">
           Was möchtest du heute erledigen?
