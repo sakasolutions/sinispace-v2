@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
+  trustHost: true, // Erlaube sinispace.app als vertrauenswürdige Domain
   session: { strategy: 'jwt' }, // WICHTIG: Bei Credentials müssen wir JWT nutzen
   providers: [
     Credentials({
