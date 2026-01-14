@@ -1,7 +1,6 @@
 'use client';
 
-import { generateSummary } from '@/actions/ai-actions';
-import { createHelperChat } from '@/actions/chat-actions';
+import { generateSummaryWithChat } from '@/actions/ai-actions';
 import { useActionState } from 'react';
 // @ts-ignore
 import { useFormStatus } from 'react-dom';
@@ -21,19 +20,7 @@ function SubmitButton() {
 
 export default function SummarizePage() {
   // @ts-ignore
-  const [state, formAction] = useActionState(async (prevState: any, formData: FormData) => {
-    const result = await generateSummary(prevState, formData);
-    
-    // Wenn erfolgreich, Chat in DB speichern
-    if (result?.result && !result.error) {
-      const text = formData.get('text') as string || '';
-      const userInput = text.slice(0, 500); // Erste 500 Zeichen als Input
-      
-      await createHelperChat('summarize', userInput, result.result);
-    }
-    
-    return result;
-  }, null);
+  const [state, formAction] = useActionState(generateSummaryWithChat, null);
 
   return (
     <div className="max-w-4xl mx-auto">

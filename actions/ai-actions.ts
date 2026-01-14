@@ -3,6 +3,7 @@
 import { openai } from '@/lib/openai';
 import { auth } from '@/auth';
 import { isUserPremium } from '@/lib/subscription';
+import { createHelperChat } from '@/actions/chat-actions';
 
 // --- HILFS-NACHRICHT FÜR FREE USER ---
 // Das hier sieht der User statt einer Fehlermeldung
@@ -82,6 +83,56 @@ export async function generateExcel(prevState: any, formData: FormData) {
   } catch (error) {
     return { error: 'KI Fehler.' };
   }
+}
+
+// --- E-MAIL MIT CHAT-SPEICHERUNG ---
+export async function generateEmailWithChat(prevState: any, formData: FormData) {
+  const result = await generateEmail(prevState, formData);
+  
+  // Wenn erfolgreich, Chat in DB speichern
+  if (result?.result && !result.error) {
+    const recipient = formData.get('recipient') as string || 'Unbekannt';
+    const tone = formData.get('tone') as string || 'Professionell';
+    const topic = formData.get('topic') as string || '';
+    
+    const userInput = `Empfänger: ${recipient}, Ton: ${tone}, Inhalt: ${topic}`;
+    
+    await createHelperChat('email', userInput, result.result);
+  }
+  
+  return result;
+}
+
+// --- EXCEL MIT CHAT-SPEICHERUNG ---
+export async function generateExcelWithChat(prevState: any, formData: FormData) {
+  const result = await generateExcel(prevState, formData);
+  
+  // Wenn erfolgreich, Chat in DB speichern
+  if (result?.result && !result.error) {
+    const platform = formData.get('platform') as string || 'Microsoft Excel';
+    const problem = formData.get('problem') as string || '';
+    
+    const userInput = `Programm: ${platform}, Problem: ${problem}`;
+    
+    await createHelperChat('excel', userInput, result.result);
+  }
+  
+  return result;
+}
+
+// --- SUMMARY MIT CHAT-SPEICHERUNG ---
+export async function generateSummaryWithChat(prevState: any, formData: FormData) {
+  const result = await generateSummary(prevState, formData);
+  
+  // Wenn erfolgreich, Chat in DB speichern
+  if (result?.result && !result.error) {
+    const text = formData.get('text') as string || '';
+    const userInput = text.slice(0, 500); // Erste 500 Zeichen als Input
+    
+    await createHelperChat('summarize', userInput, result.result);
+  }
+  
+  return result;
 }
 
 // --- CHAT ---
