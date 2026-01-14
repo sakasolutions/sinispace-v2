@@ -63,8 +63,8 @@ export default function RegisterPage() {
           
           <div className="space-y-2 text-center mb-8">
             <h1 className="text-2xl font-bold tracking-tight text-white">Konto erstellen</h1>
-            <p className="text-sm text-zinc-400">
-              Starte mit Sinispace. Lokal & Sicher.
+            <p className="text-sm text-zinc-400 leading-relaxed max-w-sm mx-auto">
+              Erstelle jetzt dein kostenloses Basiskonto. Wähle im Anschluss deinen Plan, um alle Funktionen freizuschalten.
             </p>
           </div>
           

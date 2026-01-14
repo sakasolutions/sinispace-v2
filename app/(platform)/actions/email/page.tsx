@@ -1,6 +1,7 @@
 'use client';
 
 import { generateEmail } from '@/actions/ai-actions';
+import { createHelperChat } from '@/actions/chat-actions';
 import { useActionState } from 'react';
 
 // Kleiner Hack für TypeScript, falls useActionState noch zickt
@@ -22,7 +23,22 @@ function SubmitButton() {
 
 export default function EmailPage() {
   // @ts-ignore
-  const [state, formAction] = useActionState(generateEmail, null);
+  const [state, formAction] = useActionState(async (prevState: any, formData: FormData) => {
+    const result = await generateEmail(prevState, formData);
+    
+    // Wenn erfolgreich, Chat in DB speichern
+    if (result?.result && !result.error) {
+      const recipient = formData.get('recipient') as string || 'Unbekannt';
+      const tone = formData.get('tone') as string || 'Professionell';
+      const topic = formData.get('topic') as string || '';
+      
+      const userInput = `Empfänger: ${recipient}, Ton: ${tone}, Inhalt: ${topic}`;
+      
+      await createHelperChat('email', userInput, result.result);
+    }
+    
+    return result;
+  }, null);
 
   return (
     <div className="max-w-4xl mx-auto">

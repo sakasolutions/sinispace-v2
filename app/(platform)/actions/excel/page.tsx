@@ -1,6 +1,7 @@
 'use client';
 
 import { generateExcel } from '@/actions/ai-actions';
+import { createHelperChat } from '@/actions/chat-actions';
 import { useActionState } from 'react';
 // @ts-ignore
 import { useFormStatus } from 'react-dom';
@@ -20,7 +21,21 @@ function SubmitButton() {
 
 export default function ExcelPage() {
   // @ts-ignore
-  const [state, formAction] = useActionState(generateExcel, null);
+  const [state, formAction] = useActionState(async (prevState: any, formData: FormData) => {
+    const result = await generateExcel(prevState, formData);
+    
+    // Wenn erfolgreich, Chat in DB speichern
+    if (result?.result && !result.error) {
+      const platform = formData.get('platform') as string || 'Microsoft Excel';
+      const problem = formData.get('problem') as string || '';
+      
+      const userInput = `Programm: ${platform}, Problem: ${problem}`;
+      
+      await createHelperChat('excel', userInput, result.result);
+    }
+    
+    return result;
+  }, null);
 
   return (
     <div className="max-w-4xl mx-auto">

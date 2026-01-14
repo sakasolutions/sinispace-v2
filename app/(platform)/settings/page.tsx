@@ -1,6 +1,8 @@
 import { auth } from '@/auth';
 import { createCheckoutSession } from '@/actions/payment-actions';
 import { PrismaClient } from '@prisma/client';
+import { SessionManager } from '@/components/platform/session-manager';
+import { DeleteAccount } from '@/components/platform/delete-account';
 
 export default async function SettingsPage({
   searchParams,
@@ -79,6 +81,14 @@ export default async function SettingsPage({
           )}
         </div>
       </div>
+
+      {/* SESSION MANAGEMENT */}
+      <div className="mt-6">
+        <SessionManager />
+      </div>
+
+      {/* KONTO LÖSCHEN */}
+      <DeleteAccount />
     </div>
   );
 }

@@ -28,7 +28,7 @@ export async function generateEmail(prevState: any, formData: FormData) {
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: 'Du bist ein E-Mail Profi. Antworte nur mit dem Text.' },
         { role: 'user', content: `Empfänger: ${recipient}, Ton: ${tone}, Inhalt: ${topic}` }
@@ -50,7 +50,7 @@ export async function generateSummary(prevState: any, formData: FormData) {
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: 'Fasse zusammen in Bulletpoints (Markdown).' },
         { role: 'user', content: text }
@@ -72,7 +72,7 @@ export async function generateExcel(prevState: any, formData: FormData) {
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: `Excel Experte für ${platform}. Nur Formel + kurze Erklärung.` },
         { role: 'user', content: problem }
@@ -94,7 +94,7 @@ export async function chatWithAI(messages: { role: string; content: string }[]) 
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { 
           role: 'system', 

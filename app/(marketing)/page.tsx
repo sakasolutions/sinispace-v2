@@ -305,65 +305,224 @@ export default function LandingPage() {
            </motion.div>
         </section>
 
-        {/* --- FEATURES (Compact) --- */}
-        <section id="features" className="py-20 bg-white text-zinc-900">
-          <div className="container mx-auto px-4 md:px-6">
+        {/* --- FEATURES (Premium Glass Bubble) --- */}
+        <section id="features" className="py-20 bg-zinc-950 text-white relative overflow-hidden">
+          {/* Hintergrund-Glows */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[120px] -z-10"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] -z-10"></div>
+          </div>
+
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
             <motion.div className="mb-12 md:text-center max-w-3xl mx-auto" {...fadeUp(0.1)}>
-              <h2 className="text-4xl font-extrabold tracking-tight sm:text-6xl mb-6 text-zinc-900">
+              <h2 className="text-4xl font-extrabold tracking-tight sm:text-6xl mb-6 text-white">
                 Kein Studium nötig.
               </h2>
-              <p className="text-xl text-zinc-500 leading-relaxed">
+              <p className="text-xl text-zinc-400 leading-relaxed">
                 Wir nehmen dir die technische Last ab. Du drückst den Knopf, die KI macht die Arbeit.
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-[auto,auto] gap-6">
+            {/* 3-Karten Grid - Premium Glass Bubble */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
-              {/* CARD 1: TOOLBOX (Compact Layout) */}
-              <motion.div whileHover={{ y: -5 }} className="md:col-span-2 row-span-2 rounded-[2.5rem] border border-zinc-200 bg-zinc-50 overflow-hidden relative group flex flex-col md:flex-row h-auto md:h-96 shadow-sm hover:shadow-2xl transition-all duration-500">
-                <div className="p-8 flex flex-col justify-center relative z-10 md:w-1/2">
-                   <div className="h-12 w-12 rounded-2xl bg-white border border-zinc-200 shadow-sm flex items-center justify-center mb-6">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              {/* KARTE 1: Hunderte fertige Helfer */}
+              <motion.div 
+                whileHover={{ scale: 1.02 }} 
+                className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 ring-1 ring-white/5 shadow-2xl shadow-black/20 rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between"
+              >
+                <div className="relative z-10">
+                  <div className="h-12 w-12 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
+                      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3 leading-tight">
+                    Hunderte <br/>
+                    <span className="text-zinc-400">fertige Helfer.</span>
+                  </h3>
+                  <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+                    Wähle dein Ziel, gib Stichpunkte ein, fertig. Professionelle Ergebnisse ohne Lernkurve.
+                  </p>
+                  
+                  {/* Stichwortartige Helfer-Beispiele */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {toolsColumn1.slice(0, 4).map((tool, i) => (
+                      <span 
+                        key={i} 
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm text-xs font-medium text-zinc-300"
+                      >
+                        <span className="text-[10px] font-bold text-orange-400">{tool.icon}</span>
+                        {tool.label}
+                      </span>
+                    ))}
                    </div>
-                   <h3 className="text-3xl font-bold text-zinc-900 mb-4 leading-tight">Hunderte <br/> <span className="text-zinc-400">fertige Helfer.</span></h3>
-                   <p className="text-base text-zinc-500 leading-relaxed mb-6">Wähle dein Ziel (z.B. "LinkedIn Post"), gib Stichpunkte ein, fertig. Professionelle Ergebnisse ohne Lernkurve.</p>
-                   <Link href="/register" className="inline-flex items-center gap-2 text-sm font-bold text-orange-600 group-hover:gap-3 transition-all">Alle Tools ansehen <span>&rarr;</span></Link>
                 </div>
-                <div className="relative h-64 md:h-full md:w-1/2 bg-white/60 border-t md:border-t-0 md:border-l border-zinc-200 overflow-hidden">
-                    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-zinc-50 to-transparent z-20 pointer-events-none"></div>
-                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-zinc-50 to-transparent z-20 pointer-events-none"></div>
-                    <div className="flex gap-4 justify-center h-full p-6 overflow-hidden">
-                        <motion.div animate={{ y: ["0%", "-50%"] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-3">
-                           {[...toolsColumn1, ...toolsColumn1, ...toolsColumn1].map((tool, i) => (
-                             <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-zinc-100 shadow-sm w-40 shrink-0 hover:scale-105 transition-transform"><div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold ${tool.color}`}>{tool.icon}</div><span className="text-sm font-medium text-zinc-700">{tool.label}</span></div>
-                           ))}
-                        </motion.div>
-                        <motion.div animate={{ y: ["-50%", "0%"] }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-3">
-                           {[...toolsColumn2, ...toolsColumn2, ...toolsColumn2].map((tool, i) => (
-                             <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-zinc-100 shadow-sm w-40 shrink-0 hover:scale-105 transition-transform"><div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold ${tool.color}`}>{tool.icon}</div><span className="text-sm font-medium text-zinc-700">{tool.label}</span></div>
-                           ))}
-                        </motion.div>
+                <div className="relative z-10 mt-auto">
+                  <Link href="/register" className="inline-flex items-center gap-2 text-sm font-bold text-orange-400 hover:text-orange-300 transition-all">
+                    Alle Tools ansehen <span>&rarr;</span>
+                  </Link>
+                </div>
+              </motion.div>
+
+              {/* KARTE 2: Freier Chat */}
+              <motion.div 
+                whileHover={{ scale: 1.02 }} 
+                className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 ring-1 ring-white/5 shadow-2xl shadow-black/20 rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between"
+              >
+                <div className="relative z-10">
+                  <div className="h-12 w-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 backdrop-blur-sm flex items-center justify-center mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">Freier Chat.</h3>
+                  <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+                    Manchmal willst du die Kontrolle. Nutze unsere ChatGPT-Anbindung (Fair Use) für deine eigenen Ideen.
+                  </p>
+                  
+                  {/* Mehrwert: Features */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span>Code, Tabellen & Struktur</span>
                     </div>
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span>Chat-Verlauf gespeichert</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="relative z-10 mt-auto">
+                  <Link href="/chat" className="inline-flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300 transition-all">
+                    Jetzt chatten <span>&rarr;</span>
+                  </Link>
                 </div>
               </motion.div>
 
-              {/* CARD 2 */}
-              <motion.div whileHover={{ y: -5 }} className="rounded-[2.5rem] border border-zinc-200 bg-white p-8 flex flex-col justify-between relative overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              {/* KARTE 3: Kostenlos anmelden (CTA) */}
+              <motion.div 
+                whileHover={{ scale: 1.02 }} 
+                className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 ring-1 ring-white/5 shadow-2xl shadow-black/20 rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between"
+              >
                 <div className="relative z-10">
-                   <div className="h-12 w-12 rounded-2xl bg-blue-600 flex items-center justify-center mb-6 text-white shadow-lg shadow-blue-200"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-                   <h3 className="text-2xl font-bold text-zinc-900 mb-3">Freier Chat.</h3>
-                   <p className="text-zinc-500 leading-relaxed text-sm">Manchmal willst du die Kontrolle. Nutze unsere ChatGPT-Anbindung (Fair Use) für deine eigenen Ideen.</p>
-                </div>
-              </motion.div>
-
-              {/* CARD 3 */}
-              <motion.div whileHover={{ y: -5 }} className="rounded-[2.5rem] border border-zinc-800 bg-zinc-900 p-8 flex flex-col justify-between relative overflow-hidden text-white shadow-xl hover:shadow-2xl transition-all duration-500">
-                <div className="absolute top-0 right-0 h-64 w-64 bg-orange-500/10 blur-[80px] rounded-full pointer-events-none"></div>
-                <div className="relative z-10">
-                   <div className="h-12 w-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center mb-6"><span className="text-2xl">🔓</span></div>
+                  <div className="h-12 w-12 rounded-2xl bg-orange-500/20 border border-orange-400/30 backdrop-blur-sm flex items-center justify-center mb-4">
+                    <span className="text-2xl">🔓</span>
+                  </div>
                    <h3 className="text-2xl font-bold text-white mb-3">Kostenlos anmelden.</h3>
-                   <p className="text-zinc-400 leading-relaxed text-sm">Erstell deinen Account unverbindlich. Schau dich im Dashboard um. Premium brauchst du erst für die Power-Features.</p>
+                  <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+                    Erstell deinen Account unverbindlich. Schau dich im Dashboard um. Premium brauchst du erst für die Power-Features.
+                  </p>
+                  
+                  {/* Mehrwert: Was du bekommst */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-xs text-zinc-300">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span>Kostenloses Basiskonto</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-zinc-300">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span>Alle Features testen</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="relative z-10 mt-auto">
+                  <Link 
+                    href="/register" 
+                    className="inline-flex items-center justify-center w-full px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/30"
+                  >
+                    Kostenlos starten
+                  </Link>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- TRUST & SAFETY --- */}
+        <section className="py-20 bg-zinc-950 text-white relative overflow-hidden">
+          {/* Hintergrund-Glows */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-green-500/10 rounded-full blur-[100px] -z-10"></div>
+            <div className="absolute bottom-1/2 right-1/4 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] -z-10"></div>
+          </div>
+
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
+            <div className="max-w-4xl mx-auto">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 ring-1 ring-white/5 shadow-2xl shadow-black/20 rounded-3xl overflow-hidden relative p-8 md:p-12"
+              >
+                <div className="flex items-start gap-6">
+                  {/* Icon */}
+                  <div className="h-14 w-14 rounded-2xl bg-green-500/20 border border-green-400/30 backdrop-blur-sm flex items-center justify-center shrink-0">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-1">
+                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 tracking-tight">
+                      Sicher & Verantwortungsvoll
+                    </h3>
+                    <p className="text-base text-zinc-300 leading-relaxed mb-6">
+                      Wir nutzen <span className="font-bold text-white">GPT-4o</span> von OpenAI mit integrierten Safety-Features. 
+                      Sensible Themen werden automatisch gefiltert – für deine Sicherheit und die unserer Community.
+                    </p>
+                    
+                    {/* Features Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-start gap-3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400 shrink-0 mt-0.5">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium text-white mb-1">Automatisches Content-Filtering</p>
+                          <p className="text-xs text-zinc-400">OpenAI blockiert problematische Inhalte automatisch</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400 shrink-0 mt-0.5">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium text-white mb-1">Moderation-API aktiv</p>
+                          <p className="text-xs text-zinc-400">Eingaben und Ausgaben werden geprüft</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400 shrink-0 mt-0.5">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium text-white mb-1">DSGVO-konform</p>
+                          <p className="text-xs text-zinc-400">Deine Daten bleiben sicher und geschützt</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400 shrink-0 mt-0.5">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium text-white mb-1">Kein Training mit deinen Daten</p>
+                          <p className="text-xs text-zinc-400">Deine Inhalte werden nicht zum KI-Training genutzt</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </div>

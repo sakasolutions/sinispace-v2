@@ -62,6 +62,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.sub = user.id;
       }
       return token;
+    },
+    // Session in DB speichern nach erfolgreichem Login
+    async signIn({ user, account }) {
+      if (account?.provider === 'credentials' && user?.id) {
+        // Erstelle IMMER eine neue Session in DB für Session-Management
+        // Jeder Login (auch in verschiedenen Browsern) bekommt eine eigene Session
+        try {
+          const sessionToken = crypto.randomUUID();
+          const expires = new Date();
+          expires.setDate(expires.getDate() + 30); // 30 Tage
+
+          // Erstelle neue Session (jeder Login = neue Session)
+          await prisma.session.create({
+            data: {
+              sessionToken: sessionToken,
+              userId: user.id,
+              expires: expires,
+            },
+          });
+        } catch (error) {
+          // Fehler ignorieren (nicht kritisch für Login)
+          console.error('Error creating session in DB:', error);
+        }
+      }
+      return true;
     }
   }
 });

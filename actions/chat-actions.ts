@@ -179,19 +179,135 @@ export async function updateChatTitle(chatId: string, title: string) {
 
   try {
     // Titel aktualisieren - NUR wenn Chat dem User gehört
-    await prisma.chat.updateMany({
+    const result = await prisma.chat.updateMany({
       where: {
         id: chatId,
         userId: session.user.id, // WICHTIG: User-Bindung & Sicherheit
       },
       data: {
-        title: title,
+        title: title.trim() || 'Unbenannter Chat',
       },
     });
+    
+    if (result.count === 0) {
+      return { success: false, error: 'Chat nicht gefunden oder keine Berechtigung' };
+    }
     
     return { success: true };
   } catch (error) {
     console.error('Error updating chat title:', error);
     return { success: false, error: 'Fehler beim Aktualisieren des Titels' };
+  }
+}
+
+// Chat endgültig löschen
+export async function deleteChat(chatId: string) {
+  const session = await auth();
+  
+  // WICHTIG: Auth-Check
+  if (!session?.user?.id) {
+    return { success: false, error: 'Nicht autorisiert' };
+  }
+
+  try {
+    // Prüfen ob Chat existiert UND dem User gehört
+    const chat = await prisma.chat.findFirst({
+      where: {
+        id: chatId,
+        userId: session.user.id, // WICHTIG: User-Bindung & Sicherheit
+      },
+    });
+
+    if (!chat) {
+      return { success: false, error: 'Chat nicht gefunden oder keine Berechtigung' };
+    }
+
+    // Chat löschen (Messages werden durch onDelete: Cascade automatisch gelöscht)
+    await prisma.chat.delete({
+      where: { id: chatId },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting chat:', error);
+    return { success: false, error: 'Fehler beim Löschen des Chats' };
+  }
+}
+
+// Helfer-Chat erstellen und User-Eingabe + KI-Response speichern
+export async function createHelperChat(
+  helperType: 'email' | 'excel' | 'summarize',
+  userInput: string,
+  aiResponse: string
+) {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return { success: false, error: 'Nicht autorisiert' };
+  }
+
+  try {
+    // Titel basierend auf Helper-Type
+    const titles = {
+      email: 'E-Mail generiert',
+      excel: 'Excel Formel generiert',
+      summarize: 'Text zusammengefasst',
+    };
+    
+    const title = titles[helperType] || 'Helfer Chat';
+    const titleWithPreview = `${title}: ${userInput.slice(0, 20)}...`;
+
+    // Chat erstellen
+    const chat = await prisma.chat.create({
+      data: {
+        userId: session.user.id,
+        title: titleWithPreview,
+      },
+    });
+
+    // User-Eingabe speichern
+    await prisma.message.create({
+      data: {
+        chatId: chat.id,
+        role: 'user',
+        content: userInput,
+      },
+    });
+
+    // KI-Response speichern
+    await prisma.message.create({
+      data: {
+        chatId: chat.id,
+        role: 'assistant',
+        content: aiResponse,
+      },
+    });
+
+    return { success: true, chatId: chat.id };
+  } catch (error) {
+    console.error('Error creating helper chat:', error);
+    return { success: false, error: 'Fehler beim Erstellen des Chats' };
+  }
+}
+
+// Alte Chats automatisch löschen (für Cron-Job oder manuellen Aufruf)
+export async function cleanupOldChats() {
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const result = await prisma.chat.deleteMany({
+      where: {
+        updatedAt: {
+          lt: thirtyDaysAgo,
+        },
+      },
+    });
+    
+    console.log(`🧹 ${result.count} alte Chats gelöscht (älter als 30 Tage)`);
+    return { success: true, deletedCount: result.count };
+  } catch (error) {
+    console.error('Error cleaning up old chats:', error);
+    return { success: false, error: 'Fehler beim Löschen alter Chats' };
   }
 }

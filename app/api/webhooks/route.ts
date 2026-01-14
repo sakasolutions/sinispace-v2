@@ -29,9 +29,37 @@ export async function POST(req: Request) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as any;
-    const userId = session?.metadata?.userId;
-
-    console.log("👤 User ID aus Metadata:", userId);
+    
+    // Payment Links haben keine metadata, also müssen wir den User über E-Mail finden
+    let userId: string | null = null;
+    
+    // Versuche zuerst metadata (falls vorhanden, z.B. bei Checkout Sessions)
+    if (session?.metadata?.userId) {
+      userId = session.metadata.userId;
+      console.log("👤 User ID aus Metadata:", userId);
+    } else {
+      // Fallback: Finde User über E-Mail (für Payment Links)
+      const customerEmail = session.customer_details?.email || session.customer_email;
+      console.log("📧 Suche User über E-Mail:", customerEmail);
+      
+      if (customerEmail) {
+        const user = await prisma.user.findUnique({
+          where: { email: customerEmail },
+          select: { id: true },
+        });
+        
+        if (user) {
+          userId = user.id;
+          console.log("👤 User gefunden über E-Mail:", userId);
+        } else {
+          console.error("❌ Kein User mit E-Mail gefunden:", customerEmail);
+          return new NextResponse('User not found by email', { status: 400 });
+        }
+      } else {
+        console.error("❌ Keine E-Mail in Session gefunden!");
+        return new NextResponse('No email found in session', { status: 400 });
+      }
+    }
 
     if (!userId) {
       console.error("❌ Keine User ID gefunden!");
@@ -46,7 +74,7 @@ export async function POST(req: Request) {
         where: { id: userId },
         data: {
           subscriptionEnd: oneYearFromNow,
-          stripeCustomerId: session.customer as string,
+          stripeCustomerId: session.customer as string || session.customer,
         },
       });
       
