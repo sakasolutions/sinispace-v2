@@ -176,7 +176,7 @@ function Header() {
 // --- MAIN PAGE ---
 
 export default function LandingPage() {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useReducedMotion() ?? false;
   
   // Memoized configs
   const fadeConfigs = useMemo(() => ({
