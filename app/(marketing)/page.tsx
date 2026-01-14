@@ -61,18 +61,18 @@ const fadeUp = (delay = 0, reducedMotion = false) => ({
   transition: reducedMotion ? { duration: 0 } : { duration: 0.6, delay: delay, ease: [0.21, 0.47, 0.32, 0.98] as const },
 });
 
-const getMarqueeAnimation = (reducedMotion = false) => {
+const getMarqueeAnimation = (reducedMotion: boolean) => {
   if (reducedMotion) return {};
   return {
-    x: [0, -1035],
+    x: [0, -1035] as [number, number],
     transition: {
       x: { 
         repeat: Infinity, 
         repeatType: "loop" as const, 
         duration: 40, 
         ease: "linear" as const 
-      },
-    },
+      } as const,
+    } as const,
   };
 };
 
