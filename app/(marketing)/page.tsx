@@ -65,7 +65,7 @@ const marqueeVariants = (reducedMotion = false) => ({
   animate: reducedMotion ? {} : {
     x: [0, -1035],
     transition: {
-      x: { repeat: Infinity, repeatType: "loop" as const, duration: 40, ease: "linear" },
+      x: { repeat: Infinity, repeatType: "loop" as const, duration: 40, ease: "linear" as const },
     },
   },
 });
