@@ -7,7 +7,8 @@ export async function createCheckoutSession() {
   const session = await auth();
 
   if (!session?.user || !session.user.email) {
-    return { error: 'Nicht eingeloggt.' };
+    redirect('/login');
+    return;
   }
 
   // Direkt auf den Stripe Payment Link weiterleiten
