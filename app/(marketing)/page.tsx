@@ -61,14 +61,20 @@ const fadeUp = (delay = 0, reducedMotion = false) => ({
   transition: reducedMotion ? { duration: 0 } : { duration: 0.6, delay: delay, ease: [0.21, 0.47, 0.32, 0.98] as const },
 });
 
-const marqueeVariants = (reducedMotion = false) => ({
-  animate: reducedMotion ? {} : {
+const getMarqueeAnimation = (reducedMotion = false) => {
+  if (reducedMotion) return {};
+  return {
     x: [0, -1035],
     transition: {
-      x: { repeat: Infinity, repeatType: "loop" as const, duration: 40, ease: "linear" as const },
+      x: { 
+        repeat: Infinity, 
+        repeatType: "loop" as const, 
+        duration: 40, 
+        ease: "linear" as const 
+      },
     },
-  },
-});
+  };
+};
 
 // --- ICONS ---
 const MenuIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-8 6h8" /></svg>;
@@ -292,7 +298,7 @@ export default function LandingPage() {
         <section className="bg-zinc-950 border-y border-white/5 py-10 relative overflow-hidden z-20">
            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-zinc-950 to-transparent z-10"></div>
            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-zinc-950 to-transparent z-10"></div>
-           <motion.div className="flex gap-8" variants={marqueeVariants(prefersReducedMotion)} animate="animate">
+           <motion.div className="flex gap-8" animate={getMarqueeAnimation(prefersReducedMotion)}>
              {[...Array(2)].map((_, i) => (
                <div key={i} className="flex gap-8 whitespace-nowrap">
                  {["LinkedIn Viral", "SEO Analyse", "Code Review", "Rechtstexte", "Blog Post", "Instagram Caption", "Meeting Protokoll", "Excel Formeln", "Sales E-Mail", "Zusammenfassung"].map((text) => (
