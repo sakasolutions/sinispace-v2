@@ -58,7 +58,7 @@ const fadeUp = (delay = 0, reducedMotion = false) => ({
   initial: reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-100px" },
-  transition: reducedMotion ? { duration: 0 } : { duration: 0.6, delay: delay, ease: [0.21, 0.47, 0.32, 0.98] },
+  transition: reducedMotion ? { duration: 0 } : { duration: 0.6, delay: delay, ease: [0.21, 0.47, 0.32, 0.98] as const },
 });
 
 const marqueeVariants = (reducedMotion = false) => ({
