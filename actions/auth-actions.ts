@@ -52,7 +52,7 @@ export async function loginUser(formData: FormData) {
   const password = formData.get('password') as string;
 
   if (!email || !password) {
-    throw new Error('Email und Passwort sind erforderlich.');
+    return { success: false, error: 'Email und Passwort sind erforderlich.' };
   }
 
   try {
@@ -62,11 +62,20 @@ export async function loginUser(formData: FormData) {
       redirectTo: '/dashboard',
     });
     // Session wird automatisch in DB gespeichert via signIn-Callback in auth.ts
+    return { success: true };
   } catch (error) {
+    // NextAuth wirft spezifische Fehler - diese abfangen
     if (error instanceof Error) {
-      throw error;
+      // Spezifische Fehlermeldungen aus auth.ts
+      if (error.message === 'Benutzer nicht gefunden.') {
+        return { success: false, error: 'Kein Benutzer mit dieser E-Mail gefunden.' };
+      }
+      if (error.message === 'Falsches Passwort.') {
+        return { success: false, error: 'Falsches Passwort. Bitte versuche es erneut.' };
+      }
+      return { success: false, error: error.message };
     }
-    throw new Error('Anmeldung fehlgeschlagen.');
+    return { success: false, error: 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.' };
   }
 }
 

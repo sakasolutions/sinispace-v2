@@ -9,17 +9,29 @@ import { loginUser } from '@/actions/auth-actions'; // Deine bestehende Action
 export default function LoginPage() {
   // Status für UI-Feedback (Laden, Fehler etc.)
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
+  const [error, setError] = useState<string | null>(null);
 
   // Wir nutzen einen Wrapper um die Server Action, um den Loading-Status zu steuern
   async function handleSubmit(formData: FormData) {
     setStatus('loading');
+    setError(null); // Fehler zurücksetzen
     
-    // Ruft dein Backend auf. 
-    // Hinweis: Wenn loginUser intern ein redirect() macht, wechselt die Seite hier automatisch.
-    await loginUser(formData);
-    
-    // Falls kein Redirect passiert (z.B. Fehler), setzen wir den Status zurück
-    setStatus('idle'); 
+    try {
+      const result = await loginUser(formData);
+      
+      if (result?.success) {
+        // Erfolgreich - redirect passiert automatisch durch signIn
+        return;
+      } else {
+        // Fehler anzeigen
+        setError(result?.error || 'Anmeldung fehlgeschlagen.');
+        setStatus('idle');
+      }
+    } catch (err) {
+      // Fallback für unerwartete Fehler
+      setError('Ein unerwarteter Fehler ist aufgetreten.');
+      setStatus('idle');
+    }
   }
 
   return (
@@ -94,6 +106,13 @@ export default function LoginPage() {
                 disabled={status === 'loading'}
               />
             </div>
+            
+            {/* Fehlermeldung */}
+            {error && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                {error}
+              </div>
+            )}
             
             <button
               className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-xl bg-white text-zinc-950 font-bold text-sm transition-all hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait shadow-[0_0_20px_rgba(255,255,255,0.1)]"
