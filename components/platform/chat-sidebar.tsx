@@ -124,19 +124,19 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
       {/* Sidebar: Fixed auf Mobile (z-50), Relative auf Desktop */}
       <aside
         className={`
-          fixed md:relative top-0 left-0 h-full w-64 bg-white z-50 md:z-auto shrink-0
+          fixed md:relative top-0 left-0 h-full w-64 bg-zinc-950/50 backdrop-blur-xl z-50 md:z-auto shrink-0
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-          md:border-r md:border-zinc-200
+          md:border-r md:border-white/5
         `}
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-zinc-200">
-            <h2 className="font-bold text-zinc-900">Chats</h2>
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/5">
+            <h2 className="text-sm sm:text-base font-bold text-white">Chats</h2>
             <Link
               href="/chat"
-              className="px-3 py-1.5 text-sm font-medium text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors"
+              className="px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-white bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors"
               onClick={onClose}
             >
               Neu
@@ -146,28 +146,28 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
           {/* Chat List */}
           <div className="flex-1 overflow-y-auto min-h-0">
             {isLoading ? (
-              <div className="p-4 text-center text-zinc-400 text-sm">Lade Chats...</div>
+              <div className="p-3 sm:p-4 text-center text-zinc-500 text-xs sm:text-sm">Lade Chats...</div>
             ) : chats.length === 0 ? (
-              <div className="p-4 text-center text-zinc-400 text-sm">
+              <div className="p-3 sm:p-4 text-center text-zinc-500 text-xs sm:text-sm">
                 <p className="mb-2">Noch keine Chats</p>
                 <Link
                   href="/chat"
-                  className="text-zinc-900 font-medium hover:underline"
+                  className="text-white font-medium hover:text-zinc-300 transition-colors"
                   onClick={onClose}
                 >
                   Ersten Chat starten
                 </Link>
               </div>
             ) : (
-              <div className="p-2 space-y-1">
+              <div className="p-1.5 sm:p-2 space-y-0.5 sm:space-y-1">
                 {chats.map((chat) => (
                   <div
                     key={chat.id}
                     className={`
                       group relative rounded-lg transition-colors
                       ${pathname === `/chat/${chat.id}` 
-                        ? 'bg-zinc-100' 
-                        : 'hover:bg-zinc-50 active:bg-zinc-100'
+                        ? 'bg-white/10' 
+                        : 'hover:bg-white/5 active:bg-white/10'
                       }
                     `}
                     onMouseEnter={() => setHoveredChatId(chat.id)}
@@ -176,7 +176,7 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
                   >
                     {editingChatId === chat.id ? (
                       // Edit-Modus
-                      <div className="p-3">
+                      <div className="p-2.5 sm:p-3">
                         <input
                           type="text"
                           value={editingTitle}
@@ -188,23 +188,23 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
                               handleCancelEdit();
                             }
                           }}
-                          className="w-full px-2 py-1 text-sm font-medium border border-zinc-300 rounded focus:outline-none focus:ring-2 focus:ring-zinc-900 mb-1"
+                          className="w-full px-2 py-1 text-xs sm:text-sm font-medium border border-white/10 bg-zinc-900/50 rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 mb-1 text-white placeholder:text-zinc-500"
                           autoFocus
                         />
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mt-1">
                           <button
                             onClick={() => handleSaveEdit(chat.id)}
-                            className="p-1 rounded hover:bg-zinc-200 transition-colors"
+                            className="p-1 rounded hover:bg-white/10 transition-colors"
                             aria-label="Speichern"
                           >
-                            <Check className="w-4 h-4 text-green-600" />
+                            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" />
                           </button>
                           <button
                             onClick={handleCancelEdit}
-                            className="p-1 rounded hover:bg-zinc-200 transition-colors"
+                            className="p-1 rounded hover:bg-white/10 transition-colors"
                             aria-label="Abbrechen"
                           >
-                            <X className="w-4 h-4 text-zinc-600" />
+                            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400" />
                           </button>
                         </div>
                       </div>
@@ -213,21 +213,21 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
                       <>
                         <Link
                           href={`/chat/${chat.id}`}
-                          className="block p-3 pr-12"
+                          className="block p-2.5 sm:p-3 pr-10 sm:pr-12"
                           onClick={onClose}
                         >
-                          <div className={`font-medium text-sm truncate mb-1 ${
+                          <div className={`font-medium text-xs sm:text-sm truncate mb-0.5 sm:mb-1 ${
                             pathname === `/chat/${chat.id}` 
-                              ? 'text-zinc-900' 
-                              : 'text-zinc-600'
+                              ? 'text-white' 
+                              : 'text-zinc-300'
                           }`}>
                             {chat.title}
                           </div>
-                          <div className="text-xs text-zinc-400">{formatDate(chat.updatedAt)}</div>
+                          <div className="text-[10px] sm:text-xs text-zinc-500">{formatDate(chat.updatedAt)}</div>
                         </Link>
                         
                         {/* Action Buttons (immer sichtbar auf Mobile, beim Hover auf Desktop) */}
-                        <div className={`absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 ${
+                        <div className={`absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 sm:gap-1 ${
                           hoveredChatId === chat.id || deletingChatId === chat.id 
                             ? 'opacity-100' 
                             : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
@@ -238,11 +238,11 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
                               e.stopPropagation();
                               handleEdit(chat);
                             }}
-                            className="p-1.5 rounded hover:bg-zinc-200 active:bg-zinc-300 transition-colors touch-manipulation"
+                            className="p-1 sm:p-1.5 rounded hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation"
                             aria-label="Chat umbenennen"
                             title="Umbenennen"
                           >
-                            <Pencil className="w-3.5 h-3.5 text-zinc-600" />
+                            <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400 hover:text-white" />
                           </button>
                           <button
                             onClick={(e) => {
@@ -251,11 +251,11 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
                               handleDelete(chat.id);
                             }}
                             disabled={deletingChatId === chat.id}
-                            className="p-1.5 rounded hover:bg-red-100 active:bg-red-200 transition-colors disabled:opacity-50 touch-manipulation"
+                            className="p-1 sm:p-1.5 rounded hover:bg-red-500/20 active:bg-red-500/30 transition-colors disabled:opacity-50 touch-manipulation"
                             aria-label="Chat löschen"
                             title="Löschen"
                           >
-                            <Trash2 className={`w-3.5 h-3.5 ${deletingChatId === chat.id ? 'text-zinc-400' : 'text-red-600'}`} />
+                            <Trash2 className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${deletingChatId === chat.id ? 'text-zinc-500' : 'text-red-400'}`} />
                           </button>
                         </div>
                       </>
@@ -268,16 +268,16 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
 
           {/* User Footer mit Premium-Status (wenn userEmail vorhanden) */}
           {userEmail && (
-            <div className="p-4 border-t border-zinc-200 bg-white shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-bold">
+            <div className="p-3 sm:p-4 border-t border-white/5 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-[10px] sm:text-xs font-bold shrink-0">
                   {userEmail.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="text-sm font-medium text-zinc-900 truncate">{userEmail}</span>
-                  <span className={`text-xs font-medium ${
+                  <span className="text-xs sm:text-sm font-medium text-white truncate">{userEmail}</span>
+                  <span className={`text-[10px] sm:text-xs font-medium ${
                     isPro 
-                      ? 'text-green-600' 
+                      ? 'text-green-400' 
                       : 'text-zinc-500'
                   }`}>
                     {isPro ? 'Premium Plan' : 'Free Plan'}

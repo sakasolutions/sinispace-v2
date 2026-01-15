@@ -114,13 +114,13 @@ export default function ChatPage() {
     <div className="flex flex-col h-full w-full">
       
       {/* HEADER: Nur noch Titel, kein Logo/Burger mehr (macht das Layout auf Mobile) */}
-      <div className="shrink-0 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-transparent sm:border-white/5">
-        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Freier Chat</h1>
-        <p className="text-xs sm:text-sm md:text-base text-zinc-400">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+      <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5">
+        <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white">Freier Chat</h1>
+        <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-zinc-400">Frag mich alles – mit Code, Tabellen und Struktur.</p>
       </div>
 
       {/* NACHRICHTEN BEREICH */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 py-3 sm:py-4 space-y-4 sm:space-y-6 scroll-smooth">
+      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth">
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center text-zinc-400 opacity-50">
             <span className="text-5xl sm:text-6xl mb-4">💬</span>
@@ -142,7 +142,7 @@ export default function ChatPage() {
 
             {/* Chat Bubble */}
                   <div
-                    className={`relative max-w-[85%] sm:max-w-[80%] md:max-w-[75%] rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 shadow-sm text-xs sm:text-sm leading-relaxed ${
+                    className={`relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 shadow-sm text-[13px] sm:text-sm md:text-[15px] leading-relaxed ${
                       msg.role === 'user'
                         ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
                         : 'bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl border border-white/10 text-white rounded-bl-none'
@@ -232,21 +232,21 @@ export default function ChatPage() {
       </div>
 
       {/* INPUT BEREICH */}
-      <div className="shrink-0 p-2 sm:p-3 md:p-4 border-t border-white/5 z-10">
-        <form onSubmit={handleSubmit} className="relative flex items-end gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-1.5 sm:p-2 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/50 transition-all">
+      <div className="shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 z-10">
+        <form onSubmit={handleSubmit} className="relative flex items-end gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-1.5 sm:p-2 md:p-2.5 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/50 transition-all">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Schreib eine Nachricht..."
-            className="flex-1 bg-transparent px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 text-xs sm:text-sm focus:outline-none min-w-0 text-white placeholder:text-zinc-500"
+            className="flex-1 bg-transparent px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-[13px] sm:text-sm md:text-[15px] focus:outline-none min-w-0 text-white placeholder:text-zinc-500"
             autoFocus
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="mb-0.5 sm:mb-1 mr-0.5 sm:mr-1 rounded-lg bg-zinc-900 p-1.5 sm:p-2 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
+            className="mb-0.5 sm:mb-1 mr-0.5 sm:mr-1 rounded-lg bg-zinc-900 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           </button>
         </form>
         <p className="mt-1.5 sm:mt-2 text-center text-[9px] sm:text-[10px] md:text-xs text-zinc-500">

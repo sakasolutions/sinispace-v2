@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChatSidebar } from '@/components/platform/chat-sidebar';
-import { ArrowLeft, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 interface ChatLayoutWrapperProps {
@@ -22,25 +23,34 @@ export function ChatLayoutWrapper({ children, userEmail, isPro }: ChatLayoutWrap
   }, [pathname]);
 
   return (
-    <div className="flex h-[100dvh] flex-col md:flex-row bg-white overflow-hidden">
+    <div className="flex h-[100dvh] flex-col md:flex-row bg-zinc-950 overflow-hidden relative">
+      {/* AMBIENT GLOWS - Global für Chat */}
+      <div className="fixed -top-20 -left-20 w-[500px] h-[500px] bg-orange-500/10 blur-[120px] rounded-full -z-10 pointer-events-none" />
+      <div className="fixed -bottom-20 -right-20 w-[500px] h-[500px] bg-purple-500/10 blur-[120px] rounded-full -z-10 pointer-events-none" />
+      
       {/* 1. MOBILE HEADER (Nur sichtbar auf Handy, fixed oben) */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-zinc-200 bg-white z-30 shrink-0 h-14 fixed top-0 left-0 right-0">
-        <div className="flex items-center gap-2">
-          {/* Zurück-Button (Mobile) */}
+      <div className="md:hidden flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl z-30 shrink-0 h-14 fixed top-0 left-0 right-0">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Logo (Mobile) */}
           <Link 
             href="/dashboard" 
-            className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-600 transition-colors"
+            className="flex items-center gap-2 group"
             aria-label="Zurück zum Dashboard"
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <Link href="/dashboard" className="font-bold text-lg text-zinc-900">
-            Sinispace
+            <div className="relative h-7 w-7 sm:h-8 sm:w-8 overflow-hidden rounded-lg shadow-lg shadow-orange-500/10 border border-white/10 bg-white transition-transform duration-300">
+              <Image 
+                src="/assets/logos/logo.webp" 
+                alt="Sinispace Logo" 
+                fill 
+                className="object-contain p-1" 
+                priority 
+              />
+            </div>
           </Link>
         </div>
         <button 
           onClick={() => setIsSidebarOpen(true)}
-          className="p-2 hover:bg-zinc-100 rounded-md text-zinc-600 transition-colors"
+          className="p-1.5 sm:p-2 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-colors"
           aria-label="Chats öffnen"
         >
           <Menu className="w-5 h-5" />
@@ -48,17 +58,24 @@ export function ChatLayoutWrapper({ children, userEmail, isPro }: ChatLayoutWrap
       </div>
 
       {/* 2. DESKTOP SIDEBAR (Immer sichtbar, in einer Spalte links) */}
-      <aside className="hidden md:flex md:flex-col md:w-64 md:shrink-0 md:border-r md:border-zinc-200 md:bg-white md:relative md:h-full">
-        {/* Desktop: Zurück-Button oben */}
-        <div className="flex items-center gap-2 p-4 border-b border-zinc-200 shrink-0">
+      <aside className="hidden md:flex md:flex-col md:w-64 md:shrink-0 md:border-r md:border-white/5 md:bg-zinc-950/50 md:backdrop-blur-xl md:relative md:h-full">
+        {/* Desktop: Logo oben */}
+        <div className="flex h-16 items-center border-b border-white/5 px-4 sm:px-6 shrink-0">
           <Link 
             href="/dashboard" 
-            className="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-600 transition-colors"
-            aria-label="Zurück zum Dashboard"
+            className="flex items-center gap-3 group"
+            aria-label="Zum Dashboard"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <div className="relative h-9 w-9 overflow-hidden rounded-xl shadow-lg shadow-orange-500/10 border border-white/10 bg-white hover:scale-105 transition-transform duration-300">
+              <Image 
+                src="/assets/logos/logo.webp" 
+                alt="Sinispace Logo" 
+                fill 
+                className="object-contain p-1" 
+                priority 
+              />
+            </div>
           </Link>
-          <span className="text-sm font-medium text-zinc-600">Zurück</span>
         </div>
         
         {/* ChatSidebar für Desktop (immer offen, relative, volle Höhe) */}
@@ -78,7 +95,7 @@ export function ChatLayoutWrapper({ children, userEmail, isPro }: ChatLayoutWrap
       </div>
 
       {/* 4. MAIN CONTENT (Der Chat Bereich) */}
-      <main className="flex-1 flex flex-col min-w-0 bg-white relative h-full overflow-hidden pt-14 md:pt-0">
+      <main className="flex-1 flex flex-col min-w-0 relative h-full overflow-hidden pt-14 md:pt-0">
         {children}
       </main>
     </div>
