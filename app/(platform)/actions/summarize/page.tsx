@@ -25,45 +25,45 @@ export default function SummarizePage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-900">Text Zusammenfasser</h1>
-        <p className="text-zinc-500">
+        <h1 className="text-2xl font-bold text-white">Text Zusammenfasser</h1>
+        <p className="text-zinc-400">
           Zu viel Text, zu wenig Zeit? Ich gib dir die Kernaussagen.
         </p>
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
         {/* INPUT */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm h-fit">
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
           <form action={formAction} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">Dein langer Text</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-1">Dein langer Text</label>
               <textarea
                 name="text"
                 required
                 rows={12}
                 placeholder="Füge hier den Text ein (Artikel, E-Mail, Bericht)..."
-                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 resize-none"
               />
             </div>
             <SubmitButton />
           </form>
           
           {state?.error && (
-            <p className="mt-4 text-sm text-red-500">{state.error}</p>
+            <p className="mt-4 text-sm text-red-400">{state.error}</p>
           )}
         </div>
 
         {/* OUTPUT */}
-        <div className="relative rounded-xl border border-zinc-200 bg-zinc-50 p-6 shadow-inner min-h-[400px]">
+        <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[400px]">
           {state?.result ? (
             <div>
-              <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-500">Kernaussagen:</h3>
-              <div className="prose prose-sm max-w-none text-zinc-800 whitespace-pre-wrap leading-relaxed">
+              <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-400">Kernaussagen:</h3>
+              <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
                 {state.result}
               </div>
             </div>
           ) : (
-            <div className="flex h-full flex-col items-center justify-center text-zinc-400">
+            <div className="flex h-full flex-col items-center justify-center text-zinc-500">
               <span className="text-4xl mb-2">📑</span>
               <p>Ergebnis erscheint hier.</p>
             </div>

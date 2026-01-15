@@ -27,31 +27,31 @@ export default function EmailPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-900">E-Mail Verfasser</h1>
-        <p className="text-zinc-500">
+        <h1 className="text-2xl font-bold text-white">E-Mail Verfasser</h1>
+        <p className="text-zinc-400">
           Wirf mir ein paar Stichpunkte hin, ich mache daraus eine professionelle Mail.
         </p>
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
         {/* LINKE SEITE: EINGABE */}
-        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm h-fit">
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
           <form action={formAction} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">An wen geht es?</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-1">An wen geht es?</label>
               <input
                 name="recipient"
                 type="text"
                 placeholder="z.B. Chef, Kunden, Vermieter"
-                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">Tonfall</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-1">Tonfall</label>
               <select
                 name="tone"
-                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-white"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
               >
                 <option value="Professionell">Professionell & Sachlich</option>
                 <option value="Freundlich">Freundlich & Locker</option>
@@ -61,13 +61,13 @@ export default function EmailPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1">Worum geht's? (Stichpunkte reichen)</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-1">Worum geht's? (Stichpunkte reichen)</label>
               <textarea
                 name="topic"
                 required
                 rows={6}
                 placeholder="z.B. Bitte um Meeting nächste Woche, Projekt X ist fertig, brauche Feedback bis Freitag..."
-                className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 resize-none"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none"
               />
             </div>
 
@@ -75,18 +75,18 @@ export default function EmailPage() {
           </form>
           
           {state?.error && (
-            <p className="mt-4 text-sm text-red-500">{state.error}</p>
+            <p className="mt-4 text-sm text-red-400">{state.error}</p>
           )}
         </div>
 
         {/* RECHTE SEITE: ERGEBNIS */}
-        <div className="relative rounded-xl border border-zinc-200 bg-zinc-50 p-6 shadow-inner min-h-[400px]">
+        <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[400px]">
           {state?.result ? (
-            <div className="prose prose-sm max-w-none text-zinc-800 whitespace-pre-wrap leading-relaxed">
+            <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
               {state.result}
             </div>
           ) : (
-            <div className="flex h-full flex-col items-center justify-center text-zinc-400">
+            <div className="flex h-full flex-col items-center justify-center text-zinc-500">
               <span className="text-4xl mb-2">✉️</span>
               <p>Das Ergebnis erscheint hier.</p>
             </div>
