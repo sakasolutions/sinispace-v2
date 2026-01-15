@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from 'react'; // Für Loading-States
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { loginUser } from '@/actions/auth-actions'; // Deine bestehende Action
 
 export default function LoginPage() {
+  const router = useRouter();
   // Status für UI-Feedback (Laden, Fehler etc.)
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,9 @@ export default function LoginPage() {
       const result = await loginUser(formData);
       
       if (result?.success) {
-        // Erfolgreich - redirect passiert automatisch durch signIn
+        // Erfolgreich - manuell zum Dashboard weiterleiten
+        router.push('/dashboard');
+        router.refresh(); // Session aktualisieren
         return;
       } else {
         // Fehler anzeigen

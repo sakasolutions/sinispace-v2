@@ -60,21 +60,43 @@ export async function loginUser(formData: FormData) {
       email,
       password,
       redirectTo: '/dashboard',
+      redirect: false, // Wichtig: Kein automatischer Redirect, damit wir Fehler abfangen können
     });
     // Session wird automatisch in DB gespeichert via signIn-Callback in auth.ts
     return { success: true };
-  } catch (error) {
-    // NextAuth wirft spezifische Fehler - diese abfangen
+  } catch (error: any) {
+    // NextAuth wirft verschiedene Fehlertypen - alle abfangen
+    console.error('Login error:', error);
+    
+    // Prüfe auf verschiedene Fehlertypen
     if (error instanceof Error) {
+      const errorMessage = error.message.toLowerCase();
+      
       // Spezifische Fehlermeldungen aus auth.ts
-      if (error.message === 'Benutzer nicht gefunden.') {
+      if (errorMessage.includes('benutzer nicht gefunden') || errorMessage.includes('user not found')) {
         return { success: false, error: 'Kein Benutzer mit dieser E-Mail gefunden.' };
       }
-      if (error.message === 'Falsches Passwort.') {
+      if (errorMessage.includes('falsches passwort') || errorMessage.includes('wrong password') || errorMessage.includes('invalid password')) {
         return { success: false, error: 'Falsches Passwort. Bitte versuche es erneut.' };
       }
+      
+      // NextAuth spezifische Fehler
+      if (errorMessage.includes('callbackrouteerror') || errorMessage.includes('callback')) {
+        return { success: false, error: 'Anmeldung fehlgeschlagen. Bitte überprüfe deine Zugangsdaten.' };
+      }
+      if (errorMessage.includes('credentials') || errorMessage.includes('authorize')) {
+        return { success: false, error: 'Ungültige Anmeldedaten. Bitte versuche es erneut.' };
+      }
+      
+      // Fallback: Zeige die Fehlermeldung, aber ohne technische Details
+      if (errorMessage.includes('http://') || errorMessage.includes('https://')) {
+        return { success: false, error: 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.' };
+      }
+      
       return { success: false, error: error.message };
     }
+    
+    // Fallback für unbekannte Fehlertypen
     return { success: false, error: 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.' };
   }
 }
