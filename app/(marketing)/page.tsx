@@ -53,6 +53,8 @@ const testimonialData = [
 ];
 
 // --- ANIMATION CONFIG ---
+// CSS-basierte Animationen für bessere Performance (kein JS-Bundle nötig)
+const fadeUpCSS = "animate-[fadeUp_0.6s_ease-out_forwards] opacity-0";
 
 const fadeUp = (delay = 0, reducedMotion = false) => ({
   initial: reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 },
@@ -88,7 +90,7 @@ function Header() {
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -115,6 +117,7 @@ function Header() {
                fill 
                className="object-contain p-1" 
                priority 
+               sizes="36px"
              />
            </div>
         </Link>
@@ -182,15 +185,21 @@ function Header() {
 // --- MAIN PAGE ---
 
 export default function LandingPage() {
+  const [mounted, setMounted] = useState(false);
   const prefersReducedMotion = useReducedMotion() ?? false;
+  
+  // Defer Animationen bis nach dem ersten Render
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Memoized configs
   const fadeConfigs = useMemo(() => ({
-    badge: fadeUp(0.1, prefersReducedMotion),
-    title: fadeUp(0.2, prefersReducedMotion),
-    sub: fadeUp(0.3, prefersReducedMotion),
-    btn: fadeUp(0.4, prefersReducedMotion),
-  }), [prefersReducedMotion]);
+    badge: fadeUp(0.1, prefersReducedMotion || !mounted),
+    title: fadeUp(0.2, prefersReducedMotion || !mounted),
+    sub: fadeUp(0.3, prefersReducedMotion || !mounted),
+    btn: fadeUp(0.4, prefersReducedMotion || !mounted),
+  }), [prefersReducedMotion, mounted]);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-900 font-sans selection:bg-orange-500/30 selection:text-orange-100">
@@ -203,12 +212,12 @@ export default function LandingPage() {
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
             <motion.div 
-              animate={prefersReducedMotion ? {} : { scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3], x: [0, 50, 0] }} 
+              animate={mounted && !prefersReducedMotion ? { scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3], x: [0, 50, 0] } : {}} 
               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
               className="absolute top-0 left-1/4 -translate-x-1/2 h-[500px] w-[500px] rounded-full bg-orange-500/20 blur-[120px]" 
             />
             <motion.div 
-              animate={prefersReducedMotion ? {} : { scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2], x: [0, -50, 0] }} 
+              animate={mounted && !prefersReducedMotion ? { scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2], x: [0, -50, 0] } : {}} 
               transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
               className="absolute bottom-0 right-1/4 h-[600px] w-[600px] rounded-full bg-purple-500/10 blur-[120px]" 
             />
@@ -249,14 +258,14 @@ export default function LandingPage() {
             </motion.div>
 
             <motion.div 
-              initial={{ opacity: 0, y: 60 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={mounted ? { opacity: 0, y: 60 } : { opacity: 1, y: 0 }}
+              whileInView={mounted ? { opacity: 1, y: 0 } : {}}
               viewport={{ once: true }}
               transition={{ duration: 1, delay: 0.5 }}
               className="mt-24 mx-auto max-w-4xl"
             >
                <motion.div 
-                 animate={prefersReducedMotion ? {} : { y: [0, -10, 0] }}
+                 animate={mounted && !prefersReducedMotion ? { y: [0, -10, 0] } : {}}
                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                  className="rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl p-2 shadow-2xl ring-1 ring-white/5"
                >
@@ -298,7 +307,10 @@ export default function LandingPage() {
         <section className="bg-zinc-950 border-y border-white/5 py-10 relative overflow-hidden z-20">
            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-zinc-950 to-transparent z-10"></div>
            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-zinc-950 to-transparent z-10"></div>
-           <motion.div className="flex gap-8" animate={getMarqueeAnimation(prefersReducedMotion)}>
+           <motion.div 
+             className="flex gap-8" 
+             animate={mounted && !prefersReducedMotion ? getMarqueeAnimation(false) : {}}
+           >
              {[...Array(2)].map((_, i) => (
                <div key={i} className="flex gap-8 whitespace-nowrap">
                  {["LinkedIn Viral", "SEO Analyse", "Code Review", "Rechtstexte", "Blog Post", "Instagram Caption", "Meeting Protokoll", "Excel Formeln", "Sales E-Mail", "Zusammenfassung"].map((text) => (
@@ -608,7 +620,14 @@ export default function LandingPage() {
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-6 px-4">
           <div className="flex items-center gap-2">
              <div className="relative h-10 w-40">
-               <Image src="/assets/logos/logo-full.webp" alt="Sinispace Logo Full" fill className="object-contain object-left"/>
+               <Image 
+                 src="/assets/logos/logo-full.webp" 
+                 alt="Sinispace Logo Full" 
+                 fill 
+                 className="object-contain object-left"
+                 loading="lazy"
+                 sizes="160px"
+               />
              </div>
           </div>
           <p className="text-sm text-zinc-500 text-center md:text-left">&copy; {new Date().getFullYear()} Sinispace. Made in Germany.</p>
