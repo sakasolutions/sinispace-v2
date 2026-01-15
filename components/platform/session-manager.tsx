@@ -93,21 +93,21 @@ export function SessionManager() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="font-semibold text-zinc-900 mb-4">Aktive Sessions</h2>
-        <p className="text-sm text-zinc-500">Lade Sessions...</p>
+      <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <h2 className="font-semibold text-white mb-4">Aktive Sessions</h2>
+        <p className="text-sm text-zinc-400">Lade Sessions...</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-zinc-900">Aktive Sessions</h2>
+        <h2 className="font-semibold text-white">Aktive Sessions</h2>
         {sessions.length > 1 && (
           <button
             onClick={handleRevokeAllOther}
-            className="text-xs text-red-600 hover:text-red-700 font-medium"
+            className="text-xs text-red-400 hover:text-red-300 font-medium transition-colors"
           >
             Alle anderen beenden
           </button>
@@ -116,10 +116,10 @@ export function SessionManager() {
 
       {message && (
         <div
-          className={`mb-4 rounded-lg p-3 text-sm ${
+          className={`mb-4 rounded-lg p-3 text-sm backdrop-blur-xl border ${
             message.type === 'success'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
+              ? 'bg-green-500/10 text-green-400 border-green-500/30'
+              : 'bg-red-500/10 text-red-400 border-red-500/30'
           }`}
         >
           {message.text}
@@ -127,30 +127,30 @@ export function SessionManager() {
       )}
 
       {sessions.length === 0 ? (
-        <p className="text-sm text-zinc-500">Keine aktiven Sessions gefunden.</p>
+        <p className="text-sm text-zinc-400">Keine aktiven Sessions gefunden.</p>
       ) : (
         <div className="space-y-3">
           {sessions.map((session) => (
             <div
               key={session.id}
-              className={`flex items-center justify-between p-3 rounded-lg border ${
+              className={`flex items-center justify-between p-3 rounded-lg border backdrop-blur-sm ${
                 session.isCurrent
-                  ? 'bg-blue-50 border-blue-200'
-                  : 'bg-zinc-50 border-zinc-200'
+                  ? 'bg-blue-500/10 border-blue-500/30'
+                  : 'bg-zinc-800/30 border-white/5'
               }`}
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-zinc-900">
+                  <span className="text-sm font-medium text-white">
                     Session
                   </span>
                   {session.isCurrent && (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/30">
                       Aktiv
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-zinc-500 space-y-0.5">
+                <div className="text-xs text-zinc-400 space-y-0.5">
                   <p>Erstellt: {formatDate(session.createdAt)}</p>
                   <p>Läuft ab in: {getTimeUntilExpiry(session.expires)}</p>
                 </div>
@@ -158,7 +158,7 @@ export function SessionManager() {
               {!session.isCurrent && (
                 <button
                   onClick={() => handleRevokeSession(session.id)}
-                  className="ml-4 text-xs text-red-600 hover:text-red-700 font-medium px-3 py-1.5 rounded border border-red-200 hover:bg-red-50 transition-colors"
+                  className="ml-4 text-xs text-red-400 hover:text-red-300 font-medium px-3 py-1.5 rounded border border-red-500/30 hover:bg-red-500/10 transition-colors"
                 >
                   Beenden
                 </button>
@@ -168,7 +168,7 @@ export function SessionManager() {
         </div>
       )}
 
-      <p className="mt-4 text-xs text-zinc-400">
+      <p className="mt-4 text-xs text-zinc-500">
         Sessions laufen automatisch nach 30 Tagen ab. Du kannst sie jederzeit manuell beenden.
       </p>
     </div>

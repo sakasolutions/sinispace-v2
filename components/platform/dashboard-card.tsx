@@ -58,10 +58,22 @@ export function DashboardCard({ title, desc, href, icon: iconName, accentColor }
   const colors = colorMap[accentColor];
   const Icon = getIcon(iconName);
 
+  // Dynamischer Hover-Glow basierend auf accentColor
+  const hoverGlowMap: Record<string, string> = {
+    blue: 'hover:shadow-[0_8px_32px_0_rgba(37,99,235,0.1)]',
+    green: 'hover:shadow-[0_8px_32px_0_rgba(34,197,94,0.1)]',
+    purple: 'hover:shadow-[0_8px_32px_0_rgba(168,85,247,0.1)]',
+    orange: 'hover:shadow-[0_8px_32px_0_rgba(249,115,22,0.1)]',
+    red: 'hover:shadow-[0_8px_32px_0_rgba(239,68,68,0.1)]',
+    pink: 'hover:shadow-[0_8px_32px_0_rgba(236,72,153,0.1)]',
+    indigo: 'hover:shadow-[0_8px_32px_0_rgba(99,102,241,0.1)]',
+    teal: 'hover:shadow-[0_8px_32px_0_rgba(20,184,166,0.1)]',
+  };
+
   return (
     <Link
       href={href}
-      className="group relative flex flex-col rounded-xl border border-white/5 bg-zinc-900/50 backdrop-blur-md p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-white/10 hover:shadow-lg"
+      className={`group relative flex flex-col rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300 hover:-translate-y-1 hover:border-white/20 ${hoverGlowMap[accentColor]}`}
     >
       {/* Icon mit Glow-Effekt */}
       <div className="relative mb-4">

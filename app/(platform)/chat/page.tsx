@@ -111,12 +111,12 @@ export default function ChatPage() {
   return (
     // WICHTIG: Nur noch ein einfacher Container, der den Platz vom Layout füllt.
     // Keine Sidebar-Komponente mehr hier drin!
-    <div className="flex flex-col h-full w-full bg-white">
+    <div className="flex flex-col h-full w-full">
       
       {/* HEADER: Nur noch Titel, kein Logo/Burger mehr (macht das Layout auf Mobile) */}
-      <div className="shrink-0 px-4 py-3 md:py-2 border-b border-transparent md:border-zinc-100">
-        <h1 className="text-xl md:text-2xl font-bold text-zinc-900">Freier Chat</h1>
-        <p className="text-sm md:text-base text-zinc-500">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+      <div className="shrink-0 px-4 py-3 md:py-2 border-b border-transparent md:border-white/5">
+        <h1 className="text-xl md:text-2xl font-bold text-white">Freier Chat</h1>
+        <p className="text-sm md:text-base text-zinc-400">Frag mich alles – mit Code, Tabellen und Struktur.</p>
       </div>
 
       {/* NACHRICHTEN BEREICH */}
@@ -135,19 +135,19 @@ export default function ChatPage() {
           >
             {/* AI Avatar */}
             {msg.role === 'assistant' && (
-              <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-green-100 text-lg border border-green-200 mt-1">
+              <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-green-500/20 text-lg border border-green-500/30 mt-1">
                 ✨
               </div>
             )}
 
             {/* Chat Bubble */}
-            <div
-              className={`relative max-w-[90%] md:max-w-[85%] rounded-2xl px-4 py-3 shadow-sm text-sm leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-zinc-900 text-white rounded-br-none'
-                  : 'bg-white border border-zinc-200 text-zinc-800 rounded-bl-none'
-              }`}
-            >
+                  <div
+                    className={`relative max-w-[90%] md:max-w-[85%] rounded-2xl px-4 py-3 shadow-sm text-sm leading-relaxed ${
+                      msg.role === 'user'
+                        ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
+                        : 'bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl border border-white/10 text-white rounded-bl-none'
+                    }`}
+                  >
               {msg.role === 'assistant' ? (
                 // Markdown Rendering
                 <div className="prose prose-zinc prose-sm max-w-none dark:prose-invert 
@@ -196,7 +196,7 @@ export default function ChatPage() {
                           </div>
                         )
                       },
-                      thead({children}) { return <thead className="bg-zinc-50">{children}</thead> },
+                      thead({children}) { return <thead className="bg-zinc-800/50">{children}</thead> },
                       th({children}) { return <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-600 uppercase tracking-wider">{children}</th> },
                       td({children}) { return <td className="px-3 py-2 text-sm text-zinc-700 border-t border-zinc-100 whitespace-nowrap sm:whitespace-normal">{children}</td> }
                     }}
@@ -211,7 +211,7 @@ export default function ChatPage() {
 
             {/* User Avatar */}
             {msg.role === 'user' && (
-              <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600 border border-zinc-300 mt-1">
+              <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-800/50 text-xs font-bold text-zinc-300 border border-white/10 mt-1">
                 DU
               </div>
             )}
@@ -220,8 +220,8 @@ export default function ChatPage() {
         
         {isLoading && (
           <div className="flex w-full gap-4 justify-start">
-             <div className="hidden md:flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100 border border-green-200">✨</div>
-             <div className="flex items-center space-x-1 rounded-2xl bg-white border border-zinc-200 px-4 py-3 shadow-sm">
+             <div className="hidden md:flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500/20 border border-green-500/30">✨</div>
+             <div className="flex items-center space-x-1 rounded-2xl bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl border border-white/10 px-4 py-3 shadow-sm">
                <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]"></div>
                <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></div>
                <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"></div>
@@ -232,8 +232,8 @@ export default function ChatPage() {
       </div>
 
       {/* INPUT BEREICH */}
-      <div className="shrink-0 p-2 md:p-4 bg-white border-t border-zinc-200 z-10">
-        <form onSubmit={handleSubmit} className="relative flex items-end gap-2 rounded-xl border border-zinc-300 bg-white p-2 shadow-sm focus-within:ring-2 focus-within:ring-zinc-900 transition-all">
+      <div className="shrink-0 p-2 md:p-4 border-t border-white/5 z-10">
+        <form onSubmit={handleSubmit} className="relative flex items-end gap-2 rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/50 transition-all">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
