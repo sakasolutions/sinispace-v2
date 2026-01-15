@@ -52,7 +52,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         </div>
         <nav className="flex flex-col gap-1 p-4">
           <NavItem href="/dashboard" label="Übersicht" pathname={pathname} />
-          <NavItem href="/chat" label="Freier Chat" pathname={pathname} />
+          <NavItem href="/chat" label="SiniChat" pathname={pathname} />
           <div className="my-4 h-px bg-white/5" />
           <NavItem href="/settings" label="Einstellungen" pathname={pathname} />
         </nav>

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { chatWithAI } from '@/actions/ai-actions';
 import { getChat, saveMessage } from '@/actions/chat-actions';
 import ReactMarkdown from 'react-markdown';
@@ -93,14 +94,27 @@ export default function ChatDetailPage() {
 
   return (
     <div className="flex flex-col h-[100dvh] w-full overflow-hidden">
-      {/* Chat Titel - nur auf Desktop mit Padding, Mobile ohne extra Padding */}
+      {/* Chat Titel - Logo + SiniChat Branding */}
       <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5">
-        <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white">Freier Chat</h1>
-        <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-zinc-400">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="relative h-8 w-8 sm:h-9 sm:w-9 overflow-hidden rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white shrink-0">
+            <Image 
+              src="/assets/logos/logo.webp" 
+              alt="Sinispace Logo" 
+              fill 
+              className="object-contain p-1.5" 
+              priority 
+            />
+          </div>
+          <div>
+            <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white">SiniChat</h1>
+            <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-zinc-400">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+          </div>
+        </div>
       </div>
 
       {/* NACHRICHTEN BEREICH */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth pb-20 sm:pb-4">
+      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth pb-[calc(env(safe-area-inset-bottom)+120px)] sm:pb-4">
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center text-zinc-400 opacity-50">
             <span className="text-5xl sm:text-6xl mb-4">💬</span>
@@ -123,15 +137,16 @@ export default function ChatDetailPage() {
               className={`relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 shadow-sm text-[13px] sm:text-sm md:text-[15px] leading-relaxed ${
                 msg.role === 'user'
                   ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
-                  : 'bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl border border-white/10 text-white rounded-bl-none'
+                  : 'bg-zinc-800/50 backdrop-blur-xl border border-white/10 text-white rounded-bl-none'
               }`}
             >
               {msg.role === 'assistant' ? (
                 <div className="prose prose-zinc prose-sm max-w-none dark:prose-invert 
                   prose-p:my-1 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 
-                  prose-headings:mt-4 prose-headings:mb-2 prose-headings:font-bold
+                  prose-headings:mt-4 prose-headings:mb-2 prose-headings:font-bold prose-headings:text-white
                   prose-pre:my-2 prose-pre:bg-zinc-900 prose-pre:p-0
                   prose-table:my-2 prose-th:p-2 prose-td:p-2
+                  prose-p:text-white prose-ul:text-white prose-ol:text-white prose-li:text-white
                   break-words overflow-hidden"
                 >
                   <ReactMarkdown
@@ -207,20 +222,21 @@ export default function ChatDetailPage() {
         <div ref={messagesEndRef} className="h-1" />
       </div>
 
-      {/* INPUT BEREICH - Sticky für Mobile, damit Tastatur nicht darüber liegt */}
-      <div className="sticky bottom-0 sm:relative shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-20 pb-[env(safe-area-inset-bottom)] sm:pb-2 md:pb-4 lg:pb-5">
+      {/* INPUT BEREICH - Fixed für Mobile, damit Tastatur nicht darüber liegt */}
+      <div className="fixed bottom-0 left-0 right-0 sm:relative shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-30 pb-[env(safe-area-inset-bottom)] sm:pb-2 md:pb-4 lg:pb-5">
         <form onSubmit={handleSubmit} className="relative flex items-end gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-1.5 sm:p-2 md:p-2.5 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/50 transition-all">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Schreib eine Nachricht..."
-            className="flex-1 bg-transparent px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-[13px] sm:text-sm md:text-[15px] focus:outline-none min-w-0 text-white placeholder:text-zinc-500"
+            className="flex-1 bg-transparent px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-base md:text-sm focus:outline-none min-w-0 text-white placeholder:text-zinc-500"
             autoFocus
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
             className="mb-0.5 sm:mb-1 mr-0.5 sm:mr-1 rounded-lg bg-zinc-900 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
+            aria-label="Nachricht senden"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           </button>
