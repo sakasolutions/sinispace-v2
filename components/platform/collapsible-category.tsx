@@ -16,7 +16,7 @@ export function CollapsibleCategory({ category }: CollapsibleCategoryProps) {
       </h2>
 
       {/* Grid mit Karten - Mobile: 1 Spalte, Tablet: 2 Spalten, Desktop: 3 Spalten */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 w-full">
         {category.tools.map((tool) => (
           <DashboardCard
             key={tool.href}

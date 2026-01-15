@@ -111,7 +111,7 @@ export default function ChatPage() {
   return (
     // WICHTIG: Nur noch ein einfacher Container, der den Platz vom Layout füllt.
     // Keine Sidebar-Komponente mehr hier drin!
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-[100dvh] w-full overflow-hidden">
       
       {/* HEADER: Nur noch Titel, kein Logo/Burger mehr (macht das Layout auf Mobile) */}
       <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5">
@@ -120,7 +120,7 @@ export default function ChatPage() {
       </div>
 
       {/* NACHRICHTEN BEREICH */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth">
+      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth pb-20 sm:pb-4">
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center text-zinc-400 opacity-50">
             <span className="text-5xl sm:text-6xl mb-4">💬</span>
@@ -231,8 +231,8 @@ export default function ChatPage() {
         <div ref={messagesEndRef} className="h-1" />
       </div>
 
-      {/* INPUT BEREICH */}
-      <div className="shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 z-10">
+      {/* INPUT BEREICH - Sticky für Mobile, damit Tastatur nicht darüber liegt */}
+      <div className="sticky bottom-0 sm:relative shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-20 pb-[env(safe-area-inset-bottom)] sm:pb-2 md:pb-4 lg:pb-5">
         <form onSubmit={handleSubmit} className="relative flex items-end gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-1.5 sm:p-2 md:p-2.5 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/50 transition-all">
           <input
             value={input}

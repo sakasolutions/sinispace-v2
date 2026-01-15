@@ -73,7 +73,7 @@ export function DashboardCard({ title, desc, href, icon: iconName, accentColor }
   return (
     <Link
       href={href}
-      className={`group relative flex flex-col rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300 hover:-translate-y-1 hover:border-white/20 ${hoverGlowMap[accentColor]}`}
+      className={`group relative flex flex-col w-full rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300 hover:-translate-y-1 hover:border-white/20 ${hoverGlowMap[accentColor]}`}
     >
       {/* Icon mit Glow-Effekt */}
       <div className="relative mb-3 sm:mb-4">

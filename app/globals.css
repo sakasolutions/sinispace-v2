@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Mobile Responsiveness Fixes */
+@layer base {
+  html {
+    @apply bg-zinc-950;
+    /* Verhindert weißen Hintergrund beim Scrollen auf iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  body {
+    @apply bg-zinc-950 text-white;
+    /* Verhindert weißen Hintergrund beim Rubber-Banding auf iOS */
+    overscroll-behavior: none;
+  }
+  
+  /* Safe Area für iPhone Notch und Home-Balken */
+  @supports (padding: max(0px)) {
+    body {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
+}

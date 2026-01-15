@@ -95,7 +95,7 @@ export function ChatLayoutWrapper({ children, userEmail, isPro }: ChatLayoutWrap
       </div>
 
       {/* 4. MAIN CONTENT (Der Chat Bereich) */}
-      <main className="flex-1 flex flex-col min-w-0 relative h-full overflow-hidden pt-14 md:pt-0">
+      <main className="flex-1 flex flex-col min-w-0 relative overflow-hidden pt-14 md:pt-0">
         {children}
       </main>
     </div>

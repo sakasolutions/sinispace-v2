@@ -8,7 +8,7 @@ export default async function DashboardPage() {
   const session = await auth();
 
   return (
-    <div className="mx-auto max-w-7xl w-full">
+    <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8">
       <div className="mb-6 sm:mb-8 md:mb-12">
         <h1 className="text-xl sm:text-2xl font-bold text-white">
           Guten Tag, {session?.user?.name || session?.user?.email || 'Nutzer'}.
