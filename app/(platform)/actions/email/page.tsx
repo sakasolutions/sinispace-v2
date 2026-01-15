@@ -25,18 +25,18 @@ export default function EmailPage() {
   const [state, formAction] = useActionState(generateEmailWithChat, null);
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">E-Mail Verfasser</h1>
-        <p className="text-zinc-400">
+    <div className="max-w-4xl mx-auto w-full">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-white">E-Mail Verfasser</h1>
+        <p className="text-sm sm:text-base text-zinc-400">
           Wirf mir ein paar Stichpunkte hin, ich mache daraus eine professionelle Mail.
         </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-2">
         {/* LINKE SEITE: EINGABE */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
-          <form action={formAction} className="space-y-4">
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
+          <form action={formAction} className="space-y-3 sm:space-y-4">
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-1">An wen geht es?</label>
               <input
@@ -80,7 +80,7 @@ export default function EmailPage() {
         </div>
 
         {/* RECHTE SEITE: ERGEBNIS */}
-        <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[400px]">
+        <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px] sm:min-h-[400px]">
           {state?.result ? (
             <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
               {state.result}

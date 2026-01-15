@@ -23,18 +23,18 @@ export default function ExcelPage() {
   const [state, formAction] = useActionState(generateExcelWithChat, null);
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Excel & Sheets Retter</h1>
-        <p className="text-zinc-400">
+    <div className="max-w-4xl mx-auto w-full">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-white">Excel & Sheets Retter</h1>
+        <p className="text-sm sm:text-base text-zinc-400">
           Beschreibe dein Problem, ich gebe dir die fertige Formel.
         </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-2">
         {/* INPUT */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
-          <form action={formAction} className="space-y-4">
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
+          <form action={formAction} className="space-y-3 sm:space-y-4">
             
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-1">Welches Programm?</label>
@@ -66,7 +66,7 @@ export default function ExcelPage() {
         </div>
 
         {/* OUTPUT */}
-        <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px]">
+        <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[250px] sm:min-h-[300px]">
           {state?.result ? (
             <div className="prose prose-sm max-w-none prose-invert">
               <div className="bg-zinc-900/50 border border-white/10 p-4 rounded-md font-mono text-sm mb-4 overflow-x-auto text-green-400 font-bold shadow-sm">

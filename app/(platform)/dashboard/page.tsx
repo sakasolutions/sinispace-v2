@@ -8,18 +8,18 @@ export default async function DashboardPage() {
   const session = await auth();
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-12">
-        <h1 className="text-2xl font-bold text-white">
+    <div className="mx-auto max-w-7xl w-full">
+      <div className="mb-6 sm:mb-8 md:mb-12">
+        <h1 className="text-xl sm:text-2xl font-bold text-white">
           Guten Tag, {session?.user?.name || session?.user?.email || 'Nutzer'}.
         </h1>
-        <p className="text-zinc-400 mt-2">
+        <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
           Was möchtest du heute erledigen?
         </p>
       </div>
 
       {/* KATEGORIEN - Direkt auf dem Hintergrund, ohne Container */}
-      <div className="space-y-12">
+      <div className="space-y-6 sm:space-y-8 md:space-y-12">
         {toolCategories.map((category) => (
           <CollapsibleCategory key={category.name} category={category} />
         ))}

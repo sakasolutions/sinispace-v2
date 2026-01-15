@@ -149,7 +149,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         
         {/* Children Container: Chat-Seite nutzt h-full direkt, andere Seiten bekommen Padding und können scrollen */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="min-h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:p-4 [&>*:not([data-no-padding])]:md:p-8">
+          <div className="min-h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
             {children}
           </div>
         </div>

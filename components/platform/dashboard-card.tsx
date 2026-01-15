@@ -73,24 +73,24 @@ export function DashboardCard({ title, desc, href, icon: iconName, accentColor }
   return (
     <Link
       href={href}
-      className={`group relative flex flex-col rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300 hover:-translate-y-1 hover:border-white/20 ${hoverGlowMap[accentColor]}`}
+      className={`group relative flex flex-col rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300 hover:-translate-y-1 hover:border-white/20 ${hoverGlowMap[accentColor]}`}
     >
       {/* Icon mit Glow-Effekt */}
-      <div className="relative mb-4">
+      <div className="relative mb-3 sm:mb-4">
         {/* Glow-Hintergrund */}
         <div className={`absolute -inset-2 rounded-full ${colors.glow} blur-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
         {/* Icon Container */}
         <div className="relative">
-          <Icon className={`h-12 w-12 ${colors.icon} transition-transform duration-300 group-hover:scale-110`} strokeWidth={1.5} />
+          <Icon className={`h-10 w-10 sm:h-12 sm:w-12 ${colors.icon} transition-transform duration-300 group-hover:scale-110`} strokeWidth={1.5} />
         </div>
       </div>
 
       {/* Content */}
-      <h3 className="mb-2 text-lg font-bold text-white">{title}</h3>
-      <p className="mb-4 flex-1 text-sm leading-relaxed text-zinc-400">{desc}</p>
+      <h3 className="mb-1.5 sm:mb-2 text-base sm:text-lg font-bold text-white leading-tight">{title}</h3>
+      <p className="mb-3 sm:mb-4 flex-1 text-xs sm:text-sm leading-relaxed text-zinc-400">{desc}</p>
 
       {/* CTA */}
-      <div className="flex items-center text-sm font-medium text-zinc-400 transition-colors group-hover:text-white">
+      <div className="flex items-center text-xs sm:text-sm font-medium text-zinc-400 transition-colors group-hover:text-white">
         <span>Starten</span>
         <span className="ml-2 transition-transform duration-300 group-hover:translate-x-1">
           →
