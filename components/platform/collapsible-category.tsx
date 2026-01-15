@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { ToolCategory } from '@/app/(platform)/dashboard/page';
+import { ToolCategory } from '@/lib/tool-categories';
 import { DashboardCard } from '@/components/platform/dashboard-card';
 
 interface CollapsibleCategoryProps {
