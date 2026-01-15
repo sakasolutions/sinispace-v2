@@ -128,7 +128,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
                 </div>
                 <nav className="flex flex-col gap-1 p-4 flex-1">
                   <MobileNavItem href="/dashboard" label="Übersicht" pathname={pathname} onClick={() => setIsMobileMenuOpen(false)} />
-                  <MobileNavItem href="/chat" label="Freier Chat" pathname={pathname} onClick={() => setIsMobileMenuOpen(false)} />
+                  <MobileNavItem href="/chat" label="SiniChat" pathname={pathname} onClick={() => setIsMobileMenuOpen(false)} />
                   <div className="my-4 h-px bg-white/5" />
                   <MobileNavItem href="/settings" label="Einstellungen" pathname={pathname} onClick={() => setIsMobileMenuOpen(false)} />
                 </nav>
