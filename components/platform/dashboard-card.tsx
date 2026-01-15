@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { LucideIcon } from 'lucide-react';
+import { getIcon } from '@/lib/tool-icons';
 
 interface DashboardCardProps {
   title: string;
   desc: string;
   href: string;
-  icon: LucideIcon;
+  icon: string; // Icon-Name als String
   accentColor: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'pink' | 'indigo' | 'teal';
 }
 
@@ -54,8 +54,9 @@ const colorMap = {
   },
 };
 
-export function DashboardCard({ title, desc, href, icon: Icon, accentColor }: DashboardCardProps) {
+export function DashboardCard({ title, desc, href, icon: iconName, accentColor }: DashboardCardProps) {
   const colors = colorMap[accentColor];
+  const Icon = getIcon(iconName);
 
   return (
     <Link
