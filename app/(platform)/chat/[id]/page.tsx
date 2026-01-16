@@ -154,15 +154,28 @@ export default function ChatDetailPage() {
     // Erlaube Submit wenn Text ODER Dokumente vorhanden sind
     if ((!input.trim() && documents.length === 0) || isLoading || !chatId) return;
 
-    const userMessage: Message = { role: 'user', content: input.trim() || 'Siehe angehängte Datei(en).' };
+    // Nachricht mit Dateinamen erstellen, wenn Dateien angehängt sind
+    let messageContent = input.trim();
+    if (documents.length > 0) {
+      const fileNames = documents.map(d => d.fileName).join(', ');
+      if (messageContent) {
+        messageContent += `\n\n📎 Angehängte Datei(n): ${fileNames}`;
+      } else {
+        messageContent = `📎 Angehängte Datei(n): ${fileNames}`;
+      }
+    } else if (!messageContent) {
+      messageContent = 'Siehe angehängte Datei(en).';
+    }
+
+    const userMessage: Message = { role: 'user', content: messageContent };
     const newHistory = [...messages, userMessage];
     
     setMessages(newHistory);
     setInput('');
     setIsLoading(true);
 
-    // User-Nachricht in DB speichern
-    await saveMessage(chatId, 'user', input.trim() || 'Siehe angehängte Datei(en).');
+    // User-Nachricht in DB speichern (mit Dateinamen, wenn vorhanden)
+    await saveMessage(chatId, 'user', messageContent);
 
     // KI-Response holen (mit hochgeladenen Dokumenten)
     const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId) : undefined;

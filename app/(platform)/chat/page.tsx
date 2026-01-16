@@ -195,19 +195,32 @@ export default function ChatPage() {
       currentChatId 
     });
 
-    const userMessage: Message = { role: 'user', content: input.trim() || 'Siehe angehängte Datei(en).' };
+    // Nachricht mit Dateinamen erstellen, wenn Dateien angehängt sind
+    let messageContent = input.trim();
+    if (documents.length > 0) {
+      const fileNames = documents.map(d => d.fileName).join(', ');
+      if (messageContent) {
+        messageContent += `\n\n📎 Angehängte Datei(n): ${fileNames}`;
+      } else {
+        messageContent = `📎 Angehängte Datei(n): ${fileNames}`;
+      }
+    } else if (!messageContent) {
+      messageContent = 'Siehe angehängte Datei(en).';
+    }
+
+    const userMessage: Message = { role: 'user', content: messageContent };
     const newHistory = [...messages, userMessage];
     
     setMessages(newHistory);
-    const messageContent = input;
+    const originalMessageContent = input.trim();
     setInput('');
     setIsLoading(true);
 
     let chatIdToUse = currentChatId;
 
-    // Wenn noch kein Chat existiert, erstelle einen neuen
-    if (!chatIdToUse) {
-      const chatTitle = messageContent || (documents.length > 0 ? `Datei: ${documents[documents.length - 1].fileName}` : 'Neuer Chat');
+      // Wenn noch kein Chat existiert, erstelle einen neuen
+      if (!chatIdToUse) {
+        const chatTitle = originalMessageContent || (documents.length > 0 ? `Datei: ${documents[documents.length - 1].fileName}` : 'Neuer Chat');
       console.log('💬 Erstelle neuen Chat:', chatTitle);
       const chatResult = await createChat(chatTitle);
       if (chatResult.success && chatResult.chatId) {
@@ -215,8 +228,8 @@ export default function ChatPage() {
         setCurrentChatId(chatIdToUse);
         console.log('✅ Chat erstellt:', chatIdToUse);
         
-        // ✅ User-Nachricht speichern
-        await saveMessage(chatIdToUse, 'user', messageContent || 'Siehe angehängte Datei(en).');
+        // ✅ User-Nachricht speichern (mit Dateinamen, wenn vorhanden)
+        await saveMessage(chatIdToUse, 'user', messageContent);
         
         // ✅ KI-Response holen BEVOR Redirect (mit hochgeladenen Dokumenten)
         const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId) : undefined;
@@ -253,9 +266,9 @@ export default function ChatPage() {
       }
     }
 
-    // User-Nachricht speichern (wenn Chat bereits existiert)
+    // User-Nachricht speichern (wenn Chat bereits existiert, mit Dateinamen, wenn vorhanden)
     if (chatIdToUse) {
-      await saveMessage(chatIdToUse, 'user', messageContent || 'Siehe angehängte Datei(en).');
+      await saveMessage(chatIdToUse, 'user', messageContent);
     }
 
     // KI-Response holen (mit hochgeladenen Dokumenten)
