@@ -103,8 +103,6 @@ export default function ChatPage() {
         if (chatResult.success && chatResult.chatId) {
           chatIdToUse = chatResult.chatId;
           setCurrentChatId(chatIdToUse);
-          // Redirect zu /chat/[id]
-          router.push(`/chat/${chatIdToUse}`);
         } else {
           alert('Fehler beim Erstellen des Chats');
           setIsUploading(false);
@@ -130,6 +128,11 @@ export default function ChatPage() {
         // Dokumente neu laden
         const docs = await getChatDocuments(chatIdToUse);
         setDocuments(docs);
+        
+        // WICHTIG: Redirect NACH erfolgreichem Upload
+        if (!currentChatId) {
+          router.push(`/chat/${chatIdToUse}`);
+        }
       } else {
         alert(result.error || 'Fehler beim Hochladen');
       }

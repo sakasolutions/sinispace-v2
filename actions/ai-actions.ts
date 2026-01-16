@@ -149,12 +149,13 @@ export async function chatWithAI(
   try {
     // Wenn File-IDs vorhanden sind, nutze Assistants API mit File Search
     if (fileIds && fileIds.length > 0) {
+      console.log('📎 Verarbeite Chat mit', fileIds.length, 'Datei(en)');
       try {
         // Erstelle Assistant mit File Search
         const assistant = await openai.beta.assistants.create({
           name: 'Sinispace Chat',
           model: 'gpt-4o',
-          instructions: 'Du bist Sinispace, ein warmer, empathischer und hochintelligenter KI-Begleiter. Nutze Markdown, Tabellen und Emojis. Sei hilfreich. Du kannst Bilder sehen und analysieren, sowie Dokumente lesen.',
+          instructions: 'Du bist Sinispace, ein warmer, empathischer und hochintelligenter KI-Begleiter. Nutze Markdown, Tabellen und Emojis. Sei hilfreich. Du kannst Bilder sehen und analysieren, sowie Dokumente lesen. Nutze die hochgeladenen Dateien als Kontext für deine Antwort.',
           tools: [{ type: 'file_search' }],
           tool_resources: {
             file_search: {
@@ -163,53 +164,70 @@ export async function chatWithAI(
           },
         });
 
+        console.log('✅ Assistant erstellt:', assistant.id);
+
         // Erstelle Thread mit Messages und File Attachments
-        const thread = await openai.beta.threads.create({
-          messages: messages.map((msg, idx) => {
-            const messageContent: any = {
-              role: msg.role as 'user' | 'assistant',
-              content: msg.content,
-            };
-            
-            // Füge File IDs zur letzten User-Message hinzu
-            if (msg.role === 'user' && idx === messages.length - 1) {
-              messageContent.attachments = fileIds.map(fileId => ({
-                file_id: fileId,
-                tools: [{ type: 'file_search' }],
-              }));
-            }
-            
-            return messageContent;
-          }),
+        const threadMessages = messages.map((msg, idx) => {
+          const messageContent: any = {
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+          };
+          
+          // Füge File IDs zur letzten User-Message hinzu
+          if (msg.role === 'user' && idx === messages.length - 1) {
+            messageContent.attachments = fileIds.map(fileId => ({
+              file_id: fileId,
+              tools: [{ type: 'file_search' }],
+            }));
+            console.log('📎 Dateien angehängt:', fileIds);
+          }
+          
+          return messageContent;
         });
+
+        const thread = await openai.beta.threads.create({
+          messages: threadMessages,
+        });
+
+        console.log('✅ Thread erstellt:', thread.id);
 
         // Starte Run
         const run = await openai.beta.threads.runs.create(thread.id, {
           assistant_id: assistant.id,
         });
 
+        console.log('✅ Run gestartet:', run.id, 'Status:', run.status);
+
         // Warte auf Completion
         // @ts-ignore - OpenAI SDK Typen sind nicht korrekt
         let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
         let attempts = 0;
-        while ((runStatus.status === 'in_progress' || runStatus.status === 'queued') && attempts < 60) {
+        while ((runStatus.status === 'in_progress' || runStatus.status === 'queued' || runStatus.status === 'requires_action') && attempts < 120) {
           await new Promise(resolve => setTimeout(resolve, 1000));
           // @ts-ignore - OpenAI SDK Typen sind nicht korrekt
           runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
           attempts++;
+          if (attempts % 5 === 0) {
+            console.log('⏳ Warte auf Completion... Status:', runStatus.status, 'Versuch:', attempts);
+          }
         }
+
+        console.log('📊 Run Status:', runStatus.status, 'nach', attempts, 'Sekunden');
 
         if (runStatus.status === 'completed') {
           const threadMessages = await openai.beta.threads.messages.list(thread.id);
           const assistantMessage = threadMessages.data.find(m => m.role === 'assistant');
           if (assistantMessage && assistantMessage.content[0].type === 'text') {
+            const result = assistantMessage.content[0].text.value;
+            console.log('✅ Antwort erhalten:', result.substring(0, 100) + '...');
+            
             // Cleanup: Assistant löschen
             try {
               await openai.beta.assistants.delete(assistant.id);
             } catch (cleanupError) {
               // Ignoriere Cleanup-Fehler
             }
-            return { result: assistantMessage.content[0].text.value };
+            return { result };
           }
         }
 
@@ -221,13 +239,30 @@ export async function chatWithAI(
         }
 
         if (runStatus.status === 'failed') {
-          return { error: runStatus.last_error?.message || 'Fehler beim Verarbeiten der Dateien.' };
+          const errorMsg = runStatus.last_error?.message || 'Fehler beim Verarbeiten der Dateien.';
+          console.error('❌ Run fehlgeschlagen:', errorMsg);
+          return { error: errorMsg };
         }
 
-        // Fallback falls Assistants API nicht funktioniert
-      } catch (assistantError: any) {
-        console.error('Assistants API error:', assistantError);
+        // Wenn Status nicht completed, aber auch nicht failed
+        console.warn('⚠️ Run Status unerwartet:', runStatus.status);
         // Fallback zu normaler Chat-API
+        // (wird unten weitergeführt)
+      } catch (assistantError: any) {
+        console.error('❌ Assistants API error:', assistantError);
+        console.error('Stack:', assistantError.stack);
+        // Fallback zu normaler Chat-API
+        // (wird unten weitergeführt)
+      }
+    }
+
+    // Normale Chat-API (ohne Dateien oder als Fallback wenn Assistants API fehlschlägt)
+    if (fileIds && fileIds.length > 0) {
+      // Füge Hinweis hinzu, dass Dateien vorhanden sind
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.role === 'user') {
+        const hintText = `\n\n[Hinweis: ${fileIds.length} Datei(en) wurden zu diesem Chat hochgeladen, konnten aber nicht automatisch analysiert werden. Bitte beschreibe, was du mit den Dateien machen möchtest.]`;
+        messages = [...messages.slice(0, -1), { ...lastMessage, content: lastMessage.content + hintText }];
       }
     }
 
