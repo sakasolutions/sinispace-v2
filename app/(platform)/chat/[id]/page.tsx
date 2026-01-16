@@ -149,6 +149,25 @@ export default function ChatDetailPage() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
+  // Dateinamen kürzen wenn zu lang
+  function formatFileName(fileName: string, maxLength: number = 20): string {
+    if (fileName.length <= maxLength) return fileName;
+    
+    // Trenne Name und Extension
+    const lastDotIndex = fileName.lastIndexOf('.');
+    if (lastDotIndex === -1) {
+      // Keine Extension
+      return fileName.substring(0, maxLength - 3) + '...';
+    }
+    
+    const name = fileName.substring(0, lastDotIndex);
+    const ext = fileName.substring(lastDotIndex);
+    const maxNameLength = maxLength - ext.length - 3; // 3 für "..."
+    
+    if (name.length <= maxNameLength) return fileName;
+    return name.substring(0, maxNameLength) + '...' + ext;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     // Erlaube Submit wenn Text ODER Dokumente vorhanden sind
@@ -157,11 +176,13 @@ export default function ChatDetailPage() {
     // Nachricht mit Dateinamen erstellen, wenn Dateien angehängt sind
     let messageContent = input.trim();
     if (documents.length > 0) {
-      const fileNames = documents.map(d => d.fileName).join(', ');
+      // Format: "📎 Datei: dateiname.html" oder bei mehreren "📎 Dateien: datei1.html, datei2.html"
+      const fileNames = documents.map(d => formatFileName(d.fileName)).join(', ');
+      const fileLabel = documents.length === 1 ? '📎 Datei:' : '📎 Dateien:';
       if (messageContent) {
-        messageContent += `\n\n📎 Angehängte Datei(n): ${fileNames}`;
+        messageContent += `\n\n${fileLabel} ${fileNames}`;
       } else {
-        messageContent = `📎 Angehängte Datei(n): ${fileNames}`;
+        messageContent = `${fileLabel} ${fileNames}`;
       }
     } else if (!messageContent) {
       messageContent = 'Siehe angehängte Datei(en).';
@@ -363,7 +384,9 @@ export default function ChatDetailPage() {
                 className="flex items-center gap-1.5 rounded-md bg-zinc-800/50 border border-white/10 px-2 py-1 text-xs"
               >
                 <span className="text-zinc-400">📄</span>
-                <span className="text-zinc-300 max-w-[150px] truncate">{doc.fileName}</span>
+                <span className="text-zinc-300 max-w-[150px] truncate" title={doc.fileName}>
+                  {formatFileName(doc.fileName, 20)}
+                </span>
                 <span className="text-zinc-500">({formatFileSize(doc.fileSize)})</span>
                 <button
                   onClick={() => handleDeleteDocument(doc.id)}
