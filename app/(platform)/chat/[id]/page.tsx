@@ -163,7 +163,9 @@ export default function ChatDetailPage() {
     // User-Nachricht in DB speichern
     await saveMessage(chatId, 'user', input);
 
-    const response = await chatWithAI(newHistory);
+    // KI-Response holen (mit hochgeladenen Dokumenten)
+    const docFileIds = documents.map(doc => doc.openaiFileId);
+    const response = await chatWithAI(newHistory, docFileIds);
 
     if (response.result) {
       const assistantMessage: Message = { role: 'assistant', content: response.result };

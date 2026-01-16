@@ -188,8 +188,9 @@ export default function ChatPage() {
         // ✅ User-Nachricht speichern
         await saveMessage(chatIdToUse, 'user', messageContent);
         
-        // ✅ KI-Response holen BEVOR Redirect
-        const response = await chatWithAI(newHistory);
+        // ✅ KI-Response holen BEVOR Redirect (mit hochgeladenen Dokumenten)
+        const docFileIds = documents.map(doc => doc.openaiFileId);
+        const response = await chatWithAI(newHistory, docFileIds);
         
         if (response.result) {
           const assistantMessage: Message = { role: 'assistant', content: response.result };
@@ -218,7 +219,9 @@ export default function ChatPage() {
       await saveMessage(chatIdToUse, 'user', messageContent);
     }
 
-    const response = await chatWithAI(newHistory);
+    // KI-Response holen (mit hochgeladenen Dokumenten)
+    const docFileIds = documents.map(doc => doc.openaiFileId);
+    const response = await chatWithAI(newHistory, docFileIds);
 
     if (response.result) {
       const assistantMessage: Message = { role: 'assistant', content: response.result };

@@ -136,7 +136,10 @@ export async function generateSummaryWithChat(prevState: any, formData: FormData
 }
 
 // --- CHAT ---
-export async function chatWithAI(messages: { role: string; content: string }[]) {
+export async function chatWithAI(
+  messages: { role: string; content: string }[], 
+  fileIds?: string[] // Optional: OpenAI File IDs für hochgeladene Dokumente
+) {
   const isAllowed = await isUserPremium();
   if (!isAllowed) {
     // Im Chat ist es besonders cool: Die KI antwortet mit der Upsell-Nachricht
@@ -144,6 +147,80 @@ export async function chatWithAI(messages: { role: string; content: string }[]) 
   }
 
   try {
+    // Wenn File-IDs vorhanden sind, nutze Assistants API mit File Search
+    if (fileIds && fileIds.length > 0) {
+      // Erstelle Vector Store mit den hochgeladenen Dateien
+      const vectorStore = await openai.beta.vectorStores.create({
+        name: `Chat-${Date.now()}`,
+        file_ids: fileIds,
+      });
+
+      // Warte bis Vector Store bereit ist
+      let vectorStoreStatus = await openai.beta.vectorStores.retrieve(vectorStore.id);
+      let attempts = 0;
+      while (vectorStoreStatus.status === 'in_progress' && attempts < 30) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        vectorStoreStatus = await openai.beta.vectorStores.retrieve(vectorStore.id);
+        attempts++;
+      }
+
+      // Erstelle Assistant mit File Search
+      const assistant = await openai.beta.assistants.create({
+        name: 'Sinispace Chat',
+        model: 'gpt-4o',
+        instructions: 'Du bist Sinispace, ein warmer, empathischer und hochintelligenter KI-Begleiter. Nutze Markdown, Tabellen und Emojis. Sei hilfreich. Du kannst Bilder sehen und analysieren, sowie Dokumente lesen.',
+        tools: [{ type: 'file_search' }],
+        tool_resources: {
+          file_search: {
+            vector_store_ids: [vectorStore.id],
+          },
+        },
+      });
+
+      // Erstelle Thread mit Messages
+      const thread = await openai.beta.threads.create({
+        messages: messages.map((msg) => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+        })),
+      });
+
+      // Starte Run
+      const run = await openai.beta.threads.runs.create(thread.id, {
+        assistant_id: assistant.id,
+      });
+
+      // Warte auf Completion
+      let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      attempts = 0;
+      while ((runStatus.status === 'in_progress' || runStatus.status === 'queued') && attempts < 60) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+        attempts++;
+      }
+
+      if (runStatus.status === 'completed') {
+        const threadMessages = await openai.beta.threads.messages.list(thread.id);
+        const assistantMessage = threadMessages.data.find(m => m.role === 'assistant');
+        if (assistantMessage && assistantMessage.content[0].type === 'text') {
+          return { result: assistantMessage.content[0].text.value };
+        }
+      }
+
+      // Cleanup: Assistant und Vector Store löschen (optional, kann auch persistent bleiben)
+      try {
+        await openai.beta.assistants.del(assistant.id);
+        await openai.beta.vectorStores.del(vectorStore.id);
+      } catch (cleanupError) {
+        // Ignoriere Cleanup-Fehler
+      }
+
+      if (runStatus.status === 'failed') {
+        return { error: runStatus.last_error?.message || 'Fehler beim Verarbeiten der Dateien.' };
+      }
+    }
+
+    // Normale Chat-API ohne Dateien
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
@@ -155,7 +232,8 @@ export async function chatWithAI(messages: { role: string; content: string }[]) 
       ] as any,
     });
     return { result: response.choices[0].message.content };
-  } catch (error) {
-    return { error: 'Verbindungsproblem.' };
+  } catch (error: any) {
+    console.error('Chat error:', error);
+    return { error: error.message || 'Verbindungsproblem.' };
   }
 }
