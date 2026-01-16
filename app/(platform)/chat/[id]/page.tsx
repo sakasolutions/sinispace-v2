@@ -151,9 +151,10 @@ export default function ChatDetailPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim() || isLoading || !chatId) return;
+    // Erlaube Submit wenn Text ODER Dokumente vorhanden sind
+    if ((!input.trim() && documents.length === 0) || isLoading || !chatId) return;
 
-    const userMessage: Message = { role: 'user', content: input };
+    const userMessage: Message = { role: 'user', content: input.trim() || 'Siehe angehängte Datei(en).' };
     const newHistory = [...messages, userMessage];
     
     setMessages(newHistory);
@@ -161,10 +162,10 @@ export default function ChatDetailPage() {
     setIsLoading(true);
 
     // User-Nachricht in DB speichern
-    await saveMessage(chatId, 'user', input);
+    await saveMessage(chatId, 'user', input.trim() || 'Siehe angehängte Datei(en).');
 
     // KI-Response holen (mit hochgeladenen Dokumenten)
-    const docFileIds = documents.map(doc => doc.openaiFileId);
+    const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId) : undefined;
     const response = await chatWithAI(newHistory, docFileIds);
 
     if (response.result) {
@@ -415,7 +416,7 @@ export default function ChatDetailPage() {
           />
           <button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || (!input.trim() && documents.length === 0)}
             className="mb-0.5 sm:mb-1 mr-0.5 sm:mr-1 rounded-lg bg-zinc-900 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
             aria-label="Nachricht senden"
           >

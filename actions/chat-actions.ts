@@ -16,8 +16,8 @@ export async function createChat(firstMessage: string) {
     redirect('/login');
   }
 
-  // Titel aus ersten 30 Zeichen der ersten Nachricht generieren
-  const title = firstMessage.slice(0, 30).trim() || 'Neuer Chat';
+  // Titel aus ersten 30 Zeichen der ersten Nachricht generieren (oder Standard-Titel)
+  const title = firstMessage?.slice(0, 30).trim() || 'Neuer Chat';
 
   try {
     // Chat sofort in DB schreiben mit User-Bindung
