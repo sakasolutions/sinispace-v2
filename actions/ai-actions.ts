@@ -178,6 +178,14 @@ export async function chatWithAI(
           },
         });
 
+        console.log('📊 Dokumente aus DB:', documents.length, 'von', fileIds.length, 'File-IDs');
+        console.log('📊 Base64 vorhanden:', documents.filter(d => d.base64Data).length);
+
+        if (documents.length === 0 || documents.every(doc => !doc.base64Data)) {
+          console.error('❌ Keine Base64-Daten in DB gefunden. Möglicherweise wurde das Bild vor dem Update hochgeladen.');
+          throw new Error('Base64-Daten fehlen. Bitte lade das Bild erneut hoch.');
+        }
+
         const imageContent = documents
           .filter(doc => doc.base64Data) // Nur wenn Base64 vorhanden
           .map(doc => ({
@@ -186,6 +194,12 @@ export async function chatWithAI(
               url: `data:${doc.mimeType};base64,${doc.base64Data}`
             }
           }));
+
+        if (imageContent.length === 0) {
+          throw new Error('Keine gültigen Bilddaten gefunden.');
+        }
+
+        console.log('🖼️ Sende', imageContent.length, 'Bild(er) an Vision API');
 
         const response = await openai.chat.completions.create({
           model: 'gpt-4o',
@@ -205,10 +219,14 @@ export async function chatWithAI(
           ] as any,
         });
 
+        console.log('✅ Vision API erfolgreich');
         return { result: response.choices[0].message.content };
       } catch (visionError: any) {
         console.error('❌ Vision API error:', visionError);
-        // Fallback zu normaler Chat-API
+        console.error('❌ Vision API error message:', visionError.message);
+        console.error('❌ Vision API error stack:', visionError.stack);
+        // Fallback zu normaler Chat-API - aber nicht zu Assistants API für Bilder!
+        return { error: 'Bild konnte nicht verarbeitet werden. Bitte lade das Bild erneut hoch (nach dem Update).' };
       }
     }
     
