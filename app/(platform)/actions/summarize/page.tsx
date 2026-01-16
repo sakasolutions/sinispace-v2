@@ -6,6 +6,30 @@ import { useState } from 'react';
 // @ts-ignore
 import { useFormStatus } from 'react-dom';
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Fehler beim Kopieren:', err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="absolute top-3 right-3 px-2 py-1 text-xs font-medium rounded-md bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all"
+      title="In Zwischenablage kopieren"
+    >
+      {copied ? '✓ Kopiert' : '📋 Kopieren'}
+    </button>
+  );
+}
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -65,12 +89,15 @@ export default function SummarizePage() {
         {/* OUTPUT */}
         <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px] sm:min-h-[400px]">
           {state?.result ? (
-            <div>
-              <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-400">Kernaussagen:</h3>
-              <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
-                {state.result}
+            <>
+              <CopyButton text={state.result} />
+              <div>
+                <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-zinc-400">Kernaussagen:</h3>
+                <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
+                  {state.result}
+                </div>
               </div>
-            </div>
+            </>
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-zinc-500">
               <span className="text-4xl mb-2">📑</span>

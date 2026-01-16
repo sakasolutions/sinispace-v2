@@ -6,6 +6,30 @@ import { useState } from 'react';
 // @ts-ignore
 import { useFormStatus } from 'react-dom';
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Fehler beim Kopieren:', err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="absolute top-3 right-3 px-2 py-1 text-xs font-medium rounded-md bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all"
+      title="In Zwischenablage kopieren"
+    >
+      {copied ? '✓ Kopiert' : '📋 Kopieren'}
+    </button>
+  );
+}
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -80,12 +104,15 @@ export default function ExcelPage() {
         {/* OUTPUT */}
         <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[250px] sm:min-h-[300px]">
           {state?.result ? (
-            <div className="prose prose-sm max-w-none prose-invert">
-              <div className="bg-zinc-900/50 border border-white/10 p-4 rounded-md font-mono text-sm mb-4 overflow-x-auto text-green-400 font-bold shadow-sm">
-                {/* Wir filtern den Codeblock grob raus für schöne Optik, oder zeigen einfach alles an */}
-                {state.result}
+            <>
+              <CopyButton text={state.result} />
+              <div className="prose prose-sm max-w-none prose-invert">
+                <div className="bg-zinc-900/50 border border-white/10 p-4 rounded-md font-mono text-sm mb-4 overflow-x-auto text-green-400 font-bold shadow-sm">
+                  {/* Wir filtern den Codeblock grob raus für schöne Optik, oder zeigen einfach alles an */}
+                  {state.result}
+                </div>
               </div>
-            </div>
+            </>
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-zinc-500">
               <span className="text-4xl mb-2">📊</span>
