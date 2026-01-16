@@ -138,7 +138,8 @@ export async function generateSummaryWithChat(prevState: any, formData: FormData
 // --- CHAT ---
 export async function chatWithAI(
   messages: { role: string; content: string }[], 
-  fileIds?: string[] // Optional: OpenAI File IDs für hochgeladene Dokumente
+  fileIds?: string[], // Optional: OpenAI File IDs für hochgeladene Dokumente
+  fileMimeTypes?: string[] // Optional: MIME Types der Dateien (für Unterscheidung Bilder/Dokumente)
 ) {
   const isAllowed = await isUserPremium();
   if (!isAllowed) {
@@ -147,7 +148,64 @@ export async function chatWithAI(
   }
 
   try {
-    // Wenn File-IDs vorhanden sind, nutze Assistants API mit File Search
+    // Prüfe ob es Bilder gibt
+    const hasImages = fileMimeTypes?.some(mime => mime?.startsWith('image/')) || false;
+    const hasNonImages = fileMimeTypes?.some(mime => !mime?.startsWith('image/')) || false;
+    
+    // Wenn es nur Bilder gibt, nutze Vision API
+    if (fileIds && fileIds.length > 0 && hasImages && !hasNonImages) {
+      console.log('🖼️ Verarbeite Chat mit', fileIds.length, 'Bild(ern) - nutze Vision API');
+      
+      try {
+        // Hole die letzten User-Nachricht
+        const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+        if (!lastUserMessage) {
+          return { error: 'Keine User-Nachricht gefunden.' };
+        }
+
+        // Für Vision API: Bilder als File Content übergeben
+        const imageContent = await Promise.all(
+          fileIds.map(async (fileId, index) => {
+            const fileContent = await openai.files.content(fileId);
+            const buffer = await fileContent.arrayBuffer();
+            const base64 = Buffer.from(buffer).toString('base64');
+            const mimeType = fileMimeTypes?.[index] || 'image/png';
+            
+            return {
+              type: 'image_url' as const,
+              image_url: {
+                url: `data:${mimeType};base64,${base64}`
+              }
+            };
+          })
+        );
+
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            { 
+              role: 'system', 
+              content: 'Du bist Sinispace, ein warmer, empathischer und hochintelligenter KI-Begleiter. Nutze Markdown, Tabellen und Emojis. Sei hilfreich. Du kannst Bilder sehen und analysieren.' 
+            },
+            ...messages.slice(0, -1), // Alle Nachrichten außer der letzten
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: lastUserMessage.content },
+                ...imageContent
+              ]
+            }
+          ] as any,
+        });
+
+        return { result: response.choices[0].message.content };
+      } catch (visionError: any) {
+        console.error('❌ Vision API error:', visionError);
+        // Fallback zu normaler Chat-API
+      }
+    }
+    
+    // Wenn File-IDs vorhanden sind (andere Dateien oder gemischt), nutze Assistants API mit File Search
     if (fileIds && fileIds.length > 0) {
       console.log('📎 Verarbeite Chat mit', fileIds.length, 'Datei(en)');
       try {
