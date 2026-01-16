@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
   // Experimentelle Features für bessere Performance
   experimental: {
     optimizePackageImports: ['framer-motion', 'lucide-react'],
+    // Body-Size-Limit für Server Actions erhöhen (für Datei-Uploads)
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
   },
 };
 

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadDocument } from '@/actions/document-actions';
 
+// WICHTIG: Runtime für größere Uploads (Edge hat Limits, Node.js nicht)
+export const runtime = 'nodejs';
+// Max Duration für größere Uploads (60 Sekunden)
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     console.log('📤 Upload-Request erhalten');
