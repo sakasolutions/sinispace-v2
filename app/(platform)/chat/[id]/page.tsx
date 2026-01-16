@@ -110,6 +110,21 @@ export default function ChatDetailPage() {
         body: formData,
       });
 
+      // Prüfe ob Response OK ist
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Upload Response nicht OK:', response.status, errorText);
+        let errorMessage = 'Fehler beim Hochladen';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          errorMessage = errorText || `Server-Fehler (${response.status})`;
+        }
+        alert(errorMessage);
+        return;
+      }
+
       const result = await response.json();
 
       if (result.success) {
@@ -118,9 +133,25 @@ export default function ChatDetailPage() {
       } else {
         alert(result.error || 'Fehler beim Hochladen');
       }
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('Fehler beim Hochladen der Datei');
+    } catch (error: any) {
+      console.error('❌ Upload error:', error);
+      console.error('❌ Upload error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+      
+      // Bessere Fehlermeldungen für verschiedene Fehlertypen
+      let errorMessage = 'Fehler beim Hochladen der Datei';
+      if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage = 'Netzwerkfehler. Bitte prüfe deine Internetverbindung.';
+      } else if (error.message?.includes('timeout')) {
+        errorMessage = 'Upload-Timeout. Die Datei könnte zu groß sein.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
