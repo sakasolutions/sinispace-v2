@@ -196,22 +196,48 @@ export async function chatWithAI(
           assistant_id: assistant.id,
         });
 
+        // Prüfe ob run.id existiert
+        if (!run.id) {
+          console.error('❌ Run hat keine ID:', run);
+          throw new Error('Run wurde erstellt, aber hat keine ID');
+        }
+
         console.log('✅ Run gestartet:', run.id, 'Status:', run.status);
+
+        // Warte kurz bevor wir den ersten retrieve machen (manchmal braucht es einen Moment)
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Warte auf Completion
         // Korrekte Syntax: retrieve(runId, { thread_id: threadId })
-        let runStatus = await openai.beta.threads.runs.retrieve(run.id, {
-          thread_id: thread.id,
-        });
-        let attempts = 0;
-        while ((runStatus.status === 'in_progress' || runStatus.status === 'queued' || runStatus.status === 'requires_action') && attempts < 120) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('🔍 Rufe retrieve auf mit run.id:', run.id, 'thread.id:', thread.id);
+        let runStatus;
+        try {
           runStatus = await openai.beta.threads.runs.retrieve(run.id, {
             thread_id: thread.id,
           });
+        } catch (retrieveError: any) {
+          console.error('❌ Fehler beim ersten retrieve:', retrieveError);
+          console.error('run.id:', run.id, 'thread.id:', thread.id);
+          throw retrieveError;
+        }
+        
+        let attempts = 0;
+        while ((runStatus.status === 'in_progress' || runStatus.status === 'queued' || runStatus.status === 'requires_action') && attempts < 120) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          try {
+            runStatus = await openai.beta.threads.runs.retrieve(run.id, {
+              thread_id: thread.id,
+            });
+          } catch (retrieveError: any) {
+            console.error('❌ Fehler beim retrieve (Versuch', attempts + 1, '):', retrieveError);
+            // Versuche weiter, außer es ist ein kritischer Fehler
+            if (attempts > 5) {
+              throw retrieveError;
+            }
+          }
           attempts++;
           if (attempts % 5 === 0) {
-            console.log('⏳ Warte auf Completion... Status:', runStatus.status, 'Versuch:', attempts);
+            console.log('⏳ Warte auf Completion... Status:', runStatus?.status, 'Versuch:', attempts);
           }
         }
 
