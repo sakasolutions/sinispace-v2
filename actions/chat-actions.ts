@@ -222,6 +222,10 @@ export async function deleteChat(chatId: string) {
       return { success: false, error: 'Chat nicht gefunden oder keine Berechtigung' };
     }
 
+    // Dokumente des Chats löschen (von OpenAI und DB)
+    const { deleteChatDocuments } = await import('@/actions/document-actions');
+    await deleteChatDocuments(chatId);
+
     // Chat löschen (Messages werden durch onDelete: Cascade automatisch gelöscht)
     await prisma.chat.delete({
       where: { id: chatId },
@@ -296,6 +300,11 @@ export async function cleanupOldChats() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
+    // Zuerst alte Dokumente löschen
+    const { cleanupOldDocuments } = await import('@/actions/document-actions');
+    await cleanupOldDocuments();
+    
+    // Dann alte Chats löschen (Dokumente werden durch onDelete: Cascade automatisch gelöscht)
     const result = await prisma.chat.deleteMany({
       where: {
         updatedAt: {

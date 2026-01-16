@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { chatWithAI } from '@/actions/ai-actions';
 import { getChat, saveMessage } from '@/actions/chat-actions';
+import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -15,6 +16,15 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 type Message = {
   role: 'user' | 'assistant';
   content: string;
+};
+
+type Document = {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  createdAt: Date;
+  openaiFileId: string;
 };
 
 function CopyButton({ text }: { text: string }) {
@@ -50,6 +60,9 @@ export default function ChatDetailPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoadingChat, setIsLoadingChat] = useState(true);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -65,6 +78,9 @@ export default function ChatDetailPage() {
       const chat = await getChat(chatId);
       if (chat) {
         setMessages(chat.messages);
+        // Dokumente laden
+        const docs = await getChatDocuments(chatId);
+        setDocuments(docs);
       } else {
         // Chat nicht gefunden, zurück zur Chat-Liste
         router.push('/chat');
@@ -77,6 +93,61 @@ export default function ChatDetailPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  // File Upload Handler
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !chatId) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('chatId', chatId);
+
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const docs = await getChatDocuments(chatId);
+        setDocuments(docs);
+      } else {
+        alert(result.error || 'Fehler beim Hochladen');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Fehler beim Hochladen der Datei');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }
+
+  // Dokument löschen
+  async function handleDeleteDocument(documentId: string) {
+    if (!confirm('Dokument wirklich löschen?')) return;
+
+    const result = await deleteDocument(documentId);
+    if (result.success && chatId) {
+      const docs = await getChatDocuments(chatId);
+      setDocuments(docs);
+    } else {
+      alert(result.error || 'Fehler beim Löschen');
+    }
+  }
+
+  // Dateigröße formatieren
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -263,7 +334,60 @@ export default function ChatDetailPage() {
 
       {/* INPUT BEREICH - Fixed für Mobile, damit Tastatur nicht darüber liegt */}
       <div className="fixed bottom-0 left-0 right-0 sm:relative shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-30 pb-[env(safe-area-inset-bottom)] sm:pb-2 md:pb-4 lg:pb-5">
+        {/* Dokumente Liste */}
+        {documents.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {documents.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex items-center gap-1.5 rounded-md bg-zinc-800/50 border border-white/10 px-2 py-1 text-xs"
+              >
+                <span className="text-zinc-400">📄</span>
+                <span className="text-zinc-300 max-w-[150px] truncate">{doc.fileName}</span>
+                <span className="text-zinc-500">({formatFileSize(doc.fileSize)})</span>
+                <button
+                  onClick={() => handleDeleteDocument(doc.id)}
+                  className="ml-1 text-zinc-500 hover:text-red-400 transition-colors"
+                  title="Löschen"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="relative flex items-end gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-1.5 sm:p-2 md:p-2.5 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/50 transition-all">
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleFileUpload}
+            disabled={!chatId || isUploading}
+            className="hidden"
+            accept=".pdf,.doc,.docx,.xlsx,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.zip,.tar"
+          />
+          {chatId && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="mb-0.5 sm:mb-1 rounded-lg bg-zinc-800 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
+              title="Datei hochladen"
+            >
+              {isUploading ? (
+                <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              )}
+            </button>
+          )}
           {input.trim() && (
             <button
               type="button"

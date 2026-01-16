@@ -22,9 +22,10 @@ model User {
   subscriptionEnd  DateTime? // Wenn null oder in Vergangenheit -> Kein Zugriff
 
   // Relationen
-  accounts Account[]
-  sessions Session[]
-  chats    Chat[]
+  accounts  Account[]
+  sessions  Session[]
+  chats     Chat[]
+  documents Document[]
 }
 
 model Account {
@@ -63,8 +64,9 @@ model Chat {
   updatedAt DateTime  @updatedAt
 
   // Relationen
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages Message[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  documents Document[]
 }
 
 model Message {
@@ -78,4 +80,24 @@ model Message {
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  chatId      String
+  userId      String
+  fileName    String   // Original-Dateiname
+  fileSize    Int      // Größe in Bytes
+  mimeType    String   // MIME-Type
+  openaiFileId String  @unique // OpenAI File ID
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime // Automatische Löschung nach 30 Tagen
+
+  // Relationen
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([userId])
+  @@index([expiresAt])
 }
