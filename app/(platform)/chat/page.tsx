@@ -91,13 +91,33 @@ export default function ChatPage() {
   // File Upload Handler
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !currentChatId) return;
+    if (!file) return;
 
     setIsUploading(true);
     try {
+      let chatIdToUse = currentChatId;
+
+      // Falls noch kein Chat existiert, erstelle einen
+      if (!chatIdToUse) {
+        const chatResult = await createChat(`Datei hochgeladen: ${file.name}`);
+        if (chatResult.success && chatResult.chatId) {
+          chatIdToUse = chatResult.chatId;
+          setCurrentChatId(chatIdToUse);
+          // Redirect zu /chat/[id]
+          router.push(`/chat/${chatIdToUse}`);
+        } else {
+          alert('Fehler beim Erstellen des Chats');
+          setIsUploading(false);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          return;
+        }
+      }
+
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('chatId', currentChatId);
+      formData.append('chatId', chatIdToUse);
 
       const response = await fetch('/api/documents/upload', {
         method: 'POST',
@@ -108,7 +128,7 @@ export default function ChatPage() {
 
       if (result.success) {
         // Dokumente neu laden
-        const docs = await getChatDocuments(currentChatId);
+        const docs = await getChatDocuments(chatIdToUse);
         setDocuments(docs);
       } else {
         alert(result.error || 'Fehler beim Hochladen');
@@ -397,18 +417,17 @@ export default function ChatPage() {
             ref={fileInputRef}
             type="file"
             onChange={handleFileUpload}
-            disabled={!currentChatId || isUploading}
+            disabled={isUploading}
             className="hidden"
             accept=".pdf,.doc,.docx,.xlsx,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.zip,.tar"
           />
-          {currentChatId && (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="mb-0.5 sm:mb-1 rounded-lg bg-zinc-800 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
-              title="Datei hochladen"
-            >
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="mb-0.5 sm:mb-1 rounded-lg bg-zinc-800 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
+            title="Datei hochladen"
+          >
               {isUploading ? (
                 <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -422,7 +441,6 @@ export default function ChatPage() {
                 </svg>
               )}
             </button>
-          )}
           {input.trim() && (
             <button
               type="button"
