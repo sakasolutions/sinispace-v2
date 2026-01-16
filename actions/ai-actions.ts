@@ -167,6 +167,7 @@ export async function chatWithAI(
         const { PrismaClient } = await import('@prisma/client');
         const prisma = new PrismaClient();
         
+        // @ts-ignore - Prisma Client wird nach Migration aktualisiert
         const documents = await prisma.document.findMany({
           where: {
             openaiFileId: { in: fileIds },
@@ -179,16 +180,16 @@ export async function chatWithAI(
         });
 
         console.log('📊 Dokumente aus DB:', documents.length, 'von', fileIds.length, 'File-IDs');
-        console.log('📊 Base64 vorhanden:', documents.filter(d => d.base64Data).length);
+        console.log('📊 Base64 vorhanden:', documents.filter((d: any) => d.base64Data).length);
 
-        if (documents.length === 0 || documents.every(doc => !doc.base64Data)) {
+        if (documents.length === 0 || documents.every((doc: any) => !doc.base64Data)) {
           console.error('❌ Keine Base64-Daten in DB gefunden. Möglicherweise wurde das Bild vor dem Update hochgeladen.');
           throw new Error('Base64-Daten fehlen. Bitte lade das Bild erneut hoch.');
         }
 
         const imageContent = documents
-          .filter(doc => doc.base64Data) // Nur wenn Base64 vorhanden
-          .map(doc => ({
+          .filter((doc: any) => doc.base64Data) // Nur wenn Base64 vorhanden
+          .map((doc: any) => ({
             type: 'image_url' as const,
             image_url: {
               url: `data:${doc.mimeType};base64,${doc.base64Data}`
