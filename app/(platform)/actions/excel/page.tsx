@@ -2,6 +2,7 @@
 
 import { generateExcelWithChat } from '@/actions/ai-actions';
 import { useActionState } from 'react';
+import { useState } from 'react';
 // @ts-ignore
 import { useFormStatus } from 'react-dom';
 
@@ -21,6 +22,10 @@ function SubmitButton() {
 export default function ExcelPage() {
   // @ts-ignore
   const [state, formAction] = useActionState(generateExcelWithChat, null);
+  
+  // State für Formularfelder, damit sie nicht geleert werden
+  const [platform, setPlatform] = useState('Microsoft Excel');
+  const [problem, setProblem] = useState('');
 
   return (
     <div className="max-w-4xl mx-auto w-full">
@@ -29,6 +34,9 @@ export default function ExcelPage() {
         <p className="text-sm sm:text-base text-zinc-400">
           Beschreibe dein Problem, ich gebe dir die fertige Formel.
         </p>
+        <div className="mt-3 p-3 rounded-md bg-green-500/10 border border-green-500/20 text-sm text-green-300">
+          💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>Sinichat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
+        </div>
       </div>
 
       <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-2">
@@ -40,6 +48,8 @@ export default function ExcelPage() {
               <label className="block text-sm font-medium text-zinc-300 mb-1">Welches Programm?</label>
               <select
                 name="platform"
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
                 className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50"
               >
                 <option value="Microsoft Excel">Microsoft Excel</option>
@@ -52,6 +62,8 @@ export default function ExcelPage() {
               <textarea
                 name="problem"
                 required
+                value={problem}
+                onChange={(e) => setProblem(e.target.value)}
                 rows={6}
                 placeholder="z.B. Ich will die Summe von Spalte A, aber nur wenn in Spalte B 'bezahlt' steht."
                 className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 resize-none"

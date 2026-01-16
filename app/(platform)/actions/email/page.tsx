@@ -2,6 +2,7 @@
 
 import { generateEmailWithChat } from '@/actions/ai-actions';
 import { useActionState } from 'react';
+import { useState } from 'react';
 
 // Kleiner Hack für TypeScript, falls useActionState noch zickt
 // @ts-ignore
@@ -23,6 +24,11 @@ function SubmitButton() {
 export default function EmailPage() {
   // @ts-ignore
   const [state, formAction] = useActionState(generateEmailWithChat, null);
+  
+  // State für Formularfelder, damit sie nicht geleert werden
+  const [recipient, setRecipient] = useState('');
+  const [tone, setTone] = useState('Professionell');
+  const [topic, setTopic] = useState('');
 
   return (
     <div className="max-w-4xl mx-auto w-full">
@@ -31,6 +37,9 @@ export default function EmailPage() {
         <p className="text-sm sm:text-base text-zinc-400">
           Wirf mir ein paar Stichpunkte hin, ich mache daraus eine professionelle Mail.
         </p>
+        <div className="mt-3 p-3 rounded-md bg-blue-500/10 border border-blue-500/20 text-sm text-blue-300">
+          💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>Sinichat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
+        </div>
       </div>
 
       <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-2">
@@ -42,6 +51,8 @@ export default function EmailPage() {
               <input
                 name="recipient"
                 type="text"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
                 placeholder="z.B. Chef, Kunden, Vermieter"
                 className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
               />
@@ -51,6 +62,8 @@ export default function EmailPage() {
               <label className="block text-sm font-medium text-zinc-300 mb-1">Tonfall</label>
               <select
                 name="tone"
+                value={tone}
+                onChange={(e) => setTone(e.target.value)}
                 className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
               >
                 <option value="Professionell">Professionell & Sachlich</option>
@@ -65,6 +78,8 @@ export default function EmailPage() {
               <textarea
                 name="topic"
                 required
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
                 rows={6}
                 placeholder="z.B. Bitte um Meeting nächste Woche, Projekt X ist fertig, brauche Feedback bis Freitag..."
                 className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none"
