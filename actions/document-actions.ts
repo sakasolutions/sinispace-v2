@@ -189,7 +189,7 @@ export async function deleteDocument(documentId: string) {
 
     // Von OpenAI löschen
     try {
-      await openai.files.del(document.openaiFileId);
+      await openai.files.delete(document.openaiFileId);
     } catch (error: any) {
       // Wenn Datei bereits gelöscht wurde, ist das ok
       if (!error.message?.includes('No such file')) {
@@ -220,7 +220,7 @@ export async function deleteChatDocuments(chatId: string) {
     // Von OpenAI löschen
     for (const doc of documents) {
       try {
-        await openai.files.del(doc.openaiFileId);
+        await openai.files.delete(doc.openaiFileId);
       } catch (error: any) {
         // Wenn Datei bereits gelöscht wurde, ist das ok
         if (!error.message?.includes('No such file')) {
@@ -259,7 +259,7 @@ export async function cleanupOldDocuments() {
     // Von OpenAI löschen
     for (const doc of documents) {
       try {
-        await openai.files.del(doc.openaiFileId);
+        await openai.files.delete(doc.openaiFileId);
       } catch (error: any) {
         // Wenn Datei bereits gelöscht wurde, ist das ok
         if (!error.message?.includes('No such file')) {
