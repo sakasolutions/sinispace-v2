@@ -93,17 +93,21 @@ export default function ChatPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    console.log('📤 Upload gestartet:', file.name, file.size, 'bytes', file.type);
     setIsUploading(true);
     try {
       let chatIdToUse = currentChatId;
 
       // Falls noch kein Chat existiert, erstelle einen
       if (!chatIdToUse) {
+        console.log('💬 Erstelle neuen Chat für Datei...');
         const chatResult = await createChat(`Datei hochgeladen: ${file.name}`);
         if (chatResult.success && chatResult.chatId) {
           chatIdToUse = chatResult.chatId;
           setCurrentChatId(chatIdToUse);
+          console.log('✅ Chat erstellt:', chatIdToUse);
         } else {
+          console.error('❌ Fehler beim Erstellen des Chats:', chatResult);
           alert('Fehler beim Erstellen des Chats');
           setIsUploading(false);
           if (fileInputRef.current) {
@@ -111,33 +115,42 @@ export default function ChatPage() {
           }
           return;
         }
+      } else {
+        console.log('💬 Verwende existierenden Chat:', chatIdToUse);
       }
 
       const formData = new FormData();
       formData.append('file', file);
       formData.append('chatId', chatIdToUse);
 
+      console.log('📡 Sende Upload-Request zu /api/documents/upload...');
       const response = await fetch('/api/documents/upload', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('📨 Upload-Response Status:', response.status, response.statusText);
       const result = await response.json();
+      console.log('📨 Upload-Response Body:', result);
 
       if (result.success) {
+        console.log('✅ Upload erfolgreich, lade Dokumente neu...');
         // Dokumente neu laden
         const docs = await getChatDocuments(chatIdToUse);
+        console.log('📚 Dokumente geladen:', docs.length, docs);
         setDocuments(docs);
         
         // WICHTIG: Redirect NACH erfolgreichem Upload
         if (!currentChatId) {
+          console.log('🔄 Redirect zu /chat/' + chatIdToUse);
           router.push(`/chat/${chatIdToUse}`);
         }
       } else {
+        console.error('❌ Upload fehlgeschlagen:', result.error);
         alert(result.error || 'Fehler beim Hochladen');
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('❌ Upload error:', error);
       alert('Fehler beim Hochladen der Datei');
     } finally {
       setIsUploading(false);
@@ -170,7 +183,17 @@ export default function ChatPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     // Erlaube Submit wenn Text ODER Dokumente vorhanden sind
-    if ((!input.trim() && documents.length === 0) || isLoading) return;
+    if ((!input.trim() && documents.length === 0) || isLoading) {
+      console.log('⏸️ Submit verhindert:', { hasInput: !!input.trim(), documentsCount: documents.length, isLoading });
+      return;
+    }
+
+    console.log('📨 Submit gestartet:', { 
+      inputLength: input.trim().length, 
+      documentsCount: documents.length,
+      documents: documents.map(d => ({ id: d.id, fileName: d.fileName, openaiFileId: d.openaiFileId })),
+      currentChatId 
+    });
 
     const userMessage: Message = { role: 'user', content: input.trim() || 'Siehe angehängte Datei(en).' };
     const newHistory = [...messages, userMessage];
@@ -185,17 +208,21 @@ export default function ChatPage() {
     // Wenn noch kein Chat existiert, erstelle einen neuen
     if (!chatIdToUse) {
       const chatTitle = messageContent || (documents.length > 0 ? `Datei: ${documents[documents.length - 1].fileName}` : 'Neuer Chat');
+      console.log('💬 Erstelle neuen Chat:', chatTitle);
       const chatResult = await createChat(chatTitle);
       if (chatResult.success && chatResult.chatId) {
         chatIdToUse = chatResult.chatId;
         setCurrentChatId(chatIdToUse);
+        console.log('✅ Chat erstellt:', chatIdToUse);
         
         // ✅ User-Nachricht speichern
         await saveMessage(chatIdToUse, 'user', messageContent || 'Siehe angehängte Datei(en).');
         
         // ✅ KI-Response holen BEVOR Redirect (mit hochgeladenen Dokumenten)
         const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId) : undefined;
+        console.log('🤖 Rufe chatWithAI auf mit', docFileIds?.length || 0, 'Datei(en):', docFileIds);
         const response = await chatWithAI(newHistory, docFileIds);
+        console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error, error: response.error });
         
         if (response.result) {
           const assistantMessage: Message = { role: 'assistant', content: response.result };
@@ -204,16 +231,19 @@ export default function ChatPage() {
           // ✅ Assistant-Nachricht speichern
           await saveMessage(chatIdToUse, 'assistant', response.result);
         } else {
+          console.error('❌ Keine Antwort von AI:', response.error);
           setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
         }
         
         setIsLoading(false);
         
         // ✅ Redirect zu /chat/[id] damit der Chat in der Sidebar als aktiv erscheint
+        console.log('🔄 Redirect zu /chat/' + chatIdToUse);
         router.push(`/chat/${chatIdToUse}`);
         return;
       } else {
         // Fehler beim Erstellen
+        console.error('❌ Fehler beim Erstellen des Chats:', chatResult);
         setIsLoading(false);
         return;
       }
@@ -226,7 +256,9 @@ export default function ChatPage() {
 
     // KI-Response holen (mit hochgeladenen Dokumenten)
     const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId) : undefined;
+    console.log('🤖 Rufe chatWithAI auf (existierender Chat) mit', docFileIds?.length || 0, 'Datei(en):', docFileIds);
     const response = await chatWithAI(newHistory, docFileIds);
+    console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error, error: response.error });
 
     if (response.result) {
       const assistantMessage: Message = { role: 'assistant', content: response.result };
@@ -237,6 +269,7 @@ export default function ChatPage() {
         await saveMessage(chatIdToUse, 'assistant', response.result);
       }
     } else {
+      console.error('❌ Keine Antwort von AI:', response.error);
       setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
     }
     
