@@ -163,22 +163,29 @@ export async function chatWithAI(
           return { error: 'Keine User-Nachricht gefunden.' };
         }
 
-        // Für Vision API: Bilder als File Content übergeben
-        const imageContent = await Promise.all(
-          fileIds.map(async (fileId, index) => {
-            const fileContent = await openai.files.content(fileId);
-            const buffer = await fileContent.arrayBuffer();
-            const base64 = Buffer.from(buffer).toString('base64');
-            const mimeType = fileMimeTypes?.[index] || 'image/png';
-            
-            return {
-              type: 'image_url' as const,
-              image_url: {
-                url: `data:${mimeType};base64,${base64}`
-              }
-            };
-          })
-        );
+        // Für Vision API: Bilder aus DB holen (Base64 wurde beim Upload gespeichert)
+        const { PrismaClient } = await import('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        const documents = await prisma.document.findMany({
+          where: {
+            openaiFileId: { in: fileIds },
+          },
+          select: {
+            openaiFileId: true,
+            mimeType: true,
+            base64Data: true,
+          },
+        });
+
+        const imageContent = documents
+          .filter(doc => doc.base64Data) // Nur wenn Base64 vorhanden
+          .map(doc => ({
+            type: 'image_url' as const,
+            image_url: {
+              url: `data:${doc.mimeType};base64,${doc.base64Data}`
+            }
+          }));
 
         const response = await openai.chat.completions.create({
           model: 'gpt-4o',

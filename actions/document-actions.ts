@@ -84,6 +84,12 @@ export async function uploadDocument(chatId: string, formData: FormData) {
     const fileBuffer = await file.arrayBuffer();
     const fileBlob = new Blob([fileBuffer], { type: file.type });
     
+    // Für Bilder: Base64 speichern (für Vision API)
+    let base64Data: string | null = null;
+    if (file.type.startsWith('image/')) {
+      base64Data = Buffer.from(fileBuffer).toString('base64');
+    }
+    
     const openaiFile = await openai.files.create({
       file: new File([fileBlob], file.name, { type: file.type }),
       purpose: 'assistants', // Für Chat/Assistants
@@ -102,6 +108,7 @@ export async function uploadDocument(chatId: string, formData: FormData) {
         fileSize: file.size,
         mimeType: file.type,
         openaiFileId: openaiFile.id,
+        base64Data: base64Data, // Nur für Bilder
         expiresAt: expiresAt,
       },
     });
