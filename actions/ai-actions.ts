@@ -199,13 +199,16 @@ export async function chatWithAI(
         console.log('✅ Run gestartet:', run.id, 'Status:', run.status);
 
         // Warte auf Completion
-        // @ts-ignore - OpenAI SDK Typen sind nicht korrekt
-        let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+        // Korrekte Syntax: retrieve(runId, { thread_id: threadId })
+        let runStatus = await openai.beta.threads.runs.retrieve(run.id, {
+          thread_id: thread.id,
+        });
         let attempts = 0;
         while ((runStatus.status === 'in_progress' || runStatus.status === 'queued' || runStatus.status === 'requires_action') && attempts < 120) {
           await new Promise(resolve => setTimeout(resolve, 1000));
-          // @ts-ignore - OpenAI SDK Typen sind nicht korrekt
-          runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+          runStatus = await openai.beta.threads.runs.retrieve(run.id, {
+            thread_id: thread.id,
+          });
           attempts++;
           if (attempts % 5 === 0) {
             console.log('⏳ Warte auf Completion... Status:', runStatus.status, 'Versuch:', attempts);
