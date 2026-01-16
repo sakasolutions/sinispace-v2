@@ -221,6 +221,10 @@ export default function ChatPage() {
         // ✅ KI-Response holen BEVOR Redirect (mit hochgeladenen Dokumenten)
         const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId) : undefined;
         console.log('🤖 Rufe chatWithAI auf mit', docFileIds?.length || 0, 'Datei(en):', docFileIds);
+        
+        // ✅ Dokumente aus der Liste entfernen NACH dem AI-Call (sie sind ja schon gesendet)
+        setDocuments([]);
+        
         const response = await chatWithAI(newHistory, docFileIds);
         console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error, error: response.error });
         
@@ -257,6 +261,10 @@ export default function ChatPage() {
     // KI-Response holen (mit hochgeladenen Dokumenten)
     const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId) : undefined;
     console.log('🤖 Rufe chatWithAI auf (existierender Chat) mit', docFileIds?.length || 0, 'Datei(en):', docFileIds);
+    
+    // ✅ Dokumente aus der Liste entfernen NACH dem AI-Call (sie sind ja schon gesendet)
+    setDocuments([]);
+    
     const response = await chatWithAI(newHistory, docFileIds);
     console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error, error: response.error });
 

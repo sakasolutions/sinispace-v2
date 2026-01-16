@@ -166,6 +166,10 @@ export default function ChatDetailPage() {
 
     // KI-Response holen (mit hochgeladenen Dokumenten)
     const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId) : undefined;
+    
+    // ✅ Dokumente aus der Liste entfernen NACH dem AI-Call (sie sind ja schon gesendet)
+    setDocuments([]);
+    
     const response = await chatWithAI(newHistory, docFileIds);
 
     if (response.result) {
