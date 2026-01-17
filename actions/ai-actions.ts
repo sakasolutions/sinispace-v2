@@ -164,19 +164,27 @@ export async function chatWithAI(
         }
 
         // Für Vision API: Bilder aus DB holen (Base64 wurde beim Upload gespeichert)
+        // WICHTIG: Bilder haben möglicherweise null openaiFileId, daher suchen wir über MIME-Type
         const { PrismaClient } = await import('@prisma/client');
         const prisma = new PrismaClient();
+        
+        // Für Vision API: Suche Bilder über MIME-Type und Base64 (Bilder haben null openaiFileId)
+        // Wir nutzen die fileMimeTypes um zu wissen, welche Bilder wir suchen müssen
+        const imageMimeTypes = fileMimeTypes?.filter(mime => mime?.startsWith('image/')) || [];
         
         // @ts-ignore - Prisma Client wird nach Migration aktualisiert
         const documents = await prisma.document.findMany({
           where: {
-            openaiFileId: { in: fileIds },
+            mimeType: { in: imageMimeTypes },
+            base64Data: { not: null }
           },
           select: {
             openaiFileId: true,
             mimeType: true,
             base64Data: true,
           },
+          orderBy: { createdAt: 'desc' },
+          take: imageMimeTypes.length, // Nimm die neuesten Bilder
         });
 
         console.log('📊 Dokumente aus DB:', documents.length, 'von', fileIds.length, 'File-IDs');
@@ -253,15 +261,20 @@ export async function chatWithAI(
       console.log('📎 Verarbeite Chat mit', fileIds.length, 'Datei(en)');
       
       // Trenne Bilder von Dokumenten
-      const imageFileIds: string[] = [];
+      // WICHTIG: Filtere null-Werte (Bilder haben null openaiFileId, Dokumente müssen File-ID haben)
+      const imageFileIds: (string | null)[] = [];
       const documentFileIds: string[] = [];
       
       fileIds.forEach((fileId, index) => {
         const mimeType = fileMimeTypes?.[index];
         if (mimeType?.startsWith('image/')) {
+          // Bilder können null openaiFileId haben - das ist ok
           imageFileIds.push(fileId);
         } else {
-          documentFileIds.push(fileId);
+          // Dokumente müssen openaiFileId haben
+          if (fileId) {
+            documentFileIds.push(fileId);
+          }
         }
       });
       

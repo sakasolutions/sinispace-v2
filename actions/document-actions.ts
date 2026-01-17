@@ -113,26 +113,36 @@ export async function uploadDocument(chatId: string, formData: FormData) {
     const fileBuffer = await file.arrayBuffer();
     const fileBlob = new Blob([fileBuffer], { type: file.type });
     
-    // Für Bilder: Base64 speichern (für Vision API) - für ALLE Bilder, da Assistants API PNG nicht unterstützt
+    // Für Bilder: Base64 speichern (für Vision API) - NICHT zu OpenAI hochladen!
+    // OpenAI akzeptiert PNG/JPG/etc. nicht für 'assistants' purpose
     let base64Data: string | null = null;
+    let openaiFileId: string | null = null;
+    
     if (file.type.startsWith('image/')) {
+      // Bilder NICHT zu OpenAI hochladen - nur Base64 speichern
       try {
-        // Base64 für alle Bilder speichern (auch große) - Vision API braucht Base64
-        // Assistants API unterstützt PNG nicht, daher müssen wir Base64 für alle Bilder haben
         base64Data = Buffer.from(fileBuffer).toString('base64');
         console.log('✅ Base64 für Bild erstellt:', file.name, file.size, 'bytes ->', base64Data.length, 'chars base64');
+        console.log('ℹ️ Bild wird NICHT zu OpenAI hochgeladen (nicht nötig für Vision API)');
+        // openaiFileId bleibt null für Bilder
       } catch (base64Error: any) {
         console.error('❌ Fehler beim Base64-Konvertieren:', base64Error);
-        // Wenn Base64 fehlschlägt, Warnung aber Upload fortsetzen
-        // Vision API wird dann nicht funktionieren, aber Assistants API kann es versuchen
-        console.warn('⚠️ Bild wird ohne Base64 gespeichert - Vision API wird nicht funktionieren');
+        return { success: false, error: 'Fehler beim Verarbeiten des Bildes' };
+      }
+    } else {
+      // Für Dokumente: Zu OpenAI hochladen
+      try {
+        const openaiFile = await openai.files.create({
+          file: new File([fileBlob], file.name, { type: file.type }),
+          purpose: 'assistants', // Für Chat/Assistants
+        });
+        openaiFileId = openaiFile.id;
+        console.log('✅ Datei zu OpenAI hochgeladen:', openaiFile.id);
+      } catch (uploadError: any) {
+        console.error('❌ Fehler beim Hochladen zu OpenAI:', uploadError);
+        return { success: false, error: uploadError.message || 'Fehler beim Hochladen der Datei zu OpenAI' };
       }
     }
-    
-    const openaiFile = await openai.files.create({
-      file: new File([fileBlob], file.name, { type: file.type }),
-      purpose: 'assistants', // Für Chat/Assistants
-    });
 
     // ExpiresAt berechnen (30 Tage ab jetzt)
     const expiresAt = new Date();
@@ -146,7 +156,7 @@ export async function uploadDocument(chatId: string, formData: FormData) {
         fileName: file.name,
         fileSize: file.size,
         mimeType: file.type,
-        openaiFileId: openaiFile.id,
+        openaiFileId: openaiFileId, // null für Bilder, File-ID für Dokumente
         base64Data: base64Data, // Nur für Bilder
         expiresAt: expiresAt,
       },
@@ -159,7 +169,7 @@ export async function uploadDocument(chatId: string, formData: FormData) {
         fileName: document.fileName,
         fileSize: document.fileSize,
         mimeType: document.mimeType,
-        openaiFileId: document.openaiFileId, // Wichtig für AI-Call
+        openaiFileId: document.openaiFileId, // null für Bilder, File-ID für Dokumente
         createdAt: document.createdAt,
       }
     };

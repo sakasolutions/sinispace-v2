@@ -328,7 +328,8 @@ export default function ChatDetailPage() {
     await saveMessage(chatId, 'user', messageContent);
 
     // KI-Response holen (mit hochgeladenen Dokumenten)
-    const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId) : undefined;
+    // WICHTIG: Bilder haben möglicherweise null openaiFileId - das ist ok, Vision API nutzt Base64
+    const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId || null) : undefined;
     const docMimeTypes = documents.length > 0 ? documents.map(doc => doc.mimeType) : undefined;
     
     // ✅ Dokumente aus der Liste entfernen NACH dem AI-Call (sie sind ja schon gesendet)
