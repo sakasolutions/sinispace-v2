@@ -78,9 +78,10 @@ export default function ChatDetailPage() {
       const chat = await getChat(chatId);
       if (chat) {
         setMessages(chat.messages);
-        // Dokumente laden
-        const docs = await getChatDocuments(chatId);
-        setDocuments(docs);
+        // WICHTIG: Dokumente NICHT automatisch laden beim Chat-Laden
+        // Dokumente werden nur beim Upload geladen, nicht beim Chat-Laden
+        // Gesendete Dateien sind bereits Teil der Nachrichten
+        setDocuments([]);
       } else {
         // Chat nicht gefunden, zurück zur Chat-Liste
         router.push('/chat');

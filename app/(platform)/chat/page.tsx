@@ -75,18 +75,9 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  // Dokumente laden wenn Chat-ID vorhanden
-  useEffect(() => {
-    async function loadDocuments() {
-      if (currentChatId) {
-        const docs = await getChatDocuments(currentChatId);
-        setDocuments(docs);
-      } else {
-        setDocuments([]);
-      }
-    }
-    loadDocuments();
-  }, [currentChatId]);
+  // WICHTIG: Dokumente werden NICHT automatisch beim Chat-Laden geladen
+  // Dokumente werden nur beim Upload geladen (in handleFileUpload)
+  // Gesendete Dateien sind bereits Teil der Nachrichten und sollten nicht nochmal gesendet werden
 
   // File Upload Handler
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
