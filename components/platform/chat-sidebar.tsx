@@ -6,6 +6,52 @@ import { usePathname, useRouter } from 'next/navigation';
 import { getChats, deleteChat, updateChatTitle } from '@/actions/chat-actions';
 import { Pencil, Trash2, X, Check } from 'lucide-react';
 
+// Custom Confirm Modal
+function ConfirmModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div 
+        className="bg-zinc-900 border border-white/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+        <p className="text-zinc-300 mb-6">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors"
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+          >
+            Bestätigen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type Chat = {
   id: string;
   title: string;
@@ -27,6 +73,10 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
   const [editingTitle, setEditingTitle] = useState('');
   const [hoveredChatId, setHoveredChatId] = useState<string | null>(null);
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; chatId: string | null }>({
+    isOpen: false,
+    chatId: null,
+  });
   const pathname = usePathname();
   const router = useRouter();
 
@@ -64,11 +114,17 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
     setEditingTitle('');
   };
 
-  const handleDelete = async (chatId: string) => {
-    if (!confirm('Möchtest du diesen Chat wirklich endgültig löschen?')) {
-      return;
-    }
+  const handleDelete = (chatId: string) => {
+    setConfirmModal({
+      isOpen: true,
+      chatId: chatId,
+    });
+  };
 
+  const confirmDelete = async () => {
+    if (!confirmModal.chatId) return;
+
+    const chatId = confirmModal.chatId;
     setDeletingChatId(chatId);
     const result = await deleteChat(chatId);
     
@@ -80,6 +136,7 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
       }
     }
     setDeletingChatId(null);
+    setConfirmModal({ isOpen: false, chatId: null });
   };
 
   // Sidebar schließen wenn Route wechselt (nur auf Mobile)
@@ -113,6 +170,13 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
 
   return (
     <>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, chatId: null })}
+        onConfirm={confirmDelete}
+        title="Chat löschen"
+        message="Möchtest du diesen Chat wirklich endgültig löschen?"
+      />
       {/* Mobile Overlay (nur auf Mobile, z-40 unter Sidebar) */}
       {isOpen && (
         <div

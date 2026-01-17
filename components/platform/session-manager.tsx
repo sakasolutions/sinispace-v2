@@ -3,6 +3,52 @@
 import { useState, useEffect } from 'react';
 import { getSessions, revokeSession, revokeAllOtherSessions } from '@/actions/session-actions';
 
+// Custom Confirm Modal
+function ConfirmModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div 
+        className="bg-zinc-900 border border-white/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+        <p className="text-zinc-300 mb-6">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors"
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+          >
+            Bestätigen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type Session = {
   id: string;
   expires: Date;
@@ -14,6 +60,10 @@ export function SessionManager() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; type: 'all' | null }>({
+    isOpen: false,
+    type: null,
+  });
 
   useEffect(() => {
     loadSessions();
@@ -47,11 +97,14 @@ export function SessionManager() {
     }
   }
 
-  async function handleRevokeAllOther() {
-    if (!confirm('Möchtest du wirklich alle anderen Sessions beenden?')) {
-      return;
-    }
+  const handleRevokeAllOther = () => {
+    setConfirmModal({
+      isOpen: true,
+      type: 'all',
+    });
+  };
 
+  const confirmRevokeAll = async () => {
     try {
       const result = await revokeAllOtherSessions();
       if (result.success) {
@@ -63,7 +116,8 @@ export function SessionManager() {
     } catch (error) {
       setMessage({ type: 'error', text: 'Fehler beim Beenden der Sessions' });
     }
-  }
+    setConfirmModal({ isOpen: false, type: null });
+  };
 
   function formatDate(date: Date) {
     return new Date(date).toLocaleString('de-DE', {
@@ -101,7 +155,15 @@ export function SessionManager() {
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+    <>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, type: null })}
+        onConfirm={confirmRevokeAll}
+        title="Sessions beenden"
+        message="Möchtest du wirklich alle anderen Sessions beenden?"
+      />
+      <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3 sm:mb-4">
         <h2 className="text-sm sm:text-base font-semibold text-white">Aktive Sessions</h2>
         {sessions.length > 1 && (
@@ -172,5 +234,6 @@ export function SessionManager() {
         Sessions laufen automatisch nach 30 Tagen ab. Du kannst sie jederzeit manuell beenden.
       </p>
     </div>
+    </>
   );
 }
