@@ -441,7 +441,22 @@ export default function ChatPage() {
   return (
     // WICHTIG: Nur noch ein einfacher Container, der den Platz vom Layout füllt.
     // Keine Sidebar-Komponente mehr hier drin!
-    <div className="flex flex-col h-[100dvh] w-full overflow-hidden">
+    <>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      <div className="flex flex-col h-[100dvh] w-full overflow-hidden">
       
       {/* HEADER: Logo + SiniChat Branding */}
       <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5">
@@ -683,5 +698,6 @@ export default function ChatPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }

@@ -613,6 +613,7 @@ export default function ChatDetailPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }
 
