@@ -89,7 +89,7 @@ model Document {
   fileName    String   // Original-Dateiname
   fileSize    Int      // Größe in Bytes
   mimeType    String   // MIME-Type
-  openaiFileId String  @unique // OpenAI File ID
+  openaiFileId String?  @unique // OpenAI File ID (null für Bilder, die nur Base64 haben)
   base64Data  String?  // Base64 für Bilder (nur für Vision API)
   createdAt   DateTime @default(now())
   expiresAt   DateTime // Automatische Löschung nach 30 Tagen

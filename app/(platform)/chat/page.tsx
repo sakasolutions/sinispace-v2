@@ -372,7 +372,10 @@ export default function ChatPage() {
         
         // ✅ KI-Response holen BEVOR Redirect (mit hochgeladenen Dokumenten)
         // WICHTIG: Bilder haben möglicherweise null openaiFileId - das ist ok, Vision API nutzt Base64
-        const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId || null) : undefined;
+        // Filtere null-Werte heraus, da chatWithAI nur string[] erwartet
+        const docFileIds = documents.length > 0 
+          ? documents.map(doc => doc.openaiFileId).filter((id): id is string => id !== null)
+          : undefined;
         const docMimeTypes = documents.length > 0 ? documents.map(doc => doc.mimeType) : undefined;
         console.log('🤖 Rufe chatWithAI auf mit', docFileIds?.length || 0, 'Datei(en):', docFileIds);
         
@@ -414,7 +417,10 @@ export default function ChatPage() {
 
     // KI-Response holen (mit hochgeladenen Dokumenten)
     // WICHTIG: Bilder haben möglicherweise null openaiFileId - das ist ok, Vision API nutzt Base64
-    const docFileIds = documents.length > 0 ? documents.map(doc => doc.openaiFileId || null) : undefined;
+    // Filtere null-Werte heraus, da chatWithAI nur string[] erwartet
+    const docFileIds = documents.length > 0 
+      ? documents.map(doc => doc.openaiFileId).filter((id): id is string => id !== null)
+      : undefined;
     const docMimeTypes = documents.length > 0 ? documents.map(doc => doc.mimeType) : undefined;
     console.log('🤖 Rufe chatWithAI auf (existierender Chat) mit', docFileIds?.length || 0, 'Datei(en):', docFileIds);
     

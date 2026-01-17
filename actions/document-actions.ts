@@ -245,13 +245,15 @@ export async function deleteDocument(documentId: string) {
       return { success: false, error: 'Dokument nicht gefunden oder keine Berechtigung' };
     }
 
-    // Von OpenAI löschen
-    try {
-      await openai.files.delete(document.openaiFileId);
-    } catch (error: any) {
-      // Wenn Datei bereits gelöscht wurde, ist das ok
-      if (!error.message?.includes('No such file')) {
-        console.error('Error deleting file from OpenAI:', error);
+    // Von OpenAI löschen (nur wenn openaiFileId vorhanden ist)
+    if (document.openaiFileId) {
+      try {
+        await openai.files.delete(document.openaiFileId);
+      } catch (error: any) {
+        // Wenn Datei bereits gelöscht wurde, ist das ok
+        if (!error.message?.includes('No such file')) {
+          console.error('Error deleting file from OpenAI:', error);
+        }
       }
     }
 
@@ -275,14 +277,16 @@ export async function deleteChatDocuments(chatId: string) {
       select: { openaiFileId: true },
     });
 
-    // Von OpenAI löschen
+    // Von OpenAI löschen (nur wenn openaiFileId vorhanden ist)
     for (const doc of documents) {
-      try {
-        await openai.files.delete(doc.openaiFileId);
-      } catch (error: any) {
-        // Wenn Datei bereits gelöscht wurde, ist das ok
-        if (!error.message?.includes('No such file')) {
-          console.error('Error deleting file from OpenAI:', error);
+      if (doc.openaiFileId) {
+        try {
+          await openai.files.delete(doc.openaiFileId);
+        } catch (error: any) {
+          // Wenn Datei bereits gelöscht wurde, ist das ok
+          if (!error.message?.includes('No such file')) {
+            console.error('Error deleting file from OpenAI:', error);
+          }
         }
       }
     }
@@ -314,14 +318,16 @@ export async function cleanupOldDocuments() {
       select: { openaiFileId: true },
     });
 
-    // Von OpenAI löschen
+    // Von OpenAI löschen (nur wenn openaiFileId vorhanden ist)
     for (const doc of documents) {
-      try {
-        await openai.files.delete(doc.openaiFileId);
-      } catch (error: any) {
-        // Wenn Datei bereits gelöscht wurde, ist das ok
-        if (!error.message?.includes('No such file')) {
-          console.error('Error deleting file from OpenAI:', error);
+      if (doc.openaiFileId) {
+        try {
+          await openai.files.delete(doc.openaiFileId);
+        } catch (error: any) {
+          // Wenn Datei bereits gelöscht wurde, ist das ok
+          if (!error.message?.includes('No such file')) {
+            console.error('Error deleting file from OpenAI:', error);
+          }
         }
       }
     }
