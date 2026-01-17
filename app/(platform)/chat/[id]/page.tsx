@@ -51,6 +51,70 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+// Custom Confirm Modal
+function ConfirmModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  title: string; 
+  message: string;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div 
+        className="bg-zinc-900 border border-white/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+        <p className="text-zinc-300 mb-6">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors"
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+          >
+            Bestätigen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Custom Alert/Toast
+function Toast({ message, type = 'info', onClose }: { message: string; type?: 'info' | 'error' | 'success'; onClose: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const bgColor = type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-zinc-800';
+
+  return (
+    <div className={`fixed bottom-4 right-4 z-50 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg border border-white/10`}>
+      {message}
+    </div>
+  );
+}
+
 export default function ChatDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -63,6 +127,15 @@ export default function ChatDetailPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Modal/Toast State
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+  const [toast, setToast] = useState<{ message: string; type: 'info' | 'error' | 'success' } | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -122,7 +195,7 @@ export default function ChatDetailPage() {
         } catch {
           errorMessage = errorText || `Server-Fehler (${response.status})`;
         }
-        alert(errorMessage);
+        setToast({ message: errorMessage, type: 'error' });
         return;
       }
 
@@ -170,7 +243,7 @@ export default function ChatDetailPage() {
         errorMessage = error.message;
       }
       
-      alert(errorMessage);
+      setToast({ message: errorMessage, type: 'error' });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -181,15 +254,21 @@ export default function ChatDetailPage() {
 
   // Dokument löschen
   async function handleDeleteDocument(documentId: string) {
-    if (!confirm('Dokument wirklich löschen?')) return;
-
-    const result = await deleteDocument(documentId);
-    if (result.success && chatId) {
-      const docs = await getChatDocuments(chatId);
-      setDocuments(docs);
-    } else {
-      alert(result.error || 'Fehler beim Löschen');
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Dokument löschen',
+      message: 'Möchtest du dieses Dokument wirklich löschen?',
+      onConfirm: async () => {
+        const result = await deleteDocument(documentId);
+        if (result.success) {
+          // WICHTIG: Nur das gelöschte Dokument aus dem State entfernen, nicht alle Dokumente neu laden
+          setDocuments(prev => prev.filter(doc => doc.id !== documentId));
+          setToast({ message: 'Dokument gelöscht', type: 'success' });
+        } else {
+          setToast({ message: result.error || 'Fehler beim Löschen', type: 'error' });
+        }
+      },
+    });
   }
 
   // Dateigröße formatieren
@@ -280,7 +359,22 @@ export default function ChatDetailPage() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full overflow-hidden">
+    <>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      <div className="flex flex-col h-[100dvh] w-full overflow-hidden">
       {/* Chat Titel - Logo + SiniChat Branding */}
       <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5">
         <div className="flex items-center gap-2 sm:gap-3">
