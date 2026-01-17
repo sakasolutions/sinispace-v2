@@ -248,57 +248,103 @@ export async function chatWithAI(
     }
     
     // Wenn File-IDs vorhanden sind (andere Dateien oder gemischt), nutze Assistants API mit File Search
+    // WICHTIG: Vector Store unterstützt nur Dokumente (PDF, DOCX, etc.), KEINE Bilder!
     if (fileIds && fileIds.length > 0) {
       console.log('📎 Verarbeite Chat mit', fileIds.length, 'Datei(en)');
-      // Variablen außerhalb deklarieren für Cleanup im catch-Block
-      let vectorStore: any = null;
-      let assistant: any = null;
       
-      try {
-        // WICHTIG: Erstelle zuerst einen Vector Store und füge die Dateien hinzu
-        console.log('📦 Erstelle Vector Store...');
-        // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
-        vectorStore = await openai.beta.vectorStores.create({
-          name: `Chat Vector Store ${Date.now()}`,
-        });
+      // Trenne Bilder von Dokumenten
+      const imageFileIds: string[] = [];
+      const documentFileIds: string[] = [];
+      
+      fileIds.forEach((fileId, index) => {
+        const mimeType = fileMimeTypes?.[index];
+        if (mimeType?.startsWith('image/')) {
+          imageFileIds.push(fileId);
+        } else {
+          documentFileIds.push(fileId);
+        }
+      });
+      
+      console.log('📊 Dateien aufgeteilt:', {
+        bilder: imageFileIds.length,
+        dokumente: documentFileIds.length
+      });
+      
+      // Wenn es nur Bilder gibt, sollte das bereits oben abgefangen worden sein
+      // Aber falls nicht, überspringe Vector Store komplett
+      if (imageFileIds.length > 0 && documentFileIds.length === 0) {
+        console.log('⚠️ Nur Bilder gefunden, sollte bereits über Vision API verarbeitet werden');
+        // Überspringe Vector Store komplett - sollte bereits oben behandelt worden sein
+        // Falls nicht, wird es unten im Fallback behandelt
+      }
+      
+      // Wenn es nur Dokumente gibt oder gemischt, nutze Vector Store für Dokumente
+      if (documentFileIds.length > 0) {
+        // Variablen außerhalb deklarieren für Cleanup im catch-Block
+        let vectorStore: any = null;
+        let assistant: any = null;
         
-        console.log('✅ Vector Store erstellt:', vectorStore.id);
-        
-        // Füge alle Dateien zum Vector Store hinzu
-        console.log('📎 Füge', fileIds.length, 'Datei(en) zum Vector Store hinzu...');
-        // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
-        const fileBatch = await openai.beta.vectorStores.fileBatches.create(vectorStore.id, {
-          file_ids: fileIds,
-        });
+        try {
+          // WICHTIG: Erstelle zuerst einen Vector Store und füge NUR Dokumente hinzu (keine Bilder!)
+          console.log('📦 Erstelle Vector Store für', documentFileIds.length, 'Dokument(e)...');
+          // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
+          vectorStore = await openai.beta.vectorStores.create({
+            name: `Chat Vector Store ${Date.now()}`,
+          });
+          
+          console.log('✅ Vector Store erstellt:', vectorStore.id);
+          
+          // Füge NUR Dokumente zum Vector Store hinzu (keine Bilder!)
+          console.log('📎 Füge', documentFileIds.length, 'Dokument(e) zum Vector Store hinzu...');
+          // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
+          const fileBatch = await openai.beta.vectorStores.fileBatches.create(vectorStore.id, {
+            file_ids: documentFileIds, // NUR Dokumente, keine Bilder!
+          });
         
         console.log('✅ File Batch erstellt:', fileBatch.id);
         
-        // Warte bis der File Batch verarbeitet wurde (Status: completed)
-        let batchStatus = fileBatch.status;
-        let batchAttempts = 0;
-        while (batchStatus !== 'completed' && batchStatus !== 'failed' && batchAttempts < 60) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
-          const updatedBatch = await openai.beta.vectorStores.fileBatches.retrieve(
-            vectorStore.id,
-            fileBatch.id
-          );
-          batchStatus = updatedBatch.status;
-          batchAttempts++;
-          if (batchAttempts % 5 === 0) {
-            console.log('⏳ Warte auf File Batch Verarbeitung... Status:', batchStatus, 'Versuch:', batchAttempts);
+          // Warte bis der File Batch verarbeitet wurde (Status: completed)
+          let batchStatus = fileBatch.status;
+          let batchAttempts = 0;
+          const MAX_BATCH_WAIT = 120; // Max 2 Minuten warten
+          
+          while (batchStatus !== 'completed' && batchStatus !== 'failed' && batchAttempts < MAX_BATCH_WAIT) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            try {
+              // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
+              const updatedBatch = await openai.beta.vectorStores.fileBatches.retrieve(
+                vectorStore.id,
+                fileBatch.id
+              );
+              batchStatus = updatedBatch.status;
+            } catch (batchError: any) {
+              console.error('❌ Fehler beim Abrufen des File Batch Status:', batchError);
+              // Wenn der Batch nicht abgerufen werden kann, prüfe ob er vielleicht doch fertig ist
+              if (batchAttempts > 10) {
+                console.warn('⚠️ File Batch Status kann nicht abgerufen werden, versuche fortzufahren...');
+                break; // Versuche fortzufahren
+              }
+            }
+            batchAttempts++;
+            if (batchAttempts % 10 === 0) {
+              console.log('⏳ Warte auf File Batch Verarbeitung... Status:', batchStatus, 'Versuch:', batchAttempts);
+            }
           }
-        }
-        
-        if (batchStatus === 'failed') {
-          console.error('❌ File Batch fehlgeschlagen');
-          throw new Error('Dateien konnten nicht zum Vector Store hinzugefügt werden.');
-        }
-        
-        console.log('✅ File Batch abgeschlossen nach', batchAttempts, 'Sekunden');
-        
-        // Erstelle Assistant mit File Search und Vector Store
-        assistant = await openai.beta.assistants.create({
+          
+          if (batchStatus === 'failed') {
+            console.error('❌ File Batch fehlgeschlagen');
+            throw new Error('Dateien konnten nicht zum Vector Store hinzugefügt werden.');
+          }
+          
+          if (batchStatus !== 'completed' && batchAttempts >= MAX_BATCH_WAIT) {
+            console.warn('⚠️ File Batch Timeout nach', MAX_BATCH_WAIT, 'Sekunden');
+            throw new Error('File Batch Verarbeitung dauerte zu lange. Bitte versuche es erneut.');
+          }
+          
+          console.log('✅ File Batch abgeschlossen nach', batchAttempts, 'Sekunden');
+          
+          // Erstelle Assistant mit File Search und Vector Store
+          assistant = await openai.beta.assistants.create({
           name: 'Sinispace Chat',
           model: 'gpt-4o',
           instructions: 'Du bist Sinispace, ein warmer, empathischer und hochintelligenter KI-Begleiter. Nutze Markdown, Tabellen und Emojis. Sei hilfreich. Du kannst Bilder sehen und analysieren, sowie Dokumente lesen. Nutze die hochgeladenen Dateien als Kontext für deine Antwort.',
@@ -310,148 +356,161 @@ export async function chatWithAI(
           },
         });
 
-        console.log('✅ Assistant erstellt:', assistant.id);
+          console.log('✅ Assistant erstellt:', assistant.id);
 
-        // Erstelle Thread mit Messages (Dateien sind bereits im Vector Store, keine Attachments nötig)
-        const threadMessages = messages.map((msg) => {
-          return {
-            role: msg.role as 'user' | 'assistant',
-            content: msg.content,
-          };
-        });
-
-        const thread = await openai.beta.threads.create({
-          messages: threadMessages,
-        });
-
-        console.log('✅ Thread erstellt:', thread.id);
-
-        // Starte Run
-        const run = await openai.beta.threads.runs.create(thread.id, {
-          assistant_id: assistant.id,
-        });
-
-        // Prüfe ob run.id existiert
-        if (!run.id) {
-          console.error('❌ Run hat keine ID:', run);
-          throw new Error('Run wurde erstellt, aber hat keine ID');
-        }
-
-        console.log('✅ Run gestartet:', run.id, 'Status:', run.status);
-
-        // Warte kurz bevor wir den ersten retrieve machen (manchmal braucht es einen Moment)
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Warte auf Completion
-        // Korrekte Syntax: retrieve(runId, { thread_id: threadId })
-        console.log('🔍 Rufe retrieve auf mit run.id:', run.id, 'thread.id:', thread.id);
-        let runStatus;
-        try {
-          runStatus = await openai.beta.threads.runs.retrieve(run.id, {
-            thread_id: thread.id,
+          // Erstelle Thread mit Messages (Dokumente sind bereits im Vector Store, keine Attachments nötig)
+          // Wenn es auch Bilder gibt, müssen wir diese separat hinzufügen
+          const threadMessages = messages.map((msg, idx) => {
+            const messageContent: any = {
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content,
+            };
+            
+            // Wenn es die letzte User-Nachricht ist UND es Bilder gibt, füge diese als Attachments hinzu
+            // (Dokumente sind bereits im Vector Store)
+            if (msg.role === 'user' && idx === messages.length - 1 && imageFileIds.length > 0) {
+              // Bilder können als Attachments hinzugefügt werden (für Vision API im Assistant)
+              // Aber eigentlich sollten Bilder über Vision API verarbeitet werden, nicht hier
+              // Für jetzt: Nur Dokumente im Vector Store, Bilder ignorieren wir hier (sollten bereits oben verarbeitet werden)
+              console.log('⚠️ Gemischte Dateien: Dokumente im Vector Store, Bilder sollten separat verarbeitet werden');
+            }
+            
+            return messageContent;
           });
-        } catch (retrieveError: any) {
-          console.error('❌ Fehler beim ersten retrieve:', retrieveError);
-          console.error('run.id:', run.id, 'thread.id:', thread.id);
-          throw retrieveError;
-        }
-        
-        let attempts = 0;
-        while ((runStatus.status === 'in_progress' || runStatus.status === 'queued' || runStatus.status === 'requires_action') && attempts < 120) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          const thread = await openai.beta.threads.create({
+            messages: threadMessages,
+          });
+
+          console.log('✅ Thread erstellt:', thread.id);
+
+          // Starte Run
+          const run = await openai.beta.threads.runs.create(thread.id, {
+            assistant_id: assistant.id,
+          });
+
+          // Prüfe ob run.id existiert
+          if (!run.id) {
+            console.error('❌ Run hat keine ID:', run);
+            throw new Error('Run wurde erstellt, aber hat keine ID');
+          }
+
+          console.log('✅ Run gestartet:', run.id, 'Status:', run.status);
+
+          // Warte kurz bevor wir den ersten retrieve machen (manchmal braucht es einen Moment)
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // Warte auf Completion
+          // Korrekte Syntax: retrieve(runId, { thread_id: threadId })
+          console.log('🔍 Rufe retrieve auf mit run.id:', run.id, 'thread.id:', thread.id);
+          let runStatus;
           try {
             runStatus = await openai.beta.threads.runs.retrieve(run.id, {
               thread_id: thread.id,
             });
           } catch (retrieveError: any) {
-            console.error('❌ Fehler beim retrieve (Versuch', attempts + 1, '):', retrieveError);
-            // Versuche weiter, außer es ist ein kritischer Fehler
-            if (attempts > 5) {
-              throw retrieveError;
-            }
+            console.error('❌ Fehler beim ersten retrieve:', retrieveError);
+            console.error('run.id:', run.id, 'thread.id:', thread.id);
+            throw retrieveError;
           }
-          attempts++;
-          if (attempts % 5 === 0) {
-            console.log('⏳ Warte auf Completion... Status:', runStatus?.status, 'Versuch:', attempts);
-          }
-        }
-
-        console.log('📊 Run Status:', runStatus.status, 'nach', attempts, 'Sekunden');
-
-        if (runStatus.status === 'completed') {
-          const threadMessages = await openai.beta.threads.messages.list(thread.id);
-          const assistantMessage = threadMessages.data.find(m => m.role === 'assistant');
-          if (assistantMessage && assistantMessage.content[0].type === 'text') {
-            const result = assistantMessage.content[0].text.value;
-            console.log('✅ Antwort erhalten:', result.substring(0, 100) + '...');
-            
-            // Cleanup: Assistant und Vector Store löschen
+          
+          let attempts = 0;
+          while ((runStatus.status === 'in_progress' || runStatus.status === 'queued' || runStatus.status === 'requires_action') && attempts < 120) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
             try {
-              await openai.beta.assistants.delete(assistant.id);
-              console.log('✅ Assistant gelöscht');
-            } catch (cleanupError) {
-              console.warn('⚠️ Fehler beim Löschen des Assistants:', cleanupError);
+              runStatus = await openai.beta.threads.runs.retrieve(run.id, {
+                thread_id: thread.id,
+              });
+            } catch (retrieveError: any) {
+              console.error('❌ Fehler beim retrieve (Versuch', attempts + 1, '):', retrieveError);
+              // Versuche weiter, außer es ist ein kritischer Fehler
+              if (attempts > 5) {
+                throw retrieveError;
+              }
             }
-            
-            try {
-              // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
-              await openai.beta.vectorStores.del(vectorStore.id);
-              console.log('✅ Vector Store gelöscht');
-            } catch (cleanupError) {
-              console.warn('⚠️ Fehler beim Löschen des Vector Stores:', cleanupError);
+            attempts++;
+            if (attempts % 5 === 0) {
+              console.log('⏳ Warte auf Completion... Status:', runStatus?.status, 'Versuch:', attempts);
             }
-            
-            return { result };
           }
-        }
 
-        // Cleanup: Assistant und Vector Store löschen
-        try {
-          await openai.beta.assistants.delete(assistant.id);
-          console.log('✅ Assistant gelöscht');
-        } catch (cleanupError) {
-          console.warn('⚠️ Fehler beim Löschen des Assistants:', cleanupError);
-        }
-        
-        try {
-          // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
-          await openai.beta.vectorStores.del(vectorStore.id);
-          console.log('✅ Vector Store gelöscht');
-        } catch (cleanupError) {
-          console.warn('⚠️ Fehler beim Löschen des Vector Stores:', cleanupError);
-        }
-        
-        if (runStatus.status === 'failed') {
-          const errorMsg = runStatus.last_error?.message || 'Fehler beim Verarbeiten der Dateien.';
-          console.error('❌ Run fehlgeschlagen:', errorMsg);
-          return { error: errorMsg };
-        }
+          console.log('📊 Run Status:', runStatus.status, 'nach', attempts, 'Sekunden');
 
-        // Wenn Status nicht completed, aber auch nicht failed
-        console.warn('⚠️ Run Status unerwartet:', runStatus.status);
-        // Fallback zu normaler Chat-API
-        // (wird unten weitergeführt)
-      } catch (assistantError: any) {
-        console.error('❌ Assistants API error:', assistantError);
-        console.error('Stack:', assistantError.stack);
-        
-        // Cleanup im Fehlerfall: Vector Store und Assistant löschen (falls erstellt)
-        try {
-          if (vectorStore?.id) {
+          if (runStatus.status === 'completed') {
+            const threadMessages = await openai.beta.threads.messages.list(thread.id);
+            const assistantMessage = threadMessages.data.find(m => m.role === 'assistant');
+            if (assistantMessage && assistantMessage.content[0].type === 'text') {
+              const result = assistantMessage.content[0].text.value;
+              console.log('✅ Antwort erhalten:', result.substring(0, 100) + '...');
+              
+              // Cleanup: Assistant und Vector Store löschen
+              try {
+                await openai.beta.assistants.delete(assistant.id);
+                console.log('✅ Assistant gelöscht');
+              } catch (cleanupError) {
+                console.warn('⚠️ Fehler beim Löschen des Assistants:', cleanupError);
+              }
+              
+              try {
+                // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
+                await openai.beta.vectorStores.del(vectorStore.id);
+                console.log('✅ Vector Store gelöscht');
+              } catch (cleanupError) {
+                console.warn('⚠️ Fehler beim Löschen des Vector Stores:', cleanupError);
+              }
+              
+              return { result };
+            }
+          }
+
+          // Cleanup: Assistant und Vector Store löschen
+          try {
+            await openai.beta.assistants.delete(assistant.id);
+            console.log('✅ Assistant gelöscht');
+          } catch (cleanupError) {
+            console.warn('⚠️ Fehler beim Löschen des Assistants:', cleanupError);
+          }
+          
+          try {
             // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
             await openai.beta.vectorStores.del(vectorStore.id);
-            console.log('✅ Vector Store im Fehlerfall gelöscht');
+            console.log('✅ Vector Store gelöscht');
+          } catch (cleanupError) {
+            console.warn('⚠️ Fehler beim Löschen des Vector Stores:', cleanupError);
           }
-          if (assistant?.id) {
-            await openai.beta.assistants.delete(assistant.id);
-            console.log('✅ Assistant im Fehlerfall gelöscht');
+          
+          if (runStatus.status === 'failed') {
+            const errorMsg = runStatus.last_error?.message || 'Fehler beim Verarbeiten der Dateien.';
+            console.error('❌ Run fehlgeschlagen:', errorMsg);
+            return { error: errorMsg };
           }
-        } catch (cleanupError) {
-          console.warn('⚠️ Fehler beim Cleanup:', cleanupError);
+
+          // Wenn Status nicht completed, aber auch nicht failed
+          console.warn('⚠️ Run Status unerwartet:', runStatus.status);
+          // Fallback zu normaler Chat-API
+          // (wird unten weitergeführt)
+        } catch (assistantError: any) {
+          console.error('❌ Assistants API error:', assistantError);
+          console.error('Stack:', assistantError.stack);
+          
+          // Cleanup im Fehlerfall: Vector Store und Assistant löschen (falls erstellt)
+          try {
+            if (vectorStore?.id) {
+              // @ts-ignore - Vector Stores API ist verfügbar, aber Typen sind noch nicht aktualisiert
+              await openai.beta.vectorStores.del(vectorStore.id);
+              console.log('✅ Vector Store im Fehlerfall gelöscht');
+            }
+            if (assistant?.id) {
+              await openai.beta.assistants.delete(assistant.id);
+              console.log('✅ Assistant im Fehlerfall gelöscht');
+            }
+          } catch (cleanupError) {
+            console.warn('⚠️ Fehler beim Cleanup:', cleanupError);
+          }
+          
+          // Fallback zu normaler Chat-API
+          // (wird unten weitergeführt)
         }
-        
-        // Fallback zu normaler Chat-API
-        // (wird unten weitergeführt)
       }
     }
 
