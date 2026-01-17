@@ -641,27 +641,26 @@ export default function ChatPage() {
             className="hidden"
             accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
           />
-          <div className="relative group">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="mb-0.5 sm:mb-1 rounded-lg bg-zinc-800 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
-              title="Datei hochladen (PDF, Word, Excel, PowerPoint, Bilder, Code, Text)"
-            >
-              {isUploading ? (
-                <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-              )}
-            </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="mb-0.5 sm:mb-1 rounded-lg bg-zinc-800 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
+            title="Datei hochladen (PDF, Word, Excel, PowerPoint, Bilder, Code, Text)"
+          >
+            {isUploading ? (
+              <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            )}
+          </button>
           {input.trim() && (
             <button
               type="button"

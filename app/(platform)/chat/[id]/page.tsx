@@ -552,7 +552,7 @@ export default function ChatDetailPage() {
             onChange={handleFileUpload}
             disabled={!chatId || isUploading}
             className="hidden"
-            accept=".pdf,.doc,.docx,.xlsx,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.zip,.tar"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
           />
           {chatId && (
             <button
