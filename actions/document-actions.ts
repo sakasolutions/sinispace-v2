@@ -84,20 +84,19 @@ export async function uploadDocument(chatId: string, formData: FormData) {
     const fileBuffer = await file.arrayBuffer();
     const fileBlob = new Blob([fileBuffer], { type: file.type });
     
-    // Für Bilder: Base64 speichern (für Vision API) - mit Timeout für große Bilder
+    // Für Bilder: Base64 speichern (für Vision API) - für ALLE Bilder, da Assistants API PNG nicht unterstützt
     let base64Data: string | null = null;
     if (file.type.startsWith('image/')) {
       try {
-        // Base64-Konvertierung mit Timeout für sehr große Bilder
-        // Max 10 MB für Base64-Konvertierung (größere Bilder werden ohne Base64 gespeichert)
-        if (file.size <= 10 * 1024 * 1024) {
-          base64Data = Buffer.from(fileBuffer).toString('base64');
-        } else {
-          console.log('⚠️ Bild zu groß für Base64-Konvertierung, wird ohne Base64 gespeichert');
-        }
+        // Base64 für alle Bilder speichern (auch große) - Vision API braucht Base64
+        // Assistants API unterstützt PNG nicht, daher müssen wir Base64 für alle Bilder haben
+        base64Data = Buffer.from(fileBuffer).toString('base64');
+        console.log('✅ Base64 für Bild erstellt:', file.name, file.size, 'bytes ->', base64Data.length, 'chars base64');
       } catch (base64Error: any) {
-        console.error('⚠️ Fehler beim Base64-Konvertieren (wird ignoriert):', base64Error);
-        // Base64-Konvertierung ist optional - Upload kann trotzdem funktionieren
+        console.error('❌ Fehler beim Base64-Konvertieren:', base64Error);
+        // Wenn Base64 fehlschlägt, Warnung aber Upload fortsetzen
+        // Vision API wird dann nicht funktionieren, aber Assistants API kann es versuchen
+        console.warn('⚠️ Bild wird ohne Base64 gespeichert - Vision API wird nicht funktionieren');
       }
     }
     

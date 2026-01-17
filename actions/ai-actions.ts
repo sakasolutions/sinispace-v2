@@ -191,9 +191,10 @@ export async function chatWithAI(
         // Prüfe ob Base64 vorhanden ist
         const hasBase64 = documents.some((doc: any) => doc.base64Data);
         if (!hasBase64) {
-          console.warn('⚠️ Keine Base64-Daten in DB gefunden. Fallback zu Assistants API mit File Search.');
-          // Fallback: Verwende Assistants API statt Vision API
-          throw new Error('FALLBACK_TO_ASSISTANTS_API');
+          console.warn('⚠️ Keine Base64-Daten in DB gefunden. Das Bild wurde möglicherweise vor dem Update hochgeladen.');
+          // Fallback: Versuche trotzdem Vision API oder zeige Fehler
+          // Assistants API unterstützt PNG nicht, daher müssen wir Base64 haben
+          throw new Error('Base64-Daten fehlen. Bitte lade das Bild erneut hoch.');
         }
 
         const imageContent = documents
