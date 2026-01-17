@@ -223,7 +223,7 @@ export default function ChatDetailPage() {
           });
         }
       } else {
-        alert(result.error || 'Fehler beim Hochladen');
+        setToast({ message: result.error || 'Fehler beim Hochladen', type: 'error' });
       }
     } catch (error: any) {
       console.error('❌ Upload error:', error);

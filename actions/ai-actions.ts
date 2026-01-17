@@ -182,9 +182,18 @@ export async function chatWithAI(
         console.log('📊 Dokumente aus DB:', documents.length, 'von', fileIds.length, 'File-IDs');
         console.log('📊 Base64 vorhanden:', documents.filter((d: any) => d.base64Data).length);
 
-        if (documents.length === 0 || documents.every((doc: any) => !doc.base64Data)) {
-          console.error('❌ Keine Base64-Daten in DB gefunden. Möglicherweise wurde das Bild vor dem Update hochgeladen.');
-          throw new Error('Base64-Daten fehlen. Bitte lade das Bild erneut hoch.');
+        // Wenn Base64 fehlt, verwende Fallback zu Assistants API
+        if (documents.length === 0) {
+          console.error('❌ Keine Dokumente in DB gefunden.');
+          throw new Error('Dokumente nicht gefunden.');
+        }
+
+        // Prüfe ob Base64 vorhanden ist
+        const hasBase64 = documents.some((doc: any) => doc.base64Data);
+        if (!hasBase64) {
+          console.warn('⚠️ Keine Base64-Daten in DB gefunden. Fallback zu Assistants API mit File Search.');
+          // Fallback: Verwende Assistants API statt Vision API
+          throw new Error('FALLBACK_TO_ASSISTANTS_API');
         }
 
         const imageContent = documents
@@ -225,9 +234,15 @@ export async function chatWithAI(
       } catch (visionError: any) {
         console.error('❌ Vision API error:', visionError);
         console.error('❌ Vision API error message:', visionError.message);
-        console.error('❌ Vision API error stack:', visionError.stack);
-        // Fallback zu normaler Chat-API - aber nicht zu Assistants API für Bilder!
-        return { error: 'Bild konnte nicht verarbeitet werden. Bitte lade das Bild erneut hoch (nach dem Update).' };
+        
+        // Wenn Base64 fehlt, Fallback zu Assistants API (wird unten behandelt)
+        if (visionError.message === 'FALLBACK_TO_ASSISTANTS_API') {
+          console.log('🔄 Fallback zu Assistants API (kein Base64 vorhanden)');
+          // Lass es in den normalen Flow fallen (Assistants API wird unten aufgerufen)
+        } else {
+          // Andere Fehler: Fallback zu normaler Chat-API
+          console.warn('⚠️ Vision API Fehler, versuche Assistants API...');
+        }
       }
     }
     

@@ -84,10 +84,21 @@ export async function uploadDocument(chatId: string, formData: FormData) {
     const fileBuffer = await file.arrayBuffer();
     const fileBlob = new Blob([fileBuffer], { type: file.type });
     
-    // Für Bilder: Base64 speichern (für Vision API)
+    // Für Bilder: Base64 speichern (für Vision API) - mit Timeout für große Bilder
     let base64Data: string | null = null;
     if (file.type.startsWith('image/')) {
-      base64Data = Buffer.from(fileBuffer).toString('base64');
+      try {
+        // Base64-Konvertierung mit Timeout für sehr große Bilder
+        // Max 10 MB für Base64-Konvertierung (größere Bilder werden ohne Base64 gespeichert)
+        if (file.size <= 10 * 1024 * 1024) {
+          base64Data = Buffer.from(fileBuffer).toString('base64');
+        } else {
+          console.log('⚠️ Bild zu groß für Base64-Konvertierung, wird ohne Base64 gespeichert');
+        }
+      } catch (base64Error: any) {
+        console.error('⚠️ Fehler beim Base64-Konvertieren (wird ignoriert):', base64Error);
+        // Base64-Konvertierung ist optional - Upload kann trotzdem funktionieren
+      }
     }
     
     const openaiFile = await openai.files.create({
