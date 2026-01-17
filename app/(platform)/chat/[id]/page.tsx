@@ -129,8 +129,26 @@ export default function ChatDetailPage() {
       const result = await response.json();
 
       if (result.success) {
-        const docs = await getChatDocuments(chatId);
-        setDocuments(docs);
+        // WICHTIG: Nur das neue Dokument zum State hinzufügen, nicht alle Dokumente neu laden
+        // Gesendete Dokumente sollen nicht mehr im State sein
+        if (result.document) {
+          setDocuments(prev => {
+            // Prüfe ob Dokument bereits im State ist
+            const exists = prev.some(doc => doc.id === result.document.id);
+            if (exists) {
+              return prev;
+            }
+            // Neues Dokument hinzufügen
+            return [...prev, {
+              id: result.document.id,
+              fileName: result.document.fileName,
+              fileSize: result.document.fileSize,
+              mimeType: result.document.mimeType,
+              openaiFileId: result.document.openaiFileId, // Wichtig für AI-Call
+              createdAt: new Date(result.document.createdAt || Date.now()),
+            }];
+          });
+        }
       } else {
         alert(result.error || 'Fehler beim Hochladen');
       }

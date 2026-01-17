@@ -120,6 +120,8 @@ export async function uploadDocument(chatId: string, formData: FormData) {
         fileName: document.fileName,
         fileSize: document.fileSize,
         mimeType: document.mimeType,
+        openaiFileId: document.openaiFileId, // Wichtig für AI-Call
+        createdAt: document.createdAt,
       }
     };
   } catch (error: any) {

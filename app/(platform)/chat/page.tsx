@@ -141,11 +141,27 @@ export default function ChatPage() {
       console.log('📨 Upload-Response Body:', result);
 
       if (result.success) {
-        console.log('✅ Upload erfolgreich, lade Dokumente neu...');
-        // Dokumente neu laden
-        const docs = await getChatDocuments(chatIdToUse);
-        console.log('📚 Dokumente geladen:', docs.length, docs);
-        setDocuments(docs);
+        console.log('✅ Upload erfolgreich, füge neues Dokument zum State hinzu...');
+        // WICHTIG: Nur das neue Dokument zum State hinzufügen, nicht alle Dokumente neu laden
+        // Gesendete Dokumente sollen nicht mehr im State sein
+        if (result.document) {
+          setDocuments(prev => {
+            // Prüfe ob Dokument bereits im State ist (sollte nicht passieren, aber sicherheitshalber)
+            const exists = prev.some(doc => doc.id === result.document.id);
+            if (exists) {
+              return prev;
+            }
+            // Neues Dokument hinzufügen
+            return [...prev, {
+              id: result.document.id,
+              fileName: result.document.fileName,
+              fileSize: result.document.fileSize,
+              mimeType: result.document.mimeType,
+              openaiFileId: result.document.openaiFileId, // Wichtig für AI-Call
+              createdAt: new Date(result.document.createdAt || Date.now()),
+            }];
+          });
+        }
         
         // WICHTIG: Redirect NACH erfolgreichem Upload
         if (!currentChatId) {
