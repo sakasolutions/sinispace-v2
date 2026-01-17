@@ -7,40 +7,57 @@ import { openai } from '@/lib/openai';
 const prisma = new PrismaClient();
 
 // Unterstützte Dateiformate (basierend auf OpenAI API)
+// OpenAI File Search unterstützt: PDF, Word, Excel, PowerPoint, Text, Code
+// OpenAI Vision API unterstützt: JPEG, PNG, GIF, WebP
 const ALLOWED_MIME_TYPES = [
-  // Dokumente
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
-  // Text
-  'text/plain',
-  'text/markdown',
-  'text/html',
-  'text/css',
-  'text/javascript',
-  'application/json',
-  'application/xml',
-  'text/xml',
-  // Code
-  'text/x-python',
-  'text/x-java',
-  'text/x-c',
-  'text/x-c++',
-  'text/x-csharp',
-  'text/x-php',
-  'text/x-ruby',
-  'text/x-golang',
-  'application/typescript',
-  'application/x-sh',
-  // Bilder
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  // Archive
-  'application/zip',
-  'application/x-tar',
+  // Dokumente (OpenAI File Search unterstützt)
+  'application/pdf', // ✅ PDF - vollständig unterstützt
+  'application/msword', // ✅ .doc - unterstützt
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // ✅ .docx - unterstützt
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // ✅ .xlsx - unterstützt
+  'application/vnd.ms-excel', // .xls - unterstützt (ältere Excel-Formate)
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation', // ✅ .pptx - unterstützt
+  'application/vnd.ms-powerpoint', // .ppt - unterstützt (ältere PowerPoint-Formate)
+  // Text-Dateien (OpenAI File Search unterstützt)
+  'text/plain', // ✅ .txt - unterstützt
+  'text/markdown', // ✅ .md - unterstützt
+  'text/html', // ✅ .html - unterstützt
+  'text/css', // ✅ .css - unterstützt
+  'text/javascript', // ✅ .js - unterstützt
+  'application/json', // ✅ .json - unterstützt
+  'application/xml', // ✅ .xml - unterstützt
+  'text/xml', // ✅ .xml - unterstützt
+  'text/x-tex', // ✅ .tex - unterstützt
+  // Code-Dateien (OpenAI File Search unterstützt)
+  'text/x-python', // ✅ .py - unterstützt
+  'text/x-script.python', // ✅ .py - alternative MIME
+  'text/x-java', // ✅ .java - unterstützt
+  'text/x-c', // ✅ .c - unterstützt
+  'text/x-c++', // ✅ .cpp - unterstützt
+  'text/x-csharp', // ✅ .cs - unterstützt
+  'text/x-php', // ✅ .php - unterstützt
+  'text/x-ruby', // ✅ .rb - unterstützt
+  'text/x-golang', // ✅ .go - unterstützt
+  'application/typescript', // ✅ .ts - unterstützt
+  'application/x-sh', // ✅ .sh - unterstützt
+  'text/x-shellscript', // ✅ .sh - alternative MIME
+  // Bilder (OpenAI Vision API unterstützt - Base64 wird gespeichert)
+  'image/jpeg', // ✅ JPEG - Vision API
+  'image/jpg', // ✅ JPEG - alternative MIME
+  'image/png', // ✅ PNG - Vision API
+  'image/gif', // ✅ GIF - Vision API
+  'image/webp', // ✅ WebP - Vision API
+  'image/svg+xml', // ⚠️ SVG - Vision API kann es lesen, aber nicht perfekt
+  'image/bmp', // ⚠️ BMP - Vision API kann es lesen
+  'image/tiff', // ⚠️ TIFF - Vision API kann es lesen
+  // CSV (⚠️ WICHTIG: OpenAI File Search unterstützt CSV NICHT, aber erlauben wir es trotzdem für zukünftige Features)
+  'text/csv', // ⚠️ CSV - File Search unterstützt es NICHT, aber erlauben für andere Zwecke
+  'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm - Excel mit Makros
+  // Archive (nur für Upload, nicht für AI-Analyse)
+  'application/zip', // ⚠️ ZIP - nur Upload, keine AI-Analyse
+  'application/x-tar', // ⚠️ TAR - nur Upload, keine AI-Analyse
+  'application/x-rar-compressed', // ⚠️ RAR - nur Upload, keine AI-Analyse
+  'application/x-7z-compressed', // ⚠️ 7Z - nur Upload, keine AI-Analyse
 ];
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB (konservativ für PDFs)
@@ -60,7 +77,19 @@ export async function uploadDocument(chatId: string, formData: FormData) {
 
   // Validierung
   if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-    return { success: false, error: `Dateityp nicht unterstützt: ${file.type}` };
+    // Fallback: Prüfe auch Dateiendung, falls MIME-Type nicht erkannt wurde
+    const fileName = file.name.toLowerCase();
+    const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+    const supportedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.md', '.html', '.css', '.js', '.json', '.xml', '.py', '.java', '.c', '.cpp', '.cs', '.php', '.rb', '.go', '.ts', '.sh', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff', '.csv'];
+    
+    if (!supportedExtensions.some(ext => fileName.endsWith(ext))) {
+      return { 
+        success: false, 
+        error: `Dateityp nicht unterstützt: ${file.type || 'unbekannt'}. Unterstützte Formate: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), PowerPoint (.ppt, .pptx), Text (.txt, .md, .html), Code (.py, .js, .ts, .java, etc.), Bilder (.jpg, .png, .gif, .webp)` 
+      };
+    }
+    // Wenn Extension unterstützt wird, aber MIME-Type nicht erkannt, erlauben wir es trotzdem
+    console.warn(`⚠️ MIME-Type nicht erkannt (${file.type}), aber Extension (${fileExtension}) ist unterstützt. Erlaube Upload.`);
   }
 
   if (file.size > MAX_FILE_SIZE) {
