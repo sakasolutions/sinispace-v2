@@ -56,8 +56,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // WICHTIG: Wenn sessionId oder sub fehlt im Token, Session ungültig machen
       if (!token.sessionId || !token.sub) {
         // Session wurde revoked → ungültig machen (token wurde im jwt-Callback gelöscht)
-        // Session ohne user.id wird automatisch als ungültig behandelt
-        return session; // Session wird ungültig sein, da token.sub fehlt
+        // Setze session.user explizit auf null/undefined, damit Middleware/Layout korrekt erkennen
+        // NextAuth erwartet ein Session-Objekt, aber wir können user entfernen
+        return {
+          ...session,
+          user: undefined, // WICHTIG: user explizit auf undefined setzen → req.auth?.user?.id wird undefined
+        } as any;
       }
       
       if (token.sub && session.user) {
