@@ -33,14 +33,14 @@ export async function generateEmail(prevState: any, formData: FormData) {
 
   if (!topic) return { error: 'Bitte gib ein Thema ein.' };
 
-  // Sprach-Mapping für professionelle System-Prompts
+  // Sprach-Mapping für professionelle System-Prompts mit natürlichen, idiomatischen Formulierungen
   const languageInstructions: Record<string, string> = {
-    'Deutsch': 'Die E-Mail muss auf Deutsch verfasst werden. Verwende korrekte deutsche Grammatik und Rechtschreibung.',
-    'Englisch': 'The email must be written in English. Use proper English grammar and spelling. Use professional business English.',
-    'Französisch': 'L\'e-mail doit être rédigé en français. Utilisez une grammaire et une orthographe françaises correctes. Utilisez un français professionnel et poli.',
-    'Türkisch': 'E-posta Türkçe yazılmalıdır. Doğru Türkçe dilbilgisi ve yazım kullanın. Profesyonel ve nazik bir dil kullanın.',
-    'Italienisch': 'L\'email deve essere scritta in italiano. Usa una grammatica e un\'ortografia italiane corrette. Usa un italiano professionale e cortese.',
-    'Spanisch': 'El correo electrónico debe estar escrito en español. Usa una gramática y ortografía españolas correctas. Usa un español profesional y cortés.'
+    'Deutsch': 'Die E-Mail muss auf Deutsch verfasst werden. Verwende korrekte deutsche Grammatik und Rechtschreibung. Verwende natürliche, idiomatische deutsche Formulierungen - KEINE wörtlichen Übersetzungen aus anderen Sprachen.',
+    'Englisch': 'The email must be written in English. Use proper English grammar and spelling. Use professional business English with natural, idiomatic expressions. Do NOT use literal translations from other languages. Use native English phrases like "I hope this email finds you well" or "I am writing to you regarding..."',
+    'Französisch': 'L\'e-mail doit être rédigé en français. Utilisez une grammaire et une orthographe françaises correctes. Utilisez un français professionnel et poli avec des expressions naturelles et idiomatiques. N\'utilisez PAS de traductions littérales. Utilisez des formules françaises natives comme "Je vous prie d\'agréer l\'expression de mes salutations distinguées" ou "Je me permets de vous contacter concernant..."',
+    'Türkisch': 'E-posta Türkçe yazılmalıdır. Doğru Türkçe dilbilgisi ve yazım kullanın. Profesyonel ve nazik bir dil kullanın. ÖNEMLİ: Doğal, yerli Türkçe ifadeler kullanın - ASLA başka dillerden kelime kelime çeviri yapmayın. "Umarım bu e-posta sizi iyi bulur" gibi çeviri kokan ifadeler kullanmayın. Bunun yerine doğal Türkçe başlangıçlar kullanın: "Sayın [İsim]," veya "Merhaba [İsim]," gibi. Türkçe\'de e-postalarda genellikle doğrudan konuya geçilir veya kısa bir selamlama yapılır.',
+    'Italienisch': 'L\'email deve essere scritta in italiano. Usa una grammatica e un\'ortografia italiane corrette. Usa un italiano professionale e cortese con espressioni naturali e idiomatiche. NON usare traduzioni letterali. Usa frasi italiane native come "La ringrazio per la Sua attenzione" o "Le scrivo in merito a..."',
+    'Spanisch': 'El correo electrónico debe estar escrito en español. Usa una gramática y ortografía españolas correctas. Usa un español profesional y cortés con expresiones naturales e idiomáticas. NO uses traducciones literales. Usa frases españolas nativas como "Quedo a su disposición" o "Le escribo en relación con..."'
   };
 
   // System-Prompt je nach Länge anpassen
@@ -90,9 +90,25 @@ export async function generateEmail(prevState: any, formData: FormData) {
     userPrompt = `${userPrompt}, Empfänger Kontext: ${recipient}`;
   }
 
-  const systemPrompt = language === 'Deutsch'
-    ? `Du bist ein E-Mail Profi. ${lengthInstruction} ${formalityInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden.`
-    : `You are an email professional. ${lengthInstruction} ${languageInstructions[language]} Reply only with the text. Use the provided names for greeting and closing, if available.`;
+  // System-Prompt je nach Sprache anpassen
+  let systemPrompt = '';
+  
+  if (language === 'Deutsch') {
+    systemPrompt = `Du bist ein E-Mail Profi und Muttersprachler. ${lengthInstruction} ${formalityInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden.`;
+  } else if (language === 'Englisch') {
+    systemPrompt = `You are an email professional and native English speaker. ${lengthInstruction} ${languageInstructions[language]} Reply only with the text. Use the provided names for greeting and closing, if available.`;
+  } else if (language === 'Französisch') {
+    systemPrompt = `Tu es un professionnel de l'email et locuteur natif français. ${lengthInstruction} ${languageInstructions[language]} Réponds uniquement avec le texte. Utilise les noms fournis pour la salutation et la fermeture, s'ils sont disponibles.`;
+  } else if (language === 'Türkisch') {
+    systemPrompt = `Sen bir e-posta profesyonelisin ve ana dili Türkçe olan birisin. ${lengthInstruction} ${languageInstructions[language]} Sadece metinle cevap ver. Varsa verilen isimleri selamlama ve kapanış için kullan. ÖNEMLİ: Türkçe e-postalarda doğal, yerli ifadeler kullan. "Umarım bu e-posta sizi iyi bulur" gibi çeviri kokan ifadeler ASLA kullanma. Bunun yerine doğrudan "Sayın [İsim]," ile başla veya kısa bir selamlama yap.`;
+  } else if (language === 'Italienisch') {
+    systemPrompt = `Sei un professionista delle email e madrelingua italiana. ${lengthInstruction} ${languageInstructions[language]} Rispondi solo con il testo. Usa i nomi forniti per il saluto e la chiusura, se disponibili.`;
+  } else if (language === 'Spanisch') {
+    systemPrompt = `Eres un profesional del correo electrónico y hablante nativo de español. ${lengthInstruction} ${languageInstructions[language]} Responde solo con el texto. Usa los nombres proporcionados para el saludo y el cierre, si están disponibles.`;
+  } else {
+    // Fallback
+    systemPrompt = `You are an email professional. ${lengthInstruction} ${languageInstructions[language] || ''} Reply only with the text. Use the provided names for greeting and closing, if available.`;
+  }
 
   try {
     const response = await openai.chat.completions.create({
