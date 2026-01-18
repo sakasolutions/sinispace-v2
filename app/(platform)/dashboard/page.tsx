@@ -25,8 +25,8 @@ const allTools: Tool[] = [
   // KOMMUNIKATION
   {
     id: 'email',
-    title: 'E-Mail Verfasser',
-    description: 'Erstelle professionelle E-Mails aus Stichpunkten.',
+    title: 'E-Mail Profi',
+    description: 'Perfekte Mails in Sekunden: Von höflich bis bestimmt.',
     icon: Mail,
     color: 'blue',
     category: 'KOMMUNIKATION',
@@ -36,7 +36,7 @@ const allTools: Tool[] = [
   {
     id: 'translate',
     title: 'Kontext Übersetzer',
-    description: 'Übersetze Texte mit Kontext und natürlichen Formulierungen.',
+    description: 'Übersetzen mit Nuance: Slang, Business oder Native Speaker.',
     icon: Languages,
     color: 'indigo',
     category: 'KOMMUNIKATION',
@@ -45,8 +45,8 @@ const allTools: Tool[] = [
   },
   {
     id: 'polish',
-    title: 'Text Aufpolierer',
-    description: 'Verbessere Texte: professioneller, klarer, überzeugender.',
+    title: 'Text Veredler',
+    description: 'Mach deinen Entwurf zu Gold: Grammatik, Stil & Eloquenz.',
     icon: Sparkles,
     color: 'sky',
     category: 'KOMMUNIKATION',
@@ -56,7 +56,7 @@ const allTools: Tool[] = [
   {
     id: 'tough-msg',
     title: 'Schwierige Nachrichten',
-    description: 'Formuliere schwierige Botschaften empathisch und klar.',
+    description: 'Konflikte lösen: Absagen und Kritik professionell verpacken.',
     icon: MessageSquare,
     color: 'rose',
     category: 'KOMMUNIKATION',
@@ -68,7 +68,7 @@ const allTools: Tool[] = [
   {
     id: 'legal',
     title: 'Rechtstexte & Formales',
-    description: 'Assistent für juristische Formulierungen und Erklärungen.',
+    description: 'Sichere Formulierungen für Verträge, Mahnungen & Kündigungen.',
     icon: Scale,
     color: 'purple',
     category: 'BUSINESS',
@@ -78,7 +78,7 @@ const allTools: Tool[] = [
   {
     id: 'excel',
     title: 'Excel Retter',
-    description: 'Beschreibe dein Problem, ich gebe dir die fertige Formel.',
+    description: 'Formeln & Fixes: Dein Experte für Excel und Google Sheets.',
     icon: Calculator,
     color: 'green',
     category: 'BUSINESS',
@@ -87,8 +87,8 @@ const allTools: Tool[] = [
   },
   {
     id: 'job-desc',
-    title: 'Job-Beschreibung',
-    description: 'Erstelle professionelle Stellenausschreibungen.',
+    title: 'Stellenanzeigen',
+    description: 'Attraktive Job-Texte, die Top-Talente anziehen.',
     icon: Briefcase,
     color: 'slate',
     category: 'BUSINESS',
@@ -97,8 +97,8 @@ const allTools: Tool[] = [
   },
   {
     id: 'invoice',
-    title: 'Rechnungs-Posten',
-    description: 'Formuliere Rechnungspositionen und Beschreibungen.',
+    title: 'Angebot & Rechnung',
+    description: 'Leistungsbeschreibungen, die Kunden gerne bezahlen.',
     icon: Receipt,
     color: 'emerald',
     category: 'BUSINESS',
@@ -110,7 +110,7 @@ const allTools: Tool[] = [
   {
     id: 'summarize',
     title: 'Text Zusammenfasser',
-    description: 'Kopiere langen Text und erhalte das Wichtigste.',
+    description: 'Lange Texte in Sekunden verstehen. Kernaussagen auf den Punkt.',
     icon: FileText,
     color: 'teal',
     category: 'WISSEN',
@@ -119,8 +119,8 @@ const allTools: Tool[] = [
   },
   {
     id: 'explain-5',
-    title: 'Erklär\'s mir wie 5',
-    description: 'Komplexe Themen einfach erklärt, als wäre ich 5 Jahre alt.',
+    title: 'Der Vereinfacher',
+    description: 'Komplexe Themen (Krypto, Physik) kinderleicht erklärt.',
     icon: HelpCircle,
     color: 'orange',
     category: 'WISSEN',
@@ -129,8 +129,8 @@ const allTools: Tool[] = [
   },
   {
     id: 'pro-con',
-    title: 'Pro & Contra',
-    description: 'Erstelle Pro- und Contra-Listen zu jedem Thema.',
+    title: 'Entscheidungs-Hilfe',
+    description: 'Qual der Wahl? Eine objektive Pro- & Contra-Analyse.',
     icon: ThumbsUp,
     color: 'amber',
     category: 'WISSEN',
@@ -140,7 +140,7 @@ const allTools: Tool[] = [
   {
     id: 'research',
     title: 'Recherche Assistent',
-    description: 'Finde Fakten und Quellen zu einem Thema.',
+    description: 'Fakten-Check und Hintergründe zu jedem Thema.',
     icon: SearchIcon,
     color: 'yellow',
     category: 'WISSEN',
@@ -152,7 +152,7 @@ const allTools: Tool[] = [
   {
     id: 'linkedin',
     title: 'LinkedIn Viral',
-    description: 'Erstelle professionelle LinkedIn-Beiträge für dein Netzwerk.',
+    description: 'Posts, die auffallen und Engagement erzeugen.',
     icon: Linkedin,
     color: 'blue',
     category: 'SOCIAL',
@@ -162,7 +162,7 @@ const allTools: Tool[] = [
   {
     id: 'instagram',
     title: 'Instagram Caption',
-    description: 'Schreibe kreative und ansprechende Instagram-Beschriftungen.',
+    description: 'Die perfekte Bildunterschrift inkl. Hashtags.',
     icon: Instagram,
     color: 'pink',
     category: 'SOCIAL',
@@ -172,7 +172,7 @@ const allTools: Tool[] = [
   {
     id: 'video',
     title: 'Video Skript',
-    description: 'Erstelle strukturierte Video-Skripte für Social Media.',
+    description: 'Strukturierte Skripte für TikTok, Reels & Shorts.',
     icon: Video,
     color: 'red',
     category: 'SOCIAL',
@@ -184,7 +184,7 @@ const allTools: Tool[] = [
   {
     id: 'code',
     title: 'Code Fixer',
-    description: 'Analysiere und korrigiere Code-Fehler automatisch.',
+    description: 'Debugge deinen Code und finde Fehler sofort.',
     icon: Code2,
     color: 'cyan',
     category: 'DEV',
@@ -221,22 +221,22 @@ export default function DashboardPage() {
     return filtered;
   }, [selectedCategory, searchQuery]);
 
-  const colorClasses: Record<string, { text: string; bg: string; border: string; hoverBorder: string; hoverShadow: string }> = {
-    blue: { text: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', hoverBorder: 'group-hover:border-blue-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-blue-500/10' },
-    indigo: { text: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', hoverBorder: 'group-hover:border-indigo-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-indigo-500/10' },
-    sky: { text: 'text-sky-400', bg: 'bg-sky-500/10', border: 'border-sky-500/20', hoverBorder: 'group-hover:border-sky-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-sky-500/10' },
-    rose: { text: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20', hoverBorder: 'group-hover:border-rose-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-rose-500/10' },
-    purple: { text: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20', hoverBorder: 'group-hover:border-purple-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-purple-500/10' },
-    green: { text: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', hoverBorder: 'group-hover:border-green-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-green-500/10' },
-    slate: { text: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/20', hoverBorder: 'group-hover:border-slate-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-slate-500/10' },
-    emerald: { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', hoverBorder: 'group-hover:border-emerald-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-emerald-500/10' },
-    teal: { text: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/20', hoverBorder: 'group-hover:border-teal-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-teal-500/10' },
-    orange: { text: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20', hoverBorder: 'group-hover:border-orange-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-orange-500/10' },
-    amber: { text: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', hoverBorder: 'group-hover:border-amber-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-amber-500/10' },
-    yellow: { text: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', hoverBorder: 'group-hover:border-yellow-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-yellow-500/10' },
-    pink: { text: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20', hoverBorder: 'group-hover:border-pink-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-pink-500/10' },
-    red: { text: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', hoverBorder: 'group-hover:border-red-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-red-500/10' },
-    cyan: { text: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', hoverBorder: 'group-hover:border-cyan-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-cyan-500/10' },
+  const colorClasses: Record<string, { text: string; bg: string; bgHover: string; border: string; hoverBorder: string; hoverShadow: string }> = {
+    blue: { text: 'text-blue-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-blue-500/20', border: 'border-blue-500/20', hoverBorder: 'group-hover:border-blue-500/50', hoverShadow: 'group-hover:shadow-[color]-500/20' },
+    indigo: { text: 'text-indigo-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-indigo-500/20', border: 'border-indigo-500/20', hoverBorder: 'group-hover:border-indigo-500/50', hoverShadow: 'group-hover:shadow-indigo-500/20' },
+    sky: { text: 'text-sky-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-sky-500/20', border: 'border-sky-500/20', hoverBorder: 'group-hover:border-sky-500/50', hoverShadow: 'group-hover:shadow-sky-500/20' },
+    rose: { text: 'text-rose-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-rose-500/20', border: 'border-rose-500/20', hoverBorder: 'group-hover:border-rose-500/50', hoverShadow: 'group-hover:shadow-rose-500/20' },
+    purple: { text: 'text-purple-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-purple-500/20', border: 'border-purple-500/20', hoverBorder: 'group-hover:border-purple-500/50', hoverShadow: 'group-hover:shadow-purple-500/20' },
+    green: { text: 'text-green-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-green-500/20', border: 'border-green-500/20', hoverBorder: 'group-hover:border-green-500/50', hoverShadow: 'group-hover:shadow-green-500/20' },
+    slate: { text: 'text-slate-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-slate-500/20', border: 'border-slate-500/20', hoverBorder: 'group-hover:border-slate-500/50', hoverShadow: 'group-hover:shadow-slate-500/20' },
+    emerald: { text: 'text-emerald-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-emerald-500/20', border: 'border-emerald-500/20', hoverBorder: 'group-hover:border-emerald-500/50', hoverShadow: 'group-hover:shadow-emerald-500/20' },
+    teal: { text: 'text-teal-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-teal-500/20', border: 'border-teal-500/20', hoverBorder: 'group-hover:border-teal-500/50', hoverShadow: 'group-hover:shadow-teal-500/20' },
+    orange: { text: 'text-orange-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-orange-500/20', border: 'border-orange-500/20', hoverBorder: 'group-hover:border-orange-500/50', hoverShadow: 'group-hover:shadow-orange-500/20' },
+    amber: { text: 'text-amber-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-amber-500/20', border: 'border-amber-500/20', hoverBorder: 'group-hover:border-amber-500/50', hoverShadow: 'group-hover:shadow-amber-500/20' },
+    yellow: { text: 'text-yellow-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-yellow-500/20', border: 'border-yellow-500/20', hoverBorder: 'group-hover:border-yellow-500/50', hoverShadow: 'group-hover:shadow-yellow-500/20' },
+    pink: { text: 'text-pink-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-pink-500/20', border: 'border-pink-500/20', hoverBorder: 'group-hover:border-pink-500/50', hoverShadow: 'group-hover:shadow-pink-500/20' },
+    red: { text: 'text-red-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-red-500/20', border: 'border-red-500/20', hoverBorder: 'group-hover:border-red-500/50', hoverShadow: 'group-hover:shadow-red-500/20' },
+    cyan: { text: 'text-cyan-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-cyan-500/20', border: 'border-cyan-500/20', hoverBorder: 'group-hover:border-cyan-500/50', hoverShadow: 'group-hover:shadow-cyan-500/20' },
   };
 
   return (
@@ -244,10 +244,10 @@ export default function DashboardPage() {
       {/* HEADER */}
       <div className="mb-6 sm:mb-8 md:mb-12">
         <h1 className="text-xl sm:text-2xl font-bold text-white">
-          Guten Tag.
+          Willkommen zurück. 👋
         </h1>
         <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
-          Was möchtest du heute erledigen?
+          Welches Tool soll dir heute helfen?
         </p>
       </div>
 
@@ -290,13 +290,14 @@ export default function DashboardPage() {
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             const colors = colorClasses[tool.color] || colorClasses.blue;
-            const cardClassName = `group relative rounded-xl border border-white/5 bg-zinc-900/40 backdrop-blur-sm ${colors.hoverBorder} ${colors.hoverShadow} transition-all duration-300 hover:-translate-y-1 p-6 ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
+            // Gradient Background mit Hover-Border und Shadow
+            const cardClassName = `group relative rounded-xl border border-white/5 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 backdrop-blur-sm ${colors.hoverBorder} transition-all duration-300 hover:-translate-y-1 p-6 ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
             const cardContent = (
               <div className="flex flex-col h-full">
                 {/* ICON CONTAINER */}
-                <div className={`flex-shrink-0 h-12 w-12 rounded-2xl ${colors.bg} flex items-center justify-center mb-4`}>
-                  <Icon className={`w-6 h-6 ${colors.text}`} />
+                <div className={`flex-shrink-0 h-12 w-12 rounded-2xl ${colors.bg} ${colors.bgHover} flex items-center justify-center mb-4 transition-all duration-300`}>
+                  <Icon className={`w-6 h-6 ${colors.text} group-hover:scale-110 transition-transform duration-300`} />
                 </div>
                 
                 {/* CONTENT */}
@@ -304,7 +305,7 @@ export default function DashboardPage() {
                   <h3 className="font-semibold text-lg text-zinc-100 group-hover:text-white mb-2 flex items-center gap-2">
                     {tool.title}
                     {!tool.available && (
-                      <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-white/5">
+                      <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-500">
                         In Kürze verfügbar
                       </span>
                     )}
@@ -316,7 +317,7 @@ export default function DashboardPage() {
                   {/* "ÖFFNEN" LINK */}
                   {tool.available && (
                     <div className="flex justify-end mt-auto pt-2">
-                      <span className="text-xs font-medium text-zinc-500 group-hover:text-zinc-300 flex items-center gap-1 transition-all">
+                      <span className="text-xs font-medium text-zinc-400 group-hover:text-white flex items-center gap-1 transition-all">
                         Öffnen
                         <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
                       </span>
