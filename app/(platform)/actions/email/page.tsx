@@ -236,19 +236,20 @@ export default function EmailPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">Sprache</label>
-              <select
+              <CustomSelect
                 name="language"
                 value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
-              >
-                <option value="Deutsch">Deutsch</option>
-                <option value="Englisch">Englisch</option>
-                <option value="Französisch">Französisch</option>
-                <option value="Türkisch">Türkisch</option>
-                <option value="Italienisch">Italienisch</option>
-                <option value="Spanisch">Spanisch</option>
-              </select>
+                onChange={(value) => setLanguage(value)}
+                options={[
+                  'Deutsch',
+                  'Englisch',
+                  'Französisch',
+                  'Italienisch',
+                  'Spanisch',
+                  'Türkisch',
+                ]}
+                placeholder="Sprache auswählen..."
+              />
             </div>
 
             <div>
