@@ -25,21 +25,25 @@ export default auth((req) => {
   if (pathname === "/login" || pathname === "/register") {
     // Prüfe ob wirklich eingeloggt (gültige Session mit user.id)
     // WICHTIG: req.auth kann existieren auch wenn user null/undefined ist (ungültige Session)
-    // Deshalb explizit prüfen: req.auth?.user muss existieren (nicht null/undefined) UND user.id muss existieren
-    const hasValidSession = req.auth?.user != null && req.auth?.user?.id != null;
-    // Nur wenn wirklich eingeloggt (gültige Session) → Redirect zu Dashboard
+    // CRITICAL: Prüfe NUR user.id (nicht user != null), weil NextAuth user als null setzen kann
+    // Wenn user.id fehlt ODER null/undefined ist → Session ist ungültig → Login erlauben
+    const hasValidSession = !!req.auth?.user?.id; // Nur true wenn user.id existiert und nicht null/undefined
+    
+    // Nur wenn wirklich eingeloggt (gültige Session mit user.id) → Redirect zu Dashboard
     if (hasValidSession) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
-    // Sonst: Login-Seite IMMER erlauben (auch wenn req.auth existiert aber user null/undefined)
-    // Dies verhindert "zu oft umgeleitet" Fehler bei ungültigen Sessions
+    
+    // Sonst: Login-Seite IMMER erlauben (auch wenn req.auth existiert aber user.id fehlt)
+    // Dies verhindert "ERR_TOO_MANY_REDIRECTS" bei ungültigen Sessions
+    // WICHTIG: Kein Redirect, einfach durchlassen → User kann sich einloggen
     return NextResponse.next();
   }
 
-  // WICHTIG: Prüfe explizit ob user existiert (nicht null/undefined) UND user.id existiert
-  // Wenn Session revoked wurde, existiert req.auth, aber req.auth.user ist null/undefined
-  // Wenn req.auth.user null/undefined ist, ist die Session ungültig → nicht eingeloggt
-  const isAuthenticated = req.auth?.user != null && req.auth?.user?.id != null;
+  // WICHTIG: Prüfe explizit ob user.id existiert (nicht nur user != null)
+  // Wenn Session revoked wurde, existiert req.auth, aber req.auth.user ist null ODER user.id fehlt
+  // CRITICAL: Prüfe NUR user.id → wenn fehlt/null → Session ungültig → nicht eingeloggt
+  const isAuthenticated = !!req.auth?.user?.id; // Nur true wenn user.id existiert und nicht null/undefined
 
   // Geschützte Routen
   const protectedRoutes = ["/dashboard", "/chat", "/settings", "/actions"];
