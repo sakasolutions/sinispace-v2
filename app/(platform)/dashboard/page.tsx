@@ -41,7 +41,7 @@ const allTools: Tool[] = [
     color: 'indigo',
     category: 'KOMMUNIKATION',
     href: '/actions/translate',
-    available: false,
+    available: true,
   },
   {
     id: 'polish',
