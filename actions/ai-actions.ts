@@ -129,13 +129,39 @@ export async function generateSummary(prevState: any, formData: FormData) {
   if (!isAllowed) return { result: UPSELL_MESSAGE };
 
   const text = formData.get('text') as string;
+  const format = formData.get('format') as string || 'Stichpunkte'; // Stichpunkte, Fließtext, Action Items
+  const length = formData.get('length') as string || 'Mittel'; // Kurz, Mittel, Detailliert
+
   if (!text) return { error: 'Kein Text.' };
+
+  // System-Prompt je nach Format und Länge anpassen
+  let formatInstruction = '';
+  if (format === 'Stichpunkte') {
+    formatInstruction = 'Fasse den Text zusammen und formatiere das Ergebnis als Bulletpoints (Markdown-Liste mit - oder *).';
+  } else if (format === 'Fließtext') {
+    formatInstruction = 'Fasse den Text zusammen und formatiere das Ergebnis als zusammenhängenden Fließtext (keine Bulletpoints, nur Absätze).';
+  } else if (format === 'Action Items') {
+    formatInstruction = 'Extrahiere NUR die Aufgaben, To-Dos und Action Items aus dem Text. Formatiere als Bulletpoints mit klaren Handlungsaufforderungen. Ignoriere alles andere (Hintergrund, Kontext, etc.).';
+  } else {
+    formatInstruction = 'Fasse den Text zusammen in Bulletpoints (Markdown).';
+  }
+
+  let lengthInstruction = '';
+  if (length === 'Kurz') {
+    lengthInstruction = 'Die Zusammenfassung soll sehr kurz sein (max. 3-5 Punkte oder 2-3 Sätze). Nur die allerwichtigsten Kernaussagen.';
+  } else if (length === 'Detailliert') {
+    lengthInstruction = 'Die Zusammenfassung soll ausführlich und detailliert sein. Wichtige Details und Nuancen beibehalten.';
+  } else {
+    lengthInstruction = 'Die Zusammenfassung soll eine normale Länge haben. Die wichtigsten Punkte zusammenfassen, aber prägnant bleiben.';
+  }
+
+  const systemPrompt = `Du bist ein Text-Analyse-Experte. ${formatInstruction} ${lengthInstruction} Antworte nur mit dem zusammengefassten Text, ohne zusätzliche Erklärungen.`;
 
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: 'Fasse zusammen in Bulletpoints (Markdown).' },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: text }
       ],
     });
@@ -217,7 +243,9 @@ export async function generateSummaryWithChat(prevState: any, formData: FormData
   // Wenn erfolgreich, Chat in DB speichern
   if (result?.result && !result.error) {
     const text = formData.get('text') as string || '';
-    const userInput = text.slice(0, 500); // Erste 500 Zeichen als Input
+    const format = formData.get('format') as string || 'Stichpunkte';
+    const length = formData.get('length') as string || 'Mittel';
+    const userInput = `Format: ${format}, Länge: ${length}, Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
     
     await createHelperChat('summarize', userInput, result.result);
   }
