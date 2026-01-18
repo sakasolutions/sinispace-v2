@@ -90,7 +90,7 @@ export function CustomSelect({
 
       {/* Dropdown List (Open State) */}
       {isOpen && !disabled && (
-        <div className="absolute top-full left-0 w-full mt-2 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 max-h-60 overflow-auto">
+        <div className="absolute top-full left-0 w-full mt-2 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-[100] max-h-[200px] overflow-auto">
           {normalizedOptions.map((option) => {
             const isSelected = option.value === value;
             return (
