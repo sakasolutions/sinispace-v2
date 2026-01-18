@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Copy, Mail, MessageSquare, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
+import { CustomSelect } from '@/components/ui/custom-select';
 
 function ActionButtons({ text, recipientEmail }: { text: string; recipientEmail?: string }) {
   const [copied, setCopied] = useState(false);
@@ -188,19 +189,20 @@ export default function EmailPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">Tonfall</label>
-              <select
+              <CustomSelect
                 name="tone"
                 value={tone}
-                onChange={(e) => setTone(e.target.value)}
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
-              >
-                <option value="Professionell">Professionell & Sachlich</option>
-                <option value="Freundlich">Freundlich & Locker</option>
-                <option value="Bestimmt">Bestimmt & Dringend</option>
-                <option value="Verkaufend">Verkaufend & Überzeugend</option>
-                <option value="Einfühlsam">Einfühlsam & Taktvoll</option>
-                <option value="Entschuldigend">Entschuldigend</option>
-              </select>
+                onChange={(value) => setTone(value)}
+                options={[
+                  { value: 'Professionell', label: 'Professionell & Sachlich' },
+                  { value: 'Freundlich', label: 'Freundlich & Locker' },
+                  { value: 'Bestimmt', label: 'Bestimmt & Dringend' },
+                  { value: 'Verkaufend', label: 'Verkaufend & Überzeugend' },
+                  { value: 'Einfühlsam', label: 'Einfühlsam & Taktvoll' },
+                  { value: 'Entschuldigend', label: 'Entschuldigend' },
+                ]}
+                placeholder="Tonfall auswählen..."
+              />
             </div>
 
             <div>

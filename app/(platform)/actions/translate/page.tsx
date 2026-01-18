@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Copy, MessageSquare, Loader2, Languages } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
+import { CustomSelect } from '@/components/ui/custom-select';
 
 function ActionButtons({ text, mode }: { text: string; mode: string }) {
   const [copied, setCopied] = useState(false);
@@ -159,34 +160,30 @@ export default function TranslatePage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">Ziel-Sprache</label>
-              <select
+              <CustomSelect
                 name="targetLanguage"
                 value={targetLanguage}
-                onChange={(e) => setTargetLanguage(e.target.value)}
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all min-h-[44px]"
-              >
-                {languages.map((lang) => (
-                  <option key={lang} value={lang}>
-                    {lang}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setTargetLanguage(value)}
+                options={languages}
+                placeholder="Sprache auswählen..."
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">Kontext / Modus</label>
-              <select
+              <CustomSelect
                 name="mode"
                 value={mode}
-                onChange={(e) => setMode(e.target.value)}
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all min-h-[44px]"
-              >
-                <option value="Business & Professionell">Business & Professionell</option>
-                <option value="Wie ein Muttersprachler">Wie ein Muttersprachler</option>
-                <option value="Umgangssprache & Locker">Umgangssprache & Locker</option>
-                <option value="Präzise & Wörtlich">Präzise & Wörtlich</option>
-                <option value="Einfach & Erklärend">Einfach & Erklärend</option>
-              </select>
+                onChange={(value) => setMode(value)}
+                options={[
+                  'Business & Professionell',
+                  'Wie ein Muttersprachler',
+                  'Umgangssprache & Locker',
+                  'Präzise & Wörtlich',
+                  'Einfach & Erklärend',
+                ]}
+                placeholder="Modus auswählen..."
+              />
             </div>
 
             <SubmitButton />
