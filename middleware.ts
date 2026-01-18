@@ -24,12 +24,15 @@ export default auth((req) => {
   // Dies verhindert Redirect-Loops bei ungültigen Sessions
   if (pathname === "/login" || pathname === "/register") {
     // Prüfe ob wirklich eingeloggt (gültige Session mit user.id)
-    const isAuthenticated = !!(req.auth?.user && req.auth?.user?.id);
-    // Nur wenn wirklich eingeloggt → Redirect zu Dashboard
-    if (isAuthenticated) {
+    // WICHTIG: req.auth kann existieren auch wenn user undefined ist (ungültige Session)
+    // Deshalb explizit prüfen: req.auth?.user muss existieren UND user.id muss existieren
+    const hasValidSession = req.auth?.user && req.auth?.user?.id;
+    // Nur wenn wirklich eingeloggt (gültige Session) → Redirect zu Dashboard
+    if (hasValidSession) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
-    // Sonst: Login-Seite IMMER erlauben (auch bei ungültiger Session)
+    // Sonst: Login-Seite IMMER erlauben (auch wenn req.auth existiert aber user undefined)
+    // Dies verhindert "zu oft umgeleitet" Fehler bei ungültigen Sessions
     return NextResponse.next();
   }
 
