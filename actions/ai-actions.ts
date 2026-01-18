@@ -178,13 +178,57 @@ export async function generateExcel(prevState: any, formData: FormData) {
   if (!isAllowed) return { result: UPSELL_MESSAGE };
 
   const problem = formData.get('problem') as string;
-  const platform = formData.get('platform') as string;
+  const version = formData.get('version') as string || 'Excel (Deutsch)';
+  const taskType = formData.get('taskType') as string || 'Formel erstellen';
+
+  if (!problem) return { error: 'Bitte beschreibe dein Problem.' };
+
+  // Version-spezifische Instruktionen
+  let versionInstruction = '';
+  if (version === 'Excel (Deutsch)') {
+    versionInstruction = 'WICHTIG: Nutze IMMER deutsche Funktionsnamen (WENN, SVERWEIS, SUMMEWENN, ZÄHLENWENN, etc.) und SEMIKOLONS (;) als Trennzeichen. Beispiel: =SUMMEWENN(B2:B500;"Bezahlt";A2:A500)';
+  } else if (version === 'Excel (Englisch)') {
+    versionInstruction = 'WICHTIG: Nutze IMMER englische Funktionsnamen (IF, VLOOKUP, SUMIF, COUNTIF, etc.) und KOMMAS (,) als Trennzeichen. Beispiel: =SUMIF(B2:B500,"Paid",A2:A500)';
+  } else if (version === 'Google Sheets') {
+    versionInstruction = 'WICHTIG: Nutze englische Funktionsnamen (IF, VLOOKUP, SUMIF, etc.). Trennzeichen können je nach Region unterschiedlich sein, aber Standard ist KOMMAS (,). In Europa oft SEMIKOLONS (;). Beispiel: =SUMIF(B2:B500,"Paid",A2:A500) oder =SUMIF(B2:B500;"Bezahlt";A2:A500)';
+  } else if (version === 'VBA / Makro') {
+    versionInstruction = 'WICHTIG: Schreibe VBA-Code für Excel-Automatisierung. Nutze korrekte VBA-Syntax, Excel-Objektmodell und bewährte Praktiken. Code muss funktionsfähig und gut dokumentiert sein.';
+  } else {
+    versionInstruction = 'Nutze die Standard-Syntax für die gewählte Version.';
+  }
+
+  // Task-Type-spezifische Instruktionen
+  let taskInstruction = '';
+  if (taskType === 'Formel erstellen') {
+    taskInstruction = 'Erstelle eine neue Formel basierend auf der Problembeschreibung.';
+  } else if (taskType === 'Formel reparieren') {
+    taskInstruction = 'Analysiere den Fehler in der bestehenden Formel und repariere sie. Erkläre, was falsch war.';
+  } else if (taskType === 'Erklärung') {
+    taskInstruction = 'Erkläre, wie die gegebene Formel funktioniert. Gehe Schritt für Schritt vor.';
+  } else if (taskType === 'VBA Makro schreiben') {
+    taskInstruction = 'Schreibe VBA-Code für die beschriebene Automatisierung. Code muss funktionsfähig sein.';
+  } else {
+    taskInstruction = 'Löse das beschriebene Problem.';
+  }
+
+  const systemPrompt = `Du bist ein Weltklasse Excel-Experte und MVP mit jahrelanger Erfahrung.
+
+Regeln:
+1. Achte PEINLICH GENAU auf die gewählte Version '${version}'.
+2. ${versionInstruction}
+3. ${taskInstruction}
+
+Formatiere die Antwort wie folgt:
+- ZUERST die reine Formel/den Code in einem Code-Block oder klar markiert
+- DANN eine kurze, präzise Erklärung, wie man die Formel einbaut und was sie macht
+
+Antworte NUR mit der Formel/Code und der Erklärung, keine zusätzlichen Einleitungen.`;
 
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: `Excel Experte für ${platform}. Nur Formel + kurze Erklärung.` },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: problem }
       ],
     });
@@ -226,10 +270,11 @@ export async function generateExcelWithChat(prevState: any, formData: FormData) 
   
   // Wenn erfolgreich, Chat in DB speichern
   if (result?.result && !result.error) {
-    const platform = formData.get('platform') as string || 'Microsoft Excel';
+    const version = formData.get('version') as string || 'Excel (Deutsch)';
+    const taskType = formData.get('taskType') as string || 'Formel erstellen';
     const problem = formData.get('problem') as string || '';
     
-    const userInput = `Programm: ${platform}, Problem: ${problem}`;
+    const userInput = `Version: ${version}, Aufgabe: ${taskType}, Problem: ${problem.substring(0, 100)}${problem.length > 100 ? '...' : ''}`;
     
     await createHelperChat('excel', userInput, result.result);
   }
