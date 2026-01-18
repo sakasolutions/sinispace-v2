@@ -93,7 +93,7 @@ const allTools: Tool[] = [
     color: 'slate',
     category: 'BUSINESS',
     href: '/actions/job-desc',
-    available: false,
+    available: true,
   },
   {
     id: 'invoice',

@@ -575,6 +575,92 @@ export async function generateLegalWithChat(prevState: any, formData: FormData) 
   return result;
 }
 
+// --- JOB-BESCHREIBUNG ---
+export async function generateJobDescription(prevState: any, formData: FormData) {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) return { result: UPSELL_MESSAGE };
+
+  const jobTitle = formData.get('jobTitle') as string;
+  const culture = formData.get('culture') as string || 'Modernes Startup';
+  const employmentType = formData.get('employmentType') as string || 'Vollzeit';
+  const points = formData.get('points') as string;
+
+  if (!jobTitle) return { error: 'Bitte gib einen Job-Titel ein.' };
+  if (!points) return { error: 'Bitte gib Stichpunkte zu Aufgaben & Anforderungen ein.' };
+
+  // Kultur-spezifische Instruktionen
+  let cultureInstruction = '';
+  if (culture === 'Modernes Startup') {
+    cultureInstruction = 'Nutze eine moderne, energetische Sprache mit Duz-Kultur. Lockere, motivierende Formulierungen wie "Du rockst das" oder "Bei uns zählt dein Input". Sei dynamisch und zukunftsorientiert.';
+  } else if (culture === 'Etablierter Konzern') {
+    cultureInstruction = 'Nutze eine professionelle, formelle Sprache mit Sie-Kultur. Strukturiert, leistungsbezogen und etabliert. Betone Stabilität, Karrierechancen und etablierte Prozesse.';
+  } else if (culture === 'Traditioneller Mittelstand') {
+    cultureInstruction = 'Nutze eine familäre, bodenständige Sprache. Betone Sicherheit, Beständigkeit und Teamgeist. Professionell, aber persönlich. Langfristige Perspektiven und Werte.';
+  } else if (culture === 'Kreativ & Exzentrisch') {
+    cultureInstruction = 'Nutze eine außergewöhnliche, kreative Sprache mit Humor. Zeige Persönlichkeit und Kreativität. Mut zu unkonventionellen Formulierungen, während du professionell bleibst.';
+  } else {
+    cultureInstruction = 'Nutze eine professionelle, angemessene Sprache.';
+  }
+
+  const systemPrompt = `Du bist ein erfahrener HR-Recruiter und Copywriter mit jahrelanger Erfahrung in der Erstellung von anziehenden Stellenanzeigen.
+
+Deine Aufgabe: Schreibe eine professionelle Stellenanzeige für '${jobTitle}'.
+Anstellungsart: ${employmentType}
+Stil: ${culture}
+
+WICHTIGE REGELN:
+1. **Gender-neutrale Sprache**: Verwende IMMER gender-neutrale Formulierungen und füge "(m/w/d)" hinzu, um Diskriminierung zu vermeiden und AGG-Konformität sicherzustellen.
+
+2. **Struktur**: Nutze IMMER diese exakte Struktur (Markdown):
+   - **Einleitung** (Catchy Hook - fange den Leser ein)
+   - **Deine Mission** (Aufgaben - aus den Stichpunkten extrahiert)
+   - **Das bringst du mit** (Profil & Anforderungen)
+   - **Darum wir** (Benefits & Firmen-Vorteile)
+   - **Call to Action** (Bewirb dich jetzt - motivierender Abschluss)
+
+3. **Attraktive Formulierungen**: Verwandle die Stichpunkte in anziehende Sätze:
+   - Statt "Obstkorb" -> "Tägliche Vitamin-Booster für deine Energie"
+   - Statt "Homeoffice" -> "Flexibles Arbeiten von wo du willst"
+   - Statt "50k Gehalt" -> "Ein faires Gehalt, das deine Leistung widerspiegelt (ab 50.000€)"
+
+4. **Bullet Points**: Nutze Bullet Points für bessere Lesbarkeit in den Abschnitten "Deine Mission" und "Das bringst du mit".
+
+5. **${cultureInstruction}**
+
+Antworte NUR mit der fertigen Stellenanzeige im Markdown-Format, keine zusätzlichen Kommentare.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Job-Titel: ${jobTitle}\n\nAnstellungsart: ${employmentType}\n\nStichpunkte:\n${points}` }
+      ],
+    });
+    return { result: response.choices[0].message.content };
+  } catch (error) {
+    return { error: 'KI Fehler.' };
+  }
+}
+
+// --- JOB-BESCHREIBUNG MIT CHAT-SPEICHERUNG ---
+export async function generateJobDescriptionWithChat(prevState: any, formData: FormData) {
+  const result = await generateJobDescription(prevState, formData);
+  
+  // Wenn erfolgreich, Chat in DB speichern
+  if (result?.result && !result.error) {
+    const jobTitle = formData.get('jobTitle') as string || '';
+    const culture = formData.get('culture') as string || 'Modernes Startup';
+    const employmentType = formData.get('employmentType') as string || 'Vollzeit';
+    const points = formData.get('points') as string || '';
+    const userInput = `Titel: ${jobTitle}, Kultur: ${culture}, Art: ${employmentType}, Punkte: ${points.substring(0, 100)}${points.length > 100 ? '...' : ''}`;
+    
+    await createHelperChat('job-desc', userInput, result.result);
+  }
+  
+  return result;
+}
+
 // --- CHAT ---
 export async function chatWithAI(
   messages: { role: string; content: string }[], 
