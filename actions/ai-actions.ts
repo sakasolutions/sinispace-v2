@@ -24,14 +24,25 @@ export async function generateEmail(prevState: any, formData: FormData) {
   const topic = formData.get('topic') as string;
   const recipient = formData.get('recipient') as string;
   const tone = formData.get('tone') as string;
+  const length = formData.get('length') as string || 'Mittel'; // Kurz, Mittel, Ausführlich
 
   if (!topic) return { error: 'Bitte gib ein Thema ein.' };
+
+  // System-Prompt je nach Länge anpassen
+  let lengthInstruction = '';
+  if (length === 'Kurz') {
+    lengthInstruction = 'Die E-Mail soll kurz und prägnant sein (max. 3-4 Sätze).';
+  } else if (length === 'Ausführlich') {
+    lengthInstruction = 'Die E-Mail soll ausführlich und detailliert sein.';
+  } else {
+    lengthInstruction = 'Die E-Mail soll eine normale Länge haben (5-7 Sätze).';
+  }
 
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: 'Du bist ein E-Mail Profi. Antworte nur mit dem Text.' },
+        { role: 'system', content: `Du bist ein E-Mail Profi. ${lengthInstruction} Antworte nur mit dem Text.` },
         { role: 'user', content: `Empfänger: ${recipient}, Ton: ${tone}, Inhalt: ${topic}` }
       ],
     });

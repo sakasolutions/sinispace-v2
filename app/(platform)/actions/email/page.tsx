@@ -3,13 +3,13 @@
 import { generateEmailWithChat } from '@/actions/ai-actions';
 import { useActionState } from 'react';
 import { useState } from 'react';
-
-// Kleiner Hack für TypeScript, falls useActionState noch zickt
-// @ts-ignore
+import { Copy, Mail, MessageSquare, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 
-function CopyButton({ text }: { text: string }) {
+function ActionButtons({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
 
   const handleCopy = async () => {
     try {
@@ -21,14 +21,58 @@ function CopyButton({ text }: { text: string }) {
     }
   };
 
+  const handleOpenMailto = () => {
+    // Extrahiere Betreff aus dem ersten Zeile, falls vorhanden
+    const lines = text.split('\n');
+    const subject = lines[0]?.replace(/^Betreff:\s*/i, '').trim() || 'E-Mail';
+    const body = text.replace(/^Betreff:.*\n/i, '').trim();
+    
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoLink);
+  };
+
+  const handleGoToChat = () => {
+    router.push('/chat');
+  };
+
   return (
-    <button
-      onClick={handleCopy}
-      className="absolute top-3 right-3 px-2 py-1 text-xs font-medium rounded-md bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all"
-      title="In Zwischenablage kopieren"
-    >
-      {copied ? '✓ Kopiert' : '📋 Kopieren'}
-    </button>
+    <div className="absolute top-3 right-3 flex gap-2 z-10">
+      <button
+        onClick={handleCopy}
+        className="px-2.5 py-1.5 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
+        title="In Zwischenablage kopieren"
+      >
+        {copied ? (
+          <>
+            <span className="text-green-400">✓</span>
+            <span>Kopiert!</span>
+          </>
+        ) : (
+          <>
+            <Copy className="w-3.5 h-3.5" />
+            <span>Kopieren</span>
+          </>
+        )}
+      </button>
+      
+      <button
+        onClick={handleOpenMailto}
+        className="px-2.5 py-1.5 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
+        title="In E-Mail-Client öffnen"
+      >
+        <Mail className="w-3.5 h-3.5" />
+        <span>Öffnen</span>
+      </button>
+      
+      <button
+        onClick={handleGoToChat}
+        className="px-2.5 py-1.5 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
+        title="Zu SiniChat"
+      >
+        <MessageSquare className="w-3.5 h-3.5" />
+        <span>Zu SiniChat</span>
+      </button>
+    </div>
   );
 }
 
@@ -38,9 +82,16 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 transition-all"
+      className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3 text-sm font-semibold text-white hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 min-h-[44px]"
     >
-      {pending ? 'KI schreibt gerade...' : 'E-Mail generieren ✨'}
+      {pending ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span>Schreibe E-Mail...</span>
+        </>
+      ) : (
+        <span>E-Mail generieren ✨</span>
+      )}
     </button>
   );
 }
@@ -52,43 +103,45 @@ export default function EmailPage() {
   // State für Formularfelder, damit sie nicht geleert werden
   const [recipient, setRecipient] = useState('');
   const [tone, setTone] = useState('Professionell');
+  const [length, setLength] = useState<'Kurz' | 'Mittel' | 'Ausführlich'>('Mittel');
   const [topic, setTopic] = useState('');
 
   return (
-    <div className="max-w-4xl mx-auto w-full">
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
       <div className="mb-6 sm:mb-8">
         <h1 className="text-xl sm:text-2xl font-bold text-white">E-Mail Verfasser</h1>
-        <p className="text-sm sm:text-base text-zinc-400">
+        <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
           Wirf mir ein paar Stichpunkte hin, ich mache daraus eine professionelle Mail.
         </p>
         <div className="mt-3 p-3 rounded-md bg-blue-500/10 border border-blue-500/20 text-sm text-blue-300">
-          💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>Sinichat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
+          💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>SiniChat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
         </div>
       </div>
 
-      <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-2">
+      {/* MOBILE FIRST: flex-col auf Mobile, md:grid auf Desktop */}
+      <div className="flex flex-col md:grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
         {/* LINKE SEITE: EINGABE */}
         <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
-          <form action={formAction} className="space-y-3 sm:space-y-4">
+          <form action={formAction} className="space-y-4 sm:space-y-5">
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-1">An wen geht es?</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">An wen geht es?</label>
               <input
                 name="recipient"
                 type="text"
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
                 placeholder="z.B. Chef, Kunden, Vermieter"
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-1">Tonfall</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Tonfall</label>
               <select
                 name="tone"
                 value={tone}
                 onChange={(e) => setTone(e.target.value)}
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
               >
                 <option value="Professionell">Professionell & Sachlich</option>
                 <option value="Freundlich">Freundlich & Locker</option>
@@ -98,15 +151,55 @@ export default function EmailPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-1">Worum geht's? (Stichpunkte reichen)</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Länge</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLength('Kurz')}
+                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
+                    length === 'Kurz'
+                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
+                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
+                  }`}
+                >
+                  Kurz
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLength('Mittel')}
+                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
+                    length === 'Mittel'
+                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
+                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
+                  }`}
+                >
+                  Mittel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLength('Ausführlich')}
+                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
+                    length === 'Ausführlich'
+                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
+                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
+                  }`}
+                >
+                  Ausführlich
+                </button>
+              </div>
+              <input type="hidden" name="length" value={length} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Worum geht's? (Stichpunkte reichen)</label>
               <textarea
                 name="topic"
                 required
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                rows={6}
                 placeholder="z.B. Bitte um Meeting nächste Woche, Projekt X ist fertig, brauche Feedback bis Freitag..."
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none transition-all min-h-[150px]"
+                rows={6}
               />
             </div>
 
@@ -122,15 +215,16 @@ export default function EmailPage() {
         <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px] sm:min-h-[400px]">
           {state?.result ? (
             <>
-              <CopyButton text={state.result} />
-              <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
+              <ActionButtons text={state.result} />
+              <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert pt-1">
                 {state.result}
               </div>
             </>
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-zinc-500">
-              <span className="text-4xl mb-2">✉️</span>
-              <p>Das Ergebnis erscheint hier.</p>
+              <Mail className="w-12 h-12 mb-3 opacity-50" />
+              <p className="text-sm sm:text-base">Warte auf Input...</p>
+              <p className="text-xs mt-1 text-zinc-600">Die generierte E-Mail erscheint hier</p>
             </div>
           )}
         </div>
