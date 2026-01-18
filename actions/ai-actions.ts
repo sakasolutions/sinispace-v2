@@ -382,6 +382,73 @@ export async function generatePolishWithChat(prevState: any, formData: FormData)
   return result;
 }
 
+// --- SCHWIERIGE NACHRICHTEN ---
+export async function generateToughMessage(prevState: any, formData: FormData) {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) return { result: UPSELL_MESSAGE };
+
+  const recipient = formData.get('recipient') as string;
+  const message = formData.get('message') as string;
+  const strategy = formData.get('strategy') as string || 'Empathisch & Weich';
+
+  if (!recipient) return { error: 'Bitte gib an, an wen die Nachricht geht.' };
+  if (!message) return { error: 'Bitte beschreibe die schlechte Nachricht.' };
+
+  // System-Prompt je nach Strategie
+  let strategyInstruction = '';
+  if (strategy === 'Empathisch & Weich') {
+    strategyInstruction = 'Nutze die "Sandwich-Methode": Beginne mit etwas Positivem oder Verständnis, dann die schlechte Nachricht, schließe mit konstruktiven Lösungsvorschlägen oder Hoffnung ab. Zeige Empathie und Verständnis für die Situation des Empfängers.';
+  } else if (strategy === 'Sachlich & Neutral') {
+    strategyInstruction = 'Formuliere die Nachricht sachlich und faktenbasiert, ohne Emotionen. Bleibe professionell, klar und direkt. Vermeide Schuldzuweisungen oder emotionale Sprache. Konzentriere dich auf die Fakten und notwendige Informationen.';
+  } else if (strategy === 'Entschuldigend & Demütig') {
+    strategyInstruction = 'Übernimm Verantwortung für den Fehler oder die Situation. Sei aufrichtig entschuldigend, zeige Reue und biete konkrete Lösungen oder Wiedergutmachungen an. Vermeide Ausreden oder Rechtfertigungen.';
+  } else if (strategy === 'Bestimmt & Rechtssicher') {
+    strategyInstruction = 'Formuliere die Nachricht präzise, rechtssicher und bestimmt. Setze klare Grenzen und Erwartungen. Verwende eine professionelle, aber feste Sprache. Ideal für Mahnungen, Kündigungen oder formelle Korrespondenz. Vermeide emotionale Angriffsfläche.';
+  } else if (strategy === 'Konstruktiv & Fördernd') {
+    strategyInstruction = 'Formuliere konstruktive Kritik, die motivieren soll. Benenne Probleme klar, aber biete gleichzeitig Lösungen und Entwicklungsperspektiven. Ermutige zur Verbesserung und zeige Vertrauen in die Fähigkeiten des Empfängers.';
+  } else {
+    strategyInstruction = 'Formuliere die Nachricht professionell und angemessen.';
+  }
+
+  const systemPrompt = `Du bist ein Experte für Krisenkommunikation und Deeskalation. Deine Aufgabe ist es, eine Nachricht an '${recipient}' über '${message}' zu formulieren.
+
+Nutze die Strategie '${strategy}'.
+
+${strategyInstruction}
+
+WICHTIG: Formuliere die Nachricht so, dass sie professionell, respektvoll und angemessen ist. Antworte NUR mit dem formulierten Text, ohne zusätzliche Erklärungen oder Kommentare.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Empfänger: ${recipient}\n\nThema: ${message}` }
+      ],
+    });
+    return { result: response.choices[0].message.content };
+  } catch (error) {
+    return { error: 'KI Fehler.' };
+  }
+}
+
+// --- SCHWIERIGE NACHRICHTEN MIT CHAT-SPEICHERUNG ---
+export async function generateToughMessageWithChat(prevState: any, formData: FormData) {
+  const result = await generateToughMessage(prevState, formData);
+  
+  // Wenn erfolgreich, Chat in DB speichern
+  if (result?.result && !result.error) {
+    const recipient = formData.get('recipient') as string || '';
+    const message = formData.get('message') as string || '';
+    const strategy = formData.get('strategy') as string || 'Empathisch & Weich';
+    const userInput = `An: ${recipient}, Strategie: ${strategy}, Thema: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`;
+    
+    await createHelperChat('tough-msg', userInput, result.result);
+  }
+  
+  return result;
+}
+
 // --- CHAT ---
 export async function chatWithAI(
   messages: { role: string; content: string }[], 

@@ -61,7 +61,7 @@ const allTools: Tool[] = [
     color: 'rose',
     category: 'KOMMUNIKATION',
     href: '/actions/tough-msg',
-    available: false,
+    available: true,
   },
   
   // BUSINESS
