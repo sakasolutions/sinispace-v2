@@ -28,27 +28,51 @@ export async function generateEmail(prevState: any, formData: FormData) {
   const recipientEmail = formData.get('recipientEmail') as string || '';
   const tone = formData.get('tone') as string;
   const formality = formData.get('formality') as string || 'Sie'; // Du oder Sie
+  const language = formData.get('language') as string || 'Deutsch'; // Sprache
   const length = formData.get('length') as string || 'Mittel'; // Kurz, Mittel, Ausführlich
 
   if (!topic) return { error: 'Bitte gib ein Thema ein.' };
 
+  // Sprach-Mapping für professionelle System-Prompts
+  const languageInstructions: Record<string, string> = {
+    'Deutsch': 'Die E-Mail muss auf Deutsch verfasst werden. Verwende korrekte deutsche Grammatik und Rechtschreibung.',
+    'Englisch': 'The email must be written in English. Use proper English grammar and spelling. Use professional business English.',
+    'Französisch': 'L\'e-mail doit être rédigé en français. Utilisez une grammaire et une orthographe françaises correctes. Utilisez un français professionnel et poli.',
+    'Türkisch': 'E-posta Türkçe yazılmalıdır. Doğru Türkçe dilbilgisi ve yazım kullanın. Profesyonel ve nazik bir dil kullanın.',
+    'Italienisch': 'L\'email deve essere scritta in italiano. Usa una grammatica e un\'ortografia italiane corrette. Usa un italiano professionale e cortese.',
+    'Spanisch': 'El correo electrónico debe estar escrito en español. Usa una gramática y ortografía españolas correctas. Usa un español profesional y cortés.'
+  };
+
   // System-Prompt je nach Länge anpassen
   let lengthInstruction = '';
   if (length === 'Kurz') {
-    lengthInstruction = 'Die E-Mail soll kurz und prägnant sein (max. 3-4 Sätze).';
+    lengthInstruction = language === 'Deutsch' 
+      ? 'Die E-Mail soll kurz und prägnant sein (max. 3-4 Sätze).'
+      : 'The email should be short and concise (max. 3-4 sentences).';
   } else if (length === 'Ausführlich') {
-    lengthInstruction = 'Die E-Mail soll ausführlich und detailliert sein.';
+    lengthInstruction = language === 'Deutsch'
+      ? 'Die E-Mail soll ausführlich und detailliert sein.'
+      : 'The email should be detailed and comprehensive.';
   } else {
-    lengthInstruction = 'Die E-Mail soll eine normale Länge haben (5-7 Sätze).';
+    lengthInstruction = language === 'Deutsch'
+      ? 'Die E-Mail soll eine normale Länge haben (5-7 Sätze).'
+      : 'The email should have a normal length (5-7 sentences).';
   }
 
-  // Anrede-Instruktion
-  const formalityInstruction = formality === 'Du' 
-    ? 'WICHTIG: Verwende die Du-Form (du, dein, dir, etc.). Sei freundlich aber respektvoll.'
-    : 'WICHTIG: Verwende die Sie-Form (Sie, Ihr, Ihnen, etc.). Bleibe professionell und höflich.';
+  // Anrede-Instruktion (nur für Deutsch relevant)
+  let formalityInstruction = '';
+  if (language === 'Deutsch') {
+    formalityInstruction = formality === 'Du' 
+      ? 'WICHTIG: Verwende die Du-Form (du, dein, dir, etc.). Sei freundlich aber respektvoll.'
+      : 'WICHTIG: Verwende die Sie-Form (Sie, Ihr, Ihnen, etc.). Bleibe professionell und höflich.';
+  }
 
   // Baue User-Prompt mit optionalen Feldern
-  let userPrompt = `Ton: ${tone}, Anrede: ${formality}, Inhalt: ${topic}`;
+  let userPrompt = `Ton: ${tone}, Sprache: ${language}, Inhalt: ${topic}`;
+  
+  if (language === 'Deutsch' && formality) {
+    userPrompt = `${userPrompt}, Anrede: ${formality}`;
+  }
   
   if (senderName) {
     userPrompt = `Absender: ${senderName}, ${userPrompt}`;
@@ -66,11 +90,15 @@ export async function generateEmail(prevState: any, formData: FormData) {
     userPrompt = `${userPrompt}, Empfänger Kontext: ${recipient}`;
   }
 
+  const systemPrompt = language === 'Deutsch'
+    ? `Du bist ein E-Mail Profi. ${lengthInstruction} ${formalityInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden.`
+    : `You are an email professional. ${lengthInstruction} ${languageInstructions[language]} Reply only with the text. Use the provided names for greeting and closing, if available.`;
+
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: `Du bist ein E-Mail Profi. ${lengthInstruction} ${formalityInstruction} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden.` },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
     });
@@ -135,9 +163,11 @@ export async function generateEmailWithChat(prevState: any, formData: FormData) 
     const recipientName = formData.get('recipientName') as string || '';
     const tone = formData.get('tone') as string || 'Professionell';
     const formality = formData.get('formality') as string || 'Sie';
+    const language = formData.get('language') as string || 'Deutsch';
     const topic = formData.get('topic') as string || '';
     
-    let userInput = `Ton: ${tone}, Anrede: ${formality}, Inhalt: ${topic}`;
+    let userInput = `Ton: ${tone}, Sprache: ${language}, Inhalt: ${topic}`;
+    if (language === 'Deutsch' && formality) userInput = `${userInput}, Anrede: ${formality}`;
     if (senderName) userInput = `Absender: ${senderName}, ${userInput}`;
     if (recipientName) userInput = `${userInput}, Empfänger: ${recipientName}`;
     if (recipient) userInput = `${userInput}, Kontext: ${recipient}`;

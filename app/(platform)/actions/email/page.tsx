@@ -111,6 +111,7 @@ export default function EmailPage() {
   const [recipient, setRecipient] = useState('');
   const [tone, setTone] = useState('Professionell');
   const [formality, setFormality] = useState<'Sie' | 'Du'>('Sie');
+  const [language, setLanguage] = useState('Deutsch');
   const [length, setLength] = useState<'Kurz' | 'Mittel' | 'Ausführlich'>('Mittel');
   const [topic, setTopic] = useState('');
 
@@ -229,6 +230,23 @@ export default function EmailPage() {
                 </button>
               </div>
               <input type="hidden" name="formality" value={formality} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Sprache</label>
+              <select
+                name="language"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
+              >
+                <option value="Deutsch">Deutsch</option>
+                <option value="Englisch">Englisch</option>
+                <option value="Französisch">Französisch</option>
+                <option value="Türkisch">Türkisch</option>
+                <option value="Italienisch">Italienisch</option>
+                <option value="Spanisch">Spanisch</option>
+              </select>
             </div>
 
             <div>
