@@ -7,7 +7,7 @@ import { Copy, Mail, MessageSquare, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 
-function ActionButtons({ text }: { text: string }) {
+function ActionButtons({ text, recipientEmail }: { text: string; recipientEmail?: string }) {
   const [copied, setCopied] = useState(false);
   const router = useRouter();
 
@@ -27,7 +27,8 @@ function ActionButtons({ text }: { text: string }) {
     const subject = lines[0]?.replace(/^Betreff:\s*/i, '').trim() || 'E-Mail';
     const body = text.replace(/^Betreff:.*\n/i, '').trim();
     
-    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const email = recipientEmail ? `mailto:${recipientEmail}?` : 'mailto:?';
+    const mailtoLink = `${email}subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoLink);
   };
 
@@ -36,7 +37,7 @@ function ActionButtons({ text }: { text: string }) {
   };
 
   return (
-    <div className="flex justify-between items-center border-b border-white/5 bg-white/5 p-3 rounded-t-3xl -m-4 sm:-m-5 md:-m-6 mb-4 sm:mb-5 md:mb-6">
+    <div className="flex justify-between items-center border-b border-white/5 bg-white/5 p-3 rounded-t-xl mb-4">
       <span className="text-xs uppercase tracking-wider text-zinc-500 font-medium">Dein Entwurf</span>
       <div className="flex gap-1.5">
         <button
@@ -104,6 +105,9 @@ export default function EmailPage() {
   const [state, formAction] = useActionState(generateEmailWithChat, null);
   
   // State für Formularfelder, damit sie nicht geleert werden
+  const [senderName, setSenderName] = useState('');
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
   const [recipient, setRecipient] = useState('');
   const [tone, setTone] = useState('Professionell');
   const [length, setLength] = useState<'Kurz' | 'Mittel' | 'Ausführlich'>('Mittel');
@@ -126,6 +130,48 @@ export default function EmailPage() {
         {/* LINKE SEITE: EINGABE */}
         <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
           <form action={formAction} className="space-y-4 sm:space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Absender Name <span className="text-zinc-500 text-xs font-normal">(optional)</span>
+              </label>
+              <input
+                name="senderName"
+                type="text"
+                value={senderName}
+                onChange={(e) => setSenderName(e.target.value)}
+                placeholder="z.B. Max Mustermann"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Empfänger Name <span className="text-zinc-500 text-xs font-normal">(optional)</span>
+              </label>
+              <input
+                name="recipientName"
+                type="text"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                placeholder="z.B. Dr. Anna Schmidt"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Empfänger E-Mail <span className="text-zinc-500 text-xs font-normal">(optional)</span>
+              </label>
+              <input
+                name="recipientEmail"
+                type="email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                placeholder="z.B. anna.schmidt@example.com"
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">An wen geht es?</label>
               <input
@@ -217,16 +263,20 @@ export default function EmailPage() {
         </div>
 
         {/* RECHTE SEITE: ERGEBNIS */}
-        <div className="relative rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px] sm:min-h-[400px]">
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px] sm:min-h-[400px] overflow-hidden">
           {state?.result ? (
-            <>
-              <ActionButtons text={state.result} />
-              <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
-                {state.result}
+            <div className="h-full flex flex-col">
+              {/* HEADER LEISTE OBERHALB DES TEXTES */}
+              <ActionButtons text={state.result} recipientEmail={recipientEmail} />
+              {/* TEXT BEREICH DARUNTER */}
+              <div className="flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto">
+                <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
+                  {state.result}
+                </div>
               </div>
-            </>
+            </div>
           ) : (
-            <div className="flex h-full flex-col items-center justify-center text-zinc-500">
+            <div className="flex h-full flex-col items-center justify-center text-zinc-500 p-4 sm:p-5 md:p-6">
               <Mail className="w-12 h-12 mb-3 opacity-50" />
               <p className="text-sm sm:text-base">Warte auf Input...</p>
               <p className="text-xs mt-1 text-zinc-600">Die generierte E-Mail erscheint hier</p>

@@ -23,6 +23,9 @@ export async function generateEmail(prevState: any, formData: FormData) {
 
   const topic = formData.get('topic') as string;
   const recipient = formData.get('recipient') as string;
+  const senderName = formData.get('senderName') as string || '';
+  const recipientName = formData.get('recipientName') as string || '';
+  const recipientEmail = formData.get('recipientEmail') as string || '';
   const tone = formData.get('tone') as string;
   const length = formData.get('length') as string || 'Mittel'; // Kurz, Mittel, Ausführlich
 
@@ -38,12 +41,31 @@ export async function generateEmail(prevState: any, formData: FormData) {
     lengthInstruction = 'Die E-Mail soll eine normale Länge haben (5-7 Sätze).';
   }
 
+  // Baue User-Prompt mit optionalen Feldern
+  let userPrompt = `Ton: ${tone}, Inhalt: ${topic}`;
+  
+  if (senderName) {
+    userPrompt = `Absender: ${senderName}, ${userPrompt}`;
+  }
+  
+  if (recipientName) {
+    userPrompt = `${userPrompt}, Empfänger Name: ${recipientName}`;
+  }
+  
+  if (recipientEmail) {
+    userPrompt = `${userPrompt}, Empfänger E-Mail: ${recipientEmail}`;
+  }
+  
+  if (recipient) {
+    userPrompt = `${userPrompt}, Empfänger Kontext: ${recipient}`;
+  }
+
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: `Du bist ein E-Mail Profi. ${lengthInstruction} Antworte nur mit dem Text.` },
-        { role: 'user', content: `Empfänger: ${recipient}, Ton: ${tone}, Inhalt: ${topic}` }
+        { role: 'system', content: `Du bist ein E-Mail Profi. ${lengthInstruction} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden.` },
+        { role: 'user', content: userPrompt }
       ],
     });
     return { result: response.choices[0].message.content };
@@ -103,10 +125,15 @@ export async function generateEmailWithChat(prevState: any, formData: FormData) 
   // Wenn erfolgreich, Chat in DB speichern
   if (result?.result && !result.error) {
     const recipient = formData.get('recipient') as string || 'Unbekannt';
+    const senderName = formData.get('senderName') as string || '';
+    const recipientName = formData.get('recipientName') as string || '';
     const tone = formData.get('tone') as string || 'Professionell';
     const topic = formData.get('topic') as string || '';
     
-    const userInput = `Empfänger: ${recipient}, Ton: ${tone}, Inhalt: ${topic}`;
+    let userInput = `Ton: ${tone}, Inhalt: ${topic}`;
+    if (senderName) userInput = `Absender: ${senderName}, ${userInput}`;
+    if (recipientName) userInput = `${userInput}, Empfänger: ${recipientName}`;
+    if (recipient) userInput = `${userInput}, Kontext: ${recipient}`;
     
     await createHelperChat('email', userInput, result.result);
   }
