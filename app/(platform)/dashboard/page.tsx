@@ -51,7 +51,7 @@ const allTools: Tool[] = [
     color: 'sky',
     category: 'KOMMUNIKATION',
     href: '/actions/polish',
-    available: false,
+    available: true,
   },
   {
     id: 'tough-msg',

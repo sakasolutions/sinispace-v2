@@ -320,6 +320,68 @@ export async function generateTranslateWithChat(prevState: any, formData: FormDa
   return result;
 }
 
+// --- TEXT AUFPOLIERER ---
+export async function generatePolish(prevState: any, formData: FormData) {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) return { result: UPSELL_MESSAGE };
+
+  const text = formData.get('text') as string;
+  const mode = formData.get('mode') as string || 'Professionell & Business';
+
+  if (!text) return { error: 'Bitte gib einen Text ein.' };
+
+  // System-Prompt je nach Modus
+  let modeInstruction = '';
+  if (mode === 'Grammatik & Rechtschreibung') {
+    modeInstruction = 'Korrigiere NUR Grammatik- und Rechtschreibfehler. Ändere den Stil NICHT. Behalte den ursprünglichen Tonfall, die Satzstruktur und den Wortschatz bei. Nur Fehler beheben, sonst nichts ändern.';
+  } else if (mode === 'Professionell & Business') {
+    modeInstruction = 'Optimiere den Text für den professionellen Business-Kontext. Nutze eine sachliche, klare und respektvolle Sprache. Ideal für E-Mails, Präsentationen und Geschäftskommunikation.';
+  } else if (mode === 'Eloquent & Gehoben') {
+    modeInstruction = 'Verfeinere den Text zu einem eloquenten Meisterwerk. Nutze gehobenes Vokabular, elegante Satzstrukturen und stilvolle Formulierungen. Ideal für wichtige Dokumente, Reden oder anspruchsvolle Texte.';
+  } else if (mode === 'Direkt & Knackig') {
+    modeInstruction = 'Mache den Text direkt und knackig. Entferne Füllwörter, Redundanzen und unnötige Ausschmückungen. Nutze kurze, prägnante Sätze. Ideal für Marketing, Social Media oder prägnante Botschaften.';
+  } else if (mode === 'Einfacher & Verständlicher') {
+    modeInstruction = 'Vereinfache den Text, damit er leicht verständlich ist. Löse komplizierte Sätze auf, nutze einfache Worte und kurze Sätze. Ideal für breites Publikum oder wenn Klarheit Priorität hat.';
+  } else {
+    modeInstruction = 'Optimiere den Text professionell und angemessen.';
+  }
+
+  const systemPrompt = `Du bist ein professioneller Chef-Lektor mit jahrelanger Erfahrung. Deine Aufgabe ist es, den Text des Users basierend auf dem Modus '${mode}' zu optimieren.
+
+${modeInstruction}
+
+Antworte NUR mit dem verbesserten Text. Keine Erklärungen, keine Kommentare, nur der aufpolierte Text.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: text }
+      ],
+    });
+    return { result: response.choices[0].message.content };
+  } catch (error) {
+    return { error: 'KI Fehler.' };
+  }
+}
+
+// --- TEXT AUFPOLIERER MIT CHAT-SPEICHERUNG ---
+export async function generatePolishWithChat(prevState: any, formData: FormData) {
+  const result = await generatePolish(prevState, formData);
+  
+  // Wenn erfolgreich, Chat in DB speichern
+  if (result?.result && !result.error) {
+    const text = formData.get('text') as string || '';
+    const mode = formData.get('mode') as string || 'Professionell & Business';
+    const userInput = `Modus: ${mode}, Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
+    
+    await createHelperChat('polish', userInput, result.result);
+  }
+  
+  return result;
+}
+
 // --- CHAT ---
 export async function chatWithAI(
   messages: { role: string; content: string }[], 
