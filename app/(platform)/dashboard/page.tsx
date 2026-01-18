@@ -221,22 +221,22 @@ export default function DashboardPage() {
     return filtered;
   }, [selectedCategory, searchQuery]);
 
-  const colorClasses: Record<string, { text: string; bg: string; border: string }> = {
-    blue: { text: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-    indigo: { text: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
-    sky: { text: 'text-sky-400', bg: 'bg-sky-500/10', border: 'border-sky-500/20' },
-    rose: { text: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
-    purple: { text: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-    green: { text: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20' },
-    slate: { text: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/20' },
-    emerald: { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    teal: { text: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/20' },
-    orange: { text: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
-    amber: { text: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-    yellow: { text: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
-    pink: { text: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
-    red: { text: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-    cyan: { text: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20' },
+  const colorClasses: Record<string, { text: string; bg: string; border: string; hoverBorder: string; hoverShadow: string }> = {
+    blue: { text: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', hoverBorder: 'group-hover:border-blue-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-blue-500/10' },
+    indigo: { text: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', hoverBorder: 'group-hover:border-indigo-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-indigo-500/10' },
+    sky: { text: 'text-sky-400', bg: 'bg-sky-500/10', border: 'border-sky-500/20', hoverBorder: 'group-hover:border-sky-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-sky-500/10' },
+    rose: { text: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20', hoverBorder: 'group-hover:border-rose-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-rose-500/10' },
+    purple: { text: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20', hoverBorder: 'group-hover:border-purple-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-purple-500/10' },
+    green: { text: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', hoverBorder: 'group-hover:border-green-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-green-500/10' },
+    slate: { text: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/20', hoverBorder: 'group-hover:border-slate-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-slate-500/10' },
+    emerald: { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', hoverBorder: 'group-hover:border-emerald-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-emerald-500/10' },
+    teal: { text: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/20', hoverBorder: 'group-hover:border-teal-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-teal-500/10' },
+    orange: { text: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20', hoverBorder: 'group-hover:border-orange-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-orange-500/10' },
+    amber: { text: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', hoverBorder: 'group-hover:border-amber-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-amber-500/10' },
+    yellow: { text: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', hoverBorder: 'group-hover:border-yellow-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-yellow-500/10' },
+    pink: { text: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20', hoverBorder: 'group-hover:border-pink-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-pink-500/10' },
+    red: { text: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', hoverBorder: 'group-hover:border-red-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-red-500/10' },
+    cyan: { text: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', hoverBorder: 'group-hover:border-cyan-500/30', hoverShadow: 'group-hover:shadow-lg group-hover:shadow-cyan-500/10' },
   };
 
   return (
@@ -260,7 +260,7 @@ export default function DashboardPage() {
             placeholder="Suche nach Tools..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-zinc-900/50 px-12 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all min-h-[44px]"
+            className="w-full rounded-2xl border border-white/10 bg-zinc-900/50 px-12 py-3.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all min-h-[44px]"
           />
         </div>
       </div>
@@ -274,7 +274,7 @@ export default function DashboardPage() {
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap min-h-[36px] ${
                 selectedCategory === category
-                  ? 'bg-white text-black'
+                  ? 'bg-gradient-to-r from-teal-500/20 to-indigo-500/20 text-white border border-teal-500/30 shadow-lg shadow-teal-500/10'
                   : 'bg-zinc-900/50 text-zinc-400 border border-white/5 hover:bg-zinc-800/50'
               }`}
             >
@@ -290,18 +290,18 @@ export default function DashboardPage() {
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             const colors = colorClasses[tool.color] || colorClasses.blue;
-            const cardClassName = `relative rounded-xl border border-white/5 bg-zinc-900/40 backdrop-blur-xl hover:border-white/10 transition-all hover:-translate-y-1 p-6 ${tool.available ? '' : 'opacity-75 cursor-not-allowed'}`;
+            const cardClassName = `group relative rounded-xl border border-white/5 bg-zinc-900/40 backdrop-blur-sm ${colors.hoverBorder} ${colors.hoverShadow} transition-all duration-300 hover:-translate-y-1 p-6 ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
             const cardContent = (
-              <div className="flex items-start gap-4">
-                {/* ICON */}
-                <div className={`flex-shrink-0 w-12 h-12 rounded-lg ${colors.bg} ${colors.border} border flex items-center justify-center`}>
+              <div className="flex flex-col h-full">
+                {/* ICON CONTAINER */}
+                <div className={`flex-shrink-0 h-12 w-12 rounded-2xl ${colors.bg} flex items-center justify-center mb-4`}>
                   <Icon className={`w-6 h-6 ${colors.text}`} />
                 </div>
                 
                 {/* CONTENT */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                <div className="flex-1 min-w-0 flex flex-col">
+                  <h3 className="font-semibold text-lg text-zinc-100 group-hover:text-white mb-2 flex items-center gap-2">
                     {tool.title}
                     {!tool.available && (
                       <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-white/5">
@@ -309,9 +309,19 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed">
+                  <p className="text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4 flex-1">
                     {tool.description}
                   </p>
+                  
+                  {/* "ÖFFNEN" LINK */}
+                  {tool.available && (
+                    <div className="flex justify-end mt-auto pt-2">
+                      <span className="text-xs font-medium text-zinc-500 group-hover:text-zinc-300 flex items-center gap-1 transition-all">
+                        Öffnen
+                        <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             );
