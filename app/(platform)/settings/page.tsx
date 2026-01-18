@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { createCheckoutSession } from '@/actions/payment-actions';
+import { signOutAction } from '@/actions/auth-actions';
 import { PrismaClient } from '@prisma/client';
 import { SessionManager } from '@/components/platform/session-manager';
 import { DeleteAccount } from '@/components/platform/delete-account';
@@ -85,6 +86,22 @@ export default async function SettingsPage({
       {/* SESSION MANAGEMENT */}
       <div className="mt-4 sm:mt-6">
         <SessionManager />
+      </div>
+
+      {/* LOGOUT */}
+      <div className="mt-4 sm:mt-6 rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <h2 className="text-sm sm:text-base font-semibold text-white mb-3 sm:mb-4">Abmelden</h2>
+        <p className="text-xs sm:text-sm text-zinc-400 mb-4">
+          Melde dich von deinem Account ab. Alle deine Sessions werden beendet.
+        </p>
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-red-500 to-red-600 px-4 py-2 text-xs sm:text-sm font-medium text-white hover:from-red-600 hover:to-red-700 transition-all shadow-lg shadow-red-500/30"
+          >
+            Abmelden
+          </button>
+        </form>
       </div>
 
       {/* KONTO LÖSCHEN */}
