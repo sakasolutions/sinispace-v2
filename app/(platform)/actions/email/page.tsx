@@ -36,42 +36,45 @@ function ActionButtons({ text }: { text: string }) {
   };
 
   return (
-    <div className="absolute top-3 right-3 flex gap-2 z-10">
-      <button
-        onClick={handleCopy}
-        className="px-2.5 py-1.5 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
-        title="In Zwischenablage kopieren"
-      >
-        {copied ? (
-          <>
-            <span className="text-green-400">✓</span>
-            <span>Kopiert!</span>
-          </>
-        ) : (
-          <>
-            <Copy className="w-3.5 h-3.5" />
-            <span>Kopieren</span>
-          </>
-        )}
-      </button>
-      
-      <button
-        onClick={handleOpenMailto}
-        className="px-2.5 py-1.5 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
-        title="In E-Mail-Client öffnen"
-      >
-        <Mail className="w-3.5 h-3.5" />
-        <span>Öffnen</span>
-      </button>
-      
-      <button
-        onClick={handleGoToChat}
-        className="px-2.5 py-1.5 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
-        title="Zu SiniChat"
-      >
-        <MessageSquare className="w-3.5 h-3.5" />
-        <span>Zu SiniChat</span>
-      </button>
+    <div className="flex justify-between items-center border-b border-white/5 bg-white/5 p-3 rounded-t-3xl -m-4 sm:-m-5 md:-m-6 mb-4 sm:mb-5 md:mb-6">
+      <span className="text-xs uppercase tracking-wider text-zinc-500 font-medium">Dein Entwurf</span>
+      <div className="flex gap-1.5">
+        <button
+          onClick={handleCopy}
+          className="h-8 px-2 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
+          title="In Zwischenablage kopieren"
+        >
+          {copied ? (
+            <>
+              <span className="text-green-400">✓</span>
+              <span className="hidden sm:inline">Kopiert!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Kopieren</span>
+            </>
+          )}
+        </button>
+        
+        <button
+          onClick={handleOpenMailto}
+          className="h-8 px-2 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
+          title="In E-Mail-Client öffnen"
+        >
+          <Mail className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Öffnen</span>
+        </button>
+        
+        <button
+          onClick={handleGoToChat}
+          className="h-8 px-2 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
+          title="Zu SiniChat"
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Zu SiniChat</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -146,6 +149,8 @@ export default function EmailPage() {
                 <option value="Professionell">Professionell & Sachlich</option>
                 <option value="Freundlich">Freundlich & Locker</option>
                 <option value="Bestimmt">Bestimmt & Dringend</option>
+                <option value="Verkaufend">Verkaufend & Überzeugend</option>
+                <option value="Einfühlsam">Einfühlsam & Taktvoll</option>
                 <option value="Entschuldigend">Entschuldigend</option>
               </select>
             </div>
@@ -216,7 +221,7 @@ export default function EmailPage() {
           {state?.result ? (
             <>
               <ActionButtons text={state.result} />
-              <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert pt-1">
+              <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
                 {state.result}
               </div>
             </>
