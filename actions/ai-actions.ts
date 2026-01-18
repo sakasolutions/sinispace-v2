@@ -130,7 +130,7 @@ export async function generateSummary(prevState: any, formData: FormData) {
 
   const text = formData.get('text') as string;
   const format = formData.get('format') as string || 'Stichpunkte'; // Stichpunkte, Fließtext, Action Items
-  const length = formData.get('length') as string || 'Mittel'; // Kurz, Mittel, Detailliert
+  const length = formData.get('length') as string || 'Standard'; // Kernaussage, Standard, Detailliert
 
   if (!text) return { error: 'Kein Text.' };
 
@@ -147,11 +147,12 @@ export async function generateSummary(prevState: any, formData: FormData) {
   }
 
   let lengthInstruction = '';
-  if (length === 'Kurz') {
+  if (length === 'Kernaussage') {
     lengthInstruction = 'Die Zusammenfassung soll sehr kurz sein (max. 3-5 Punkte oder 2-3 Sätze). Nur die allerwichtigsten Kernaussagen.';
   } else if (length === 'Detailliert') {
     lengthInstruction = 'Die Zusammenfassung soll ausführlich und detailliert sein. Wichtige Details und Nuancen beibehalten.';
   } else {
+    // Standard
     lengthInstruction = 'Die Zusammenfassung soll eine normale Länge haben. Die wichtigsten Punkte zusammenfassen, aber prägnant bleiben.';
   }
 
@@ -244,7 +245,7 @@ export async function generateSummaryWithChat(prevState: any, formData: FormData
   if (result?.result && !result.error) {
     const text = formData.get('text') as string || '';
     const format = formData.get('format') as string || 'Stichpunkte';
-    const length = formData.get('length') as string || 'Mittel';
+    const length = formData.get('length') as string || 'Standard';
     const userInput = `Format: ${format}, Länge: ${length}, Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
     
     await createHelperChat('summarize', userInput, result.result);

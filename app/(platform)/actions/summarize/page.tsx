@@ -61,8 +61,8 @@ function ActionButtons({ text }: { text: string }) {
 }
 
 function StatisticsBar({ inputLength, outputLength }: { inputLength: number; outputLength: number }) {
-  const reduction = inputLength > 0 ? Math.round(((inputLength - outputLength) / inputLength) * 100) : 0;
-  const readingTime = Math.max(1, Math.ceil(outputLength / 200)); // ~200 Wörter pro Minute
+  const reduction = inputLength > 0 ? Math.round((1 - (outputLength / inputLength)) * 100) : 0;
+  const readingTime = Math.max(0.5, outputLength / 200); // ~200 Wörter pro Minute (~200 Zeichen pro Minute)
   
   return (
     <div className="flex flex-wrap gap-3 mb-4 pb-4 border-b border-white/5">
@@ -70,8 +70,8 @@ function StatisticsBar({ inputLength, outputLength }: { inputLength: number; out
         <Zap className="w-3 h-3" />
         Effizienz: Text um ~{reduction}% gekürzt
       </div>
-      <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full px-3 py-1 text-xs font-medium">
-        ⏱️ Lesezeit: {readingTime < 1 ? '< 1 Min.' : `~${readingTime} Min.`}
+      <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full px-3 py-1 text-xs font-medium">
+        ⏱️ Lesezeit: {readingTime < 1 ? '< 1 Min.' : `~${Math.ceil(readingTime)} Min.`}
       </div>
     </div>
   );
@@ -109,7 +109,7 @@ export default function SummarizePage() {
   // State für Formularfelder, damit sie nicht geleert werden
   const [text, setText] = useState('');
   const [format, setFormat] = useState<'Stichpunkte' | 'Fließtext' | 'Action Items'>('Stichpunkte');
-  const [length, setLength] = useState<'Kurz' | 'Mittel' | 'Detailliert'>('Mittel');
+  const [length, setLength] = useState<'Kernaussage' | 'Standard' | 'Detailliert'>('Standard');
 
   // Berechne Statistiken
   const inputLength = text.length;
@@ -177,25 +177,27 @@ export default function SummarizePage() {
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
-                  onClick={() => setLength('Kurz')}
+                  onClick={() => setLength('Kernaussage')}
                   className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
-                    length === 'Kurz'
+                    length === 'Kernaussage'
                       ? 'bg-teal-500/20 border-2 border-teal-500/50 text-teal-300'
                       : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
                   }`}
+                  title="Sehr kurz"
                 >
-                  Kurz (TL;DR)
+                  Kernaussage
                 </button>
                 <button
                   type="button"
-                  onClick={() => setLength('Mittel')}
+                  onClick={() => setLength('Standard')}
                   className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
-                    length === 'Mittel'
+                    length === 'Standard'
                       ? 'bg-teal-500/20 border-2 border-teal-500/50 text-teal-300'
                       : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
                   }`}
+                  title="Ausgewogen"
                 >
-                  Mittel
+                  Standard
                 </button>
                 <button
                   type="button"
@@ -205,6 +207,7 @@ export default function SummarizePage() {
                       ? 'bg-teal-500/20 border-2 border-teal-500/50 text-teal-300'
                       : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
                   }`}
+                  title="Alles drin"
                 >
                   Detailliert
                 </button>
