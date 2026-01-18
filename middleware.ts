@@ -4,7 +4,9 @@ import type { NextRequest } from "next/server";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-  const isAuthenticated = !!req.auth;
+  // WICHTIG: Prüfe explizit ob user.id existiert (nicht nur ob req.auth existiert)
+  // Wenn Session revoked wurde, existiert req.auth, aber req.auth.user.id ist undefined
+  const isAuthenticated = !!req.auth?.user?.id;
 
   // Statische Assets und Next.js interne Routen erlauben (früh zurückkehren)
   if (
