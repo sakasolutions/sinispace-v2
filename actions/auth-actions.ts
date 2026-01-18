@@ -102,8 +102,6 @@ export async function loginUser(formData: FormData) {
 }
 
 export async function signOutAction() {
-  'use server';
-  
   const { auth } = await import('@/auth');
   const session = await auth();
   
@@ -125,6 +123,7 @@ export async function signOutAction() {
   
   // User ausloggen (Session-Cookie löschen)
   // WICHTIG: redirect: false, damit wir danach manuell weiterleiten können
+  // Nutze den statischen Import von oben
   await signOut({ redirect: false });
   
   // Manueller Redirect nach erfolgreichem Löschen
