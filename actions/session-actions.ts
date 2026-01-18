@@ -1,11 +1,32 @@
 'use server';
 
 import { auth } from '@/auth';
+import { getToken } from 'next-auth/jwt';
 import { PrismaClient } from '@prisma/client';
 import { signOut } from '@/auth';
 import { cookies } from 'next/headers';
 
 const prisma = new PrismaClient();
+
+// Hilfsfunktion: Hole aktuelle Session-ID aus JWT-Token
+async function getCurrentSessionId(): Promise<string | null> {
+  try {
+    const cookieStore = await cookies();
+    const token = await getToken({
+      req: {
+        headers: {
+          cookie: cookieStore.toString(),
+        },
+      } as any,
+      secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+    });
+    
+    return (token?.sessionId as string) || null;
+  } catch (error) {
+    console.error('[getCurrentSessionId] Error:', error);
+    return null;
+  }
+}
 
 // Alle aktiven Sessions eines Users abrufen
 export async function getSessions() {
@@ -17,6 +38,9 @@ export async function getSessions() {
   }
 
   try {
+    // WICHTIG: Hole aktuelle Session-ID aus JWT-Token (nicht index === 0)
+    const currentSessionId = await getCurrentSessionId();
+    console.log('[getSessions] 🔍 Aktuelle Session-ID aus JWT:', currentSessionId);
     console.log('[getSessions] 🔍 Suche Sessions für User-ID:', session.user.id);
     
     // Alle Sessions des Users abrufen (OHNE Filter, um alle zu sehen)
@@ -67,11 +91,12 @@ export async function getSessions() {
       return new Date(b.expires).getTime() - new Date(a.expires).getTime();
     });
 
-    const result = sortedSessions.map((s, index) => ({
+    const result = sortedSessions.map((s) => ({
       id: s.id,
       expires: s.expires,
       createdAt: s.createdAt || s.expires, // Falls createdAt fehlt, verwende expires als Fallback
-      isCurrent: index === 0, // Die neueste Session ist die aktuelle
+      // WICHTIG: isCurrent basierend auf JWT-Token Session-ID, nicht auf index
+      isCurrent: currentSessionId === s.id,
     }));
 
     console.log('[getSessions] 🎯 Zurückgegebene Sessions:', result.length);
@@ -91,6 +116,9 @@ export async function revokeSession(sessionId: string) {
   }
 
   try {
+    // WICHTIG: Hole aktuelle Session-ID aus JWT-Token
+    const currentSessionId = await getCurrentSessionId();
+    
     // Prüfen ob Session dem User gehört
     const targetSession = await prisma.session.findFirst({
       where: {
@@ -108,22 +136,13 @@ export async function revokeSession(sessionId: string) {
       where: { id: sessionId },
     });
 
-    // Wenn es die aktuelle Session sein könnte, User ausloggen
-    // (Mit JWT können wir nicht genau bestimmen, also loggen wir aus, wenn es die neueste Session ist)
-    const allSessions = await prisma.session.findMany({
-      where: {
-        userId: session.user.id,
-        expires: { gt: new Date() },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 1,
-    });
-
-    if (allSessions.length === 0 || allSessions[0].id === sessionId) {
-      // Keine Sessions mehr oder es war die neueste → ausloggen
+    // Wenn es die aktuelle Session ist, User ausloggen
+    if (currentSessionId === sessionId) {
+      // Aktuelle Session wurde gelöscht → ausloggen
       await signOut({ redirectTo: '/login' });
     }
 
+    // Sonst: Andere Session wurde gelöscht → bleibt eingeloggt (Session-Check im jwt-Callback logged andere Geräte aus)
     return { success: true };
   } catch (error) {
     console.error('Error revoking session:', error);
@@ -140,27 +159,42 @@ export async function revokeAllOtherSessions() {
   }
 
   try {
-    // Finde die neueste Session (wahrscheinlich die aktuelle)
-    const latestSession = await prisma.session.findFirst({
-      where: {
-        userId: session.user.id,
-        expires: { gt: new Date() },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    // WICHTIG: Hole aktuelle Session-ID aus JWT-Token (nicht die neueste DB-Session)
+    const currentSessionId = await getCurrentSessionId();
+    
+    if (!currentSessionId) {
+      // Fallback: Wenn keine Session-ID im JWT, nutze neueste Session
+      const latestSession = await prisma.session.findFirst({
+        where: {
+          userId: session.user.id,
+          expires: { gt: new Date() },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
 
-    if (!latestSession) {
-      return { success: false, error: 'Keine Sessions gefunden' };
+      if (!latestSession) {
+        return { success: false, error: 'Keine Sessions gefunden' };
+      }
+
+      // Alle anderen Sessions löschen (außer aktueller/neuester)
+      await prisma.session.deleteMany({
+        where: {
+          userId: session.user.id,
+          id: { not: latestSession.id },
+        },
+      });
+    } else {
+      // Alle anderen Sessions löschen (außer aktueller aus JWT)
+      await prisma.session.deleteMany({
+        where: {
+          userId: session.user.id,
+          id: { not: currentSessionId },
+        },
+      });
     }
 
-    // Alle anderen Sessions löschen
-    await prisma.session.deleteMany({
-      where: {
-        userId: session.user.id,
-        id: { not: latestSession.id },
-      },
-    });
-
+    // WICHTIG: Aktuelle Session bleibt erhalten → User bleibt eingeloggt
+    // Andere Geräte werden beim nächsten Request durch jwt-Callback ausgeloggt
     return { success: true, message: 'Alle anderen Sessions wurden beendet' };
   } catch (error) {
     console.error('Error revoking all sessions:', error);

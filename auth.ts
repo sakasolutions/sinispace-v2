@@ -53,9 +53,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async session({ session, token }) {
+      // WICHTIG: Wenn sessionId oder sub fehlt im Token, Session ungültig machen
+      if (!token.sessionId || !token.sub) {
+        // Session wurde revoked → ungültig machen (token wurde im jwt-Callback gelöscht)
+        // Session ohne user.id wird automatisch als ungültig behandelt
+        return session; // Session wird ungültig sein, da token.sub fehlt
+      }
+      
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
+      
       return session;
     },
     async jwt({ token, user, trigger }) {
@@ -97,15 +105,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           
           // Wenn Session nicht existiert oder abgelaufen ist, Token ungültig machen
           if (!dbSession) {
-            // Session wurde gelöscht (z.B. durch revokeSession) → User ausloggen
-            throw new Error('Session revoked');
+            // Session wurde gelöscht (z.B. durch revokeSession) → Token ungültig machen
+            // WICHTIG: Kein throw, sondern Token löschen → User wird automatisch ausgeloggt
+            delete token.sessionId;
+            delete token.sub;
+            return token; // Token ohne sessionId/sub → ungültig
           }
         } catch (error) {
-          // Session existiert nicht mehr → Token ungültig machen
-          if (error instanceof Error && error.message === 'Session revoked') {
-            throw error; // Wirft Fehler → User wird ausgeloggt
-          }
           // Andere Fehler ignorieren (z.B. DB-Verbindungsprobleme)
+          // Bei DB-Fehlern behalten wir den Token (User bleibt eingeloggt)
           console.error('Error checking session in JWT callback:', error);
         }
       }
