@@ -102,7 +102,34 @@ export async function loginUser(formData: FormData) {
 }
 
 export async function signOutAction() {
-  await signOut({ redirectTo: '/login' });
+  'use server';
+  
+  const { auth } = await import('@/auth');
+  const session = await auth();
+  
+  const userId = session?.user?.id;
+  
+  // WICHTIG: Erst Sessions löschen, DANACH signOut (sonst ist Session-Cookie weg)
+  if (userId) {
+    try {
+      // Alle Sessions des Users aus DB löschen (VOR signOut, damit wir noch Zugriff haben)
+      const result = await prisma.session.deleteMany({
+        where: { userId },
+      });
+      console.log(`[signOutAction] ✅ ${result.count} Session(s) gelöscht für User: ${userId}`);
+    } catch (error) {
+      // Fehler loggen, aber trotzdem fortfahren
+      console.error('[signOutAction] ⚠️ Fehler beim Löschen der Sessions:', error);
+    }
+  }
+  
+  // User ausloggen (Session-Cookie löschen)
+  // WICHTIG: redirect: false, damit wir danach manuell weiterleiten können
+  await signOut({ redirect: false });
+  
+  // Manueller Redirect nach erfolgreichem Löschen
+  const { redirect } = await import('next/navigation');
+  redirect('/login');
 }
 
 // Konto endgültig löschen
