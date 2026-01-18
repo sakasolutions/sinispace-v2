@@ -254,6 +254,72 @@ export async function generateSummaryWithChat(prevState: any, formData: FormData
   return result;
 }
 
+// --- ÜBERSETZER ---
+export async function generateTranslate(prevState: any, formData: FormData) {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) return { result: UPSELL_MESSAGE };
+
+  const text = formData.get('text') as string;
+  const targetLanguage = formData.get('targetLanguage') as string || 'Englisch (US)';
+  const mode = formData.get('mode') as string || 'Business & Professionell';
+
+  if (!text) return { error: 'Bitte gib einen Text ein.' };
+
+  // Kontext-Instruktion je nach Modus
+  let contextInstruction = '';
+  if (mode === 'Business & Professionell') {
+    contextInstruction = 'Übersetze den Text professionell und geschäftlich angemessen. Verwende eine formelle, aber freundliche Sprache, wie sie in Business-Kommunikation üblich ist.';
+  } else if (mode === 'Wie ein Muttersprachler') {
+    contextInstruction = 'Übersetze den Text so, als wäre er von einem Muttersprachler geschrieben. Nutze typische Redewendungen, natürliche Phrasen und idiomatische Ausdrücke der Zielsprache. KEINE 1:1 Übersetzungen! Passe den Stil kulturell an.';
+  } else if (mode === 'Umgangssprache & Locker') {
+    contextInstruction = 'Übersetze den Text umgangssprachlich und locker. Nutze eine freundliche, informelle Sprache wie sie in Social Media oder bei Freunden verwendet wird.';
+  } else if (mode === 'Präzise & Wörtlich') {
+    contextInstruction = 'Übersetze den Text präzise und möglichst wörtlich, ideal für technische Dokumentationen oder rechtliche Texte. Behalte die exakte Bedeutung bei.';
+  } else if (mode === 'Einfach & Erklärend') {
+    contextInstruction = 'Übersetze den Text einfach und leicht verständlich. Nutze einfache Worte und kurze Sätze, ideal für Sprachschüler oder wenn der Text verständlich sein soll.';
+  } else {
+    contextInstruction = 'Übersetze den Text professionell und angemessen.';
+  }
+
+  const systemPrompt = `Du bist ein professioneller Dolmetscher und Übersetzer mit jahrelanger Erfahrung. Übersetze den folgenden Text in die Zielsprache: ${targetLanguage}. 
+
+WICHTIG: Passe den Stil exakt an diesen Kontext an: ${mode}
+
+${contextInstruction}
+
+Antworte NUR mit der übersetzten Version des Textes, ohne zusätzliche Erklärungen oder Kommentare.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: text }
+      ],
+    });
+    return { result: response.choices[0].message.content };
+  } catch (error) {
+    return { error: 'KI Fehler.' };
+  }
+}
+
+// --- ÜBERSETZER MIT CHAT-SPEICHERUNG ---
+export async function generateTranslateWithChat(prevState: any, formData: FormData) {
+  const result = await generateTranslate(prevState, formData);
+  
+  // Wenn erfolgreich, Chat in DB speichern
+  if (result?.result && !result.error) {
+    const text = formData.get('text') as string || '';
+    const targetLanguage = formData.get('targetLanguage') as string || 'Englisch (US)';
+    const mode = formData.get('mode') as string || 'Business & Professionell';
+    const userInput = `Ziel-Sprache: ${targetLanguage}, Modus: ${mode}, Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
+    
+    await createHelperChat('translate', userInput, result.result);
+  }
+  
+  return result;
+}
+
 // --- CHAT ---
 export async function chatWithAI(
   messages: { role: string; content: string }[], 

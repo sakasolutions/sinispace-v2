@@ -240,7 +240,7 @@ export async function deleteChat(chatId: string) {
 
 // Helfer-Chat erstellen und User-Eingabe + KI-Response speichern
 export async function createHelperChat(
-  helperType: 'email' | 'excel' | 'summarize',
+  helperType: 'email' | 'excel' | 'summarize' | 'translate',
   userInput: string,
   aiResponse: string
 ) {
@@ -252,10 +252,11 @@ export async function createHelperChat(
 
   try {
     // Titel basierend auf Helper-Type
-    const titles = {
+    const titles: Record<'email' | 'excel' | 'summarize' | 'translate', string> = {
       email: 'E-Mail generiert',
       excel: 'Excel Formel generiert',
       summarize: 'Text zusammengefasst',
+      translate: 'Text übersetzt',
     };
     
     const title = titles[helperType] || 'Helfer Chat';
