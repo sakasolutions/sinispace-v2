@@ -53,9 +53,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async session({ session, token }) {
-      // WICHTIG: Wenn sessionId oder sub fehlt im Token, Session ungültig machen
-      if (!token.sessionId || !token.sub) {
-        // Session wurde revoked → ungültig machen (token wurde im jwt-Callback gelöscht)
+      // WICHTIG: Wenn userId (sub) fehlt im Token, Session ungültig machen
+      if (!token.sub) {
+        // Session wurde revoked → ungültig machen
         // Setze session.user explizit auf null (nicht undefined), damit Middleware korrekt erkennt
         // NextAuth behandelt null besser als undefined für ungültige Sessions
         return {
@@ -67,19 +67,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // WICHTIG: Session-Validation hier (nicht im JWT-Callback!)
       // Der session() Callback läuft nur im Server Runtime, kann also Prisma nutzen
       // Der jwt() Callback läuft auch im Edge Runtime (Middleware) → KEIN Prisma möglich
-      // Prüfe ob die DB-Session noch existiert (wurde sie revoked?)
+      // Prüfe ob der User noch aktive Sessions hat (wurde sie revoked?)
+      // HINWEIS: Wir prüfen auf ANY aktive Session (nicht spezifische sessionId)
+      // Das ist weniger präzise, aber Edge Runtime kompatibel
       try {
-        const dbSession = await prisma.session.findFirst({
+        const hasActiveSession = await prisma.session.findFirst({
           where: {
-            id: token.sessionId as string,
             userId: token.sub as string,
             expires: { gt: new Date() },
           },
         });
         
-        // Wenn Session nicht existiert oder abgelaufen ist, Session ungültig machen
-        if (!dbSession) {
-          // Session wurde gelöscht (z.B. durch revokeSession) → Session ungültig machen
+        // Wenn keine aktive Session existiert, Session ungültig machen
+        if (!hasActiveSession) {
+          // Alle Sessions wurden gelöscht (z.B. durch revokeAllOtherSessions oder Logout) → Session ungültig machen
           return {
             ...session,
             user: null, // Session ungültig → user auf null setzen
@@ -106,42 +107,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // WICHTIG: JWT-Callback läuft auch im Edge Runtime (z.B. Middleware)
       // Prisma funktioniert NICHT im Edge Runtime → KEINE DB-Queries hier!
       
-      // Beim ersten Login: Session-ID aus DB im Token speichern
-      // ABER: Nur wenn wir im Server Runtime sind (nicht im Edge Runtime)
-      // Prisma-Prüfung: Nur wenn process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'edge'
+      // Beim ersten Login: Nur userId speichern, KEINE sessionId hier
+      // Die sessionId wird NICHT im JWT-Token gespeichert (Edge Runtime Problem)
+      // Stattdessen: Session-Validation im session() Callback basiert auf userId
       if (user) {
         token.sub = user.id;
-        
-        // Finde die neueste Session für diesen User (gerade erstellt im signIn-Callback)
-        // Diese Session-ID wird im JWT gespeichert, damit wir später prüfen können, ob sie noch existiert
-        // WICHTIG: Nur im Server Runtime (nicht Edge) → Prisma verfügbar
-        try {
-          // Prüfe ob wir im Edge Runtime sind (dann Prisma nicht nutzen)
-          // In Next.js: process.env.NEXT_RUNTIME === 'edge' bedeutet Edge Runtime
-          // Alternativ: try-catch, wenn Prisma-Fehler → ignorieren (Edge Runtime)
-          const latestSession = await prisma.session.findFirst({
-            where: {
-              userId: user.id,
-              expires: { gt: new Date() },
-            },
-            orderBy: { createdAt: 'desc' },
-          });
-          
-          if (latestSession) {
-            // Speichere Session-ID im JWT-Token
-            token.sessionId = latestSession.id;
-          }
-        } catch (error: any) {
-          // Im Edge Runtime wird hier ein Fehler kommen (Prisma nicht verfügbar)
-          // Das ist OK → ignorieren, token.sessionId bleibt undefined
-          // Die Session-Validation erfolgt dann im session() Callback (Server Runtime)
-          if (error?.message?.includes('Edge Runtime')) {
-            // Edge Runtime → Prisma nicht verfügbar → OK, wird im session() Callback geprüft
-            console.log('JWT callback in Edge Runtime - sessionId wird im session() Callback gesetzt');
-          } else {
-            console.error('Error finding session for JWT:', error);
-          }
-        }
+        // WICHTIG: KEINE Prisma-Aufrufe hier! (Edge Runtime inkompatibel)
+        // sessionId wird NICHT im Token gespeichert
+        // Die Session-Validation erfolgt im session() Callback basierend auf userId
       }
       
       // WICHTIG: KEINE Session-Validation hier im JWT-Callback!

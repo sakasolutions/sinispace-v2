@@ -8,9 +8,12 @@ import { cookies } from 'next/headers';
 
 const prisma = new PrismaClient();
 
-// Hilfsfunktion: Hole aktuelle Session-ID aus JWT-Token
+// Hilfsfunktion: Hole aktuelle Session-ID basierend auf userId
+// WICHTIG: sessionId wird NICHT mehr im JWT-Token gespeichert (Edge Runtime Problem)
+// Stattdessen: Nutze die neueste aktive Session des Users aus der DB
 async function getCurrentSessionId(): Promise<string | null> {
   try {
+    // Hole userId aus JWT-Token
     const cookieStore = await cookies();
     const token = await getToken({
       req: {
@@ -21,7 +24,21 @@ async function getCurrentSessionId(): Promise<string | null> {
       secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     });
     
-    return (token?.sessionId as string) || null;
+    if (!token?.sub) {
+      return null;
+    }
+    
+    // Finde die neueste aktive Session des Users
+    // HINWEIS: Dies ist nicht perfekt (mehrere Geräte), aber funktioniert für die meisten Fälle
+    const latestSession = await prisma.session.findFirst({
+      where: {
+        userId: token.sub as string,
+        expires: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    
+    return latestSession?.id || null;
   } catch (error) {
     console.error('[getCurrentSessionId] Error:', error);
     return null;
