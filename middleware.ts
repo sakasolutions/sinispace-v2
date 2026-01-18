@@ -4,9 +4,10 @@ import type { NextRequest } from "next/server";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-  // WICHTIG: Prüfe explizit ob user.id existiert (nicht nur ob req.auth existiert)
-  // Wenn Session revoked wurde, existiert req.auth, aber req.auth.user.id ist undefined
-  const isAuthenticated = !!req.auth?.user?.id;
+  // WICHTIG: Prüfe explizit ob user existiert UND user.id existiert
+  // Wenn Session revoked wurde, existiert req.auth, aber req.auth.user ist undefined
+  // Wenn req.auth.user undefined ist, ist die Session ungültig → nicht eingeloggt
+  const isAuthenticated = !!(req.auth?.user && req.auth?.user?.id);
 
   // Statische Assets und Next.js interne Routen erlauben (früh zurückkehren)
   if (
@@ -39,9 +40,15 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Wenn eingeloggt und auf Login/Register -> Redirect zu Dashboard
-  if (isAuthenticated && (pathname === "/login" || pathname === "/register")) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+  // WICHTIG: Wenn auf Login/Register, IMMER erlauben (auch bei ungültiger Session)
+  // Dies verhindert, dass ungültige JWT-Cookies den Zugriff auf Login blockieren
+  if (pathname === "/login" || pathname === "/register") {
+    // Wenn wirklich eingeloggt (gültige Session), Redirect zu Dashboard
+    if (isAuthenticated) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+    // Sonst: Login-Seite erlauben (auch wenn ungültige Session vorhanden)
+    return NextResponse.next();
   }
 
   // Alles andere erlauben (öffentliche Routen und unbekannte Routen)
