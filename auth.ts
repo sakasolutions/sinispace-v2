@@ -58,10 +58,58 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // Beim ersten Login: Session-ID aus DB im Token speichern
       if (user) {
         token.sub = user.id;
+        
+        // Finde die neueste Session für diesen User (gerade erstellt im signIn-Callback)
+        // Diese Session-ID wird im JWT gespeichert, damit wir später prüfen können, ob sie noch existiert
+        try {
+          const latestSession = await prisma.session.findFirst({
+            where: {
+              userId: user.id,
+              expires: { gt: new Date() },
+            },
+            orderBy: { createdAt: 'desc' },
+          });
+          
+          if (latestSession) {
+            // Speichere Session-ID im JWT-Token
+            token.sessionId = latestSession.id;
+          }
+        } catch (error) {
+          console.error('Error finding session for JWT:', error);
+        }
       }
+      
+      // Bei jedem Request: Prüfe ob die DB-Session noch existiert
+      // Wenn nicht, wird der Token ungültig und User wird ausgeloggt
+      if (token.sessionId && token.sub) {
+        try {
+          const dbSession = await prisma.session.findFirst({
+            where: {
+              id: token.sessionId as string,
+              userId: token.sub as string,
+              expires: { gt: new Date() },
+            },
+          });
+          
+          // Wenn Session nicht existiert oder abgelaufen ist, Token ungültig machen
+          if (!dbSession) {
+            // Session wurde gelöscht (z.B. durch revokeSession) → User ausloggen
+            throw new Error('Session revoked');
+          }
+        } catch (error) {
+          // Session existiert nicht mehr → Token ungültig machen
+          if (error instanceof Error && error.message === 'Session revoked') {
+            throw error; // Wirft Fehler → User wird ausgeloggt
+          }
+          // Andere Fehler ignorieren (z.B. DB-Verbindungsprobleme)
+          console.error('Error checking session in JWT callback:', error);
+        }
+      }
+      
       return token;
     },
     // Session in DB speichern nach erfolgreichem Login
@@ -75,13 +123,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           expires.setDate(expires.getDate() + 30); // 30 Tage
 
           // Erstelle neue Session (jeder Login = neue Session)
-          await prisma.session.create({
+          const dbSession = await prisma.session.create({
             data: {
               sessionToken: sessionToken,
               userId: user.id,
               expires: expires,
             },
           });
+          
+          // WICHTIG: Speichere die Session-ID im JWT-Token (wird im jwt-Callback gesetzt)
+          // Das ermöglicht uns, zu prüfen, ob die Session noch existiert
+          // Siehe jwt-Callback unten
         } catch (error) {
           // Fehler ignorieren (nicht kritisch für Login)
           console.error('Error creating session in DB:', error);
