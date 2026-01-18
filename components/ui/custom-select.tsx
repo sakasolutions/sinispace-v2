@@ -13,6 +13,7 @@ interface CustomSelectProps {
   icon?: React.ComponentType<{ className?: string }>;
   name?: string; // Für Form-Integration
   disabled?: boolean;
+  variant?: 'dropdown' | 'modal'; // 'dropdown' = Standard (aktueller Stand), 'modal' = zentriertes Popup
 }
 
 export function CustomSelect({
@@ -23,6 +24,7 @@ export function CustomSelect({
   icon: Icon,
   name,
   disabled = false,
+  variant = 'dropdown', // Default: Dropdown (aktueller Stand)
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,19 +37,46 @@ export function CustomSelect({
   // Aktuelle Option finden
   const selectedOption = normalizedOptions.find(opt => opt.value === value);
 
-  // Klick außerhalb schließt das Dropdown
+  // Klick außerhalb schließt das Dropdown/Modal
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (variant === 'modal') {
+        // Bei Modal: Backdrop-Klick schließt
+        const target = event.target as HTMLElement;
+        if (target.classList.contains('custom-select-modal-backdrop')) {
+          setIsOpen(false);
+        }
+      } else {
+        // Bei Dropdown: Klick außerhalb des Containers schließt
+        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+          setIsOpen(false);
+        }
+      }
+    }
+
+    // Escape-Taste schließt Modal/Dropdown
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape' && isOpen) {
         setIsOpen(false);
       }
     }
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+      // Body scroll verhindern bei Modal
+      if (variant === 'modal') {
+        document.body.style.overflow = 'hidden';
+      }
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('keydown', handleEscape);
+        if (variant === 'modal') {
+          document.body.style.overflow = '';
+        }
+      };
     }
-  }, [isOpen]);
+  }, [isOpen, variant]);
 
   // Hidden input für Form-Integration
   const handleSelect = (optionValue: string) => {
@@ -88,8 +117,8 @@ export function CustomSelect({
         />
       </button>
 
-      {/* Dropdown List (Open State) */}
-      {isOpen && !disabled && (
+      {/* Dropdown List (Open State - Variant: dropdown) */}
+      {isOpen && !disabled && variant === 'dropdown' && (
         <div className="absolute top-full left-0 w-full mt-2 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-[100] max-h-[200px] overflow-auto">
           {normalizedOptions.map((option) => {
             const isSelected = option.value === value;
@@ -116,6 +145,60 @@ export function CustomSelect({
             );
           })}
         </div>
+      )}
+
+      {/* Modal Popup (Open State - Variant: modal) */}
+      {isOpen && !disabled && variant === 'modal' && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] custom-select-modal-backdrop"
+            onClick={() => setIsOpen(false)}
+          />
+          {/* Modal Content - Zentriert */}
+          <div className="fixed inset-0 z-[201] flex items-center justify-center p-4 pointer-events-none">
+            <div className="bg-zinc-900 border border-white/10 rounded-xl shadow-2xl max-w-md w-full max-h-[70vh] overflow-hidden flex flex-col pointer-events-auto animate-in fade-in-0 zoom-in-95 duration-200">
+              {/* Modal Header */}
+              <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {Icon && <Icon className="w-4 h-4 text-zinc-400" />}
+                  <span className="text-sm font-medium text-zinc-300">Auswählen</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="text-zinc-400 hover:text-white transition-colors"
+                  aria-label="Schließen"
+                >
+                  ×
+                </button>
+              </div>
+              {/* Modal Options List */}
+              <div className="overflow-y-auto flex-1">
+                {normalizedOptions.map((option) => {
+                  const isSelected = option.value === value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleSelect(option.value)}
+                      className={`w-full p-4 text-left text-sm transition-colors flex items-center justify-between ${
+                        isSelected
+                          ? 'bg-indigo-500/10 text-indigo-400'
+                          : 'text-zinc-300 hover:bg-zinc-800'
+                      }`}
+                    >
+                      <span>{option.label}</span>
+                      {isSelected && (
+                        <Check className="w-4 h-4 text-indigo-400" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

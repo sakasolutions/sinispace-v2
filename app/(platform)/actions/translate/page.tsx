@@ -166,6 +166,7 @@ export default function TranslatePage() {
                 onChange={(value) => setTargetLanguage(value)}
                 options={languages}
                 placeholder="Sprache auswählen..."
+                variant="modal"
               />
             </div>
 
@@ -183,6 +184,7 @@ export default function TranslatePage() {
                   'Einfach & Erklärend',
                 ]}
                 placeholder="Modus auswählen..."
+                variant="modal"
               />
             </div>
 
