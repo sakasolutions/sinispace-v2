@@ -27,6 +27,7 @@ export async function generateEmail(prevState: any, formData: FormData) {
   const recipientName = formData.get('recipientName') as string || '';
   const recipientEmail = formData.get('recipientEmail') as string || '';
   const tone = formData.get('tone') as string;
+  const formality = formData.get('formality') as string || 'Sie'; // Du oder Sie
   const length = formData.get('length') as string || 'Mittel'; // Kurz, Mittel, Ausführlich
 
   if (!topic) return { error: 'Bitte gib ein Thema ein.' };
@@ -41,8 +42,13 @@ export async function generateEmail(prevState: any, formData: FormData) {
     lengthInstruction = 'Die E-Mail soll eine normale Länge haben (5-7 Sätze).';
   }
 
+  // Anrede-Instruktion
+  const formalityInstruction = formality === 'Du' 
+    ? 'WICHTIG: Verwende die Du-Form (du, dein, dir, etc.). Sei freundlich aber respektvoll.'
+    : 'WICHTIG: Verwende die Sie-Form (Sie, Ihr, Ihnen, etc.). Bleibe professionell und höflich.';
+
   // Baue User-Prompt mit optionalen Feldern
-  let userPrompt = `Ton: ${tone}, Inhalt: ${topic}`;
+  let userPrompt = `Ton: ${tone}, Anrede: ${formality}, Inhalt: ${topic}`;
   
   if (senderName) {
     userPrompt = `Absender: ${senderName}, ${userPrompt}`;
@@ -64,7 +70,7 @@ export async function generateEmail(prevState: any, formData: FormData) {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: `Du bist ein E-Mail Profi. ${lengthInstruction} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden.` },
+        { role: 'system', content: `Du bist ein E-Mail Profi. ${lengthInstruction} ${formalityInstruction} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden.` },
         { role: 'user', content: userPrompt }
       ],
     });
@@ -128,9 +134,10 @@ export async function generateEmailWithChat(prevState: any, formData: FormData) 
     const senderName = formData.get('senderName') as string || '';
     const recipientName = formData.get('recipientName') as string || '';
     const tone = formData.get('tone') as string || 'Professionell';
+    const formality = formData.get('formality') as string || 'Sie';
     const topic = formData.get('topic') as string || '';
     
-    let userInput = `Ton: ${tone}, Inhalt: ${topic}`;
+    let userInput = `Ton: ${tone}, Anrede: ${formality}, Inhalt: ${topic}`;
     if (senderName) userInput = `Absender: ${senderName}, ${userInput}`;
     if (recipientName) userInput = `${userInput}, Empfänger: ${recipientName}`;
     if (recipient) userInput = `${userInput}, Kontext: ${recipient}`;

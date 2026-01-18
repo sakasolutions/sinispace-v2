@@ -110,6 +110,7 @@ export default function EmailPage() {
   const [recipientEmail, setRecipientEmail] = useState('');
   const [recipient, setRecipient] = useState('');
   const [tone, setTone] = useState('Professionell');
+  const [formality, setFormality] = useState<'Sie' | 'Du'>('Sie');
   const [length, setLength] = useState<'Kurz' | 'Mittel' | 'Ausführlich'>('Mittel');
   const [topic, setTopic] = useState('');
 
@@ -199,6 +200,35 @@ export default function EmailPage() {
                 <option value="Einfühlsam">Einfühlsam & Taktvoll</option>
                 <option value="Entschuldigend">Entschuldigend</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Anrede</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormality('Sie')}
+                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
+                    formality === 'Sie'
+                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
+                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
+                  }`}
+                >
+                  Sie
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormality('Du')}
+                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
+                    formality === 'Du'
+                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
+                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
+                  }`}
+                >
+                  Du
+                </button>
+              </div>
+              <input type="hidden" name="formality" value={formality} />
             </div>
 
             <div>
