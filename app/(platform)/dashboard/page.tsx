@@ -67,13 +67,13 @@ const allTools: Tool[] = [
   // BUSINESS
   {
     id: 'legal',
-    title: 'Rechtstexte',
-    description: 'Formuliere Verträge und rechtliche Dokumente präzise.',
+    title: 'Rechtstexte & Formales',
+    description: 'Assistent für juristische Formulierungen und Erklärungen.',
     icon: Scale,
     color: 'purple',
     category: 'BUSINESS',
     href: '/actions/legal',
-    available: false,
+    available: true,
   },
   {
     id: 'excel',

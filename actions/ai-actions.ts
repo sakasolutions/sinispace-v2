@@ -449,6 +449,87 @@ export async function generateToughMessageWithChat(prevState: any, formData: For
   return result;
 }
 
+// --- RECHTSTEXTE & FORMALES ---
+export async function generateLegal(prevState: any, formData: FormData) {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) return { result: UPSELL_MESSAGE };
+
+  const mode = formData.get('mode') as string || 'Klausel formulieren';
+  const content = formData.get('content') as string;
+
+  if (!content) return { error: 'Bitte gib Stichpunkte oder Inhalt ein.' };
+
+  // System-Prompt je nach Modus
+  let modeInstruction = '';
+  if (mode === 'Klausel formulieren') {
+    modeInstruction = 'Der User möchte eine spezifische Klausel formuliert haben (z.B. Datenschutz, Geheimhaltung, Widerrufsrecht). Schreibe die Klausel präzise, formell und nutze gängige Standards. Die Klausel soll rechtssicher und professionell sein.';
+  } else if (mode === 'Juristendeutsch erklären') {
+    modeInstruction = 'Der User möchte einen komplizierten juristischen Text in einfaches, verständliches Deutsch übersetzt haben. Übersetze den Text präzise, aber verwende einfache Worte und kurze Sätze. Erkläre komplizierte Begriffe.';
+  } else if (mode === 'Formales Schreiben') {
+    modeInstruction = 'Der User möchte ein formales Schreiben (z.B. Kündigung, Widerspruch, Mahnung). Formuliere es professionell, sachlich und rechtssicher. Nutze die übliche Formulierungen für solche Schreiben.';
+  } else if (mode === 'DSGVO Antwort') {
+    modeInstruction = 'Der User möchte eine DSGVO-konforme Antwort formulieren (z.B. auf eine Auskunftsanfrage). Halte dich an die DSGVO-Vorgaben, formuliere präzise und professionell. Gib alle notwendigen Informationen an, die gemäß DSGVO erforderlich sind.';
+  } else {
+    modeInstruction = 'Formuliere einen rechtssicheren, professionellen Text basierend auf den Angaben des Users.';
+  }
+
+  // WICHTIG: Prüfen ob User ganze Verträge anfordert
+  const contentLower = content.toLowerCase();
+  const wholeContractKeywords = ['kompletten vertrag', 'gesamten vertrag', 'vollständigen vertrag', 'ganzen vertrag', 'vertrag erstellen', 'vertrag schreiben', 'vertrag formulieren'];
+  const requestsWholeContract = wholeContractKeywords.some(keyword => contentLower.includes(keyword));
+
+  if (requestsWholeContract) {
+    return { 
+      error: 'Ich erstelle aus rechtlichen Gründen keine kompletten Verträge. Ich kann dir aber gerne dabei helfen, einzelne Klauseln zu formulieren. Bitte beschreibe, welche spezifische Klausel du benötigst.' 
+    };
+  }
+
+  const systemPrompt = `Du bist ein juristischer Formulierungs-Assistent. Deine Aufgabe ist es, basierend auf dem Modus '${mode}' und den Angaben des Users einen rechtssicheren Entwurf zu erstellen.
+
+Regeln:
+1. Wenn der User eine 'Klausel' will: Schreibe sie präzise, formell und nutze gängige Standards.
+2. Wenn der User 'Erklären' will: Übersetze den Text in einfaches, verständliches Deutsch. KEINE Platzhalter hinzufügen.
+3. Wenn der User 'Formales Schreiben' oder 'DSGVO Antwort' will: Formuliere es professionell und rechtssicher.
+4. Füge am Ende JEDES generierten Textes (außer bei 'Juristendeutsch erklären') einen Platzhalter ein: '[Bitte prüfen Sie diesen Entwurf auf Ihre spezifische Situation]'
+
+${modeInstruction}
+
+WICHTIG: 
+- Nutze präzise, formelle Sprache
+- Halte dich an gängige juristische Standards
+- Antworte NUR mit dem formulierten Text, ohne zusätzliche Erklärungen (außer bei Erklärungen, wo der übersetzte Text ausreicht)
+- Bei allen Modi außer "Erklären": Füge am Ende den Platzhalter hinzu`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: content }
+      ],
+    });
+    return { result: response.choices[0].message.content };
+  } catch (error) {
+    return { error: 'KI Fehler.' };
+  }
+}
+
+// --- RECHTSTEXTE & FORMALES MIT CHAT-SPEICHERUNG ---
+export async function generateLegalWithChat(prevState: any, formData: FormData) {
+  const result = await generateLegal(prevState, formData);
+  
+  // Wenn erfolgreich, Chat in DB speichern
+  if (result?.result && !result.error) {
+    const mode = formData.get('mode') as string || 'Klausel formulieren';
+    const content = formData.get('content') as string || '';
+    const userInput = `Modus: ${mode}, Inhalt: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`;
+    
+    await createHelperChat('legal', userInput, result.result);
+  }
+  
+  return result;
+}
+
 // --- CHAT ---
 export async function chatWithAI(
   messages: { role: string; content: string }[], 
