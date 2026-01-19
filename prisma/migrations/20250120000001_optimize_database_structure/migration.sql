@@ -2,41 +2,102 @@
 -- Fügt neue Felder hinzu, ohne bestehende Daten zu löschen
 -- WICHTIG: subscriptionEnd, Login, Logout, Premium bleiben unverändert!
 
--- User: Admin-Features hinzufügen
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true;
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "notes" TEXT;
+-- Prüfe ob Spalten existieren, bevor sie hinzugefügt werden
+DO $$ 
+BEGIN
+    -- User: Admin-Features hinzufügen
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'isActive') THEN
+        ALTER TABLE "User" ADD COLUMN "isActive" BOOLEAN NOT NULL DEFAULT true;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'User' AND column_name = 'notes') THEN
+        ALTER TABLE "User" ADD COLUMN "notes" TEXT;
+    END IF;
 
--- Session: Security & Admin-Features hinzufügen
-ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "ipAddress" TEXT;
-ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "userAgent" TEXT;
-ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true;
+    -- Session: Security & Admin-Features hinzufügen
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Session' AND column_name = 'ipAddress') THEN
+        ALTER TABLE "Session" ADD COLUMN "ipAddress" TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Session' AND column_name = 'userAgent') THEN
+        ALTER TABLE "Session" ADD COLUMN "userAgent" TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Session' AND column_name = 'isActive') THEN
+        ALTER TABLE "Session" ADD COLUMN "isActive" BOOLEAN NOT NULL DEFAULT true;
+    END IF;
 
--- Indizes für Session
-CREATE INDEX IF NOT EXISTS "Session_userId_idx" ON "Session"("userId");
-CREATE INDEX IF NOT EXISTS "Session_expires_idx" ON "Session"("expires");
+    -- Chat: Expiry & Management hinzufügen
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Chat' AND column_name = 'expiresAt') THEN
+        ALTER TABLE "Chat" ADD COLUMN "expiresAt" TIMESTAMP(3);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Chat' AND column_name = 'isArchived') THEN
+        ALTER TABLE "Chat" ADD COLUMN "isArchived" BOOLEAN NOT NULL DEFAULT false;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Chat' AND column_name = 'isDeleted') THEN
+        ALTER TABLE "Chat" ADD COLUMN "isDeleted" BOOLEAN NOT NULL DEFAULT false;
+    END IF;
 
--- Chat: Expiry & Management hinzufügen
-ALTER TABLE "Chat" ADD COLUMN IF NOT EXISTS "expiresAt" TIMESTAMP(3);
-ALTER TABLE "Chat" ADD COLUMN IF NOT EXISTS "isArchived" BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE "Chat" ADD COLUMN IF NOT EXISTS "isDeleted" BOOLEAN NOT NULL DEFAULT false;
+    -- Message: Analytics hinzufügen
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Message' AND column_name = 'tokenCount') THEN
+        ALTER TABLE "Message" ADD COLUMN "tokenCount" INTEGER;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Message' AND column_name = 'modelUsed') THEN
+        ALTER TABLE "Message" ADD COLUMN "modelUsed" TEXT;
+    END IF;
+
+    -- Document: Management hinzufügen
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Document' AND column_name = 'isDeleted') THEN
+        ALTER TABLE "Document" ADD COLUMN "isDeleted" BOOLEAN NOT NULL DEFAULT false;
+    END IF;
+END $$;
+
+-- Indizes für Session (mit Fehlerbehandlung)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'Session_userId_idx') THEN
+        CREATE INDEX "Session_userId_idx" ON "Session"("userId");
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'Session_expires_idx') THEN
+        CREATE INDEX "Session_expires_idx" ON "Session"("expires");
+    END IF;
+END $$;
 
 -- Indizes für Chat
-CREATE INDEX IF NOT EXISTS "Chat_userId_idx" ON "Chat"("userId");
-CREATE INDEX IF NOT EXISTS "Chat_expiresAt_idx" ON "Chat"("expiresAt");
-CREATE INDEX IF NOT EXISTS "Chat_isDeleted_idx" ON "Chat"("isDeleted");
-
--- Message: Analytics hinzufügen
-ALTER TABLE "Message" ADD COLUMN IF NOT EXISTS "tokenCount" INTEGER;
-ALTER TABLE "Message" ADD COLUMN IF NOT EXISTS "modelUsed" TEXT;
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'Chat_userId_idx') THEN
+        CREATE INDEX "Chat_userId_idx" ON "Chat"("userId");
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'Chat_expiresAt_idx') THEN
+        CREATE INDEX "Chat_expiresAt_idx" ON "Chat"("expiresAt");
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'Chat_isDeleted_idx') THEN
+        CREATE INDEX "Chat_isDeleted_idx" ON "Chat"("isDeleted");
+    END IF;
+END $$;
 
 -- Index für Message
-CREATE INDEX IF NOT EXISTS "Message_createdAt_idx" ON "Message"("createdAt");
-
--- Document: Management hinzufügen
-ALTER TABLE "Document" ADD COLUMN IF NOT EXISTS "isDeleted" BOOLEAN NOT NULL DEFAULT false;
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'Message_createdAt_idx') THEN
+        CREATE INDEX "Message_createdAt_idx" ON "Message"("createdAt");
+    END IF;
+END $$;
 
 -- Index für Document
-CREATE INDEX IF NOT EXISTS "Document_isDeleted_idx" ON "Document"("isDeleted");
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'Document_isDeleted_idx') THEN
+        CREATE INDEX "Document_isDeleted_idx" ON "Document"("isDeleted");
+    END IF;
+END $$;
 
 -- AdminLog: Neue Tabelle für Admin-Logging
 CREATE TABLE IF NOT EXISTS "AdminLog" (
@@ -52,6 +113,17 @@ CREATE TABLE IF NOT EXISTS "AdminLog" (
 );
 
 -- Indizes für AdminLog
-CREATE INDEX IF NOT EXISTS "AdminLog_adminId_idx" ON "AdminLog"("adminId");
-CREATE INDEX IF NOT EXISTS "AdminLog_targetType_targetId_idx" ON "AdminLog"("targetType", "targetId");
-CREATE INDEX IF NOT EXISTS "AdminLog_createdAt_idx" ON "AdminLog"("createdAt");
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'AdminLog_adminId_idx') THEN
+        CREATE INDEX "AdminLog_adminId_idx" ON "AdminLog"("adminId");
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'AdminLog_targetType_targetId_idx') THEN
+        CREATE INDEX "AdminLog_targetType_targetId_idx" ON "AdminLog"("targetType", "targetId");
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'AdminLog_createdAt_idx') THEN
+        CREATE INDEX "AdminLog_createdAt_idx" ON "AdminLog"("createdAt");
+    END IF;
+END $$;
