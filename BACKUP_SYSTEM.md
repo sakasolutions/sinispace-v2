@@ -1,13 +1,13 @@
 # 🔒 Backup-System
 
-Dieses Backup-System ermöglicht es, sowohl Code als auch Datenbank-Backups zu erstellen und wiederherzustellen.
+Einfaches Backup-System: Git für Code, PostgreSQL Dumps für Datenbank.
 
 ## 📋 Übersicht
 
 ### Code-Backups
-- **Methode**: Git Tags
-- **Format**: `backup_YYYYMMDD_HHMMSS`
-- **Speicherort**: Git Repository (lokal + optional GitHub)
+- **Methode**: Git Commits (zu GitHub pushen)
+- **Zurückkehren**: `git checkout <commit-hash>` oder `git reset --hard <commit-hash>`
+- **Vorteil**: Bereits vorhanden, keine zusätzlichen Tags nötig
 
 ### Datenbank-Backups
 - **Methode**: PostgreSQL Dumps
@@ -18,15 +18,15 @@ Dieses Backup-System ermöglicht es, sowohl Code als auch Datenbank-Backups zu e
 
 ## 🚀 Schnellstart
 
-### Komplettes Backup (Code + DB)
+### Backup vor Änderungen (empfohlen)
 ```bash
-npm run backup:all
+npm run backup
 ```
 
-### Nur Code-Backup
-```bash
-npm run backup:code
-```
+Das macht:
+1. Committet uncommitted changes (optional)
+2. Pusht zu GitHub (optional)
+3. Erstellt DB-Backup
 
 ### Nur Datenbank-Backup
 ```bash
@@ -37,27 +37,32 @@ npm run backup:db
 
 ## 📦 Backup erstellen
 
-### 1. Code-Backup
-
-Erstellt einen Git Tag für den aktuellen Stand:
+### Einfaches Backup (Code + DB)
 
 ```bash
-bash scripts/backup-code.sh
+npm run backup
 ```
 
 **Was passiert:**
 - Prüft auf uncommitted changes
-- Erstellt Git Tag: `backup_20250120_143022`
-- Optional: Push zu GitHub
+- Committet diese (optional)
+- Pusht zu GitHub (optional)
+- Erstellt DB-Backup
 
-**Wiederherstellen:**
+**Code wiederherstellen:**
 ```bash
-npm run restore:code
-# oder
-bash scripts/restore-code.sh
+# Zeige Commit-History
+git log --oneline -10
+
+# Zurück zu einem Commit
+git checkout <commit-hash>
+
+# Oder zurück zum neuesten Stand
+git checkout main
+git pull origin main
 ```
 
-### 2. Datenbank-Backup
+### Nur Datenbank-Backup
 
 Erstellt einen PostgreSQL Dump:
 
@@ -83,23 +88,27 @@ bash scripts/restore-db.sh
 
 ## 🔄 Wiederherstellen
 
-### Code wiederherstellen
+### Code wiederherstellen (via Git)
 
 ```bash
-npm run restore:code
-```
+# 1. Zeige Commit-History
+git log --oneline -20
 
-**Schritte:**
-1. Zeigt verfügbare Backup-Tags
-2. Wähle Backup aus
-3. Checkout zu diesem Tag
+# 2. Zurück zu einem Commit
+git checkout <commit-hash>
 
-**Nach dem Restore:**
-```bash
-# Zurück zum neuesten Stand
+# 3. Oder zurück zum neuesten Stand
 git checkout main
 git pull origin main
+
+# 4. Falls du den Code überschreiben willst (ACHTUNG!)
+git reset --hard <commit-hash>
 ```
+
+**Oder via GitHub:**
+- Gehe zu GitHub → Commits
+- Kopiere Commit-Hash
+- `git checkout <commit-hash>`
 
 ### Datenbank wiederherstellen
 
@@ -120,20 +129,16 @@ npm run restore:db
 ```
 sinispacev2/
 ├── scripts/
-│   ├── backup-code.sh      # Code-Backup erstellen
-│   ├── backup-db.sh        # DB-Backup erstellen
-│   ├── backup-all.sh       # Komplettes Backup
-│   ├── restore-code.sh     # Code wiederherstellen
-│   └── restore-db.sh       # DB wiederherstellen
+│   ├── backup-before-change.sh  # Einfaches Backup (Code + DB)
+│   ├── backup-db.sh             # Nur DB-Backup
+│   └── restore-db.sh            # DB wiederherstellen
 ├── backups/
 │   └── db/
 │       ├── db_backup_20250120_143022.sql.gz
 │       ├── db_backup_20250120_150000.sql.gz
 │       └── latest.sql.gz -> db_backup_20250120_150000.sql.gz
 └── .git/
-    └── refs/tags/
-        ├── backup_20250120_143022
-        └── backup_20250120_150000
+    └── (Git Commits = Code-Backups)
 ```
 
 ---
@@ -145,13 +150,11 @@ sinispacev2/
 **IMMER vorher ein Backup erstellen:**
 
 ```bash
-# Komplettes Backup
-npm run backup:all
-
-# Oder einzeln
-npm run backup:code
-npm run backup:db
+# Einfaches Backup (Code + DB)
+npm run backup
 ```
+
+Das committet deine Änderungen und erstellt ein DB-Backup.
 
 ### Datenbank-Restore
 
@@ -161,56 +164,63 @@ npm run backup:db
 
 ### Code-Restore
 
-- **⚠️ Überschreibt aktuellen Code!**
+- **⚠️ `git reset --hard` überschreibt aktuellen Code!**
 - Uncommitted changes gehen verloren
-- Kann mit `git stash` gesichert werden
+- Sicherer: `git checkout <commit>` (kannst zurück mit `git checkout main`)
 
 ---
 
 ## 🔧 Workflow-Beispiel
 
-### Vor Datenbank-Änderungen
+### Vor Änderungen (egal ob Code oder DB)
 
 ```bash
 # 1. Backup erstellen
-npm run backup:all
+npm run backup
 
 # 2. Änderungen machen
-# ... Schema ändern, Migrationen, etc.
+# ... Schema ändern, Code ändern, etc.
 
 # 3. Testen
 npm run build
 npm run start
 
 # 4. Falls Probleme:
-npm run restore:db    # DB wiederherstellen
-npm run restore:code  # Code wiederherstellen
+# Code: git checkout <commit-hash>
+# DB: npm run restore:db
 ```
 
-### Vor Code-Änderungen
+### Code wiederherstellen
 
 ```bash
-# 1. Code-Backup
-npm run backup:code
+# 1. Zeige Commits
+git log --oneline -10
 
-# 2. Änderungen machen
-# ... Code ändern, Features hinzufügen
+# 2. Zurück zu einem Commit
+git checkout abc1234
 
 # 3. Testen
-npm run dev
 
-# 4. Falls Probleme:
-npm run restore:code  # Code wiederherstellen
+# 4. Zurück zum neuesten Stand
+git checkout main
+git pull origin main
 ```
 
 ---
 
 ## 🛠️ Manuelle Befehle
 
-### Git Tags anzeigen
+### Git Commits anzeigen
 
 ```bash
-git tag -l "backup_*"
+# Kompakt
+git log --oneline -20
+
+# Mit Datum
+git log --pretty=format:"%h - %an, %ar : %s" -10
+
+# Mit Graph
+git log --oneline --graph -10
 ```
 
 ### Backup-Dateien anzeigen
@@ -226,11 +236,14 @@ ls -lh backups/db/
 gunzip -c backups/db/latest.sql.gz | psql $DATABASE_URL
 ```
 
-### Git Tag löschen
+### Zu GitHub zurückkehren
 
 ```bash
-git tag -d backup_20250120_143022
-git push origin :refs/tags/backup_20250120_143022  # Remote löschen
+# Zeige Remote-Commits
+git log origin/main --oneline -10
+
+# Zurück zu einem Remote-Commit
+git checkout <commit-hash>
 ```
 
 ---
@@ -239,14 +252,9 @@ git push origin :refs/tags/backup_20250120_143022  # Remote löschen
 
 ### Alte Backups löschen
 
-**Code-Backups (Git Tags):**
-```bash
-# Alle Backup-Tags anzeigen
-git tag -l "backup_*"
-
-# Tag löschen
-git tag -d backup_YYYYMMDD_HHMMSS
-```
+**Code-Backups:**
+- Git Commits bleiben für immer (kostenlos)
+- Keine Löschung nötig
 
 **Datenbank-Backups:**
 ```bash
@@ -267,9 +275,9 @@ du -sh backups/db/
 ### Kompletter System-Restore
 
 ```bash
-# 1. Code wiederherstellen
-npm run restore:code
-# Wähle gewünschten Tag
+# 1. Code wiederherstellen (von GitHub)
+git log --oneline -20  # Zeige Commits
+git checkout <commit-hash>  # Oder: git checkout main
 
 # 2. Dependencies installieren
 npm install
@@ -290,54 +298,57 @@ pm2 restart sinispace
 
 ## 💡 Best Practices
 
-1. **Vor jeder größeren Änderung**: Backup erstellen
-2. **Regelmäßige Backups**: Täglich oder wöchentlich
-3. **Backups testen**: Ab und zu Restore testen
-4. **Backups extern speichern**: Nicht nur lokal
-5. **Backup-Versionen**: Nicht zu viele alte Backups behalten
+1. **Vor jeder größeren Änderung**: `npm run backup`
+2. **Immer zu GitHub pushen**: Code ist dann sicher
+3. **DB-Backups regelmäßig**: Täglich oder wöchentlich
+4. **Backups testen**: Ab und zu Restore testen
+5. **Commit-Messages**: Beschreibend schreiben (z.B. "vor DB-Änderungen")
 
 ---
 
 ## ❓ FAQ
 
 **Q: Wie oft sollte ich Backups erstellen?**
-A: Vor jeder größeren Änderung + regelmäßig (täglich/wöchentlich)
+A: Vor jeder größeren Änderung mit `npm run backup`
 
 **Q: Wo werden Backups gespeichert?**
-A: Code: Git Tags (lokal + GitHub), DB: `./backups/db/`
+A: Code: Git Commits (GitHub), DB: `./backups/db/`
 
 **Q: Kann ich Backups automatisch erstellen?**
-A: Ja, mit Cron-Job (siehe unten)
+A: Ja, DB-Backups mit Cron-Job (siehe unten). Code: Einfach regelmäßig committen + pushen
 
 **Q: Wie groß werden die Backups?**
-A: DB-Backups sind komprimiert (meist < 10MB), Code-Backups sind Git Tags (sehr klein)
+A: DB-Backups sind komprimiert (meist < 10MB), Code: Git Commits (sehr klein)
+
+**Q: Wie komme ich zu einem alten Commit zurück?**
+A: `git log --oneline` → `git checkout <hash>` → Testen → `git checkout main` zum Zurückkehren
 
 ---
 
 ## 🤖 Automatische Backups (Cron)
 
-### Tägliches Backup
+### Tägliches DB-Backup
 
 ```bash
 # Crontab bearbeiten
 crontab -e
 
-# Täglich um 2 Uhr morgens
-0 2 * * * cd /var/www/sinispace-v2 && npm run backup:all
+# Täglich um 2 Uhr morgens (nur DB, Code wird via Git gemanaged)
+0 2 * * * cd /var/www/sinispace-v2 && npm run backup:db
 ```
 
-### Wöchentliches Backup
+### Wöchentliches DB-Backup
 
 ```bash
 # Jeden Sonntag um 3 Uhr
-0 3 * * 0 cd /var/www/sinispace-v2 && npm run backup:all
+0 3 * * 0 cd /var/www/sinispace-v2 && npm run backup:db
 ```
 
 ---
 
 ## 📝 Changelog
 
-- **2025-01-20**: Initiales Backup-System erstellt
-  - Code-Backups via Git Tags
+- **2025-01-20**: Backup-System vereinfacht
+  - Code-Backups via Git Commits (keine Tags nötig)
   - Datenbank-Backups via PostgreSQL Dumps
-  - Restore-Scripts für beide
+  - Einfaches `npm run backup` für beides
