@@ -77,20 +77,21 @@ function CodeBlock({ language, children }: { language: string; children: string 
  */
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
-      className="prose prose-invert prose-sm max-w-none 
-        prose-p:leading-relaxed prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-white/10
-        prose-headings:text-white prose-headings:font-semibold
-        prose-strong:text-white prose-strong:font-semibold
-        prose-code:text-blue-300 prose-code:bg-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono
-        prose-pre:overflow-x-auto prose-pre:my-4 prose-pre:p-4 prose-pre:rounded-xl prose-pre:bg-black/50
-        prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-li:text-zinc-200
-        prose-blockquote:text-zinc-300 prose-blockquote:border-l-zinc-700
-        prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
-        prose-table:text-zinc-200 prose-th:text-zinc-300 prose-td:text-zinc-200
-        prose-hr:border-zinc-700"
-      components={{
+    <div className="prose prose-invert prose-sm max-w-none 
+      prose-p:leading-relaxed prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-white/10
+      prose-headings:text-white prose-headings:font-semibold
+      prose-strong:text-white prose-strong:font-semibold
+      prose-code:text-blue-300 prose-code:bg-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono
+      prose-pre:overflow-x-auto prose-pre:my-4 prose-pre:p-4 prose-pre:rounded-xl prose-pre:bg-black/50
+      prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-li:text-zinc-200
+      prose-blockquote:text-zinc-300 prose-blockquote:border-l-zinc-700
+      prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+      prose-table:text-zinc-200 prose-th:text-zinc-300 prose-td:text-zinc-200
+      prose-hr:border-zinc-700"
+    >
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
         // Paragraphs - Helle, gut lesbare Schrift
         p({ children }) {
           return (
@@ -212,8 +213,9 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           return <hr className="my-6 border-zinc-700" />;
         },
       }}
-    >
-      {content}
-    </ReactMarkdown>
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
   );
 }
