@@ -380,7 +380,8 @@ export default function ChatDetailPage() {
       )}
       <div className="flex flex-col h-[100dvh] w-full overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
       {/* Chat Titel - Logo + SiniChat Branding */}
-      <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5">
+      {/* Mobile: Safe-Area-Padding oben für Statusbar */}
+      <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:pt-2.5">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="relative h-8 w-8 sm:h-9 sm:w-9 overflow-hidden rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white shrink-0">
             <Image 
@@ -399,8 +400,8 @@ export default function ChatDetailPage() {
       </div>
 
       {/* NACHRICHTEN BEREICH - Nutzt verfügbaren Platz optimal */}
-      {/* Mobile: Extra Padding unten für Input-Feld über Bottom Nav */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth pb-[calc(5rem+env(safe-area-inset-bottom)+8rem)] md:pb-4">
+      {/* Mobile: Extra Padding unten für Input-Feld über Bottom Nav (5rem Nav + 9rem Input-Bereich + Safe Area) */}
+      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-4">
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center text-zinc-400 opacity-50">
             <span className="text-5xl sm:text-6xl mb-4">💬</span>
@@ -524,8 +525,8 @@ export default function ChatDetailPage() {
       </div>
 
       {/* INPUT BEREICH - Fixed für Mobile, damit Tastatur nicht darüber liegt */}
-      {/* Mobile: Über der Bottom Nav positioniert (5rem = 80px für Nav + Safe Area) */}
-      <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 sm:relative shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-30 pb-[env(safe-area-inset-bottom)] sm:pb-2 md:pb-4 lg:pb-5">
+      {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
+      <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:relative md:bottom-0 left-0 right-0 shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-40 md:pb-4 lg:pb-5">
         {/* Dokumente Liste */}
         {documents.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
