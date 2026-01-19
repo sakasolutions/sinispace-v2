@@ -5,7 +5,7 @@ import { getToken } from 'next-auth/jwt';
 import { PrismaClient } from '@prisma/client';
 import { signOut } from '@/auth';
 import { cookies } from 'next/headers';
-import { revokeSessionToken, revokeUserSessions, clearRevokedUser } from '@/lib/session-cache';
+import { revokeUserSessions, clearRevokedUser } from '@/lib/session-cache';
 
 const prisma = new PrismaClient();
 
@@ -149,9 +149,10 @@ export async function revokeSession(sessionId: string) {
       return { success: false, error: 'Session nicht gefunden oder keine Berechtigung' };
     }
 
-    // WICHTIG: Session-Token im Cache markieren (BEVOR Session gelöscht wird)
+    // WICHTIG: User im Cache markieren (BEVOR Session gelöscht wird)
     // Das ermöglicht Middleware, revoked Sessions zu erkennen (ohne Prisma)
-    revokeSessionToken(targetSession.sessionToken);
+    // Bei JWT-Strategy prüfen wir userId, nicht sessionToken
+    revokeUserSessions(session.user.id);
     
     // Session löschen
     await prisma.session.delete({
@@ -237,11 +238,10 @@ export async function revokeAllOtherSessions() {
       });
     }
 
-    // WICHTIG: Alle gelöschten Session-Tokens im Cache markieren
+    // WICHTIG: User im Cache markieren (alle Sessions beendet)
     // Das ermöglicht Middleware, revoked Sessions zu erkennen (ohne Prisma)
-    for (const session of sessionsToDelete) {
-      revokeSessionToken(session.sessionToken);
-    }
+    // Bei JWT-Strategy prüfen wir userId, nicht sessionToken
+    revokeUserSessions(session.user.id);
 
     // WICHTIG: Aktuelle Session bleibt erhalten → User bleibt eingeloggt
     // Andere Geräte werden beim nächsten Request durch Middleware (Cache-Check) ausgeloggt

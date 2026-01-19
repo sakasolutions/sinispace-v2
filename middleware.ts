@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isSessionRevoked, getSessionTokenFromCookies } from "@/lib/session-cache";
+import { isSessionRevoked } from "@/lib/session-cache";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -25,10 +25,9 @@ export default auth((req) => {
   // Dies verhindert Redirect-Loops bei ungültigen Sessions
   if (pathname === "/login" || pathname === "/register") {
     // NEU: Prüfe Cache für revoked Sessions (Edge Runtime kompatibel, kein Prisma nötig)
-    const cookieHeader = req.headers.get("cookie");
-    const sessionToken = getSessionTokenFromCookies(cookieHeader);
+    // Bei JWT-Strategy prüfen wir userId aus req.auth (nicht sessionToken aus Cookie)
     const userId = req.auth?.user?.id || null;
-    const isRevoked = isSessionRevoked(sessionToken, userId);
+    const isRevoked = isSessionRevoked(userId);
     
     // Wenn Session revoked wurde → Cookie löschen → Login IMMER erlauben
     if (isRevoked) {
@@ -77,10 +76,9 @@ export default auth((req) => {
   }
 
   // NEU: Prüfe Cache für revoked Sessions (Edge Runtime kompatibel, kein Prisma nötig)
-  const cookieHeader = req.headers.get("cookie");
-  const sessionToken = getSessionTokenFromCookies(cookieHeader);
+  // Bei JWT-Strategy prüfen wir userId aus req.auth (nicht sessionToken aus Cookie)
   const userId = req.auth?.user?.id || null;
-  const isRevoked = isSessionRevoked(sessionToken, userId);
+  const isRevoked = isSessionRevoked(userId);
   
   // Wenn Session revoked wurde → Cookie löschen → Redirect zu Login
   if (isRevoked) {
