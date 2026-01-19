@@ -23,54 +23,58 @@ export default auth((req) => {
   // WICHTIG: Login/Register IMMER ZUERST prüfen (bevor andere Checks)
   // Dies verhindert Redirect-Loops bei ungültigen Sessions
   if (pathname === "/login" || pathname === "/register") {
-    // Prüfe ob wirklich eingeloggt (gültige Session mit user.id)
-    // WICHTIG: req.auth kann existieren auch wenn user null/undefined ist (ungültige Session)
-    // CRITICAL: Prüfe NUR user.id (nicht user != null), weil NextAuth user als null setzen kann
-    // Wenn user.id fehlt ODER null/undefined ist → Session ist ungültig → Login erlauben
-    const hasValidSession = !!req.auth?.user?.id; // Nur true wenn user.id existiert und nicht null/undefined
+    // CRITICAL: Prüfe ob user.id existiert UND user nicht null ist
+    // Wenn user null ist → Session wurde im session() Callback invalidiert → Login erlauben
+    // Wenn user.id fehlt → Session ungültig → Login erlauben
+    const hasUserId = !!req.auth?.user?.id;
+    const userIsNull = req.auth?.user === null;
+    const hasValidSession = hasUserId && !userIsNull;
     
-    // Nur wenn wirklich eingeloggt (gültige Session mit user.id) → Redirect zu Dashboard
+    // Nur wenn wirklich eingeloggt (gültige Session mit user.id UND user nicht null) → Redirect zu Dashboard
     if (hasValidSession) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     
-    // WICHTIG: Wenn ungültige Session (req.auth existiert aber user == null)
+    // WICHTIG: Wenn ungültige Session (user == null ODER user.id fehlt)
     // → Cookie löschen, damit User sich neu einloggen kann
     // Das verhindert Blockierung durch ungültiges Cookie
-    if (req.auth && !req.auth.user) {
+    if (userIsNull || !hasUserId) {
       // Ungültige Session erkannt → Cookie löschen
       const response = NextResponse.next();
-      // Lösche NextAuth Cookie (Name kann variieren, aber meist "authjs.session-token" oder "next-auth.session-token")
+      // Lösche NextAuth Cookie (alle möglichen Varianten)
       response.cookies.delete("authjs.session-token");
       response.cookies.delete("__Secure-authjs.session-token");
       response.cookies.delete("next-auth.session-token");
       response.cookies.delete("__Secure-next-auth.session-token");
+      // Lösche auch mögliche JWT-Cookies
+      response.cookies.delete("__Secure-next-auth.csrf-token");
+      response.cookies.delete("next-auth.csrf-token");
       return response;
     }
     
-    // Sonst: Login-Seite IMMER erlauben (auch wenn req.auth existiert aber user.id fehlt)
-    // Dies verhindert "ERR_TOO_MANY_REDIRECTS" bei ungültigen Sessions
-    // WICHTIG: Kein Redirect, einfach durchlassen → User kann sich einloggen
+    // Sonst: Login-Seite IMMER erlauben
     return NextResponse.next();
   }
 
-  // WICHTIG: Prüfe explizit ob user.id existiert (nicht nur user != null)
-  // Wenn Session revoked wurde, existiert req.auth, aber req.auth.user ist null ODER user.id fehlt
-  // CRITICAL: Prüfe NUR user.id → wenn fehlt/null → Session ungültig → nicht eingeloggt
-  const isAuthenticated = !!req.auth?.user?.id; // Nur true wenn user.id existiert und nicht null/undefined
+  // WICHTIG: Prüfe explizit ob user.id existiert UND user nicht null ist
+  // Wenn Session revoked wurde, setzt session() Callback user = null
+  // CRITICAL: Nur wenn user.id existiert UND user nicht null → authentifiziert
+  const hasUserId = !!req.auth?.user?.id;
+  const userIsNull = req.auth?.user === null;
+  const isAuthenticated = hasUserId && !userIsNull;
 
-  // WICHTIG: Wenn ungültige Session erkannt (req.auth existiert aber user == null)
-  // → Cookie löschen, damit User sich neu einloggen kann
-  // Das verhindert Blockierung durch ungültiges Cookie
-  if (req.auth && !req.auth.user) {
-    // Ungültige Session erkannt → Cookie löschen
+  // WICHTIG: Wenn ungültige Session erkannt (user == null ODER user.id fehlt)
+  // → Cookie löschen und zu Login redirecten
+  if (userIsNull || !hasUserId) {
     const loginUrl = new URL("/login", req.url);
     const response = NextResponse.redirect(loginUrl);
-    // Lösche NextAuth Cookie (Name kann variieren, aber meist "authjs.session-token" oder "next-auth.session-token")
+    // Lösche alle NextAuth Cookies
     response.cookies.delete("authjs.session-token");
     response.cookies.delete("__Secure-authjs.session-token");
     response.cookies.delete("next-auth.session-token");
     response.cookies.delete("__Secure-next-auth.session-token");
+    response.cookies.delete("__Secure-next-auth.csrf-token");
+    response.cookies.delete("next-auth.csrf-token");
     return response;
   }
 
