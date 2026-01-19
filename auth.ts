@@ -19,32 +19,50 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       authorize: async (credentials) => {
         if (!credentials?.email || !credentials?.password) {
+          console.error('[AUTH] ❌ Keine Credentials angegeben');
           return null;
         }
 
         const email = credentials.email as string;
         
-        // User suchen
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
+        try {
+          // User suchen
+          const user = await prisma.user.findUnique({
+            where: { email },
+          });
 
-        // Prüfen ob User existiert und ein Passwort hat
-        if (!user || !user.password) {
-          throw new Error('Benutzer nicht gefunden.');
+          // Prüfen ob User existiert und ein Passwort hat
+          if (!user) {
+            console.error(`[AUTH] ❌ User nicht gefunden: ${email}`);
+            throw new Error('Benutzer nicht gefunden.');
+          }
+
+          if (!user.password) {
+            console.error(`[AUTH] ❌ User hat kein Passwort: ${email}`);
+            throw new Error('Benutzer nicht gefunden.');
+          }
+
+          // Passwort vergleichen
+          const isCorrect = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          );
+
+          if (!isCorrect) {
+            console.error(`[AUTH] ❌ Falsches Passwort für: ${email}`);
+            throw new Error('Falsches Passwort.');
+          }
+
+          console.log(`[AUTH] ✅ Login erfolgreich für: ${email}`);
+          return user;
+        } catch (error) {
+          // Datenbank-Fehler loggen
+          if (error instanceof Error && error.message.includes('Prisma')) {
+            console.error('[AUTH] ❌ Datenbank-Fehler:', error.message);
+            throw new Error('Datenbank-Verbindungsfehler. Bitte versuche es später erneut.');
+          }
+          throw error;
         }
-
-        // Passwort vergleichen
-        const isCorrect = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        );
-
-        if (!isCorrect) {
-          throw new Error('Falsches Passwort.');
-        }
-
-        return user;
       },
     }),
   ],
