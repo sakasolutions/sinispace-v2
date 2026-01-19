@@ -3,7 +3,6 @@ import Credentials from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { clearRevokedUser } from '@/lib/session-cache';
 
 const prisma = new PrismaClient();
 
@@ -68,11 +67,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // WICHTIG: Session-Validation hier (nicht im JWT-Callback!)
       // Der session() Callback läuft nur im Server Runtime, kann also Prisma nutzen
       // Der jwt() Callback läuft auch im Edge Runtime (Middleware) → KEIN Prisma möglich
-      // Prüfe ob der User noch aktive Sessions hat (wurde sie revoked?)
-      // HINWEIS: Wir prüfen auf ANY aktive Session (nicht spezifische sessionId)
-      // Das ist weniger präzise, aber Edge Runtime kompatibel
+      // Prüfe ob der User noch eine aktive Session hat (nur eine Session pro User erlaubt)
       try {
-        const hasActiveSession = await prisma.session.findFirst({
+        const activeSession = await prisma.session.findFirst({
           where: {
             userId: token.sub as string,
             expires: { gt: new Date() },
@@ -80,8 +77,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
         
         // Wenn keine aktive Session existiert, Session ungültig machen
-        if (!hasActiveSession) {
-          // Alle Sessions wurden gelöscht (z.B. durch revokeAllOtherSessions oder Logout) → Session ungültig machen
+        // (z.B. wenn User sich auf anderem Gerät eingeloggt hat → alte Session gelöscht)
+        if (!activeSession) {
           return {
             ...session,
             user: null, // Session ungültig → user auf null setzen
@@ -89,7 +86,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       } catch (error) {
         // Bei DB-Fehlern: Session ungültig machen (Sicherheitsprinzip)
-        // Besser: User ausloggen als potenziell ungültige Session erlauben
         console.error('Error checking session in session callback:', error);
         return {
           ...session,
@@ -131,17 +127,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // Session in DB speichern nach erfolgreichem Login
     async signIn({ user, account }) {
       if (account?.provider === 'credentials' && user?.id) {
-        // WICHTIG: User aus revoked Cache entfernen (neuer Login = Sessions sind wieder gültig)
-        clearRevokedUser(user.id);
-        
-        // Erstelle IMMER eine neue Session in DB für Session-Management
-        // Jeder Login (auch in verschiedenen Browsern) bekommt eine eigene Session
         try {
+          // WICHTIG: Nur eine Session pro User erlauben
+          // Lösche alle alten Sessions BEVOR neue erstellt wird
+          // Das verhindert, dass mehrere Geräte gleichzeitig eingeloggt sind
+          await prisma.session.deleteMany({
+            where: { userId: user.id },
+          });
+          
+          // Erstelle neue Session (nur eine pro User)
           const sessionToken = crypto.randomUUID();
           const expires = new Date();
           expires.setDate(expires.getDate() + 30); // 30 Tage
 
-          // Erstelle neue Session (jeder Login = neue Session)
           const dbSession = await prisma.session.create({
             data: {
               sessionToken: sessionToken,
@@ -150,9 +148,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
           });
           
-          // WICHTIG: Speichere die Session-ID im JWT-Token (wird im jwt-Callback gesetzt)
-          // Das ermöglicht uns, zu prüfen, ob die Session noch existiert
-          // Siehe jwt-Callback unten
+          // WICHTIG: Update lastLoginAt im User (für UI-Anzeige)
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+          });
         } catch (error) {
           // Fehler ignorieren (nicht kritisch für Login)
           console.error('Error creating session in DB:', error);

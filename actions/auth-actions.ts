@@ -3,7 +3,6 @@
 import { signOut, signIn } from '@/auth';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { clearRevokedUser } from '@/lib/session-cache';
 
 const prisma = new PrismaClient();
 
