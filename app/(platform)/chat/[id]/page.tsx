@@ -398,8 +398,9 @@ export default function ChatDetailPage() {
         </div>
       </div>
 
-      {/* NACHRICHTEN BEREICH */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth pb-[calc(env(safe-area-inset-bottom)+120px)] sm:pb-4">
+      {/* NACHRICHTEN BEREICH - Nutzt verfügbaren Platz optimal */}
+      {/* Mobile: Extra Padding unten für Input-Feld über Bottom Nav */}
+      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth pb-[calc(5rem+env(safe-area-inset-bottom)+8rem)] md:pb-4">
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center text-zinc-400 opacity-50">
             <span className="text-5xl sm:text-6xl mb-4">💬</span>
@@ -523,7 +524,8 @@ export default function ChatDetailPage() {
       </div>
 
       {/* INPUT BEREICH - Fixed für Mobile, damit Tastatur nicht darüber liegt */}
-      <div className="fixed bottom-0 left-0 right-0 sm:relative shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-30 pb-[env(safe-area-inset-bottom)] sm:pb-2 md:pb-4 lg:pb-5">
+      {/* Mobile: Über der Bottom Nav positioniert (5rem = 80px für Nav + Safe Area) */}
+      <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 sm:relative shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-30 pb-[env(safe-area-inset-bottom)] sm:pb-2 md:pb-4 lg:pb-5">
         {/* Dokumente Liste */}
         {documents.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">

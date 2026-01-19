@@ -141,8 +141,8 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         )} */}
         
         {/* Children Container: Chat-Seite nutzt h-full direkt, andere Seiten bekommen Padding und können scrollen */}
-        {/* Mobile: Padding-bottom für Bottom Nav */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0">
+        {/* Mobile: Padding-bottom für Bottom Nav + Safe Area Top */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
           <div className="min-h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
             {children}
           </div>
