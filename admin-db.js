@@ -124,10 +124,11 @@ app.get('/', requireAuth, async (req, res) => {
           </div>
           
           <div class="card">
-            <h2>🔍 SQL Query ausführen</h2>
+            <h2>🔍 SQL Query ausführen (VOLLE KONTROLLE)</h2>
+            <p style="color: #ff4444; font-weight: bold;">⚠️ ACHTUNG: Alle SQL-Befehle sind erlaubt (SELECT, INSERT, UPDATE, DELETE, ALTER, etc.)</p>
             <form method="POST" action="/query">
-              <textarea name="query" class="query-box" placeholder="SELECT * FROM &quot;User&quot; LIMIT 10;"></textarea><br>
-              <button type="submit">Query ausführen</button>
+              <textarea name="query" class="query-box" placeholder="SELECT * FROM &quot;User&quot; LIMIT 10;&#10;UPDATE &quot;User&quot; SET email = 'test@example.com' WHERE id = '...';&#10;ALTER TABLE &quot;User&quot; ADD COLUMN test TEXT;"></textarea><br>
+              <button type="submit" style="background: #ff4444;">Query ausführen</button>
             </form>
           </div>
           
@@ -185,25 +186,77 @@ app.post('/query', requireAuth, async (req, res) => {
       return res.send('<div class="error">Keine Query angegeben!</div>');
     }
     
-    // Sicherheit: Nur SELECT erlauben
-    if (!query.trim().toUpperCase().startsWith('SELECT')) {
-      return res.send('<div class="error">Nur SELECT Queries erlaubt!</div>');
+    // WICHTIG: Alle Queries erlauben (SELECT, INSERT, UPDATE, DELETE, ALTER, etc.)
+    // Der User hat sich authentifiziert und möchte volle Kontrolle
+    
+    // Prüfe ob es eine SELECT Query ist (für Ergebnis-Anzeige)
+    const isSelect = query.trim().toUpperCase().startsWith('SELECT');
+    
+    if (isSelect) {
+      // SELECT Query - zeige Ergebnis
+      const result = await prisma.$queryRawUnsafe(query);
+      
+      res.send(`
+        <html>
+          <head>
+            <title>Query Result</title>
+            <style>
+              body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+              .success { background: #44ff44; color: black; padding: 10px; border-radius: 4px; margin: 10px 0; }
+              pre { background: white; padding: 20px; border-radius: 4px; overflow-x: auto; }
+              button { padding: 10px 20px; background: #0070f3; color: white; border: none; cursor: pointer; border-radius: 4px; margin-top: 10px; }
+            </style>
+          </head>
+          <body>
+            <h2>✅ Query erfolgreich ausgeführt</h2>
+            <div class="success">SELECT Query - ${Array.isArray(result) ? result.length : 1} Zeile(n) gefunden</div>
+            <pre>${JSON.stringify(result, null, 2)}</pre>
+            <a href="/"><button>Zurück</button></a>
+          </body>
+        </html>
+      `);
+    } else {
+      // INSERT, UPDATE, DELETE, ALTER, etc. - führe aus und zeige Anzahl betroffener Zeilen
+      const result = await prisma.$executeRawUnsafe(query);
+      
+      res.send(`
+        <html>
+          <head>
+            <title>Query Result</title>
+            <style>
+              body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+              .success { background: #44ff44; color: black; padding: 10px; border-radius: 4px; margin: 10px 0; }
+              .warning { background: #ffaa00; color: black; padding: 10px; border-radius: 4px; margin: 10px 0; }
+              button { padding: 10px 20px; background: #0070f3; color: white; border: none; cursor: pointer; border-radius: 4px; margin-top: 10px; }
+            </style>
+          </head>
+          <body>
+            <h2>✅ Query erfolgreich ausgeführt</h2>
+            <div class="success">${result} Zeile(n) betroffen</div>
+            <div class="warning">⚠️ ACHTUNG: Die Datenbank wurde geändert!</div>
+            <a href="/"><button>Zurück</button></a>
+          </body>
+        </html>
+      `);
     }
-    
-    const result = await prisma.$queryRawUnsafe(query);
-    
+  } catch (error) {
     res.send(`
       <html>
-        <head><title>Query Result</title></head>
-        <body style="font-family: Arial; padding: 20px;">
-          <h2>Query Result</h2>
-          <pre style="background: #f5f5f5; padding: 20px; border-radius: 4px; overflow-x: auto;">${JSON.stringify(result, null, 2)}</pre>
+        <head>
+          <title>Query Error</title>
+          <style>
+            body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+            .error { background: #ff4444; color: white; padding: 10px; border-radius: 4px; margin: 10px 0; }
+            button { padding: 10px 20px; background: #0070f3; color: white; border: none; cursor: pointer; border-radius: 4px; margin-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <h2>❌ Query Fehler</h2>
+          <div class="error">${error.message}</div>
           <a href="/"><button>Zurück</button></a>
         </body>
       </html>
     `);
-  } catch (error) {
-    res.send(`<div class="error">Fehler: ${error.message}</div>`);
   }
 });
 
