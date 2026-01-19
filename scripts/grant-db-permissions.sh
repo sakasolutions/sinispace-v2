@@ -50,17 +50,7 @@ if [[ $DATABASE_URL =~ $DB_URL_REGEX ]]; then
     echo -e "${BLUE}📋 Führe GRANT-Befehle aus...${NC}"
     
     # Rechte auf alle Tabellen vergeben
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$PSQL_USER" -d "$DB_NAME" <<EOF 2>/dev/null || {
-        echo -e "${RED}❌ Fehler beim Vergeben der Rechte!${NC}"
-        echo -e "${YELLOW}   Versuche es manuell als postgres User:${NC}"
-        echo -e "${YELLOW}   psql -h $DB_HOST -p $DB_PORT -U postgres -d $DB_NAME${NC}"
-        echo -e "${YELLOW}   Dann führe aus:${NC}"
-        echo -e "${YELLOW}   GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$DB_USER\";${NC}"
-        echo -e "${YELLOW}   GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$DB_USER\";${NC}"
-        echo -e "${YELLOW}   ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"$DB_USER\";${NC}"
-        unset PGPASSWORD
-        exit 1
-    }
+    if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$PSQL_USER" -d "$DB_NAME" <<EOF 2>/dev/null
 -- Rechte auf alle bestehenden Tabellen
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "$DB_USER";
 
@@ -74,6 +64,17 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO "$DB_USER";
 -- Optional: Superuser-Rechte (NUR wenn wirklich nötig!)
 -- ALTER USER "$DB_USER" WITH SUPERUSER;
 EOF
+    then
+        echo -e "${RED}❌ Fehler beim Vergeben der Rechte!${NC}"
+        echo -e "${YELLOW}   Versuche es manuell als postgres User:${NC}"
+        echo -e "${YELLOW}   psql -h $DB_HOST -p $DB_PORT -U postgres -d $DB_NAME${NC}"
+        echo -e "${YELLOW}   Dann führe aus:${NC}"
+        echo -e "${YELLOW}   GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$DB_USER\";${NC}"
+        echo -e "${YELLOW}   GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$DB_USER\";${NC}"
+        echo -e "${YELLOW}   ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"$DB_USER\";${NC}"
+        unset PGPASSWORD
+        exit 1
+    fi
     
     unset PGPASSWORD
     
