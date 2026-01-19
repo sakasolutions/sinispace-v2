@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { registerUser } from '@/actions/auth-actions';
+import { HeroBackground } from '@/components/ui/hero-background';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -43,12 +44,8 @@ export default function RegisterPage() {
     // CONTAINER: Dark Mode passend zur Landing Page Hero Section
     <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-zinc-950 selection:bg-orange-500/30 selection:text-orange-100">
       
-      {/* Background Effects (Grid & Glows) */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 h-[400px] w-[400px] rounded-full bg-orange-500/10 blur-[100px]"></div>
-        <div className="absolute bottom-1/4 right-1/4 h-[300px] w-[300px] rounded-full bg-purple-500/10 blur-[100px]"></div>
-      </div>
+      {/* Hero Background (Grid & Glows) */}
+      <HeroBackground showGlows={true} />
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

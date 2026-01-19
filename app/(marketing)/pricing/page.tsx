@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { HeroBackground } from '@/components/ui/hero-background';
 
 // Animations-Config (Konsistent mit Landing Page)
 const fadeUp = (delay = 0) => ({
@@ -14,12 +15,8 @@ export default function PricingPage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center py-20 overflow-hidden bg-zinc-950 selection:bg-orange-500/30 selection:text-orange-100">
       
-      {/* --- BACKGROUND EFFECTS --- */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[500px] w-[500px] rounded-full bg-orange-500/10 blur-[120px]"></div>
-        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-purple-500/10 blur-[120px]"></div>
-      </div>
+      {/* Hero Background (Grid & Glows) */}
+      <HeroBackground showGlows={true} />
 
       <div className="container px-4 md:px-6 relative z-10">
         

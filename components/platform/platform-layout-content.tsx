@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { signOutAction } from '@/actions/auth-actions';
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { HeroBackground } from '@/components/ui/hero-background';
 
 interface PlatformLayoutContentProps {
   children: React.ReactNode;
@@ -89,9 +90,8 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
   // Sonst: Normales Layout mit Sidebar und Header
   return (
     <div className="flex h-[100dvh] bg-zinc-950 overflow-hidden relative">
-      {/* AMBIENT GLOWS - Global für alle Seiten */}
-      <div className="fixed -top-20 -left-20 w-[500px] h-[500px] bg-orange-500/10 blur-[120px] rounded-full -z-10 pointer-events-none" />
-      <div className="fixed -bottom-20 -right-20 w-[500px] h-[500px] bg-purple-500/10 blur-[120px] rounded-full -z-10 pointer-events-none" />
+      {/* Hero Background (Grid + Glows) */}
+      <HeroBackground showGlows={true} />
       
       {/* SIDEBAR (Desktop) */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-white/5 bg-zinc-950/50 backdrop-blur-xl md:block z-10">
