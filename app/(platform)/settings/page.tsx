@@ -16,12 +16,11 @@ export default async function SettingsPage({
 
   const user = await db.user.findUnique({
     where: { id: session?.user?.id },
-    select: {
-      id: true,
-      email: true,
-      subscriptionEnd: true,
-      lastLoginAt: true,
-    },
+      select: {
+        id: true,
+        email: true,
+        subscriptionEnd: true,
+      },
   });
 
   const isPro = user?.subscriptionEnd && user.subscriptionEnd > new Date();

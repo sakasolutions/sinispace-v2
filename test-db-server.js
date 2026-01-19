@@ -11,24 +11,6 @@ async function testDatabase() {
     const userCount = await prisma.user.count();
     console.log(`✅ Datenbank verbunden! Anzahl User: ${userCount}`);
     
-    // Test 2: Prüfe ob lastLoginAt Spalte existiert
-    try {
-      const testUser = await prisma.user.findFirst({
-        select: {
-          id: true,
-          email: true,
-          lastLoginAt: true,
-        },
-      });
-      console.log('✅ lastLoginAt Spalte existiert in der Datenbank');
-      if (testUser) {
-        console.log(`   Test-User: ${testUser.email}, lastLoginAt: ${testUser.lastLoginAt || 'null'}`);
-      }
-    } catch (error) {
-      console.error('❌ FEHLER: lastLoginAt Spalte existiert NICHT in der Datenbank!');
-      console.error('   Fehler:', error.message);
-      console.error('   Lösung: Migration ausführen oder Spalte manuell hinzufügen');
-    }
     
     // Test 3: Prüfe Sessions
     const sessionCount = await prisma.session.count();

@@ -20,9 +20,6 @@ model User {
   // Payment & Subscription
   stripeCustomerId String?   @unique
   subscriptionEnd  DateTime? // Wenn null oder in Vergangenheit -> Kein Zugriff
-  
-  // Session Management
-  lastLoginAt      DateTime? // Letzter Login-Zeitpunkt (für UI-Anzeige)
 
   // Relationen
   accounts  Account[]

@@ -208,21 +208,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
           
           console.log(`[signIn] ✅ Neue Session erstellt: ${dbSession.id} für User: ${user.id}`);
-          
-          // WICHTIG: Update lastLoginAt im User (für UI-Anzeige)
-          // Fehler ignorieren, falls Spalte nicht existiert
-          try {
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { lastLoginAt: new Date() },
-            });
-          } catch (updateError: any) {
-            // Ignoriere Fehler, falls lastLoginAt Spalte nicht existiert
-            if (!updateError.message?.includes('lastLoginAt')) {
-              throw updateError; // Andere Fehler weiterwerfen
-            }
-            console.log(`[signIn] ⚠️ lastLoginAt Update übersprungen (Spalte existiert möglicherweise nicht)`);
-          }
         } catch (error) {
           // Fehler ignorieren (nicht kritisch für Login)
           console.error('Error creating session in DB:', error);
