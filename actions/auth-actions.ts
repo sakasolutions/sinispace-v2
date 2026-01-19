@@ -1,10 +1,8 @@
 'use server';
 
 import { signOut, signIn } from '@/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-
-const prisma = new PrismaClient();
 
 // User registrieren
 export async function registerUser(formData: FormData) {

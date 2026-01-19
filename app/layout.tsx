@@ -34,11 +34,11 @@ export default function RootLayout({
   return (
     <html lang="de" className="bg-zinc-950 text-white">
       <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} min-h-[100dvh] bg-zinc-950 text-white antialiased relative`}>
-        {/* Background Texture - Noise Overlay */}
+        {/* Background Texture - CSS-generated Noise (Performance-Optimierung: keine externe URL mehr) */}
         <div 
           className="fixed inset-0 pointer-events-none z-0 opacity-20 brightness-100 contrast-150"
           style={{
-            backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')",
+            backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)',
             backgroundSize: '200px 200px',
             backgroundRepeat: 'repeat',
           }}

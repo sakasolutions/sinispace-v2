@@ -1,10 +1,8 @@
 'use server';
 
 import { auth } from '@/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { openai } from '@/lib/openai';
-
-const prisma = new PrismaClient();
 
 // Unterstützte Dateiformate (basierend auf OpenAI API)
 // OpenAI File Search unterstützt: PDF, Word, Excel, PowerPoint, Text, Code

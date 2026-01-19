@@ -9,9 +9,7 @@ import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-// Syntax Highlighting
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+// Performance-Optimierung: Syntax Highlighting lazy loaden (nur wenn Code vorhanden)
 
 type Message = {
   role: 'user' | 'assistant';
@@ -26,6 +24,67 @@ type Document = {
   createdAt: Date;
   openaiFileId: string;
 };
+
+// Performance: Lazy-loaded Code Block Component (lädt SyntaxHighlighter nur wenn Code vorhanden)
+function CodeBlock({ language, children }: { language: string; children: string }) {
+  const [SyntaxHighlighter, setSyntaxHighlighter] = useState<any>(null);
+  const [style, setStyle] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Dynamisch importieren wenn Code-Block gerendert wird
+    Promise.all([
+      import('react-syntax-highlighter').then(mod => mod.Prism),
+      import('react-syntax-highlighter/dist/esm/styles/prism').then(mod => mod.oneDark)
+    ]).then(([Highlighter, oneDarkStyle]) => {
+      setSyntaxHighlighter(() => Highlighter);
+      setStyle(oneDarkStyle);
+      setIsLoading(false);
+    });
+  }, []);
+
+  // Fallback während Ladevorgang
+  if (isLoading || !SyntaxHighlighter || !style) {
+    return (
+      <div className="rounded-lg overflow-hidden my-3 border border-zinc-700 shadow-sm bg-zinc-900">
+        <div className="bg-zinc-800 px-3 py-1.5 text-xs text-zinc-400 flex items-center justify-between border-b border-zinc-700">
+          <span className="font-mono">{language}</span>
+          <button
+            onClick={() => navigator.clipboard.writeText(children.replace(/\n$/, ''))}
+            className="hover:text-white transition-colors"
+          >
+            Copy
+          </button>
+        </div>
+        <pre className="text-sm text-zinc-300 font-mono whitespace-pre overflow-x-auto p-4">
+          <code>{children.replace(/\n$/, '')}</code>
+        </pre>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg overflow-hidden my-3 border border-zinc-700 shadow-sm">
+      <div className="bg-zinc-800 px-3 py-1.5 text-xs text-zinc-400 flex items-center justify-between border-b border-zinc-700">
+        <span className="font-mono">{language}</span>
+        <button
+          onClick={() => navigator.clipboard.writeText(children.replace(/\n$/, ''))}
+          className="hover:text-white transition-colors"
+        >
+          Copy
+        </button>
+      </div>
+      <SyntaxHighlighter
+        style={style}
+        language={language}
+        PreTag="div"
+        customStyle={{ margin: 0, borderRadius: 0, padding: '1rem', fontSize: '0.85rem' }}
+      >
+        {children.replace(/\n$/, '')}
+      </SyntaxHighlighter>
+    </div>
+  );
+}
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -448,32 +507,14 @@ export default function ChatDetailPage() {
                     components={{
                       code({node, inline, className, children, ...props}: any) {
                         const match = /language-(\w+)/.exec(className || '')
+                        // Performance: Code-Block Component nutzen (lazy-loaded SyntaxHighlighter)
                         return !inline && match ? (
-                          <div className="rounded-lg overflow-hidden my-3 border border-zinc-700 shadow-sm">
-                            <div className="bg-zinc-800 px-3 py-1.5 text-xs text-zinc-400 flex items-center justify-between border-b border-zinc-700">
-                              <span className="font-mono">{match[1]}</span>
-                              <button
-                                onClick={() => navigator.clipboard.writeText(String(children).replace(/\n$/, ''))}
-                                className="hover:text-white transition-colors"
-                              >
-                                Copy
-                              </button>
-                            </div>
-                            <SyntaxHighlighter
-                              style={oneDark}
-                              language={match[1]}
-                              PreTag="div"
-                              customStyle={{ margin: 0, borderRadius: 0, padding: '1rem', fontSize: '0.85rem' }}
-                              {...props}
-                            >
-                              {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                          </div>
+                          <CodeBlock language={match[1]}>{String(children)}</CodeBlock>
                         ) : (
                           <code className="bg-zinc-800/50 px-1 py-0.5 rounded font-mono text-xs border border-white/10 break-words" {...props}>
                             {children}
                           </code>
-                        )
+                        );
                       },
                       table({children}) {
                         return (

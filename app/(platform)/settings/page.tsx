@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { createCheckoutSession } from '@/actions/payment-actions';
 import { signOutAction } from '@/actions/auth-actions';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { DeleteAccount } from '@/components/platform/delete-account';
 
 export default async function SettingsPage({
@@ -11,18 +11,22 @@ export default async function SettingsPage({
 }) {
   const session = await auth();
   const params = await searchParams;
-  
-  const db = new PrismaClient();
 
-  const user = await db.user.findUnique({
+  // Performance-Optimierung: Email aus Session nutzen (bereits verfügbar)
+  // Nur subscriptionEnd und id aus DB holen (für Display)
+  const user = await prisma.user.findUnique({
     where: { id: session?.user?.id },
-      select: {
-        id: true,
-        email: true,
-        subscriptionEnd: true,
-      },
+    select: {
+      id: true,
+      email: true, // Fallback falls nicht in Session
+      subscriptionEnd: true,
+    },
   });
 
+  // SICHERHEIT: Email aus Session nutzen (sicherer als DB)
+  // Fallback zu DB nur wenn Session keine Email hat (sollte nicht passieren)
+  const userEmail = session?.user?.email || user?.email || '';
+  const userId = session?.user?.id || user?.id || '';
   const isPro = user?.subscriptionEnd && user.subscriptionEnd > new Date();
 
   return (
@@ -51,8 +55,8 @@ export default async function SettingsPage({
             </div>
             <div className="min-w-0 flex-1">
                <p className="text-xs sm:text-sm font-medium text-zinc-400">Angemeldet als:</p>
-               <p className="text-white font-mono text-xs sm:text-sm truncate">{user?.email}</p>
-               <p className="text-[10px] sm:text-xs text-zinc-500 mt-0.5 sm:mt-1 truncate">ID: {user?.id}</p>
+               <p className="text-white font-mono text-xs sm:text-sm truncate">{userEmail}</p>
+               <p className="text-[10px] sm:text-xs text-zinc-500 mt-0.5 sm:mt-1 truncate">ID: {userId}</p>
             </div>
          </div>
       </div>

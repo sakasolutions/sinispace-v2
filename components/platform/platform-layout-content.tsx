@@ -23,19 +23,36 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
   }, [pathname]);
 
   // Auto-Logout: Prüfe regelmäßig ob Session noch gültig ist
+  // Performance-Optimierung: Längeres Intervall (30s statt 5s) und Pause bei Tab-Inaktivität
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     let isChecking = false;
+    let isTabVisible = true;
+
+    // Tab Visibility API: Pause polling wenn Tab nicht aktiv
+    const handleVisibilityChange = () => {
+      isTabVisible = !document.hidden;
+      // Wenn Tab wieder sichtbar, sofort prüfen
+      if (isTabVisible) {
+        checkSession();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     const checkSession = async () => {
       // Verhindere parallele Checks
       if (isChecking) return;
+      // Performance: Pause polling wenn Tab nicht sichtbar
+      if (!isTabVisible) return;
+      
       isChecking = true;
 
       try {
         const response = await fetch('/api/auth/check-session', {
           method: 'GET',
           credentials: 'include', // WICHTIG: Cookies mitsenden
+          // Performance: Timeout nach 5 Sekunden (verhindert hängende Requests)
+          signal: AbortSignal.timeout(5000),
         });
 
         if (!response.ok) {
@@ -57,22 +74,27 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
           window.location.href = '/login';
         }
       } catch (error) {
-        console.error('Error checking session:', error);
+        // AbortError ignorieren (Timeout) - kein Log nötig
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error checking session:', error);
+        }
         // Bei Fehlern: Weiter prüfen (nicht sofort ausloggen)
       } finally {
         isChecking = false;
       }
     };
 
-    // Erste Prüfung nach 2 Sekunden (gibt Zeit für initiales Laden)
+    // Erste Prüfung nach 5 Sekunden (gibt mehr Zeit für initiales Laden)
     const timeoutId = setTimeout(() => {
       checkSession();
-      // Dann alle 5 Sekunden prüfen
-      intervalId = setInterval(checkSession, 5000);
-    }, 2000);
+      // Performance: Alle 30 Sekunden prüfen (statt 5 Sekunden)
+      // Balance zwischen Security (rechtzeitige Erkennung) und Performance
+      intervalId = setInterval(checkSession, 30000);
+    }, 5000);
 
     // Cleanup beim Unmount
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearTimeout(timeoutId);
       if (intervalId) {
         clearInterval(intervalId);

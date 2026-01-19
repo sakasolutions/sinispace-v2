@@ -1,8 +1,6 @@
 import { auth } from '@/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-
-const prisma = new PrismaClient();
 
 /**
  * API-Route zum Prüfen, ob die aktuelle Session noch gültig ist.
@@ -38,7 +36,6 @@ export async function GET() {
     console.error('Error checking session:', error);
     // Bei Fehlern: Session als ungültig behandeln (Sicherheitsprinzip)
     return NextResponse.json({ valid: false }, { status: 200 });
-  } finally {
-    await prisma.$disconnect();
   }
+  // WICHTIG: Kein $disconnect() mehr - wir nutzen Singleton Pattern
 }

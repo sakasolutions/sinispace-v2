@@ -1,11 +1,8 @@
 'use server';
 
 import { auth } from '@/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-
-// Prisma Client Singleton (verhindert zu viele Verbindungen)
-const prisma = new PrismaClient();
 
 // Einen neuen Chat erstellen
 export async function createChat(firstMessage: string) {

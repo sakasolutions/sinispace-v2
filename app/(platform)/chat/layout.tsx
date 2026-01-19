@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { ChatLayoutWrapper } from '@/components/chat-layout-wrapper';
 
 export default async function ChatLayout({ children }: { children: React.ReactNode }) {
@@ -11,26 +11,24 @@ export default async function ChatLayout({ children }: { children: React.ReactNo
     redirect('/login');
   }
 
-  // Prisma Client instanziieren
-  const db = new PrismaClient();
-
-  // User aus Datenbank holen
-  const user = await db.user.findUnique({
+  // Performance-Optimierung: Email aus Session nutzen (kein DB-Query für Email nötig)
+  // Nur subscriptionEnd aus DB holen (nicht verfügbar in Session)
+  // Email ist bereits in session.user.email verfügbar (aus authorize callback)
+  const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: {
-      email: true,
-      subscriptionEnd: true,
+      subscriptionEnd: true, // Nur das was wir wirklich brauchen
     },
   });
-
-  // Prisma Client schließen
-  await db.$disconnect();
+  
+  // WICHTIG: Kein $disconnect() mehr - wir nutzen Singleton Pattern
 
   // Premium-Status prüfen
   const isPro = !!(user?.subscriptionEnd && user.subscriptionEnd > new Date());
 
-  // Fallback für Email (falls nicht in DB vorhanden)
-  const userEmail = user?.email || session.user.email || '';
+  // Email aus Session nutzen (bereits verfügbar aus authorize callback)
+  // SICHERHEIT: session.user.email ist sicher, da aus DB beim Login geholt
+  const userEmail = session.user.email || '';
 
   return (
     <ChatLayoutWrapper userEmail={userEmail} isPro={isPro}>
