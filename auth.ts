@@ -79,6 +79,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Wenn keine aktive Session existiert, Session ungültig machen
         // (z.B. wenn User sich auf anderem Gerät eingeloggt hat → alte Session gelöscht)
         if (!activeSession) {
+          // WICHTIG: user auf null setzen → Middleware erkennt ungültige Session
+          // und löscht automatisch die Cookies
           return {
             ...session,
             user: null, // Session ungültig → user auf null setzen
@@ -116,11 +118,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // WICHTIG: KEINE Prisma-Aufrufe hier! (Edge Runtime inkompatibel)
         // sessionId wird NICHT im Token gespeichert
         // Die Session-Validation erfolgt im session() Callback basierend auf userId
+        // Setze invalidated Flag zurück beim neuen Login
+        delete token.invalidated;
       }
       
       // WICHTIG: KEINE Session-Validation hier im JWT-Callback!
       // Prisma funktioniert nicht im Edge Runtime (Middleware nutzt JWT-Callback)
       // Die Validation erfolgt im session() Callback (nur Server Runtime)
+      // Wenn das Token invalidiert wurde (durch session() Callback), entferne sub
+      // Das führt dazu, dass die Middleware das Token als ungültig erkennt
       
       return token;
     },

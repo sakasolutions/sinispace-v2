@@ -39,13 +39,32 @@ export default auth((req) => {
     // → Cookie löschen, damit User sich neu einloggen kann
     if (userIsNull || !hasUserId) {
       const response = NextResponse.next();
-      // Lösche alle NextAuth Cookies
-      response.cookies.delete("authjs.session-token");
-      response.cookies.delete("__Secure-authjs.session-token");
-      response.cookies.delete("next-auth.session-token");
-      response.cookies.delete("__Secure-next-auth.session-token");
-      response.cookies.delete("__Secure-next-auth.csrf-token");
-      response.cookies.delete("next-auth.csrf-token");
+      // Lösche alle NextAuth Cookies mit allen möglichen Pfaden und Domains
+      const cookieNames = [
+        "authjs.session-token",
+        "__Secure-authjs.session-token",
+        "next-auth.session-token",
+        "__Secure-next-auth.session-token",
+        "__Secure-next-auth.csrf-token",
+        "next-auth.csrf-token",
+      ];
+      
+      cookieNames.forEach((name) => {
+        // Lösche Cookie mit verschiedenen Pfaden und Domains
+        response.cookies.delete(name);
+        response.cookies.set(name, "", {
+          expires: new Date(0),
+          path: "/",
+          sameSite: "lax",
+        });
+        response.cookies.set(name, "", {
+          expires: new Date(0),
+          path: "/",
+          domain: req.nextUrl.hostname,
+          sameSite: "lax",
+        });
+      });
+      
       return response;
     }
     
@@ -60,20 +79,39 @@ export default auth((req) => {
   const userIsNull = req.auth?.user === null;
   const isAuthenticated = hasUserId && !userIsNull;
 
-  // WICHTIG: Wenn ungültige Session erkannt (user == null ODER user.id fehlt)
-  // → Cookie löschen und zu Login redirecten
-  if (userIsNull || !hasUserId) {
-    const loginUrl = new URL("/login", req.url);
-    const response = NextResponse.redirect(loginUrl);
-    // Lösche alle NextAuth Cookies
-    response.cookies.delete("authjs.session-token");
-    response.cookies.delete("__Secure-authjs.session-token");
-    response.cookies.delete("next-auth.session-token");
-    response.cookies.delete("__Secure-next-auth.session-token");
-    response.cookies.delete("__Secure-next-auth.csrf-token");
-    response.cookies.delete("next-auth.csrf-token");
-    return response;
-  }
+    // WICHTIG: Wenn ungültige Session erkannt (user == null ODER user.id fehlt)
+    // → Cookie löschen und zu Login redirecten
+    if (userIsNull || !hasUserId) {
+      const loginUrl = new URL("/login", req.url);
+      const response = NextResponse.redirect(loginUrl);
+      // Lösche alle NextAuth Cookies mit allen möglichen Pfaden und Domains
+      const cookieNames = [
+        "authjs.session-token",
+        "__Secure-authjs.session-token",
+        "next-auth.session-token",
+        "__Secure-next-auth.session-token",
+        "__Secure-next-auth.csrf-token",
+        "next-auth.csrf-token",
+      ];
+      
+      cookieNames.forEach((name) => {
+        // Lösche Cookie mit verschiedenen Pfaden und Domains
+        response.cookies.delete(name);
+        response.cookies.set(name, "", {
+          expires: new Date(0),
+          path: "/",
+          sameSite: "lax",
+        });
+        response.cookies.set(name, "", {
+          expires: new Date(0),
+          path: "/",
+          domain: req.nextUrl.hostname,
+          sameSite: "lax",
+        });
+      });
+      
+      return response;
+    }
 
   // Geschützte Routen
   const protectedRoutes = ["/dashboard", "/chat", "/settings", "/actions"];

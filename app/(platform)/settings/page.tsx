@@ -113,7 +113,7 @@ export default async function SettingsPage({
             </div>
           )}
           <p className="text-[10px] sm:text-xs text-zinc-500 mt-3">
-            Nur eine aktive Session pro Account erlaubt. Bei neuem Login wird die alte Session automatisch beendet.
+            Nur eine aktive Session pro Account erlaubt.
           </p>
         </div>
       </div>
