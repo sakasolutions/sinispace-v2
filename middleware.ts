@@ -73,46 +73,26 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
+  // ÖFFENTLICHE ROUTEN - IMMER erlauben (Landingpage, Pricing, etc.)
+  const publicRoutes = ["/", "/pricing", "/register", "/login"];
+  const isPublicRoute = publicRoutes.includes(pathname);
+  
+  // Wenn öffentliche Route → IMMER erlauben (keine Authentifizierung nötig)
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
+  // API Routes (außer auth) erlauben
+  if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth")) {
+    return NextResponse.next();
+  }
+
   // WICHTIG: Prüfe explizit ob user.id existiert UND user nicht null ist
   // Wenn Session revoked wurde, setzt session() Callback user = null
   // CRITICAL: Nur wenn user.id existiert UND user nicht null → authentifiziert
   const hasUserId = !!req.auth?.user?.id;
   const userIsNull = req.auth?.user === null;
   const isAuthenticated = hasUserId && !userIsNull;
-
-    // WICHTIG: Wenn ungültige Session erkannt (user == null ODER user.id fehlt)
-    // → Cookie löschen und zu Login redirecten
-    if (userIsNull || !hasUserId) {
-      const loginUrl = new URL("/login", req.url);
-      const response = NextResponse.redirect(loginUrl);
-      // Lösche alle NextAuth Cookies mit allen möglichen Pfaden und Domains
-      const cookieNames = [
-        "authjs.session-token",
-        "__Secure-authjs.session-token",
-        "next-auth.session-token",
-        "__Secure-next-auth.session-token",
-        "__Secure-next-auth.csrf-token",
-        "next-auth.csrf-token",
-      ];
-      
-      cookieNames.forEach((name) => {
-        // Lösche Cookie mit verschiedenen Pfaden und Domains
-        response.cookies.delete(name);
-        response.cookies.set(name, "", {
-          expires: new Date(0),
-          path: "/",
-          sameSite: "lax",
-        });
-        response.cookies.set(name, "", {
-          expires: new Date(0),
-          path: "/",
-          domain: req.nextUrl.hostname,
-          sameSite: "lax",
-        });
-      });
-      
-      return response;
-    }
 
   // Geschützte Routen
   const protectedRoutes = ["/dashboard", "/chat", "/settings", "/actions"];
