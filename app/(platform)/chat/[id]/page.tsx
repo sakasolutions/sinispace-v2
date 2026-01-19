@@ -6,10 +6,7 @@ import Image from 'next/image';
 import { chatWithAI } from '@/actions/ai-actions';
 import { getChat, saveMessage } from '@/actions/chat-actions';
 import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-
-// Performance-Optimierung: Syntax Highlighting lazy loaden (nur wenn Code vorhanden)
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -24,67 +21,6 @@ type Document = {
   createdAt: Date;
   openaiFileId: string;
 };
-
-// Performance: Lazy-loaded Code Block Component (lädt SyntaxHighlighter nur wenn Code vorhanden)
-function CodeBlock({ language, children }: { language: string; children: string }) {
-  const [SyntaxHighlighter, setSyntaxHighlighter] = useState<any>(null);
-  const [style, setStyle] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Dynamisch importieren wenn Code-Block gerendert wird
-    Promise.all([
-      import('react-syntax-highlighter').then(mod => mod.Prism),
-      import('react-syntax-highlighter/dist/esm/styles/prism').then(mod => mod.oneDark)
-    ]).then(([Highlighter, oneDarkStyle]) => {
-      setSyntaxHighlighter(() => Highlighter);
-      setStyle(oneDarkStyle);
-      setIsLoading(false);
-    });
-  }, []);
-
-  // Fallback während Ladevorgang
-  if (isLoading || !SyntaxHighlighter || !style) {
-    return (
-      <div className="rounded-lg overflow-hidden my-3 border border-zinc-700 shadow-sm bg-zinc-900">
-        <div className="bg-zinc-800 px-3 py-1.5 text-xs text-zinc-400 flex items-center justify-between border-b border-zinc-700">
-          <span className="font-mono">{language}</span>
-          <button
-            onClick={() => navigator.clipboard.writeText(children.replace(/\n$/, ''))}
-            className="hover:text-white transition-colors"
-          >
-            Copy
-          </button>
-        </div>
-        <pre className="text-sm text-zinc-300 font-mono whitespace-pre overflow-x-auto p-4">
-          <code>{children.replace(/\n$/, '')}</code>
-        </pre>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-lg overflow-hidden my-3 border border-zinc-700 shadow-sm">
-      <div className="bg-zinc-800 px-3 py-1.5 text-xs text-zinc-400 flex items-center justify-between border-b border-zinc-700">
-        <span className="font-mono">{language}</span>
-        <button
-          onClick={() => navigator.clipboard.writeText(children.replace(/\n$/, ''))}
-          className="hover:text-white transition-colors"
-        >
-          Copy
-        </button>
-      </div>
-      <SyntaxHighlighter
-        style={style}
-        language={language}
-        PreTag="div"
-        customStyle={{ margin: 0, borderRadius: 0, padding: '1rem', fontSize: '0.85rem' }}
-      >
-        {children.replace(/\n$/, '')}
-      </SyntaxHighlighter>
-    </div>
-  );
-}
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -486,53 +422,18 @@ export default function ChatDetailPage() {
             )}
 
             <div
-              className={`group relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 shadow-sm text-[13px] sm:text-sm md:text-[15px] leading-relaxed ${
+              className={`group relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 shadow-sm ${
                 msg.role === 'user'
                   ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
-                  : 'bg-zinc-800/50 backdrop-blur-xl border border-white/10 text-white rounded-bl-none'
+                  : 'bg-zinc-900/30 backdrop-blur-sm border border-white/10 rounded-bl-none' // AI-Bubble: Transparenter für besseren Kontrast
               }`}
             >
               <CopyButton text={msg.content} />
               {msg.role === 'assistant' ? (
-                <div className="prose prose-zinc prose-sm max-w-none dark:prose-invert 
-                  prose-p:my-1 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 
-                  prose-headings:mt-4 prose-headings:mb-2 prose-headings:font-bold prose-headings:text-white
-                  prose-pre:my-2 prose-pre:bg-zinc-900 prose-pre:p-0
-                  prose-table:my-2 prose-th:p-2 prose-td:p-2
-                  prose-p:text-white prose-ul:text-white prose-ol:text-white prose-li:text-white
-                  break-words overflow-hidden"
-                >
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code({node, inline, className, children, ...props}: any) {
-                        const match = /language-(\w+)/.exec(className || '')
-                        // Performance: Code-Block Component nutzen (lazy-loaded SyntaxHighlighter)
-                        return !inline && match ? (
-                          <CodeBlock language={match[1]}>{String(children)}</CodeBlock>
-                        ) : (
-                          <code className="bg-zinc-800/50 px-1 py-0.5 rounded font-mono text-xs border border-white/10 break-words" {...props}>
-                            {children}
-                          </code>
-                        );
-                      },
-                      table({children}) {
-                        return (
-                          <div className="overflow-x-auto my-4 border border-white/10 rounded-lg">
-                            <table className="min-w-full divide-y divide-white/10">{children}</table>
-                          </div>
-                        )
-                      },
-                      thead({children}) { return <thead className="bg-zinc-800/50">{children}</thead> },
-                      th({children}) { return <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-300 uppercase tracking-wider">{children}</th> },
-                      td({children}) { return <td className="px-3 py-2 text-sm text-zinc-300 border-t border-white/10 whitespace-nowrap sm:whitespace-normal">{children}</td> }
-                    }}
-                  >
-                    {msg.content}
-                  </ReactMarkdown>
-                </div>
+                // Perfektes Markdown-Rendering wie ChatGPT/Gemini
+                <MarkdownRenderer content={msg.content} />
               ) : (
-                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                <p className="whitespace-pre-wrap break-words text-white text-sm leading-6">{msg.content}</p>
               )}
             </div>
 
