@@ -3,6 +3,7 @@ import Credentials from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { clearRevokedUser } from '@/lib/session-cache';
 
 const prisma = new PrismaClient();
 
@@ -104,6 +105,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     async jwt({ token, user, trigger }) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/33892122-4b78-4cba-bba4-a59e8a7bb458',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth.ts:jwt:entry',message:'JWT callback entered',data:{hasUser:!!user,hasTokenSub:!!token.sub,trigger},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      
       // WICHTIG: JWT-Callback läuft auch im Edge Runtime (z.B. Middleware)
       // Prisma funktioniert NICHT im Edge Runtime → KEINE DB-Queries hier!
       
@@ -126,6 +131,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // Session in DB speichern nach erfolgreichem Login
     async signIn({ user, account }) {
       if (account?.provider === 'credentials' && user?.id) {
+        // WICHTIG: User aus revoked Cache entfernen (neuer Login = Sessions sind wieder gültig)
+        clearRevokedUser(user.id);
+        
         // Erstelle IMMER eine neue Session in DB für Session-Management
         // Jeder Login (auch in verschiedenen Browsern) bekommt eine eigene Session
         try {

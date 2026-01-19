@@ -5,6 +5,7 @@ import { getToken } from 'next-auth/jwt';
 import { PrismaClient } from '@prisma/client';
 import { signOut } from '@/auth';
 import { cookies } from 'next/headers';
+import { revokeSessionToken, revokeUserSessions, clearRevokedUser } from '@/lib/session-cache';
 
 const prisma = new PrismaClient();
 
@@ -148,6 +149,10 @@ export async function revokeSession(sessionId: string) {
       return { success: false, error: 'Session nicht gefunden oder keine Berechtigung' };
     }
 
+    // WICHTIG: Session-Token im Cache markieren (BEVOR Session gelöscht wird)
+    // Das ermöglicht Middleware, revoked Sessions zu erkennen (ohne Prisma)
+    revokeSessionToken(targetSession.sessionToken);
+    
     // Session löschen
     await prisma.session.delete({
       where: { id: sessionId },
@@ -159,7 +164,8 @@ export async function revokeSession(sessionId: string) {
       await signOut({ redirectTo: '/login' });
     }
 
-    // Sonst: Andere Session wurde gelöscht → bleibt eingeloggt (Session-Check im jwt-Callback logged andere Geräte aus)
+    // Sonst: Andere Session wurde gelöscht → bleibt eingeloggt
+    // Middleware prüft Cache und logged andere Geräte automatisch aus
     return { success: true };
   } catch (error) {
     console.error('Error revoking session:', error);
@@ -179,6 +185,9 @@ export async function revokeAllOtherSessions() {
     // WICHTIG: Hole aktuelle Session-ID aus JWT-Token (nicht die neueste DB-Session)
     const currentSessionId = await getCurrentSessionId();
     
+    // Hole alle Sessions, die gelöscht werden sollen (für Cache-Update)
+    let sessionsToDelete: Array<{ sessionToken: string }> = [];
+    
     if (!currentSessionId) {
       // Fallback: Wenn keine Session-ID im JWT, nutze neueste Session
       const latestSession = await prisma.session.findFirst({
@@ -193,6 +202,15 @@ export async function revokeAllOtherSessions() {
         return { success: false, error: 'Keine Sessions gefunden' };
       }
 
+      // Hole alle Sessions, die gelöscht werden (für Cache)
+      sessionsToDelete = await prisma.session.findMany({
+        where: {
+          userId: session.user.id,
+          id: { not: latestSession.id },
+        },
+        select: { sessionToken: true },
+      });
+
       // Alle anderen Sessions löschen (außer aktueller/neuester)
       await prisma.session.deleteMany({
         where: {
@@ -201,6 +219,15 @@ export async function revokeAllOtherSessions() {
         },
       });
     } else {
+      // Hole alle Sessions, die gelöscht werden (für Cache)
+      sessionsToDelete = await prisma.session.findMany({
+        where: {
+          userId: session.user.id,
+          id: { not: currentSessionId },
+        },
+        select: { sessionToken: true },
+      });
+
       // Alle anderen Sessions löschen (außer aktueller aus JWT)
       await prisma.session.deleteMany({
         where: {
@@ -210,8 +237,14 @@ export async function revokeAllOtherSessions() {
       });
     }
 
+    // WICHTIG: Alle gelöschten Session-Tokens im Cache markieren
+    // Das ermöglicht Middleware, revoked Sessions zu erkennen (ohne Prisma)
+    for (const session of sessionsToDelete) {
+      revokeSessionToken(session.sessionToken);
+    }
+
     // WICHTIG: Aktuelle Session bleibt erhalten → User bleibt eingeloggt
-    // Andere Geräte werden beim nächsten Request durch jwt-Callback ausgeloggt
+    // Andere Geräte werden beim nächsten Request durch Middleware (Cache-Check) ausgeloggt
     return { success: true, message: 'Alle anderen Sessions wurden beendet' };
   } catch (error) {
     console.error('Error revoking all sessions:', error);

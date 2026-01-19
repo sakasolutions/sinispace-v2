@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isSessionRevoked, getSessionTokenFromCookies } from "@/lib/session-cache";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -23,6 +24,25 @@ export default auth((req) => {
   // WICHTIG: Login/Register IMMER ZUERST prüfen (bevor andere Checks)
   // Dies verhindert Redirect-Loops bei ungültigen Sessions
   if (pathname === "/login" || pathname === "/register") {
+    // NEU: Prüfe Cache für revoked Sessions (Edge Runtime kompatibel, kein Prisma nötig)
+    const cookieHeader = req.headers.get("cookie");
+    const sessionToken = getSessionTokenFromCookies(cookieHeader);
+    const userId = req.auth?.user?.id || null;
+    const isRevoked = isSessionRevoked(sessionToken, userId);
+    
+    // Wenn Session revoked wurde → Cookie löschen → Login IMMER erlauben
+    if (isRevoked) {
+      const response = NextResponse.next();
+      // Lösche alle NextAuth Cookies
+      response.cookies.delete("authjs.session-token");
+      response.cookies.delete("__Secure-authjs.session-token");
+      response.cookies.delete("next-auth.session-token");
+      response.cookies.delete("__Secure-next-auth.session-token");
+      response.cookies.delete("__Secure-next-auth.csrf-token");
+      response.cookies.delete("next-auth.csrf-token");
+      return response;
+    }
+    
     // CRITICAL: Prüfe ob user.id existiert UND user nicht null ist
     // Wenn user null ist → Session wurde im session() Callback invalidiert → Login erlauben
     // Wenn user.id fehlt → Session ungültig → Login erlauben
@@ -54,6 +74,26 @@ export default auth((req) => {
     
     // Sonst: Login-Seite IMMER erlauben
     return NextResponse.next();
+  }
+
+  // NEU: Prüfe Cache für revoked Sessions (Edge Runtime kompatibel, kein Prisma nötig)
+  const cookieHeader = req.headers.get("cookie");
+  const sessionToken = getSessionTokenFromCookies(cookieHeader);
+  const userId = req.auth?.user?.id || null;
+  const isRevoked = isSessionRevoked(sessionToken, userId);
+  
+  // Wenn Session revoked wurde → Cookie löschen → Redirect zu Login
+  if (isRevoked) {
+    const loginUrl = new URL("/login", req.url);
+    const response = NextResponse.redirect(loginUrl);
+    // Lösche alle NextAuth Cookies
+    response.cookies.delete("authjs.session-token");
+    response.cookies.delete("__Secure-authjs.session-token");
+    response.cookies.delete("next-auth.session-token");
+    response.cookies.delete("__Secure-next-auth.session-token");
+    response.cookies.delete("__Secure-next-auth.csrf-token");
+    response.cookies.delete("next-auth.csrf-token");
+    return response;
   }
 
   // WICHTIG: Prüfe explizit ob user.id existiert UND user nicht null ist
