@@ -19,6 +19,64 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  // Auto-Logout: Prüfe regelmäßig ob Session noch gültig ist
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    let isChecking = false;
+
+    const checkSession = async () => {
+      // Verhindere parallele Checks
+      if (isChecking) return;
+      isChecking = true;
+
+      try {
+        const response = await fetch('/api/auth/check-session', {
+          method: 'GET',
+          credentials: 'include', // WICHTIG: Cookies mitsenden
+        });
+
+        if (!response.ok) {
+          // Bei Fehlern: Session als ungültig behandeln
+          throw new Error('Session check failed');
+        }
+
+        const data = await response.json();
+
+        // Wenn Session ungültig → automatisch ausloggen
+        if (!data.valid) {
+          // Stoppe das Polling
+          if (intervalId) {
+            clearInterval(intervalId);
+          }
+          
+          // Automatisch zur Login-Seite weiterleiten
+          // Die Middleware erkennt die ungültige Session und löscht die Cookies automatisch
+          window.location.href = '/login';
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+        // Bei Fehlern: Weiter prüfen (nicht sofort ausloggen)
+      } finally {
+        isChecking = false;
+      }
+    };
+
+    // Erste Prüfung nach 2 Sekunden (gibt Zeit für initiales Laden)
+    const timeoutId = setTimeout(() => {
+      checkSession();
+      // Dann alle 5 Sekunden prüfen
+      intervalId = setInterval(checkSession, 5000);
+    }, 2000);
+
+    // Cleanup beim Unmount
+    return () => {
+      clearTimeout(timeoutId);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, []); // Nur einmal beim Mount ausführen
   
   // Prüfe ob wir auf einer /chat Route sind
   const isChatRoute = pathname?.startsWith('/chat') ?? false;

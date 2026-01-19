@@ -69,12 +69,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Der jwt() Callback läuft auch im Edge Runtime (Middleware) → KEIN Prisma möglich
       // Prüfe ob der User noch eine aktive Session hat (nur eine Session pro User erlaubt)
       try {
+        const userId = token.sub as string;
+        
+        // Zuerst: Lösche alle abgelaufenen Sessions (Cleanup)
+        await prisma.session.deleteMany({
+          where: {
+            userId: userId,
+            expires: { lte: new Date() },
+          },
+        });
+        
+        // Prüfe ob noch eine aktive Session existiert
         const activeSession = await prisma.session.findFirst({
           where: {
-            userId: token.sub as string,
+            userId: userId,
             expires: { gt: new Date() },
           },
         });
+        
+        // WICHTIG: Sicherstellen, dass wirklich nur EINE Session existiert
+        // Falls durch Race Condition mehrere Sessions erstellt wurden, lösche alle außer der neuesten
+        if (activeSession) {
+          const allSessions = await prisma.session.findMany({
+            where: {
+              userId: userId,
+              expires: { gt: new Date() },
+            },
+            orderBy: { createdAt: 'desc' },
+          });
+          
+          // Wenn mehr als eine Session existiert, lösche alle außer der neuesten
+          if (allSessions.length > 1) {
+            const sessionsToDelete = allSessions.slice(1); // Alle außer der ersten (neuesten)
+            await prisma.session.deleteMany({
+              where: {
+                id: { in: sessionsToDelete.map(s => s.id) },
+              },
+            });
+            console.log(`[session callback] ⚠️ ${sessionsToDelete.length} zusätzliche Session(s) gelöscht für User: ${userId}`);
+          }
+        }
         
         // Wenn keine aktive Session existiert, Session ungültig machen
         // (z.B. wenn User sich auf anderem Gerät eingeloggt hat → alte Session gelöscht)
@@ -135,11 +169,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.provider === 'credentials' && user?.id) {
         try {
           // WICHTIG: Nur eine Session pro User erlauben
-          // Lösche alle alten Sessions BEVOR neue erstellt wird
+          // Lösche ALLE Sessions (auch abgelaufene) BEVOR neue erstellt wird
           // Das verhindert, dass mehrere Geräte gleichzeitig eingeloggt sind
-          await prisma.session.deleteMany({
+          const deleteResult = await prisma.session.deleteMany({
             where: { userId: user.id },
           });
+          console.log(`[signIn] ✅ ${deleteResult.count} alte Session(s) gelöscht für User: ${user.id}`);
           
           // Erstelle neue Session (nur eine pro User)
           const sessionToken = crypto.randomUUID();
@@ -153,6 +188,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               expires: expires,
             },
           });
+          
+          console.log(`[signIn] ✅ Neue Session erstellt: ${dbSession.id} für User: ${user.id}`);
           
           // WICHTIG: Update lastLoginAt im User (für UI-Anzeige)
           await prisma.user.update({
