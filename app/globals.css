@@ -24,3 +24,25 @@
     }
   }
 }
+
+/* Typography Upgrade */
+@layer base {
+  /* Plus Jakarta Sans für alle Überschriften */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-plus-jakarta-sans), sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  
+  /* Inter mit tracking-wide für kleine Texte */
+  p, span, div, a, button, input, textarea, label {
+    letter-spacing: 0.025em;
+  }
+  
+  /* Card Titles - Extra fett */
+  [class*="card-title"], [class*="dashboard-card"] h3 {
+    font-family: var(--font-plus-jakarta-sans), sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}

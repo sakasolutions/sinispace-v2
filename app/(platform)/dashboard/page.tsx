@@ -243,10 +243,10 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8">
       {/* HEADER */}
       <div className="mb-6 sm:mb-8 md:mb-12">
-        <h1 className="text-xl sm:text-2xl font-bold text-white">
+        <h1 className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
           Willkommen zurück. 👋
         </h1>
-        <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
+        <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2 tracking-wide">
           Welches Tool soll dir heute helfen?
         </p>
       </div>
@@ -260,7 +260,7 @@ export default function DashboardPage() {
             placeholder="Suche nach Tools..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-white/10 bg-zinc-900/50 px-12 py-3.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all min-h-[44px]"
+            className="w-full rounded-2xl border border-white/10 bg-zinc-900/50 px-12 py-3.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all min-h-[44px] tracking-wide"
           />
         </div>
       </div>
@@ -272,7 +272,7 @@ export default function DashboardPage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap min-h-[36px] ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap min-h-[36px] tracking-wide ${
                 selectedCategory === category
                   ? 'bg-gradient-to-r from-teal-500/20 to-indigo-500/20 text-white border border-teal-500/30 shadow-lg shadow-teal-500/10'
                   : 'bg-zinc-900/50 text-zinc-400 border border-white/5 hover:bg-zinc-800/50'
@@ -290,19 +290,24 @@ export default function DashboardPage() {
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             const colors = colorClasses[tool.color] || colorClasses.blue;
-            // Gradient Background mit Hover-Border und Shadow
-            const cardClassName = `group relative rounded-xl border border-white/5 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 backdrop-blur-sm ${colors.hoverBorder} transition-all duration-300 hover:-translate-y-1 p-6 ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
+            // Spotlight Card Effect - Milchglas mit innerem Glow
+            const cardClassName = `group relative overflow-hidden rounded-3xl border border-white/5 bg-zinc-900/40 backdrop-blur-xl ${colors.hoverBorder} transition-all duration-500 ease-out hover:-translate-y-1 p-6 ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
             const cardContent = (
-              <div className="flex flex-col h-full">
-                {/* ICON CONTAINER */}
-                <div className={`flex-shrink-0 h-12 w-12 rounded-2xl ${colors.bg} ${colors.bgHover} flex items-center justify-center mb-4 transition-all duration-300`}>
-                  <Icon className={`w-6 h-6 ${colors.text} group-hover:scale-110 transition-transform duration-300`} />
+              <div className="flex flex-col h-full relative z-10">
+                {/* Inner Glow - Radial Gradient von oben */}
+                <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none" />
+                
+                {/* ICON CONTAINER - Mit Leuchteffekt */}
+                <div className={`flex-shrink-0 h-12 w-12 rounded-2xl ${colors.bg} ${colors.bgHover} flex items-center justify-center mb-4 transition-all duration-500 group-hover:bg-opacity-80`}>
+                  <div className={`${colors.text} group-hover:drop-shadow-[0_0_12px_currentColor] transition-all duration-500`}>
+                    <Icon className={`w-6 h-6 group-hover:scale-110 transition-transform duration-500`} />
+                  </div>
                 </div>
                 
                 {/* CONTENT */}
                 <div className="flex-1 min-w-0 flex flex-col">
-                  <h3 className="font-semibold text-lg text-zinc-100 group-hover:text-white mb-2 flex items-center gap-2">
+                  <h3 className="font-bold text-xl text-zinc-100 group-hover:text-white mb-2 flex items-center gap-2 tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
                     {tool.title}
                     {!tool.available && (
                       <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-500">
@@ -310,16 +315,16 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4 flex-1">
+                  <p className="text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4 flex-1 tracking-wide">
                     {tool.description}
                   </p>
                   
                   {/* "ÖFFNEN" LINK */}
                   {tool.available && (
                     <div className="flex justify-end mt-auto pt-2">
-                      <span className="text-xs font-medium text-zinc-400 group-hover:text-white flex items-center gap-1 transition-all">
+                      <span className="text-xs font-medium text-zinc-400 group-hover:text-white flex items-center gap-1 transition-all tracking-wide">
                         Öffnen
-                        <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                        <span className="group-hover:translate-x-1 transition-transform duration-500">→</span>
                       </span>
                     </div>
                   )}
@@ -341,8 +346,8 @@ export default function DashboardPage() {
       ) : (
         <div className="text-center py-12">
           <Search className="w-12 h-12 mx-auto mb-4 text-zinc-600 opacity-50" />
-          <p className="text-zinc-400">Keine Tools gefunden.</p>
-          <p className="text-sm text-zinc-500 mt-1">Versuche eine andere Suche oder Kategorie.</p>
+          <p className="text-zinc-400 tracking-wide">Keine Tools gefunden.</p>
+          <p className="text-sm text-zinc-500 mt-1 tracking-wide">Versuche eine andere Suche oder Kategorie.</p>
         </div>
       )}
     </div>
