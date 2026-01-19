@@ -47,9 +47,8 @@ export default function RootLayout({
               `,
               backgroundSize: '24px 24px',
               backgroundRepeat: 'repeat',
-              imageRendering: 'crisp-edges',
-              WebkitImageRendering: 'optimizeQuality',
-            }}
+              imageRendering: 'auto',
+            } as React.CSSProperties}
           />
           {/* Layer 2: Zusätzlicher sanfter Radial-Gradient für Tiefe */}
           <div 
@@ -59,8 +58,7 @@ export default function RootLayout({
               backgroundSize: '48px 48px',
               backgroundRepeat: 'repeat',
               imageRendering: 'auto',
-              WebkitImageRendering: 'optimizeQuality',
-            }}
+            } as React.CSSProperties}
           />
           {/* Layer 3: Sehr feine Noise-Textur für organic feel */}
           <div 
@@ -70,8 +68,7 @@ export default function RootLayout({
               backgroundSize: '16px 16px',
               backgroundRepeat: 'repeat',
               imageRendering: 'auto',
-              WebkitImageRendering: 'optimizeQuality',
-            }}
+            } as React.CSSProperties}
           />
         </div>
         <div className="relative z-10">
