@@ -34,6 +34,20 @@ export default auth((req) => {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     
+    // WICHTIG: Wenn ungültige Session (req.auth existiert aber user == null)
+    // → Cookie löschen, damit User sich neu einloggen kann
+    // Das verhindert Blockierung durch ungültiges Cookie
+    if (req.auth && !req.auth.user) {
+      // Ungültige Session erkannt → Cookie löschen
+      const response = NextResponse.next();
+      // Lösche NextAuth Cookie (Name kann variieren, aber meist "authjs.session-token" oder "next-auth.session-token")
+      response.cookies.delete("authjs.session-token");
+      response.cookies.delete("__Secure-authjs.session-token");
+      response.cookies.delete("next-auth.session-token");
+      response.cookies.delete("__Secure-next-auth.session-token");
+      return response;
+    }
+    
     // Sonst: Login-Seite IMMER erlauben (auch wenn req.auth existiert aber user.id fehlt)
     // Dies verhindert "ERR_TOO_MANY_REDIRECTS" bei ungültigen Sessions
     // WICHTIG: Kein Redirect, einfach durchlassen → User kann sich einloggen
@@ -44,6 +58,21 @@ export default auth((req) => {
   // Wenn Session revoked wurde, existiert req.auth, aber req.auth.user ist null ODER user.id fehlt
   // CRITICAL: Prüfe NUR user.id → wenn fehlt/null → Session ungültig → nicht eingeloggt
   const isAuthenticated = !!req.auth?.user?.id; // Nur true wenn user.id existiert und nicht null/undefined
+
+  // WICHTIG: Wenn ungültige Session erkannt (req.auth existiert aber user == null)
+  // → Cookie löschen, damit User sich neu einloggen kann
+  // Das verhindert Blockierung durch ungültiges Cookie
+  if (req.auth && !req.auth.user) {
+    // Ungültige Session erkannt → Cookie löschen
+    const loginUrl = new URL("/login", req.url);
+    const response = NextResponse.redirect(loginUrl);
+    // Lösche NextAuth Cookie (Name kann variieren, aber meist "authjs.session-token" oder "next-auth.session-token")
+    response.cookies.delete("authjs.session-token");
+    response.cookies.delete("__Secure-authjs.session-token");
+    response.cookies.delete("next-auth.session-token");
+    response.cookies.delete("__Secure-next-auth.session-token");
+    return response;
+  }
 
   // Geschützte Routen
   const protectedRoutes = ["/dashboard", "/chat", "/settings", "/actions"];
