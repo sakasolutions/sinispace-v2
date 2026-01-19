@@ -9,6 +9,7 @@ import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
 // KEIN Sidebar Import mehr nötig!
 // KEINE Icons (Menu, X) mehr nötig!
 import { MarkdownRenderer } from '@/components/markdown-renderer';
+import { SuggestedActions } from '@/components/suggested-actions';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -312,6 +313,74 @@ export default function ChatPage() {
     return name.substring(0, maxNameLength) + '...' + ext;
   }
 
+  // Hilfsfunktion zum Senden einer Nachricht programmatisch (für SuggestedActions)
+  async function sendMessage(messageContent: string) {
+    if (isLoading) return;
+
+    const userMessage: Message = { role: 'user', content: messageContent };
+    const newHistory = [...messages, userMessage];
+    
+    setMessages(newHistory);
+    setInput('');
+    setIsLoading(true);
+
+    let chatIdToUse = currentChatId;
+
+    if (!chatIdToUse) {
+      const chatTitle = messageContent.substring(0, 50) || 'Neuer Chat';
+      console.log('💬 Erstelle neuen Chat:', chatTitle);
+      const chatResult = await createChat(chatTitle);
+      if (chatResult.success && chatResult.chatId) {
+        chatIdToUse = chatResult.chatId;
+        setCurrentChatId(chatIdToUse);
+        console.log('✅ Chat erstellt:', chatIdToUse);
+        
+        await saveMessage(chatIdToUse, 'user', messageContent);
+        
+        const response = await chatWithAI(newHistory);
+        console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error });
+        
+        if (response.result) {
+          const assistantMessage: Message = { role: 'assistant', content: response.result };
+          setMessages([...newHistory, assistantMessage]);
+          await saveMessage(chatIdToUse, 'assistant', response.result);
+        } else {
+          console.error('❌ Keine Antwort von AI:', response.error);
+          setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
+        }
+        
+        setIsLoading(false);
+        router.push(`/chat/${chatIdToUse}`);
+        return;
+      } else {
+        console.error('❌ Fehler beim Erstellen des Chats:', chatResult);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    if (chatIdToUse) {
+      await saveMessage(chatIdToUse, 'user', messageContent);
+    }
+
+    const response = await chatWithAI(newHistory);
+    console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error });
+
+    if (response.result) {
+      const assistantMessage: Message = { role: 'assistant', content: response.result };
+      setMessages([...newHistory, assistantMessage]);
+      
+      if (chatIdToUse) {
+        await saveMessage(chatIdToUse, 'assistant', response.result);
+      }
+    } else {
+      console.error('❌ Keine Antwort von AI:', response.error);
+      setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
+    }
+    
+    setIsLoading(false);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     // Erlaube Submit wenn Text ODER Dokumente vorhanden sind
@@ -492,44 +561,54 @@ export default function ChatPage() {
         )}
 
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex w-full gap-2 sm:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            {/* AI Avatar */}
-            {msg.role === 'assistant' && (
-              <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white mt-1 overflow-hidden">
-                <Image 
-                  src="/assets/logos/logo.webp" 
-                  alt="Sinispace Logo" 
-                  width={32}
-                  height={32}
-                  className="object-contain p-1.5" 
-                />
-              </div>
-            )}
+          <div key={i} className="w-full">
+            <div
+              className={`flex w-full gap-2 sm:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              {/* AI Avatar */}
+              {msg.role === 'assistant' && (
+                <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white mt-1 overflow-hidden">
+                  <Image 
+                    src="/assets/logos/logo.webp" 
+                    alt="Sinispace Logo" 
+                    width={32}
+                    height={32}
+                    className="object-contain p-1.5" 
+                  />
+                </div>
+              )}
 
-            {/* Chat Bubble */}
-                  <div
-                    className={`group relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 shadow-sm ${
-                      msg.role === 'user'
-                        ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
-                        : 'bg-zinc-900/30 backdrop-blur-sm border border-white/10 rounded-bl-none' // AI-Bubble: Transparenter für besseren Kontrast
-                    }`}
-                  >
-                    <CopyButton text={msg.content} />
-              {msg.role === 'assistant' ? (
-                // Perfektes Markdown-Rendering wie ChatGPT/Gemini
-                <MarkdownRenderer content={msg.content} />
-              ) : (
-                <p className="whitespace-pre-wrap break-words text-white text-sm leading-6">{msg.content}</p>
+              {/* Chat Bubble */}
+              <div
+                className={`group relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 shadow-sm ${
+                  msg.role === 'user'
+                    ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
+                    : 'bg-zinc-900/30 backdrop-blur-sm border border-white/10 rounded-bl-none' // AI-Bubble: Transparenter für besseren Kontrast
+                }`}
+              >
+                <CopyButton text={msg.content} />
+                {msg.role === 'assistant' ? (
+                  // Perfektes Markdown-Rendering wie ChatGPT/Gemini
+                  <MarkdownRenderer content={msg.content} />
+                ) : (
+                  <p className="whitespace-pre-wrap break-words text-white text-sm leading-6">{msg.content}</p>
+                )}
+              </div>
+
+              {/* User Avatar */}
+              {msg.role === 'user' && (
+                <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-800/50 text-xs font-bold text-zinc-300 border border-white/10 mt-1">
+                  DU
+                </div>
               )}
             </div>
-
-            {/* User Avatar */}
-            {msg.role === 'user' && (
-              <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-800/50 text-xs font-bold text-zinc-300 border border-white/10 mt-1">
-                DU
+            {/* Suggested Actions - Nur bei der letzten AI-Nachricht */}
+            {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
+              <div className="ml-0 md:ml-10 mt-3">
+                <SuggestedActions 
+                  content={msg.content} 
+                  onActionClick={(prompt) => sendMessage(prompt)}
+                />
               </div>
             )}
           </div>
