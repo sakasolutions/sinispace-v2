@@ -36,7 +36,7 @@ export function MobileNav() {
           const Icon = item.icon;
           const isActive = item.active;
 
-          // SiniChat Button - Hervorgehoben
+          // SiniChat Button - Hero Button (herausragend)
           if (item.highlight) {
             return (
               <Link
@@ -44,18 +44,18 @@ export function MobileNav() {
                 href={item.href}
                 className="flex flex-col items-center justify-center gap-1 relative"
               >
-                {/* Highlight Circle */}
-                <div className={`absolute -top-2 w-14 h-14 rounded-full bg-gradient-to-br from-teal-500/20 to-indigo-500/20 border-2 ${
-                  isActive ? 'border-teal-500/50' : 'border-white/10'
-                } flex items-center justify-center transition-all duration-300`}>
+                {/* Hero Button Circle - Herausragend */}
+                <div className={`relative -top-4 h-14 w-14 rounded-full ${
+                  isActive 
+                    ? 'bg-gradient-to-br from-teal-500 to-indigo-500 shadow-lg shadow-teal-500/30' 
+                    : 'bg-gradient-to-br from-teal-500/60 to-indigo-500/60 shadow-lg shadow-teal-500/20'
+                } border-4 border-zinc-950 flex items-center justify-center transition-all duration-300`}>
                   <Icon 
-                    className={`w-6 h-6 ${
-                      isActive ? 'text-teal-400' : 'text-zinc-400'
-                    } transition-colors duration-300`} 
-                    strokeWidth={2}
+                    className="h-7 w-7 text-white transition-all duration-300" 
+                    strokeWidth={2.5}
                   />
                 </div>
-                <span className={`text-[10px] font-medium mt-8 ${
+                <span className={`text-[10px] font-medium mt-4 ${
                   isActive ? 'text-teal-400' : 'text-zinc-500'
                 } transition-colors duration-300`}>
                   {item.label}

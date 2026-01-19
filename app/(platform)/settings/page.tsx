@@ -26,7 +26,7 @@ export default async function SettingsPage({
   const isPro = user?.subscriptionEnd && user.subscriptionEnd > new Date();
 
   return (
-    <div className="max-w-2xl w-full">
+    <div className="max-w-2xl w-full pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
       <h1 className="text-xl sm:text-2xl font-bold text-white">Einstellungen</h1>
       <p className="text-sm sm:text-base text-zinc-400 mb-6 sm:mb-8">Verwalte deinen Account und Zugriff.</p>
 

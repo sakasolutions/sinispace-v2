@@ -240,7 +240,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8">
+    <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
       {/* HEADER */}
       <div className="mb-6 sm:mb-8 md:mb-12">
         <h1 className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>

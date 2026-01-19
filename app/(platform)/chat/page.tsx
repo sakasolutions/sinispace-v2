@@ -464,7 +464,7 @@ export default function ChatPage() {
           onClose={() => setToast(null)}
         />
       )}
-      <div className="flex flex-col h-[100dvh] w-full overflow-hidden">
+      <div className="flex flex-col h-[100dvh] w-full overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
       
       {/* HEADER: Logo + SiniChat Branding */}
       <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5">
