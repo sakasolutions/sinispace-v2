@@ -41,3 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# backups (nur Struktur, nicht die Backups selbst)
+backups/
+!backups/.gitkeep
