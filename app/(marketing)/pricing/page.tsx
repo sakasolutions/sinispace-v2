@@ -47,11 +47,11 @@ export default function PricingPage() {
         >
           <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl p-8 shadow-2xl ring-1 ring-white/5 hover:border-white/20 transition-colors">
             
-            {/* Badge */}
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-               <span className="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400 backdrop-blur-sm">
-                 Beliebteste Wahl
-               </span>
+            {/* Ersparnis-Badge (Der Trigger) */}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+              <span className="inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold px-3 py-1 uppercase tracking-wider animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                SPARE 55%
+              </span>
             </div>
 
             <div className="flex items-baseline justify-between mb-6">
@@ -63,14 +63,35 @@ export default function PricingPage() {
               </span>
             </div>
 
-            <div className="flex items-baseline text-white">
-              <span className="text-5xl font-bold tracking-tight">99,90€</span>
-              <span className="ml-2 text-xl font-medium text-zinc-500">
-                / Jahr
-              </span>
+            {/* Preis-Darstellung (Der Anker) */}
+            <div className="mb-4">
+              {/* Alter Preis - Durchgestrichen */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-zinc-500 line-through text-lg decoration-red-500/50 decoration-2 font-medium">
+                  219,90 €
+                </span>
+              </div>
+              
+              {/* Neuer Preis - Dominant */}
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-black text-white tracking-tight">99,90€</span>
+                <span className="text-lg font-medium text-zinc-400">
+                  / Jahr
+                </span>
+              </div>
+              
+              {/* Reframing: Täglicher Preis */}
+              <p className="mt-2 text-xs text-zinc-500">
+                Weniger als 0,30€ pro Tag bei einem Jahr Nutzung.
+              </p>
             </div>
             
-            <p className="mt-4 text-sm text-zinc-400 leading-relaxed">
+            {/* Dringlichkeitstext */}
+            <p className="mb-4 text-sm text-orange-400/90 font-medium leading-relaxed">
+              ⚡ Nur für kurze Zeit verfügbar. Danach steigt der Preis.
+            </p>
+            
+            <p className="mb-6 text-sm text-zinc-400 leading-relaxed">
               Zugang endet automatisch nach 365 Tagen. <br/>Keine Kündigung nötig.
             </p>
 
@@ -95,7 +116,7 @@ export default function PricingPage() {
               href="/register"
               className="mt-8 block w-full rounded-xl bg-white px-4 py-3.5 text-center text-sm font-bold text-zinc-950 transition-all hover:bg-zinc-200 hover:scale-[1.02] shadow-[0_0_20px_rgba(255,255,255,0.1)]"
             >
-              Jetzt starten
+              Jetzt Zugang sichern
             </Link>
             
             <p className="mt-4 text-center text-xs text-zinc-500">

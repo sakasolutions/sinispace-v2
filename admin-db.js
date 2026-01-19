@@ -52,15 +52,16 @@ app.post('/login', (req, res) => {
 // Route für Tabellen-Übersicht
 app.get('/tables', requireAuth, async (req, res) => {
   try {
+    // Tabellen-Liste holen mit Rechte-Prüfung (verwendet current_user dynamisch)
     const tables = await prisma.$queryRawUnsafe(`
       SELECT 
         tablename, 
         tableowner,
-        has_table_privilege('sinispace_user', tablename, 'SELECT') as can_select,
-        has_table_privilege('sinispace_user', tablename, 'INSERT') as can_insert,
-        has_table_privilege('sinispace_user', tablename, 'UPDATE') as can_update,
-        has_table_privilege('sinispace_user', tablename, 'DELETE') as can_delete,
-        has_table_privilege('sinispace_user', tablename, 'ALTER') as can_alter
+        has_table_privilege(current_user, tablename, 'SELECT') as can_select,
+        has_table_privilege(current_user, tablename, 'INSERT') as can_insert,
+        has_table_privilege(current_user, tablename, 'UPDATE') as can_update,
+        has_table_privilege(current_user, tablename, 'DELETE') as can_delete,
+        has_table_privilege(current_user, tablename, 'ALTER') as can_alter
       FROM pg_tables 
       WHERE schemaname = 'public'
       ORDER BY tablename;
