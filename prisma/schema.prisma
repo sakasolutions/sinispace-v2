@@ -21,10 +21,6 @@ model User {
   stripeCustomerId String?   @unique
   subscriptionEnd  DateTime? // Wenn null oder in Vergangenheit -> Kein Zugriff
 
-  // Admin-Features (NEU)
-  isActive Boolean @default(true) // User manuell deaktivieren
-  notes    String? // Admin-Notizen
-
   // Relationen
   accounts  Account[]
   sessions  Session[]
@@ -57,18 +53,7 @@ model Session {
   userId       String
   expires      DateTime
   createdAt    DateTime @default(now())
-  
-  // Security-Features (NEU)
-  ipAddress String? // IP-Adresse für Sicherheit
-  userAgent String? // Welches Gerät/Browser
-  
-  // Admin-Features (NEU)
-  isActive Boolean @default(true) // Session manuell deaktivieren
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([expires])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Chat {
@@ -77,20 +62,11 @@ model Chat {
   title     String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  
-  // Expiry & Management (NEU)
-  expiresAt  DateTime? // Explizites Ablaufdatum (30 Tage standard)
-  isArchived Boolean   @default(false) // Manuell archivieren
-  isDeleted  Boolean   @default(false) // Soft Delete statt Hard Delete
 
   // Relationen
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
   documents Document[]
-
-  @@index([userId])
-  @@index([expiresAt])
-  @@index([isDeleted])
 }
 
 model Message {
@@ -99,16 +75,11 @@ model Message {
   content   String   // Text für lange Nachrichten
   role      String   // 'user' oder 'assistant'
   createdAt DateTime @default(now())
-  
-  // Analytics (NEU)
-  tokenCount Int?    // Anzahl Tokens (für Kosten-Tracking)
-  modelUsed  String? // Welches Modell verwendet wurde (z.B. "gpt-4", "gpt-3.5-turbo")
 
   // Relationen
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
-  @@index([createdAt])
 }
 
 model Document {
@@ -122,9 +93,6 @@ model Document {
   base64Data  String?  // Base64 für Bilder (nur für Vision API)
   createdAt   DateTime @default(now())
   expiresAt   DateTime // Automatische Löschung nach 30 Tagen
-  
-  // Management (NEU)
-  isDeleted Boolean @default(false) // Soft Delete statt Hard Delete
 
   // Relationen
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
@@ -133,20 +101,4 @@ model Document {
   @@index([chatId])
   @@index([userId])
   @@index([expiresAt])
-  @@index([isDeleted])
-}
-
-// Admin-Log für Änderungen (NEU)
-model AdminLog {
-  id         String   @id @default(cuid())
-  adminId    String?  // Wer hat die Änderung gemacht (User-ID)
-  action     String   // z.B. "UPDATE_USER", "DELETE_CHAT", "SET_PREMIUM"
-  targetType String   // z.B. "User", "Chat", "Session"
-  targetId   String   // ID des geänderten Objekts
-  changes    Json?    // Was wurde geändert (JSON)
-  createdAt  DateTime @default(now())
-
-  @@index([adminId])
-  @@index([targetType, targetId])
-  @@index([createdAt])
 }
