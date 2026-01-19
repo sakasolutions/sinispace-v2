@@ -12,34 +12,52 @@ export async function registerUser(formData: FormData) {
   const password = formData.get('password') as string;
 
   if (!email || !password) {
+    console.error('[REGISTER] ❌ Email oder Passwort fehlt');
     throw new Error('Email und Passwort sind erforderlich.');
   }
 
   try {
+    console.log(`[REGISTER] 🔍 Prüfe ob User existiert: ${email}`);
+    
     // Prüfen ob User bereits existiert
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
+      console.error(`[REGISTER] ❌ User existiert bereits: ${email}`);
       throw new Error('Ein Benutzer mit dieser E-Mail existiert bereits.');
     }
 
+    console.log(`[REGISTER] 🔐 Hashe Passwort für: ${email}`);
     // Passwort hashen
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    console.log(`[REGISTER] ➕ Erstelle neuen User: ${email}`);
     // User erstellen
-    await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
       },
     });
 
-    await prisma.$disconnect();
+    console.log(`[REGISTER] ✅ User erfolgreich erstellt: ${newUser.id}`);
+    
+    // WICHTIG: NICHT disconnecten - Prisma Client wird wiederverwendet
+    // await prisma.$disconnect();
   } catch (error) {
-    await prisma.$disconnect();
+    console.error('[REGISTER] ❌ Fehler beim Registrieren:', error);
+    
+    // WICHTIG: NICHT disconnecten bei Fehler
+    // await prisma.$disconnect();
+    
     if (error instanceof Error) {
+      // Prisma-Fehler erkennen
+      if (error.message.includes('Prisma') || error.message.includes('database') || error.message.includes('connection')) {
+        console.error('[REGISTER] ❌ Datenbank-Fehler erkannt');
+        throw new Error('Datenbank-Verbindungsfehler. Bitte versuche es später erneut.');
+      }
       throw error;
     }
     throw new Error('Fehler beim Registrieren des Benutzers.');

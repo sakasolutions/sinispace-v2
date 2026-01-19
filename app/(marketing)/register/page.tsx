@@ -10,6 +10,7 @@ import { registerUser } from '@/actions/auth-actions';
 export default function RegisterPage() {
   const router = useRouter();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); // Verhindert das Standard-Neuladen
@@ -17,15 +18,25 @@ export default function RegisterPage() {
 
     const formData = new FormData(event.currentTarget);
     
-    // Backend Call (Logik bleibt 1:1 erhalten)
-    await registerUser(formData);
+    try {
+      setError(null); // Fehler zurücksetzen
+      
+      // Backend Call (Logik bleibt 1:1 erhalten)
+      await registerUser(formData);
 
-    setStatus('success');
+      setStatus('success');
 
-    // Redirect nach 2 Sekunden
-    setTimeout(() => {
-      router.push('/login');
-    }, 2000);
+      // Redirect nach 2 Sekunden
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+    } catch (error) {
+      // Fehler anzeigen
+      console.error('Register error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Fehler beim Registrieren. Bitte versuche es erneut.';
+      setError(errorMessage);
+      setStatus('idle');
+    }
   }
 
   return (
@@ -123,6 +134,12 @@ export default function RegisterPage() {
                   disabled={status === 'loading'}
                 />
               </div>
+              
+              {error && (
+                <div className="rounded-xl border border-red-500/30 bg-red-500/10 backdrop-blur-sm p-4 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
               
               <button
                 className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-xl bg-white text-zinc-950 font-bold text-sm transition-all hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait shadow-[0_0_20px_rgba(255,255,255,0.1)]"
