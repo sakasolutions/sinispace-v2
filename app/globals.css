@@ -14,6 +14,17 @@
     @apply bg-zinc-950 text-white;
     /* Verhindert weißen Hintergrund beim Rubber-Banding auf iOS */
     overscroll-behavior: none;
+    /* PWA: App-Feeling - Verhindert Text-Auswahl (außer in Inputs) */
+    -webkit-user-select: none;
+    user-select: none;
+    /* PWA: Entfernt Tap-Highlight auf Mobile */
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Inputs, Textareas, etc. sollen auswählbar bleiben */
+  input, textarea, [contenteditable], [contenteditable] * {
+    -webkit-user-select: text;
+    user-select: text;
   }
   
   /* Safe Area für iPhone Notch und Home-Balken */

@@ -17,13 +17,24 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: 'Sinispace',
   description: 'Deine Alltags-KI. Minimalistisch und effizient.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Sinispace',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false, // Verhindert Zoomen beim Tippen
   viewportFit: 'cover',
+  themeColor: '#09090b',
 };
 
 export default function RootLayout({
@@ -33,7 +44,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de" className="bg-zinc-950 text-white">
-      <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} min-h-[100dvh] bg-zinc-950 text-white antialiased relative`}>
+      <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} min-h-[100dvh] bg-zinc-950 text-white antialiased relative select-none overscroll-none`} style={{ WebkitTapHighlightColor: 'transparent' }}>
         {/* Background Texture - Smoothes CSS-generated Grid Pattern */}
         {/* Mehrschichtiges Pattern für weichere Übergänge auf iPhone */}
         <div className="fixed inset-0 pointer-events-none z-0">
