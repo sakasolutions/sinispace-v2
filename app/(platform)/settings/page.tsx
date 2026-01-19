@@ -88,36 +88,6 @@ export default async function SettingsPage({
         </div>
       </div>
 
-      {/* LETZTER LOGIN */}
-      <div className="mt-4 sm:mt-6 rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
-        <h2 className="text-sm sm:text-base font-semibold text-white mb-3 sm:mb-4">Aktive Session</h2>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs sm:text-sm text-zinc-400">Status:</p>
-            <span className="text-xs sm:text-sm bg-green-500/20 text-green-400 px-2 py-1 rounded-full border border-green-500/30">
-              Aktiv
-            </span>
-          </div>
-          {user?.lastLoginAt && (
-            <div className="flex items-center justify-between">
-              <p className="text-xs sm:text-sm text-zinc-400">Letzter Login:</p>
-              <p className="text-xs sm:text-sm text-white">
-                {new Date(user.lastLoginAt).toLocaleString('de-DE', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
-            </div>
-          )}
-          <p className="text-[10px] sm:text-xs text-zinc-500 mt-3">
-            Nur eine aktive Session pro Account erlaubt.
-          </p>
-        </div>
-      </div>
-
       {/* LOGOUT */}
       <div className="mt-4 sm:mt-6 rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
         <h2 className="text-sm sm:text-base font-semibold text-white mb-3 sm:mb-4">Abmelden</h2>

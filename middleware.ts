@@ -30,13 +30,8 @@ export default auth((req) => {
     const userIsNull = req.auth?.user === null;
     const hasValidSession = hasUserId && !userIsNull;
     
-    // Nur wenn wirklich eingeloggt (gültige Session mit user.id UND user nicht null) → Redirect zu Dashboard
-    if (hasValidSession) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-    
     // WICHTIG: Wenn ungültige Session (user == null ODER user.id fehlt)
-    // → Cookie löschen, damit User sich neu einloggen kann
+    // → Cookie löschen und Login-Seite erlauben (KEIN Redirect zu Dashboard!)
     if (userIsNull || !hasUserId) {
       const response = NextResponse.next();
       // Lösche alle NextAuth Cookies mit allen möglichen Pfaden und Domains
@@ -65,7 +60,13 @@ export default auth((req) => {
         });
       });
       
+      // WICHTIG: Login-Seite IMMER erlauben, auch wenn ungültige Session existiert
       return response;
+    }
+    
+    // Nur wenn wirklich eingeloggt (gültige Session mit user.id UND user nicht null) → Redirect zu Dashboard
+    if (hasValidSession) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     
     // Sonst: Login-Seite IMMER erlauben
