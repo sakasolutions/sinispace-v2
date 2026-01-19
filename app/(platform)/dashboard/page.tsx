@@ -291,7 +291,8 @@ export default function DashboardPage() {
             const Icon = tool.icon;
             const colors = colorClasses[tool.color] || colorClasses.blue;
             // Spotlight Card Effect - Milchglas mit innerem Glow
-            const cardClassName = `group relative overflow-hidden rounded-3xl border border-white/5 bg-zinc-900/40 backdrop-blur-xl ${colors.hoverBorder} transition-all duration-500 ease-out hover:-translate-y-1 p-6 ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
+            // Mobile: Weniger Padding, Desktop: Normal
+            const cardClassName = `group relative overflow-hidden rounded-3xl border border-white/5 bg-zinc-900/40 backdrop-blur-xl ${colors.hoverBorder} transition-all duration-500 ease-out hover:-translate-y-1 p-4 md:p-6 ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
             const cardContent = (
               <div className="flex flex-col h-full relative z-10">
@@ -299,15 +300,16 @@ export default function DashboardPage() {
                 <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none" />
                 
                 {/* ICON CONTAINER - Mit Leuchteffekt */}
-                <div className={`flex-shrink-0 h-12 w-12 rounded-2xl ${colors.bg} ${colors.bgHover} flex items-center justify-center mb-4 transition-all duration-500 group-hover:bg-opacity-80`}>
+                {/* Mobile: Kleinere Icons, Desktop: Normal */}
+                <div className={`flex-shrink-0 h-10 w-10 md:h-12 md:w-12 rounded-2xl ${colors.bg} ${colors.bgHover} flex items-center justify-center mb-3 md:mb-4 transition-all duration-500 group-hover:bg-opacity-80`}>
                   <div className={`${colors.text} group-hover:drop-shadow-[0_0_12px_currentColor] transition-all duration-500`}>
-                    <Icon className={`w-6 h-6 group-hover:scale-110 transition-transform duration-500`} />
+                    <Icon className={`w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform duration-500`} />
                   </div>
                 </div>
                 
                 {/* CONTENT */}
                 <div className="flex-1 min-w-0 flex flex-col">
-                  <h3 className="font-bold text-xl text-zinc-100 group-hover:text-white mb-2 flex items-center gap-2 tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+                  <h3 className="font-bold text-lg md:text-xl text-zinc-100 group-hover:text-white mb-2 flex items-center gap-2 tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
                     {tool.title}
                     {!tool.available && (
                       <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-500">
@@ -315,13 +317,14 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4 flex-1 tracking-wide">
+                  {/* Beschreibung auf Mobile versteckt, Desktop sichtbar */}
+                  <p className="hidden md:block text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4 flex-1 tracking-wide">
                     {tool.description}
                   </p>
                   
-                  {/* "ÖFFNEN" LINK */}
+                  {/* "ÖFFNEN" LINK - Auf Mobile versteckt, Desktop sichtbar */}
                   {tool.available && (
-                    <div className="flex justify-end mt-auto pt-2">
+                    <div className="hidden md:flex justify-end mt-auto pt-2">
                       <span className="text-xs font-medium text-zinc-400 group-hover:text-white flex items-center gap-1 transition-all tracking-wide">
                         Öffnen
                         <span className="group-hover:translate-x-1 transition-transform duration-500">→</span>

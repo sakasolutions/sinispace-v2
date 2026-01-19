@@ -7,6 +7,7 @@ import { signOutAction } from '@/actions/auth-actions';
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { HeroBackground } from '@/components/ui/hero-background';
+import { MobileNav } from '@/components/mobile-nav';
 
 interface PlatformLayoutContentProps {
   children: React.ReactNode;
@@ -129,89 +130,27 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
 
       {/* MAIN CONTENT */}
       <main className="flex-1 md:ml-64 flex flex-col h-full overflow-hidden">
-        {/* Mobile Header (nur sichtbar auf Handy) */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl px-4 md:hidden z-10">
-          <Link href="/dashboard" className="flex items-center">
-            <div className="relative h-8 w-8 rounded-lg overflow-hidden">
-              <Image 
-                src="/assets/logos/logo.webp" 
-                alt="Sinispace" 
-                fill 
-                className="object-contain p-1" 
-                priority 
-              />
-            </div>
-          </Link>
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-md hover:bg-zinc-900 transition-colors"
-            aria-label="Menü öffnen"
-          >
-            {isMobileMenuOpen ? (
-              <X className="w-5 h-5 text-zinc-400" />
-            ) : (
-              <Menu className="w-5 h-5 text-zinc-400" />
-            )}
-          </button>
-        </header>
+        {/* Mobile Header - AUSGEBLENDET (ersetzt durch Bottom Nav) */}
+        {/* <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl px-4 md:hidden z-10">
+          ...
+        </header> */}
 
-        {/* Mobile Navigation Overlay */}
-        {isMobileMenuOpen && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 z-40 md:hidden"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-            <aside className="fixed inset-y-0 right-0 w-64 bg-zinc-950/50 backdrop-blur-xl border-l border-white/5 z-50 md:hidden transform transition-transform duration-300 ease-in-out">
-              <div className="flex flex-col h-full">
-                <div className="flex h-16 items-center justify-between border-b border-white/5 px-4">
-                  <Link href="/dashboard" className="flex items-center">
-                    <div className="relative h-8 w-8 rounded-lg overflow-hidden">
-                      <Image 
-                        src="/assets/logos/logo.webp" 
-                        alt="Sinispace" 
-                        fill 
-                        className="object-contain p-1" 
-                        priority 
-                      />
-                    </div>
-                  </Link>
-                  <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-2 rounded-md hover:bg-zinc-900 transition-colors"
-                    aria-label="Menü schließen"
-                  >
-                    <X className="w-5 h-5 text-zinc-400" />
-                  </button>
-                </div>
-                <nav className="flex flex-col gap-1 p-4 flex-1">
-                  <MobileNavItem href="/dashboard" label="Übersicht" pathname={pathname} onClick={() => setIsMobileMenuOpen(false)} />
-                  <MobileNavItem href="/chat" label="SiniChat" pathname={pathname} onClick={() => setIsMobileMenuOpen(false)} />
-                  <div className="my-4 h-px bg-white/5" />
-                  <MobileNavItem href="/settings" label="Einstellungen" pathname={pathname} onClick={() => setIsMobileMenuOpen(false)} />
-                </nav>
-                <div className="p-4 border-t border-white/5">
-                  <form action={signOutAction}>
-                    <button 
-                      type="submit"
-                      className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-white transition-colors"
-                    >
-                      Abmelden
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </aside>
-          </>
-        )}
+        {/* Mobile Navigation Overlay - AUSGEBLENDET (ersetzt durch Bottom Nav) */}
+        {/* {isMobileMenuOpen && (
+          ...
+        )} */}
         
         {/* Children Container: Chat-Seite nutzt h-full direkt, andere Seiten bekommen Padding und können scrollen */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        {/* Mobile: Padding-bottom für Bottom Nav */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0">
           <div className="min-h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
             {children}
           </div>
         </div>
       </main>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileNav />
     </div>
   );
 }
