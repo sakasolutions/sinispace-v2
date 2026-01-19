@@ -71,76 +71,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async session({ session, token }) {
-      // WICHTIG: Wenn userId (sub) fehlt im Token, Session ungültig machen
-      if (!token.sub) {
-        // Session wurde revoked → ungültig machen
-        // Setze session.user explizit auf null (nicht undefined), damit Middleware korrekt erkennt
-        // NextAuth behandelt null besser als undefined für ungültige Sessions
-        return {
-          ...session,
-          user: null, // WICHTIG: user auf null setzen → req.auth?.user wird null → req.auth?.user?.id wird undefined
-        } as any;
-      }
+      // WICHTIG: session() Callback kann im Edge Runtime laufen (z.B. in Middleware)
+      // Prisma funktioniert NICHT im Edge Runtime → KEINE DB-Queries hier!
+      // Wir vertrauen auf das JWT-Token - wenn es gültig ist, ist die Session gültig
       
-      // WICHTIG: Session-Validation hier (nicht im JWT-Callback!)
-      // Der session() Callback läuft nur im Server Runtime, kann also Prisma nutzen
-      // Der jwt() Callback läuft auch im Edge Runtime (Middleware) → KEIN Prisma möglich
-      // Prüfe ob der User noch eine aktive Session hat (nur eine Session pro User erlaubt)
-      try {
-        const userId = token.sub as string;
-        
-        // Zuerst: Lösche alle abgelaufenen Sessions (Cleanup)
-        await prisma.session.deleteMany({
-          where: {
-            userId: userId,
-            expires: { lte: new Date() },
-          },
-        });
-        
-        // Prüfe ob noch eine aktive Session existiert
-        const activeSession = await prisma.session.findFirst({
-          where: {
-            userId: userId,
-            expires: { gt: new Date() },
-          },
-        });
-        
-        // WICHTIG: Sicherstellen, dass wirklich nur EINE Session existiert
-        // Falls durch Race Condition mehrere Sessions erstellt wurden, lösche alle außer der neuesten
-        if (activeSession) {
-          const allSessions = await prisma.session.findMany({
-            where: {
-              userId: userId,
-              expires: { gt: new Date() },
-            },
-            orderBy: { createdAt: 'desc' },
-          });
-          
-          // Wenn mehr als eine Session existiert, lösche alle außer der neuesten
-          if (allSessions.length > 1) {
-            const sessionsToDelete = allSessions.slice(1); // Alle außer der ersten (neuesten)
-            await prisma.session.deleteMany({
-              where: {
-                id: { in: sessionsToDelete.map(s => s.id) },
-              },
-            });
-            console.log(`[session callback] ⚠️ ${sessionsToDelete.length} zusätzliche Session(s) gelöscht für User: ${userId}`);
-          }
-        }
-        
-        // Wenn keine aktive Session existiert, Session ungültig machen
-        // (z.B. wenn User sich auf anderem Gerät eingeloggt hat → alte Session gelöscht)
-        if (!activeSession) {
-          // WICHTIG: user auf null setzen → Middleware erkennt ungültige Session
-          // und löscht automatisch die Cookies
-          return {
-            ...session,
-            user: null, // Session ungültig → user auf null setzen
-          } as any;
-        }
-      } catch (error) {
-        // Bei DB-Fehlern: Session ungültig machen (Sicherheitsprinzip)
-        console.error('Error checking session in session callback:', error);
+      // Wenn userId (sub) fehlt im Token, Session ungültig machen
+      if (!token.sub) {
         return {
           ...session,
           user: null,
