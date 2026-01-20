@@ -350,7 +350,8 @@ export default function DashboardPage() {
             // Card-Farben (subtiler Tint im Dark Mode)
             const cardColors = colorMap[tool.color as keyof typeof colorMap] || colorMap.gray;
             // Magazine Style Card - Einheitlich auf allen Geräten
-            const cardClassName = `group relative rounded-2xl border backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-lg p-4 aspect-square ${cardColors.bg} ${cardColors.border} ${cardColors.hoverBorder} ${cardColors.hoverShadow} ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
+            // Performance: transform-gpu und backface-hidden für Hardware-Beschleunigung
+            const cardClassName = `group relative rounded-2xl border backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-lg p-4 aspect-square transform-gpu backface-hidden ${cardColors.bg} ${cardColors.border} ${cardColors.hoverBorder} ${cardColors.hoverShadow} ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
             // Farb-Klasse für Glow-Element (nutze die Tool-Farbe)
             const glowColorClass = tool.color === 'blue' ? 'bg-blue-500' :
