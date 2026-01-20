@@ -7,7 +7,7 @@ import {
   Scale, Calculator, Briefcase, Receipt,
   FileText, HelpCircle, ThumbsUp, Search as SearchIcon,
   Linkedin, Instagram, Video,
-  Code2, Search
+  Code2, Search, ArrowUpRight
 } from 'lucide-react';
 
 type Tool = {
@@ -353,39 +353,64 @@ export default function DashboardPage() {
             // Mobile: Quadratisch/aspect-ratio, Desktop: Normal
             const cardClassName = `group relative overflow-hidden rounded-2xl md:rounded-3xl border backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-lg p-3 md:p-4 lg:p-6 aspect-square md:aspect-auto ${cardColors.bg} ${cardColors.border} ${cardColors.hoverBorder} ${cardColors.hoverShadow} ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
+            // Farb-Klasse für Glow-Element (nutze die Tool-Farbe)
+            const glowColorClass = tool.color === 'blue' ? 'bg-blue-500' :
+                                  tool.color === 'green' ? 'bg-green-500' :
+                                  tool.color === 'indigo' ? 'bg-indigo-500' :
+                                  tool.color === 'purple' ? 'bg-purple-500' :
+                                  tool.color === 'violet' ? 'bg-violet-500' :
+                                  tool.color === 'sky' ? 'bg-sky-500' :
+                                  tool.color === 'rose' ? 'bg-rose-500' :
+                                  tool.color === 'slate' ? 'bg-slate-500' :
+                                  tool.color === 'emerald' ? 'bg-emerald-500' :
+                                  tool.color === 'teal' ? 'bg-teal-500' :
+                                  tool.color === 'orange' ? 'bg-orange-500' :
+                                  tool.color === 'amber' ? 'bg-amber-500' :
+                                  tool.color === 'yellow' ? 'bg-yellow-500' :
+                                  tool.color === 'pink' ? 'bg-pink-500' :
+                                  tool.color === 'red' ? 'bg-red-500' :
+                                  tool.color === 'cyan' ? 'bg-cyan-500' :
+                                  'bg-zinc-500';
+
             const cardContent = (
-              <div className="flex flex-col h-full relative z-10">
+              <div className="flex flex-col justify-between h-full relative z-10 min-h-[128px] md:min-h-auto">
                 {/* Inner Glow - Radial Gradient von oben */}
                 <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl md:rounded-3xl pointer-events-none" />
                 
-                {/* ICON CONTAINER - Mit Leuchteffekt */}
-                {/* Mobile: Kleinere Icons oben links, Desktop: Normal */}
-                <div className={`flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 md:h-12 md:w-12 rounded-xl md:rounded-2xl ${iconColors.bg} ${iconColors.bgHover} flex items-center justify-center mb-2 md:mb-3 lg:mb-4 transition-all duration-500 group-hover:bg-opacity-80`}>
-                  <div className={`${iconColors.text} group-hover:drop-shadow-[0_0_12px_currentColor] transition-all duration-500`}>
-                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform duration-500`} />
-                  </div>
-                </div>
-                
-                {/* CONTENT */}
-                <div className="flex-1 min-w-0 flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-zinc-100 group-hover:text-white mb-1 md:mb-2 leading-tight tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-                      {tool.title}
-                      {!tool.available && (
-                        <span className="hidden sm:inline text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-500 ml-1.5">
-                          In Kürze
-                        </span>
-                      )}
-                    </h3>
-                    {/* Beschreibung auf Mobile versteckt, Desktop sichtbar */}
-                    <p className="hidden md:block text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4 flex-1 tracking-wide">
-                      {tool.description}
-                    </p>
+                {/* OBEN: Icon (links) + Arrow (rechts) */}
+                <div className="flex items-start justify-between mb-2">
+                  {/* ICON CONTAINER - Oben links */}
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center transition-all duration-500 group-hover:bg-white/15 shrink-0">
+                    <div className={`${iconColors.text} group-hover:drop-shadow-[0_0_12px_currentColor] transition-all duration-500`}>
+                      <Icon className="w-5 h-5 group-hover:scale-110 transition-transform duration-500" />
+                    </div>
                   </div>
                   
-                  {/* "ÖFFNEN" LINK - Auf Mobile versteckt, Desktop sichtbar */}
+                  {/* ARROW ICON - Oben rechts (nur auf Mobile) */}
                   {tool.available && (
-                    <div className="hidden md:flex justify-end mt-auto pt-2">
+                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors md:hidden shrink-0" />
+                  )}
+                </div>
+                
+                {/* UNTEN: Titel */}
+                <div className="mt-auto">
+                  <h3 className="font-bold text-base md:text-lg lg:text-xl text-white leading-tight tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+                    {tool.title}
+                    {!tool.available && (
+                      <span className="hidden sm:inline text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-500 ml-1.5">
+                        In Kürze
+                      </span>
+                    )}
+                  </h3>
+                  
+                  {/* Beschreibung - nur Desktop */}
+                  <p className="hidden md:block text-sm text-zinc-400 leading-relaxed line-clamp-2 mt-2 tracking-wide">
+                    {tool.description}
+                  </p>
+                  
+                  {/* "ÖFFNEN" LINK - nur Desktop */}
+                  {tool.available && (
+                    <div className="hidden md:flex justify-end mt-4">
                       <span className="text-xs font-medium text-zinc-400 group-hover:text-white flex items-center gap-1 transition-all tracking-wide">
                         Öffnen
                         <span className="group-hover:translate-x-1 transition-transform duration-500">→</span>
@@ -393,6 +418,9 @@ export default function DashboardPage() {
                     </div>
                   )}
                 </div>
+                
+                {/* DEKORATIVER GLOW - Unten rechts (nur Mobile) */}
+                <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-20 ${glowColorClass} md:hidden pointer-events-none`} />
               </div>
             );
 
