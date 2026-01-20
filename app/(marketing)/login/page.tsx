@@ -6,7 +6,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { loginUser } from '@/actions/auth-actions'; // Deine bestehende Action
-import { HeroBackground } from '@/components/ui/hero-background';
+import dynamic from 'next/dynamic';
+
+// Lazy-load HeroBackground um initial Bundle zu reduzieren (nur auf Login-Seite)
+const HeroBackground = dynamic(() => import('@/components/ui/hero-background').then(mod => ({ default: mod.HeroBackground })), {
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+    </div>
+  ),
+});
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,13 +53,13 @@ export default function LoginPage() {
     // CONTAINER: Dark Mode (Konsistent mit Landing Page & Register)
     <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-zinc-950 selection:bg-orange-500/30 selection:text-orange-100">
       
-      {/* Hero Background (Grid & Glows) */}
+      {/* Hero Background (Grid & Glows) - Lazy-loaded für bessere Performance */}
       <HeroBackground showGlows={true} />
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="relative w-full max-w-sm z-10"
       >
         {/* LOGO (Home Link) */}

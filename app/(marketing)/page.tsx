@@ -137,7 +137,7 @@ function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium text-white hover:text-white/80 transition-colors">Login</Link>
+          <Link href="/login" prefetch={true} className="text-sm font-medium text-white hover:text-white/80 transition-colors">Login</Link>
           <Link href="/register" className="px-5 py-2.5 rounded-full bg-white text-zinc-950 text-sm font-bold hover:bg-zinc-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.15)]">
             Kostenlos starten
           </Link>
@@ -146,7 +146,8 @@ function Header() {
         {/* Mobile Actions - Login Button + Burger Menu */}
         <div className="md:hidden flex items-center gap-2">
           <Link 
-            href="/login" 
+            href="/login"
+            prefetch={true}
             className="text-sm font-medium px-4 py-2 rounded-full border border-white/10 text-white hover:bg-white/5 transition-colors shrink-0"
           >
             Anmelden
