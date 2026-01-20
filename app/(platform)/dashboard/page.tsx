@@ -341,9 +341,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* TOOLS GRID - Magazine Style auf allen Geräten */}
+      {/* TOOLS GRID - Mobile: 2 Spalten, Desktop: Magazine Style */}
       {filteredTools.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             const iconColors = colorClasses[tool.color] || colorClasses.blue;
