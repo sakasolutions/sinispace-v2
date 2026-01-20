@@ -204,6 +204,28 @@ const quickAccessTools = [
   { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'purple', href: '/actions/legal' },
 ];
 
+// Color Mapping für Card-Hintergründe (subtiler Tint im Dark Mode)
+const colorMap: Record<string, { bg: string; border: string; hoverBorder: string; hoverShadow: string }> = {
+  blue: { bg: 'bg-blue-950/30', border: 'border-blue-500/10', hoverBorder: 'hover:border-blue-500/30', hoverShadow: 'hover:shadow-blue-500/10' },
+  indigo: { bg: 'bg-indigo-950/30', border: 'border-indigo-500/10', hoverBorder: 'hover:border-indigo-500/30', hoverShadow: 'hover:shadow-indigo-500/10' },
+  sky: { bg: 'bg-sky-950/30', border: 'border-sky-500/10', hoverBorder: 'hover:border-sky-500/30', hoverShadow: 'hover:shadow-sky-500/10' },
+  rose: { bg: 'bg-rose-950/30', border: 'border-rose-500/10', hoverBorder: 'hover:border-rose-500/30', hoverShadow: 'hover:shadow-rose-500/10' },
+  purple: { bg: 'bg-purple-950/30', border: 'border-purple-500/10', hoverBorder: 'hover:border-purple-500/30', hoverShadow: 'hover:shadow-purple-500/10' },
+  violet: { bg: 'bg-violet-950/30', border: 'border-violet-500/10', hoverBorder: 'hover:border-violet-500/30', hoverShadow: 'hover:shadow-violet-500/10' },
+  green: { bg: 'bg-green-950/30', border: 'border-green-500/10', hoverBorder: 'hover:border-green-500/30', hoverShadow: 'hover:shadow-green-500/10' },
+  slate: { bg: 'bg-slate-950/30', border: 'border-slate-500/10', hoverBorder: 'hover:border-slate-500/30', hoverShadow: 'hover:shadow-slate-500/10' },
+  emerald: { bg: 'bg-emerald-950/30', border: 'border-emerald-500/10', hoverBorder: 'hover:border-emerald-500/30', hoverShadow: 'hover:shadow-emerald-500/10' },
+  teal: { bg: 'bg-teal-950/30', border: 'border-teal-500/10', hoverBorder: 'hover:border-teal-500/30', hoverShadow: 'hover:shadow-teal-500/10' },
+  orange: { bg: 'bg-orange-950/30', border: 'border-orange-500/10', hoverBorder: 'hover:border-orange-500/30', hoverShadow: 'hover:shadow-orange-500/10' },
+  amber: { bg: 'bg-amber-950/30', border: 'border-amber-500/10', hoverBorder: 'hover:border-amber-500/30', hoverShadow: 'hover:shadow-amber-500/10' },
+  yellow: { bg: 'bg-yellow-950/30', border: 'border-yellow-500/10', hoverBorder: 'hover:border-yellow-500/30', hoverShadow: 'hover:shadow-yellow-500/10' },
+  pink: { bg: 'bg-pink-950/30', border: 'border-pink-500/10', hoverBorder: 'hover:border-pink-500/30', hoverShadow: 'hover:shadow-pink-500/10' },
+  red: { bg: 'bg-red-950/30', border: 'border-red-500/10', hoverBorder: 'hover:border-red-500/30', hoverShadow: 'hover:shadow-red-500/10' },
+  cyan: { bg: 'bg-cyan-950/30', border: 'border-cyan-500/10', hoverBorder: 'hover:border-cyan-500/30', hoverShadow: 'hover:shadow-cyan-500/10' },
+  // Fallback
+  gray: { bg: 'bg-zinc-900/40', border: 'border-white/5', hoverBorder: 'hover:border-white/20', hoverShadow: 'hover:shadow-white/5' },
+};
+
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Alle');
@@ -324,10 +346,12 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
-            const colors = colorClasses[tool.color] || colorClasses.blue;
-            // Spotlight Card Effect - Kompakt auf Mobile
+            const iconColors = colorClasses[tool.color] || colorClasses.blue;
+            // Card-Farben (subtiler Tint im Dark Mode)
+            const cardColors = colorMap[tool.color as keyof typeof colorMap] || colorMap.gray;
+            // Spotlight Card Effect - Kompakt auf Mobile mit subtilen Farbtönen
             // Mobile: Quadratisch/aspect-ratio, Desktop: Normal
-            const cardClassName = `group relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/5 bg-zinc-900/40 backdrop-blur-xl ${colors.hoverBorder} transition-all duration-500 ease-out hover:-translate-y-1 p-3 md:p-4 lg:p-6 aspect-square md:aspect-auto ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
+            const cardClassName = `group relative overflow-hidden rounded-2xl md:rounded-3xl border backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-lg p-3 md:p-4 lg:p-6 aspect-square md:aspect-auto ${cardColors.bg} ${cardColors.border} ${cardColors.hoverBorder} ${cardColors.hoverShadow} ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
             const cardContent = (
               <div className="flex flex-col h-full relative z-10">
@@ -336,8 +360,8 @@ export default function DashboardPage() {
                 
                 {/* ICON CONTAINER - Mit Leuchteffekt */}
                 {/* Mobile: Kleinere Icons oben links, Desktop: Normal */}
-                <div className={`flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 md:h-12 md:w-12 rounded-xl md:rounded-2xl ${colors.bg} ${colors.bgHover} flex items-center justify-center mb-2 md:mb-3 lg:mb-4 transition-all duration-500 group-hover:bg-opacity-80`}>
-                  <div className={`${colors.text} group-hover:drop-shadow-[0_0_12px_currentColor] transition-all duration-500`}>
+                <div className={`flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 md:h-12 md:w-12 rounded-xl md:rounded-2xl ${iconColors.bg} ${iconColors.bgHover} flex items-center justify-center mb-2 md:mb-3 lg:mb-4 transition-all duration-500 group-hover:bg-opacity-80`}>
+                  <div className={`${iconColors.text} group-hover:drop-shadow-[0_0_12px_currentColor] transition-all duration-500`}>
                     <Icon className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform duration-500`} />
                   </div>
                 </div>
