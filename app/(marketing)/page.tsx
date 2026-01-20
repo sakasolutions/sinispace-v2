@@ -104,22 +104,22 @@ function Header() {
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled || isMenuOpen ? "bg-zinc-950/90 backdrop-blur-md border-b border-white/10" : "bg-transparent border-transparent"
-      }`}
+      className="fixed top-0 left-0 right-0 w-full z-50 bg-zinc-950/70 backdrop-blur-xl border-b border-white/5"
     >
-      <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group" onClick={() => setIsMenuOpen(false)}>
-           <div className="relative h-9 w-9 overflow-hidden rounded-xl shadow-lg shadow-orange-500/10 border border-white/10 bg-white hover:scale-105 transition-transform duration-300">
-             <Image 
-               src="/assets/logos/logo.webp" 
-               alt="Sinispace Logo" 
-               fill 
-               className="object-contain p-1" 
-               priority 
-               sizes="36px"
-             />
-           </div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
+        {/* Logo - Links */}
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setIsMenuOpen(false)}>
+          <div className="relative h-8 w-8 sm:h-9 sm:w-9 overflow-hidden rounded-xl shadow-lg shadow-orange-500/10 border border-white/10 bg-white hover:scale-105 transition-transform duration-300 shrink-0">
+            <Image 
+              src="/assets/logos/logo.webp" 
+              alt="Sinispace Logo" 
+              fill 
+              className="object-contain p-1" 
+              priority 
+              sizes="36px"
+            />
+          </div>
+          <span className="hidden sm:inline text-white font-semibold text-lg">Sinispace</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -143,10 +143,22 @@ function Header() {
           </Link>
         </div>
 
-        {/* Mobile Toggle */}
-        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-white p-2">
-          {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
-        </button>
+        {/* Mobile Actions - Login Button + Burger Menu */}
+        <div className="md:hidden flex items-center gap-2">
+          <Link 
+            href="/login" 
+            className="text-sm font-medium px-4 py-2 rounded-full border border-white/10 text-white hover:bg-white/5 transition-colors shrink-0"
+          >
+            Anmelden
+          </Link>
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)} 
+            className="text-white p-2 hover:bg-white/5 rounded-lg transition-colors"
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -156,7 +168,7 @@ function Header() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-zinc-950 border-b border-zinc-800 overflow-hidden"
+            className="md:hidden bg-zinc-950/95 backdrop-blur-xl border-b border-white/5 overflow-hidden"
           >
             <div className="p-6 space-y-4">
               {navItems.map((item) => (
@@ -164,14 +176,17 @@ function Header() {
                   key={item.name} 
                   href={item.href} 
                   onClick={() => setIsMenuOpen(false)} 
-                  className="block text-zinc-300 font-medium text-lg"
+                  className="block text-zinc-300 font-medium text-lg hover:text-white transition-colors"
                 >
                   {item.name}
                 </Link>
               ))}
-              <div className="h-px bg-zinc-800 my-4" />
-              <Link href="/login" onClick={() => setIsMenuOpen(false)} className="block text-white font-medium">Login</Link>
-              <Link href="/register" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-3 bg-white text-zinc-950 rounded-xl font-bold">
+              <div className="h-px bg-white/5 my-4" />
+              <Link 
+                href="/register" 
+                onClick={() => setIsMenuOpen(false)} 
+                className="block w-full text-center py-3 bg-white text-zinc-950 rounded-xl font-bold hover:bg-zinc-200 transition-colors"
+              >
                 Kostenlos starten
               </Link>
             </div>
@@ -207,10 +222,10 @@ export default function LandingPage() {
       
       <main>
         {/* --- HERO SECTION --- */}
-        <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-zinc-950 min-h-[95vh] flex flex-col justify-center">
+        <section className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-zinc-950 min-h-[95vh] flex flex-col justify-center">
+          {/* Background nutzt das Grid-Pattern aus layout.tsx (bereits vorhanden) */}
           
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
             <motion.div 
               animate={mounted && !prefersReducedMotion ? { scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3], x: [0, 50, 0] } : {}} 
               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -232,9 +247,13 @@ export default function LandingPage() {
               Prompt Engineering war gestern.
             </motion.div>
 
-            <motion.h1 {...fadeConfigs.title} className="mx-auto max-w-5xl text-5xl font-extrabold tracking-tighter text-white sm:text-7xl md:text-8xl leading-[1.1]">
+            <motion.h1 
+              {...fadeConfigs.title} 
+              className="mx-auto max-w-5xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white leading-[1.1]"
+              style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
+            >
               Ergebnisse auf <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 bg-clip-text text-transparent pb-2 inline-block">
+              <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-emerald-400 text-transparent bg-clip-text pb-2 inline-block">
                 Knopfdruck.
               </span>
             </motion.h1>
@@ -244,30 +263,41 @@ export default function LandingPage() {
               Klick drauf, fertig. <span className="text-zinc-100 font-bold">Und wenn du doch mal frei chatten willst?</span> Haben wir auch.
             </motion.p>
 
-            <motion.div {...fadeConfigs.btn} className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/register" className="flex items-center justify-center w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-zinc-950 font-bold text-lg hover:bg-zinc-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.15)]">
+            <motion.div {...fadeConfigs.btn} className="mt-12 flex flex-col items-center justify-center gap-4 md:flex-row max-w-xl mx-auto">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
+                <Link 
+                  href="/register" 
+                  className="flex items-center justify-center w-full h-12 rounded-xl bg-white text-black font-bold text-base md:text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_-5px_rgba(255,255,255,0.5)]"
+                >
                   Kostenlos registrieren
                 </Link>
               </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="#features" className="flex items-center justify-center w-full sm:w-auto px-8 py-4 rounded-xl border border-zinc-700 bg-zinc-900/50 text-white font-bold hover:bg-zinc-800 transition-all backdrop-blur-sm">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
+                <Link 
+                  href="#features" 
+                  className="flex items-center justify-center w-full md:w-auto h-12 px-8 text-zinc-400 text-sm mt-0 md:mt-0 hover:text-white transition-colors"
+                >
                   So funktioniert's
                 </Link>
               </motion.div>
             </motion.div>
 
+            {/* Visual Proof - Mockup-Karte */}
             <motion.div 
               initial={mounted ? { opacity: 0, y: 60 } : { opacity: 1, y: 0 }}
               whileInView={mounted ? { opacity: 1, y: 0 } : {}}
               viewport={{ once: true }}
               transition={{ duration: 1, delay: 0.5 }}
-              className="mt-24 mx-auto max-w-4xl"
+              className="mt-16 md:mt-24 mx-auto max-w-4xl px-4"
             >
                <motion.div 
                  animate={mounted && !prefersReducedMotion ? { y: [0, -10, 0] } : {}}
                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                 className="rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl p-2 shadow-2xl ring-1 ring-white/5"
+                 className="relative rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl p-2 shadow-2xl shadow-blue-500/20 ring-1 ring-white/5 overflow-hidden"
+                 style={{
+                   maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
+                   WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
+                 } as React.CSSProperties}
                >
                   <div className="rounded-xl bg-zinc-950/80 border border-white/5 overflow-hidden">
                      <div className="h-12 border-b border-white/5 bg-white/5 flex items-center px-4 gap-2">
@@ -278,20 +308,20 @@ export default function LandingPage() {
                      </div>
                      <div className="p-6 md:p-10 min-h-[300px] flex flex-col justify-end space-y-6">
                         <div className="flex gap-4">
-                           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold shadow-lg">AI</div>
+                           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shrink-0">AI</div>
                            <div className="bg-zinc-800/80 border border-zinc-700 p-4 rounded-2xl rounded-tl-none text-zinc-300 text-sm max-w-[85%] leading-relaxed shadow-sm">
                               Hier ist dein fertiger LinkedIn Post zum Thema "SaaS Growth". Soll ich noch passende Hashtags hinzufügen?
                            </div>
                         </div>
                         <div className="flex gap-4 flex-row-reverse">
-                           <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-xs border border-zinc-700">DU</div>
+                           <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-xs border border-zinc-700 shrink-0">DU</div>
                            <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-2xl rounded-tr-none text-orange-200 text-sm max-w-[85%] leading-relaxed">
                               Ja, bitte generiere 5 relevante Hashtags.
                            </div>
                         </div>
                         <div className="h-14 w-full bg-zinc-900 rounded-xl border border-zinc-800 flex items-center px-4 gap-4 shadow-inner">
                            <div className="h-2 w-full bg-zinc-800/50 rounded"></div>
-                           <div className="h-10 w-10 bg-orange-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-600/20">
+                           <div className="h-10 w-10 bg-orange-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-600/20 shrink-0">
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                            </div>
                         </div>
