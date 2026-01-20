@@ -195,6 +195,15 @@ const allTools: Tool[] = [
 
 const categories = ['Alle', 'KOMMUNIKATION', 'BUSINESS', 'WISSEN', 'SOCIAL', 'DEV'];
 
+// Beliebte Tools für Schnellzugriff (Mobile)
+const quickAccessTools = [
+  { id: 'email', title: 'E-Mail', icon: Mail, color: 'blue', href: '/actions/email' },
+  { id: 'chat', title: 'Chat', icon: MessageSquare, color: 'indigo', href: '/chat' },
+  { id: 'excel', title: 'Excel', icon: Calculator, color: 'green', href: '/actions/excel' },
+  { id: 'summarize', title: 'Zusammenfassen', icon: FileText, color: 'teal', href: '/actions/summarize' },
+  { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'purple', href: '/actions/legal' },
+];
+
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Alle');
@@ -241,38 +250,64 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
-      {/* HEADER */}
-      <div className="mb-6 sm:mb-8 md:mb-12">
-        <h1 className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+      {/* HEADER - Kompakter auf Mobile */}
+      <div className="mb-4 sm:mb-6 md:mb-8 lg:mb-12">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
           Willkommen zurück. 👋
         </h1>
-        <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2 tracking-wide">
+        <p className="text-xs sm:text-sm md:text-base text-zinc-400 mt-0.5 sm:mt-1 md:mt-2 tracking-wide">
           Welches Tool soll dir heute helfen?
         </p>
       </div>
 
-      {/* SUCHLEISTE */}
-      <div className="mb-6">
+      {/* SUCHLEISTE - Reduziertes Padding auf Mobile */}
+      <div className="mb-4 sm:mb-6">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+          <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-zinc-500" />
           <input
             type="text"
             placeholder="Suche nach Tools..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-white/10 bg-zinc-900/50 px-12 py-3.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all min-h-[44px] tracking-wide"
+            className="w-full rounded-xl sm:rounded-2xl border border-white/10 bg-zinc-900/50 pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all min-h-[44px] tracking-wide"
           />
         </div>
       </div>
 
-      {/* KATEGORIE-TABS */}
-      <div className="mb-6 overflow-x-auto">
+      {/* SCHNELLZUGRIFF - Nur Mobile */}
+      <div className="mb-4 md:hidden">
+        <div className="overflow-x-auto scrollbar-hide pb-2">
+          <div className="flex gap-3 min-w-max">
+            {quickAccessTools.map((quickTool) => {
+              const QuickIcon = quickTool.icon;
+              const quickColors = colorClasses[quickTool.color] || colorClasses.blue;
+              return (
+                <Link
+                  key={quickTool.id}
+                  href={quickTool.href}
+                  className="shrink-0 flex flex-col items-center group"
+                >
+                  <div className={`w-16 h-16 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center shadow-lg transition-all group-active:scale-95 ${quickColors.hoverBorder}`}>
+                    <QuickIcon className={`w-6 h-6 ${quickColors.text}`} />
+                  </div>
+                  <span className="text-[10px] text-zinc-400 text-center mt-1 truncate max-w-[64px] group-hover:text-zinc-300 transition-colors">
+                    {quickTool.title}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* KATEGORIE-TABS - Kleiner auf Mobile */}
+      <div className="mb-4 sm:mb-6 overflow-x-auto">
         <div className="flex gap-2 pb-2 min-w-max">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap min-h-[36px] tracking-wide ${
+              className={`px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-[32px] sm:min-h-[36px] tracking-wide ${
                 selectedCategory === category
                   ? 'bg-gradient-to-r from-teal-500/20 to-indigo-500/20 text-white border border-teal-500/30 shadow-lg shadow-teal-500/10'
                   : 'bg-zinc-900/50 text-zinc-400 border border-white/5 hover:bg-zinc-800/50'
@@ -284,43 +319,45 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* TOOLS GRID */}
+      {/* TOOLS GRID - 2 Spalten auf Mobile, kompakter */}
       {filteredTools.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             const colors = colorClasses[tool.color] || colorClasses.blue;
-            // Spotlight Card Effect - Milchglas mit innerem Glow
-            // Mobile: Weniger Padding, Desktop: Normal
-            const cardClassName = `group relative overflow-hidden rounded-3xl border border-white/5 bg-zinc-900/40 backdrop-blur-xl ${colors.hoverBorder} transition-all duration-500 ease-out hover:-translate-y-1 p-4 md:p-6 ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
+            // Spotlight Card Effect - Kompakt auf Mobile
+            // Mobile: Quadratisch/aspect-ratio, Desktop: Normal
+            const cardClassName = `group relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/5 bg-zinc-900/40 backdrop-blur-xl ${colors.hoverBorder} transition-all duration-500 ease-out hover:-translate-y-1 p-3 md:p-4 lg:p-6 aspect-square md:aspect-auto ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
             const cardContent = (
               <div className="flex flex-col h-full relative z-10">
                 {/* Inner Glow - Radial Gradient von oben */}
-                <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none" />
+                <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl md:rounded-3xl pointer-events-none" />
                 
                 {/* ICON CONTAINER - Mit Leuchteffekt */}
-                {/* Mobile: Kleinere Icons, Desktop: Normal */}
-                <div className={`flex-shrink-0 h-10 w-10 md:h-12 md:w-12 rounded-2xl ${colors.bg} ${colors.bgHover} flex items-center justify-center mb-3 md:mb-4 transition-all duration-500 group-hover:bg-opacity-80`}>
+                {/* Mobile: Kleinere Icons oben links, Desktop: Normal */}
+                <div className={`flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 md:h-12 md:w-12 rounded-xl md:rounded-2xl ${colors.bg} ${colors.bgHover} flex items-center justify-center mb-2 md:mb-3 lg:mb-4 transition-all duration-500 group-hover:bg-opacity-80`}>
                   <div className={`${colors.text} group-hover:drop-shadow-[0_0_12px_currentColor] transition-all duration-500`}>
-                    <Icon className={`w-5 h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform duration-500`} />
+                    <Icon className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 group-hover:scale-110 transition-transform duration-500`} />
                   </div>
                 </div>
                 
                 {/* CONTENT */}
-                <div className="flex-1 min-w-0 flex flex-col">
-                  <h3 className="font-bold text-lg md:text-xl text-zinc-100 group-hover:text-white mb-2 flex items-center gap-2 tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-                    {tool.title}
-                    {!tool.available && (
-                      <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-500">
-                        In Kürze verfügbar
-                      </span>
-                    )}
-                  </h3>
-                  {/* Beschreibung auf Mobile versteckt, Desktop sichtbar */}
-                  <p className="hidden md:block text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4 flex-1 tracking-wide">
-                    {tool.description}
-                  </p>
+                <div className="flex-1 min-w-0 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-zinc-100 group-hover:text-white mb-1 md:mb-2 leading-tight tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+                      {tool.title}
+                      {!tool.available && (
+                        <span className="hidden sm:inline text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-500 ml-1.5">
+                          In Kürze
+                        </span>
+                      )}
+                    </h3>
+                    {/* Beschreibung auf Mobile versteckt, Desktop sichtbar */}
+                    <p className="hidden md:block text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4 flex-1 tracking-wide">
+                      {tool.description}
+                    </p>
+                  </div>
                   
                   {/* "ÖFFNEN" LINK - Auf Mobile versteckt, Desktop sichtbar */}
                   {tool.available && (
