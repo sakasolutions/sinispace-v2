@@ -341,17 +341,16 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* TOOLS GRID - 2 Spalten auf Mobile, kompakter */}
+      {/* TOOLS GRID - Magazine Style auf allen Geräten */}
       {filteredTools.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             const iconColors = colorClasses[tool.color] || colorClasses.blue;
             // Card-Farben (subtiler Tint im Dark Mode)
             const cardColors = colorMap[tool.color as keyof typeof colorMap] || colorMap.gray;
-            // Spotlight Card Effect - Kompakt auf Mobile mit subtilen Farbtönen
-            // Mobile: Quadratisch/aspect-ratio, Desktop: Normal
-            const cardClassName = `group relative overflow-hidden rounded-2xl md:rounded-3xl border backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-lg p-3 md:p-4 lg:p-6 aspect-square md:aspect-auto ${cardColors.bg} ${cardColors.border} ${cardColors.hoverBorder} ${cardColors.hoverShadow} ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
+            // Magazine Style Card - Einheitlich auf allen Geräten
+            const cardClassName = `group relative overflow-hidden rounded-2xl border backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-lg p-4 aspect-square ${cardColors.bg} ${cardColors.border} ${cardColors.hoverBorder} ${cardColors.hoverShadow} ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
             // Farb-Klasse für Glow-Element (nutze die Tool-Farbe)
             const glowColorClass = tool.color === 'blue' ? 'bg-blue-500' :
@@ -373,9 +372,9 @@ export default function DashboardPage() {
                                   'bg-zinc-500';
 
             const cardContent = (
-              <div className="flex flex-col justify-between h-full relative z-10 min-h-[128px] md:min-h-auto">
+              <div className="flex flex-col justify-between h-full relative z-10 min-h-[128px]">
                 {/* Inner Glow - Radial Gradient von oben */}
-                <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl md:rounded-3xl pointer-events-none" />
+                <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
                 
                 {/* OBEN: Icon (links) + Arrow (rechts) */}
                 <div className="flex items-start justify-between mb-2">
@@ -386,15 +385,24 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   
-                  {/* ARROW ICON - Oben rechts (nur auf Mobile) */}
+                  {/* ARROW ICON - Oben rechts (immer sichtbar) */}
                   {tool.available && (
-                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors md:hidden shrink-0" />
+                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors shrink-0" />
                   )}
                 </div>
                 
+                {/* BESCHREIBUNG - Desktop Hover Reveal */}
+                {tool.description && (
+                  <div className="absolute bottom-16 left-0 right-0 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none z-20">
+                    <p className="text-xs text-zinc-300 line-clamp-2 bg-black/60 backdrop-blur-md p-2 rounded-lg border border-white/5">
+                      {tool.description}
+                    </p>
+                  </div>
+                )}
+                
                 {/* UNTEN: Titel */}
-                <div className="mt-auto">
-                  <h3 className="font-bold text-base md:text-lg lg:text-xl text-white leading-tight tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+                <div className="mt-auto relative z-10">
+                  <h3 className="font-bold text-lg text-white leading-tight tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
                     {tool.title}
                     {!tool.available && (
                       <span className="hidden sm:inline text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-500 ml-1.5">
@@ -402,25 +410,10 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </h3>
-                  
-                  {/* Beschreibung - nur Desktop */}
-                  <p className="hidden md:block text-sm text-zinc-400 leading-relaxed line-clamp-2 mt-2 tracking-wide">
-                    {tool.description}
-                  </p>
-                  
-                  {/* "ÖFFNEN" LINK - nur Desktop */}
-                  {tool.available && (
-                    <div className="hidden md:flex justify-end mt-4">
-                      <span className="text-xs font-medium text-zinc-400 group-hover:text-white flex items-center gap-1 transition-all tracking-wide">
-                        Öffnen
-                        <span className="group-hover:translate-x-1 transition-transform duration-500">→</span>
-                      </span>
-                    </div>
-                  )}
                 </div>
                 
-                {/* DEKORATIVER GLOW - Unten rechts (nur Mobile) */}
-                <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-20 ${glowColorClass} md:hidden pointer-events-none`} />
+                {/* DEKORATIVER GLOW - Unten rechts (immer sichtbar) */}
+                <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-20 ${glowColorClass} pointer-events-none`} />
               </div>
             );
 
