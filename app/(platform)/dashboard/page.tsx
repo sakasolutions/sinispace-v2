@@ -350,7 +350,8 @@ export default function DashboardPage() {
             // Card-Farben (subtiler Tint im Dark Mode)
             const cardColors = colorMap[tool.color as keyof typeof colorMap] || colorMap.gray;
             // Magazine Style Card - Einheitlich auf allen Geräten
-            const cardClassName = `group relative overflow-hidden rounded-2xl border backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-lg p-4 aspect-square ${cardColors.bg} ${cardColors.border} ${cardColors.hoverBorder} ${cardColors.hoverShadow} ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
+            // Safari Fix: isolate für besseres Stacking, overflow-visible für Text-Rendering
+            const cardClassName = `group relative overflow-visible rounded-2xl border backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-lg p-4 aspect-square ${cardColors.bg} ${cardColors.border} ${cardColors.hoverBorder} ${cardColors.hoverShadow} ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
 
             // Farb-Klasse für Glow-Element (nutze die Tool-Farbe)
             const glowColorClass = tool.color === 'blue' ? 'bg-blue-500' :
@@ -372,12 +373,12 @@ export default function DashboardPage() {
                                   'bg-zinc-500';
 
             const cardContent = (
-              <div className="flex flex-col justify-between h-full relative z-10 min-h-[128px]">
+              <div className="flex flex-col justify-between h-full relative z-10 min-h-[128px] isolate">
                 {/* Inner Glow - Radial Gradient von oben */}
-                <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
+                <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none z-0" />
                 
                 {/* OBEN: Icon (links) + Arrow (rechts) */}
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between mb-2 relative z-30">
                   {/* ICON CONTAINER - Oben links */}
                   <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center transition-all duration-500 group-hover:bg-white/15 shrink-0">
                     <div className={`${iconColors.text} group-hover:drop-shadow-[0_0_12px_currentColor] transition-all duration-500`}>
@@ -387,13 +388,13 @@ export default function DashboardPage() {
                   
                   {/* ARROW ICON - Oben rechts (immer sichtbar) */}
                   {tool.available && (
-                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors shrink-0" />
+                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors shrink-0 relative z-30" />
                   )}
                 </div>
                 
                 {/* BESCHREIBUNG - Desktop Hover Reveal */}
                 {tool.description && (
-                  <div className="absolute bottom-20 left-0 right-0 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none z-20">
+                  <div className="absolute bottom-20 left-0 right-0 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none z-40 hidden md:block">
                     <p className="text-xs text-zinc-300 line-clamp-3 bg-black/60 backdrop-blur-md p-2.5 rounded-lg border border-white/5 leading-relaxed">
                       {tool.description}
                     </p>
@@ -401,8 +402,8 @@ export default function DashboardPage() {
                 )}
                 
                 {/* UNTEN: Titel */}
-                <div className="mt-auto relative z-10">
-                  <h3 className="font-bold text-lg text-white leading-tight tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+                <div className="mt-auto relative z-30 w-full">
+                  <h3 className="font-bold text-lg text-white leading-tight tracking-tight relative z-30" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif', WebkitTextFillColor: 'white', WebkitBackfaceVisibility: 'hidden' }}>
                     {tool.title}
                     {!tool.available && (
                       <span className="hidden sm:inline text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-500 ml-1.5">
@@ -412,18 +413,22 @@ export default function DashboardPage() {
                   </h3>
                 </div>
                 
-                {/* DEKORATIVER GLOW - Unten rechts (immer sichtbar) */}
-                <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-20 ${glowColorClass} pointer-events-none`} />
+                {/* DEKORATIVER GLOW - Unten rechts (immer sichtbar, hinter Text) */}
+                <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-20 ${glowColorClass} pointer-events-none z-0`} />
               </div>
             );
 
             return tool.available ? (
-              <Link key={tool.id} href={tool.href} className={cardClassName}>
-                {cardContent}
+              <Link key={tool.id} href={tool.href} className={cardClassName} style={{ isolation: 'isolate' }}>
+                <div className="overflow-hidden rounded-2xl h-full">
+                  {cardContent}
+                </div>
               </Link>
             ) : (
-              <div key={tool.id} className={cardClassName}>
-                {cardContent}
+              <div key={tool.id} className={cardClassName} style={{ isolation: 'isolate' }}>
+                <div className="overflow-hidden rounded-2xl h-full">
+                  {cardContent}
+                </div>
               </div>
             );
           })}
