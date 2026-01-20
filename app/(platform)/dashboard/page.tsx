@@ -393,8 +393,8 @@ export default function DashboardPage() {
                 
                 {/* BESCHREIBUNG - Desktop Hover Reveal */}
                 {tool.description && (
-                  <div className="absolute bottom-16 left-0 right-0 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none z-20">
-                    <p className="text-xs text-zinc-300 line-clamp-2 bg-black/60 backdrop-blur-md p-2 rounded-lg border border-white/5">
+                  <div className="absolute bottom-20 left-0 right-0 px-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none z-20">
+                    <p className="text-xs text-zinc-300 line-clamp-3 bg-black/60 backdrop-blur-md p-2.5 rounded-lg border border-white/5 leading-relaxed">
                       {tool.description}
                     </p>
                   </div>
