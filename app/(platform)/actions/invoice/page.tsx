@@ -298,13 +298,15 @@ export default function InvoicePage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-zinc-400 mb-1">Rechnungsnummer</label>
+                    <label className="block text-sm text-zinc-400 mb-1">
+                      {data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}
+                    </label>
                     <input
                       type="text"
                       value={data.invoiceNumber}
                       onChange={(e) => setData({ ...data, invoiceNumber: e.target.value })}
                       className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
-                      placeholder="RE-2024-001"
+                      placeholder={data.type === 'invoice' ? 'RE-2026-001' : 'AG-2026-001'}
                     />
                   </div>
                 </div>
@@ -441,14 +443,16 @@ export default function InvoicePage() {
 
           {/* RIGHT: Preview */}
           <div className="lg:sticky lg:top-4 h-fit">
-            <div className="bg-white rounded-lg shadow-2xl p-8 min-h-[800px]">
+            <div className="w-full max-w-[210mm] aspect-[210/297] mx-auto bg-white text-black shadow-2xl p-8 text-xs sm:text-sm overflow-auto">
               <div className="text-black">
                 <h1 className="text-2xl font-bold mb-6">
                   {data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
                 </h1>
                 
                 <div className="mb-6 text-sm">
-                  <p className="font-semibold">Rechnungsnummer: {data.invoiceNumber || 'RE-2024-001'}</p>
+                  <p className="font-semibold">
+                    {data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}: {data.invoiceNumber || (data.type === 'invoice' ? 'RE-2026-001' : 'AG-2026-001')}
+                  </p>
                   <p>Datum: {new Date(data.date).toLocaleDateString('de-DE')}</p>
                 </div>
 
@@ -468,12 +472,19 @@ export default function InvoicePage() {
                   </div>
                 )}
 
-                <table className="w-full border-collapse mb-6 text-sm">
+                <table className="w-full table-fixed border-collapse mb-6 text-sm">
+                  <colgroup>
+                    <col className="w-[10%]" />
+                    <col className="w-[10%]" />
+                    <col className="w-[50%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[15%]" />
+                  </colgroup>
                   <thead>
                     <tr className="bg-gray-100">
                       <th className="border border-gray-300 px-3 py-2 text-left">Menge</th>
                       <th className="border border-gray-300 px-3 py-2 text-left">Einheit</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left">Beschreibung</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left break-words">Beschreibung</th>
                       <th className="border border-gray-300 px-3 py-2 text-right">Einzelpreis</th>
                       <th className="border border-gray-300 px-3 py-2 text-right">Gesamt</th>
                     </tr>
@@ -485,7 +496,7 @@ export default function InvoicePage() {
                         <tr key={item.id}>
                           <td className="border border-gray-300 px-3 py-2">{item.quantity}</td>
                           <td className="border border-gray-300 px-3 py-2">{item.unit}</td>
-                          <td className="border border-gray-300 px-3 py-2">{item.description || '-'}</td>
+                          <td className="border border-gray-300 px-3 py-2 break-words">{item.description || '-'}</td>
                           <td className="border border-gray-300 px-3 py-2 text-right">{item.priceOne.toFixed(2)} €</td>
                           <td className="border border-gray-300 px-3 py-2 text-right">{total.toFixed(2)} €</td>
                         </tr>
