@@ -556,11 +556,9 @@ export default function InvoicePage() {
           {/* RIGHT: Preview */}
           <div className="lg:sticky lg:top-4 h-fit">
             {/* Container-Setup (Der Rahmen) */}
-            <div className="w-full bg-zinc-900/50 rounded-3xl border border-white/5 flex flex-col items-center justify-start pt-8 relative">
-              {/* Das Blatt Wrapper (mit fester Höhe, um Ghost Space zu killen) */}
-              <div className="relative w-full flex justify-center h-[450px] sm:h-[600px] 2xl:h-[700px] overflow-visible mb-8">
-                {/* Das A4-Blatt mit Skalierung */}
-                <div className="w-[210mm] min-h-[297mm] shrink-0 bg-white text-black shadow-2xl shadow-black origin-top transform scale-[0.55] xl:scale-[0.70] 2xl:scale-[0.85] p-10 text-xs">
+            <div className="w-full h-full bg-zinc-900/50 rounded-3xl border border-white/5 flex items-start justify-center overflow-hidden p-8">
+              {/* Das A4-Blatt mit Skalierung */}
+              <div className="w-[210mm] min-h-[297mm] shrink-0 bg-white text-black shadow-2xl shadow-black origin-top transform scale-[0.55] xl:scale-[0.70] 2xl:scale-[0.85] p-10 text-xs">
                 <div className="text-black">
                   {/* Rücksendeangabe (Fensterkuvert) - ca. 45mm vom oberen Rand */}
                   {data.senderName && (
@@ -663,15 +661,13 @@ export default function InvoicePage() {
                       <p>{data.outroText}</p>
                     </div>
                   )}
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* PDF Download Button (direkt unter dem Blatt) */}
             <button
               onClick={handleDownloadPDF}
-              className="w-auto px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-medium shadow-lg shadow-blue-900/20 transition-all flex items-center gap-2"
+              className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors"
             >
               <Download className="w-5 h-5" />
               PDF Herunterladen
