@@ -103,7 +103,7 @@ const allTools: Tool[] = [
     color: 'emerald',
     category: 'BUSINESS',
     href: '/actions/invoice',
-    available: false,
+    available: true,
   },
   
   // WISSEN

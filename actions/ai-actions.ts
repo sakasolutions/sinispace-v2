@@ -662,6 +662,115 @@ export async function generateJobDescriptionWithChat(prevState: any, formData: F
 }
 
 // --- CHAT ---
+// --- INVOICE / OFFER TEXT POLISH ---
+export async function polishInvoiceText(rawText: string, type: 'invoice' | 'offer'): Promise<string> {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) {
+    throw new Error('Premium Feature');
+  }
+
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Nicht authentifiziert');
+  }
+
+  const documentType = type === 'invoice' ? 'Rechnung' : 'Angebot';
+  
+  const systemPrompt = `Du bist ein professioneller Texter für ${documentType}en im B2B-Bereich. 
+Deine Aufgabe: Formuliere kurze, präzise Leistungsbeschreibungen für Positionen in ${documentType}en.
+WICHTIG:
+- Maximal 1-2 Zeilen pro Beschreibung
+- Professionell, aber verständlich
+- Keine Marketing-Floskeln, nur Fakten
+- Verwende Fachbegriffe, wenn angemessen
+- Beispiel: "Wand streichen" → "Untergrundvorbereitung und Dispersionsanstrich Q3"`;
+
+  const userPrompt = `Formuliere diese Leistungsbeschreibung professionell für eine ${documentType}:\n\n"${rawText}"`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 150,
+    });
+
+    const polishedText = completion.choices[0]?.message?.content?.trim() || rawText;
+    return polishedText;
+  } catch (error) {
+    console.error('[polishInvoiceText] Fehler:', error);
+    throw new Error('Fehler beim Veredeln des Textes');
+  }
+}
+
+// --- INVOICE INTRO/OUTRO GENERATION ---
+export async function generateInvoiceTexts(
+  clientName: string,
+  type: 'invoice' | 'offer',
+  items: Array<{ description: string; quantity: number; priceOne: number }>
+): Promise<{ intro: string; outro: string }> {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) {
+    throw new Error('Premium Feature');
+  }
+
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Nicht authentifiziert');
+  }
+
+  const documentType = type === 'invoice' ? 'Rechnung' : 'Angebot';
+  const itemsSummary = items.map(item => `${item.description} (${item.quantity}x)`).join(', ');
+  const totalAmount = items.reduce((sum, item) => sum + item.quantity * item.priceOne, 0);
+
+  const systemPrompt = `Du bist ein professioneller Texter für ${documentType}en im B2B-Bereich.
+Erstelle:
+1. Einen kurzen Einleitungstext (2-3 Sätze) für die ${documentType}
+2. Einen kurzen Schlusssatz (1-2 Sätze) für die ${documentType}
+
+WICHTIG:
+- Professionell, aber freundlich
+- Keine Marketing-Floskeln
+- Kurz und prägnant
+- Format: JSON mit "intro" und "outro"`;
+
+  const userPrompt = `${documentType} für: ${clientName}
+Leistungen: ${itemsSummary}
+Gesamtbetrag: ${totalAmount.toFixed(2)} EUR
+
+Erstelle Einleitung und Schluss für diese ${documentType}.`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 300,
+      response_format: { type: 'json_object' },
+    });
+
+    const response = completion.choices[0]?.message?.content?.trim() || '{}';
+    const parsed = JSON.parse(response);
+    
+    return {
+      intro: parsed.intro || (type === 'invoice' ? 'Vielen Dank für Ihren Auftrag.' : 'Vielen Dank für Ihre Anfrage.'),
+      outro: parsed.outro || (type === 'invoice' ? 'Bitte überweisen Sie den Betrag innerhalb von 14 Tagen.' : 'Wir freuen uns auf Ihre Rückmeldung.'),
+    };
+  } catch (error) {
+    console.error('[generateInvoiceTexts] Fehler:', error);
+    return {
+      intro: type === 'invoice' ? 'Vielen Dank für Ihren Auftrag.' : 'Vielen Dank für Ihre Anfrage.',
+      outro: type === 'invoice' ? 'Bitte überweisen Sie den Betrag innerhalb von 14 Tagen.' : 'Wir freuen uns auf Ihre Rückmeldung.',
+    };
+  }
+}
+
 export async function chatWithAI(
   messages: { role: string; content: string }[], 
   fileIds?: string[], // Optional: OpenAI File IDs für hochgeladene Dokumente
