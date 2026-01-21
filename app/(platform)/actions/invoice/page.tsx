@@ -555,9 +555,10 @@ export default function InvoicePage() {
 
           {/* RIGHT: Preview */}
           <div className="lg:sticky lg:top-4 h-fit">
-            {/* Skalierter Container für A4-Blatt */}
-            <div className="transform scale-[0.65] sm:scale-[0.75] lg:scale-[0.85] origin-top-center mx-auto">
-              <div className="w-[210mm] min-h-[297mm] bg-white text-black shadow-2xl p-12 text-xs">
+            {/* Container-Setup (Der Rahmen) */}
+            <div className="w-full h-full bg-zinc-900/50 rounded-3xl border border-white/5 flex items-start justify-center overflow-hidden p-8">
+              {/* Das A4-Blatt mit Skalierung */}
+              <div className="w-[210mm] min-h-[297mm] shrink-0 bg-white text-black shadow-2xl shadow-black origin-top transform scale-[0.55] xl:scale-[0.70] 2xl:scale-[0.85] p-10 text-xs">
                 <div className="text-black">
                   {/* Rücksendeangabe (Fensterkuvert) - ca. 45mm vom oberen Rand */}
                   {data.senderName && (
