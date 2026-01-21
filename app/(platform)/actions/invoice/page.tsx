@@ -254,7 +254,13 @@ export default function InvoicePage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${data.type === 'invoice' ? 'Rechnung' : 'Angebot'}_${data.invoiceNumber || 'DRAFT'}.pdf`;
+      
+      // Dateiname: Nummer oder Fallback mit Datum
+      const fileName = data.invoiceNumber 
+        ? `${data.invoiceNumber}.pdf`
+        : `${data.type === 'invoice' ? 'Rechnung' : 'Angebot'}_${new Date(data.date).toISOString().split('T')[0]}.pdf`;
+      
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -549,25 +555,25 @@ export default function InvoicePage() {
 
           {/* RIGHT: Preview */}
           <div className="lg:sticky lg:top-4 h-fit">
-            <div className="w-full max-w-[210mm] aspect-[210/297] mx-auto bg-white text-black shadow-2xl p-8 text-xs sm:text-sm overflow-auto">
-              <div className="text-black">
-                {/* Briefkopf (DIN 5008) */}
-                <div className="mb-8">
-                  {/* Rücksendeangabe (links oben, klein, grau, unterstrichen) */}
+            {/* Skalierter Container für A4-Blatt */}
+            <div className="transform scale-[0.65] sm:scale-[0.75] lg:scale-[0.85] origin-top-center mx-auto">
+              <div className="w-[210mm] min-h-[297mm] bg-white text-black shadow-2xl p-12 text-xs">
+                <div className="text-black">
+                  {/* Rücksendeangabe (Fensterkuvert) - ca. 45mm vom oberen Rand */}
                   {data.senderName && (
-                    <div className="text-[8px] text-gray-500 underline mb-4">
+                    <div className="text-[10px] text-zinc-500 underline decoration-zinc-300 mb-6">
                       {data.senderName} • {data.senderStreet} • {data.senderZip} {data.senderCity}
                     </div>
                   )}
                   
-                  {/* Layout: Links Kunde, Rechts Absender + Details */}
-                  <div className="flex justify-between items-start">
-                    {/* Links: Kundenadresse */}
+                  {/* Layout: Links Empfänger, Rechts Info-Block */}
+                  <div className="flex justify-between items-start mt-8">
+                    {/* Links: Empfängeradresse */}
                     <div className="flex-1">
                       {data.clientName && (
-                        <div className="mb-2">
-                          <p className="font-semibold text-base">{data.clientName}</p>
-                          {data.clientStreet && <p>{data.clientStreet}</p>}
+                        <div>
+                          <p className="font-semibold text-base mb-1">{data.clientName}</p>
+                          {data.clientStreet && <p className="mb-1">{data.clientStreet}</p>}
                           {(data.clientZip || data.clientCity) && (
                             <p>{data.clientZip} {data.clientCity}</p>
                           )}
@@ -575,91 +581,86 @@ export default function InvoicePage() {
                       )}
                     </div>
                     
-                    {/* Rechts: Absender + Details */}
-                    <div className="text-right ml-8">
-                      {data.senderName && (
-                        <div className="mb-4">
-                          <p className="font-semibold">{data.senderName}</p>
-                          {data.senderStreet && <p className="text-xs">{data.senderStreet}</p>}
-                          {(data.senderZip || data.senderCity) && (
-                            <p className="text-xs">{data.senderZip} {data.senderCity}</p>
-                          )}
-                        </div>
-                      )}
-                      <div className="text-sm">
-                        <p className="font-semibold mb-1">
-                          {data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
-                        </p>
-                        <p>
-                          {data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}: {data.invoiceNumber || (data.type === 'invoice' ? 'RE-2026-001' : 'AG-2026-001')}
-                        </p>
-                        <p>Datum: {new Date(data.date).toLocaleDateString('de-DE')}</p>
-                      </div>
+                    {/* Rechts: Info-Block (Datum/Nummer) */}
+                    <div className="text-right ml-8 text-sm">
+                      <p>
+                        {data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}: {data.invoiceNumber || (data.type === 'invoice' ? 'RE-2026-001' : 'AG-2026-001')}
+                      </p>
+                      <p>Datum: {new Date(data.date).toLocaleDateString('de-DE')}</p>
                     </div>
                   </div>
+                  
+                  {/* Betreff/Titel (nach ca. 1/3 der Seite) */}
+                  <div className="mt-16 mb-6">
+                    <h1 className="font-bold text-2xl mb-4">
+                      {data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
+                    </h1>
+                  </div>
+
+                  {/* Textkörper: Intro-Text */}
+                  {data.introText && (
+                    <div className="mb-6 text-sm">
+                      <p>{data.introText}</p>
+                    </div>
+                  )}
+
+                  {/* Tabelle (DIN 5008 Style) */}
+                  <table className="w-full table-fixed border-collapse mb-6 text-xs">
+                    <colgroup>
+                      <col className="w-[10%]" />
+                      <col className="w-[10%]" />
+                      <col className="w-[50%]" />
+                      <col className="w-[15%]" />
+                      <col className="w-[15%]" />
+                    </colgroup>
+                    <thead>
+                      <tr className="border-b border-black">
+                        <th className="pr-2 py-2 text-left">Menge</th>
+                        <th className="pr-2 py-2 text-left">Einh.</th>
+                        <th className="pr-4 py-2 text-left break-words">Beschreibung</th>
+                        <th className="py-2 text-right">Einzel</th>
+                        <th className="py-2 text-right">Gesamt</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.items.map((item) => {
+                        const total = item.quantity * item.priceOne;
+                        return (
+                          <tr key={item.id}>
+                            <td className="pr-2 py-2">{item.quantity}</td>
+                            <td className="pr-2 py-2">{item.unit}</td>
+                            <td className="pr-4 py-2 break-words">{item.description || '-'}</td>
+                            <td className="py-2 text-right">{item.priceOne.toFixed(2)} €</td>
+                            <td className="py-2 text-right">{total.toFixed(2)} €</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+
+                  {/* Zusammenfassung (rechtsbündig unter Gesamt-Spalte) */}
+                  <div className="ml-auto w-[15%] text-xs text-right">
+                    <div className="flex justify-between mb-1">
+                      <span className="mr-4">Netto:</span>
+                      <span className="font-medium">{netto.toFixed(2)} €</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span className="mr-4">MwSt. ({data.taxRate}%):</span>
+                      <span className="font-medium">{tax.toFixed(2)} €</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-black font-bold">
+                      <span className="mr-4">Gesamt:</span>
+                      <span>{brutto.toFixed(2)} €</span>
+                    </div>
+                  </div>
+
+                  {/* Outro-Text */}
+                  {data.outroText && (
+                    <div className="mt-8 text-sm">
+                      <p>{data.outroText}</p>
+                    </div>
+                  )}
                 </div>
-
-                {data.introText && (
-                  <div className="mb-6 text-sm">
-                    <p>{data.introText}</p>
-                  </div>
-                )}
-
-                {/* Tabelle (DIN 5008 Style) */}
-                <table className="w-full table-fixed border-collapse mb-6 text-xs">
-                  <colgroup>
-                    <col className="w-[10%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[50%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[15%]" />
-                  </colgroup>
-                  <thead>
-                    <tr className="border-b border-black">
-                      <th className="pr-2 py-2 text-left">Menge</th>
-                      <th className="pr-2 py-2 text-left">Einh.</th>
-                      <th className="pr-4 py-2 text-left break-words">Beschreibung</th>
-                      <th className="py-2 text-right">Einzel</th>
-                      <th className="py-2 text-right">Gesamt</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.items.map((item) => {
-                      const total = item.quantity * item.priceOne;
-                      return (
-                        <tr key={item.id}>
-                          <td className="pr-2 py-2">{item.quantity}</td>
-                          <td className="pr-2 py-2">{item.unit}</td>
-                          <td className="pr-4 py-2 break-words">{item.description || '-'}</td>
-                          <td className="py-2 text-right">{item.priceOne.toFixed(2)} €</td>
-                          <td className="py-2 text-right">{total.toFixed(2)} €</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-
-                {/* Zusammenfassung (rechtsbündig unter Gesamt-Spalte) */}
-                <div className="ml-auto w-[15%] text-xs text-right">
-                  <div className="flex justify-between mb-1">
-                    <span className="mr-4">Netto:</span>
-                    <span className="font-medium">{netto.toFixed(2)} €</span>
-                  </div>
-                  <div className="flex justify-between mb-1">
-                    <span className="mr-4">MwSt. ({data.taxRate}%):</span>
-                    <span className="font-medium">{tax.toFixed(2)} €</span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-black font-bold">
-                    <span className="mr-4">Gesamt:</span>
-                    <span>{brutto.toFixed(2)} €</span>
-                  </div>
-                </div>
-
-                {data.outroText && (
-                  <div className="mt-8 text-sm">
-                    <p>{data.outroText}</p>
-                  </div>
-                )}
               </div>
             </div>
 
