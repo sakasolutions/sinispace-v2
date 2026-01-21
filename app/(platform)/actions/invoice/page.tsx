@@ -16,8 +16,17 @@ type InvoiceItem = {
 
 type InvoiceData = {
   type: 'invoice' | 'offer';
+  // Absender (Deine Daten)
+  senderName: string;
+  senderStreet: string;
+  senderZip: string;
+  senderCity: string;
+  // Kunde (Empfänger)
   clientName: string;
-  clientAddress: string;
+  clientStreet: string;
+  clientZip: string;
+  clientCity: string;
+  // Details
   date: Date;
   invoiceNumber: string;
   introText: string;
@@ -90,14 +99,26 @@ const InvoicePDF = ({ data }: { data: InvoiceData }) => {
           <Text style={styles.title}>
             {data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
           </Text>
-          <Text>Rechnungsnummer: {data.invoiceNumber}</Text>
+          {data.senderName && (
+            <View style={{ marginBottom: 10 }}>
+              <Text>{data.senderName}</Text>
+              {data.senderStreet && <Text>{data.senderStreet}</Text>}
+              {(data.senderZip || data.senderCity) && (
+                <Text>{data.senderZip} {data.senderCity}</Text>
+              )}
+            </View>
+          )}
+          <Text>{data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}: {data.invoiceNumber}</Text>
           <Text>Datum: {new Date(data.date).toLocaleDateString('de-DE')}</Text>
         </View>
 
         <View style={styles.section}>
           <Text style={{ marginBottom: 10 }}>An:</Text>
           <Text>{data.clientName}</Text>
-          <Text>{data.clientAddress}</Text>
+          {data.clientStreet && <Text>{data.clientStreet}</Text>}
+          {(data.clientZip || data.clientCity) && (
+            <Text>{data.clientZip} {data.clientCity}</Text>
+          )}
         </View>
 
         {data.introText && (
@@ -156,8 +177,14 @@ const InvoicePDF = ({ data }: { data: InvoiceData }) => {
 export default function InvoicePage() {
   const [data, setData] = useState<InvoiceData>({
     type: 'offer',
+    senderName: '',
+    senderStreet: '',
+    senderZip: '',
+    senderCity: '',
     clientName: '',
-    clientAddress: '',
+    clientStreet: '',
+    clientZip: '',
+    clientCity: '',
     date: new Date(),
     invoiceNumber: '',
     introText: '',
@@ -253,9 +280,107 @@ export default function InvoicePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* LEFT: Editor */}
           <div className="space-y-4">
-            {/* Kopfdaten Card */}
+            {/* Card 1: Deine Daten (Absender) */}
             <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <h2 className="text-lg font-semibold mb-4">Kopfdaten</h2>
+              <h2 className="text-lg font-semibold mb-4">Deine Daten (Absender)</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={data.senderName}
+                    onChange={(e) => setData({ ...data, senderName: e.target.value })}
+                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                    placeholder="Dein Name / Firma"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-1">Straße / Nr</label>
+                  <input
+                    type="text"
+                    value={data.senderStreet}
+                    onChange={(e) => setData({ ...data, senderStreet: e.target.value })}
+                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                    placeholder="Musterstraße 1"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-1">PLZ</label>
+                    <input
+                      type="text"
+                      value={data.senderZip}
+                      onChange={(e) => setData({ ...data, senderZip: e.target.value })}
+                      className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                      placeholder="12345"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-1">Stadt</label>
+                    <input
+                      type="text"
+                      value={data.senderCity}
+                      onChange={(e) => setData({ ...data, senderCity: e.target.value })}
+                      className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                      placeholder="Musterstadt"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Der Kunde (Empfänger) */}
+            <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <h2 className="text-lg font-semibold mb-4">Der Kunde (Empfänger)</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={data.clientName}
+                    onChange={(e) => setData({ ...data, clientName: e.target.value })}
+                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                    placeholder="Firma GmbH"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-1">Straße / Nr</label>
+                  <input
+                    type="text"
+                    value={data.clientStreet}
+                    onChange={(e) => setData({ ...data, clientStreet: e.target.value })}
+                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                    placeholder="Kundenstraße 42"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-1">PLZ</label>
+                    <input
+                      type="text"
+                      value={data.clientZip}
+                      onChange={(e) => setData({ ...data, clientZip: e.target.value })}
+                      className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                      placeholder="54321"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-1">Stadt</label>
+                    <input
+                      type="text"
+                      value={data.clientCity}
+                      onChange={(e) => setData({ ...data, clientCity: e.target.value })}
+                      className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                      placeholder="Kundenstadt"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Details */}
+            <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+              <h2 className="text-lg font-semibold mb-4">Details</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-zinc-400 mb-1">Typ</label>
@@ -267,25 +392,6 @@ export default function InvoicePage() {
                     <option value="offer">Angebot</option>
                     <option value="invoice">Rechnung</option>
                   </select>
-                </div>
-                <div>
-                  <label className="block text-sm text-zinc-400 mb-1">Kundenname</label>
-                  <input
-                    type="text"
-                    value={data.clientName}
-                    onChange={(e) => setData({ ...data, clientName: e.target.value })}
-                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
-                    placeholder="Firma GmbH"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-zinc-400 mb-1">Kundenadresse</label>
-                  <textarea
-                    value={data.clientAddress}
-                    onChange={(e) => setData({ ...data, clientAddress: e.target.value })}
-                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white min-h-[80px]"
-                    placeholder="Musterstraße 1&#10;12345 Musterstadt"
-                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -445,26 +551,53 @@ export default function InvoicePage() {
           <div className="lg:sticky lg:top-4 h-fit">
             <div className="w-full max-w-[210mm] aspect-[210/297] mx-auto bg-white text-black shadow-2xl p-8 text-xs sm:text-sm overflow-auto">
               <div className="text-black">
-                <h1 className="text-2xl font-bold mb-6">
-                  {data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
-                </h1>
-                
-                <div className="mb-6 text-sm">
-                  <p className="font-semibold">
-                    {data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}: {data.invoiceNumber || (data.type === 'invoice' ? 'RE-2026-001' : 'AG-2026-001')}
-                  </p>
-                  <p>Datum: {new Date(data.date).toLocaleDateString('de-DE')}</p>
-                </div>
-
-                {data.clientName && (
-                  <div className="mb-6">
-                    <p className="font-semibold mb-1">An:</p>
-                    <p>{data.clientName}</p>
-                    {data.clientAddress && (
-                      <p className="whitespace-pre-line">{data.clientAddress}</p>
-                    )}
+                {/* Briefkopf (DIN 5008) */}
+                <div className="mb-8">
+                  {/* Rücksendeangabe (links oben, klein, grau, unterstrichen) */}
+                  {data.senderName && (
+                    <div className="text-[8px] text-gray-500 underline mb-4">
+                      {data.senderName} • {data.senderStreet} • {data.senderZip} {data.senderCity}
+                    </div>
+                  )}
+                  
+                  {/* Layout: Links Kunde, Rechts Absender + Details */}
+                  <div className="flex justify-between items-start">
+                    {/* Links: Kundenadresse */}
+                    <div className="flex-1">
+                      {data.clientName && (
+                        <div className="mb-2">
+                          <p className="font-semibold text-base">{data.clientName}</p>
+                          {data.clientStreet && <p>{data.clientStreet}</p>}
+                          {(data.clientZip || data.clientCity) && (
+                            <p>{data.clientZip} {data.clientCity}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Rechts: Absender + Details */}
+                    <div className="text-right ml-8">
+                      {data.senderName && (
+                        <div className="mb-4">
+                          <p className="font-semibold">{data.senderName}</p>
+                          {data.senderStreet && <p className="text-xs">{data.senderStreet}</p>}
+                          {(data.senderZip || data.senderCity) && (
+                            <p className="text-xs">{data.senderZip} {data.senderCity}</p>
+                          )}
+                        </div>
+                      )}
+                      <div className="text-sm">
+                        <p className="font-semibold mb-1">
+                          {data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
+                        </p>
+                        <p>
+                          {data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}: {data.invoiceNumber || (data.type === 'invoice' ? 'RE-2026-001' : 'AG-2026-001')}
+                        </p>
+                        <p>Datum: {new Date(data.date).toLocaleDateString('de-DE')}</p>
+                      </div>
+                    </div>
                   </div>
-                )}
+                </div>
 
                 {data.introText && (
                   <div className="mb-6 text-sm">
@@ -472,7 +605,8 @@ export default function InvoicePage() {
                   </div>
                 )}
 
-                <table className="w-full table-fixed border-collapse mb-6 text-sm">
+                {/* Tabelle (DIN 5008 Style) */}
+                <table className="w-full table-fixed border-collapse mb-6 text-xs">
                   <colgroup>
                     <col className="w-[10%]" />
                     <col className="w-[10%]" />
@@ -481,12 +615,12 @@ export default function InvoicePage() {
                     <col className="w-[15%]" />
                   </colgroup>
                   <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border border-gray-300 px-3 py-2 text-left">Menge</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left">Einheit</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left break-words">Beschreibung</th>
-                      <th className="border border-gray-300 px-3 py-2 text-right">Einzelpreis</th>
-                      <th className="border border-gray-300 px-3 py-2 text-right">Gesamt</th>
+                    <tr className="border-b border-black">
+                      <th className="pr-2 py-2 text-left">Menge</th>
+                      <th className="pr-2 py-2 text-left">Einh.</th>
+                      <th className="pr-4 py-2 text-left break-words">Beschreibung</th>
+                      <th className="py-2 text-right">Einzel</th>
+                      <th className="py-2 text-right">Gesamt</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -494,28 +628,29 @@ export default function InvoicePage() {
                       const total = item.quantity * item.priceOne;
                       return (
                         <tr key={item.id}>
-                          <td className="border border-gray-300 px-3 py-2">{item.quantity}</td>
-                          <td className="border border-gray-300 px-3 py-2">{item.unit}</td>
-                          <td className="border border-gray-300 px-3 py-2 break-words">{item.description || '-'}</td>
-                          <td className="border border-gray-300 px-3 py-2 text-right">{item.priceOne.toFixed(2)} €</td>
-                          <td className="border border-gray-300 px-3 py-2 text-right">{total.toFixed(2)} €</td>
+                          <td className="pr-2 py-2">{item.quantity}</td>
+                          <td className="pr-2 py-2">{item.unit}</td>
+                          <td className="pr-4 py-2 break-words">{item.description || '-'}</td>
+                          <td className="py-2 text-right">{item.priceOne.toFixed(2)} €</td>
+                          <td className="py-2 text-right">{total.toFixed(2)} €</td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
 
-                <div className="ml-auto w-64 text-sm">
+                {/* Zusammenfassung (rechtsbündig unter Gesamt-Spalte) */}
+                <div className="ml-auto w-[15%] text-xs text-right">
                   <div className="flex justify-between mb-1">
-                    <span>Netto:</span>
+                    <span className="mr-4">Netto:</span>
                     <span className="font-medium">{netto.toFixed(2)} €</span>
                   </div>
                   <div className="flex justify-between mb-1">
-                    <span>MwSt. ({data.taxRate}%):</span>
+                    <span className="mr-4">MwSt. ({data.taxRate}%):</span>
                     <span className="font-medium">{tax.toFixed(2)} €</span>
                   </div>
-                  <div className="flex justify-between pt-2 border-t-2 border-black font-bold">
-                    <span>Gesamt:</span>
+                  <div className="flex justify-between pt-2 border-t border-black font-bold">
+                    <span className="mr-4">Gesamt:</span>
                     <span>{brutto.toFixed(2)} €</span>
                   </div>
                 </div>
