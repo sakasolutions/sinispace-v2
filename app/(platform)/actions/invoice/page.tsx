@@ -2,8 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { polishInvoiceText, generateInvoiceTexts } from '@/actions/ai-actions';
-import { Sparkles, Plus, Download, Wand2, Loader2 } from 'lucide-react';
+import { Sparkles, Plus, Download, Wand2, Loader2, FileText } from 'lucide-react';
 import { Page, Text, View, StyleSheet, Document, pdf, BlobProvider } from '@react-pdf/renderer';
+import { ToolHeader } from '@/components/tool-header';
 
 // Types
 type InvoiceItem = {
@@ -17,11 +18,13 @@ type InvoiceItem = {
 type InvoiceData = {
   type: 'invoice' | 'offer';
   // Absender (Deine Daten)
+  senderCompany: string;
   senderName: string;
   senderStreet: string;
   senderZip: string;
   senderCity: string;
   // Kunde (Empfänger)
+  clientCompany: string;
   clientName: string;
   clientStreet: string;
   clientZip: string;
@@ -99,9 +102,16 @@ const InvoicePDF = ({ data }: { data: InvoiceData }) => {
           <Text style={styles.title}>
             {data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
           </Text>
-          {data.senderName && (
+          {(data.senderCompany || data.senderName) && (
             <View style={{ marginBottom: 10 }}>
-              <Text>{data.senderName}</Text>
+              {data.senderCompany ? (
+                <>
+                  <Text style={{ fontWeight: 'bold' }}>{data.senderCompany}</Text>
+                  {data.senderName && <Text>{data.senderName}</Text>}
+                </>
+              ) : (
+                <Text style={{ fontWeight: 'bold' }}>{data.senderName}</Text>
+              )}
               {data.senderStreet && <Text>{data.senderStreet}</Text>}
               {(data.senderZip || data.senderCity) && (
                 <Text>{data.senderZip} {data.senderCity}</Text>
@@ -114,7 +124,14 @@ const InvoicePDF = ({ data }: { data: InvoiceData }) => {
 
         <View style={styles.section}>
           <Text style={{ marginBottom: 10 }}>An:</Text>
-          <Text>{data.clientName}</Text>
+          {data.clientCompany ? (
+            <>
+              <Text style={{ fontWeight: 'bold' }}>{data.clientCompany}</Text>
+              {data.clientName && <Text>{data.clientName}</Text>}
+            </>
+          ) : (
+            <Text style={{ fontWeight: 'bold' }}>{data.clientName}</Text>
+          )}
           {data.clientStreet && <Text>{data.clientStreet}</Text>}
           {(data.clientZip || data.clientCity) && (
             <Text>{data.clientZip} {data.clientCity}</Text>
@@ -177,10 +194,12 @@ const InvoicePDF = ({ data }: { data: InvoiceData }) => {
 export default function InvoicePage() {
   const [data, setData] = useState<InvoiceData>({
     type: 'offer',
+    senderCompany: '',
     senderName: '',
     senderStreet: '',
     senderZip: '',
     senderCity: '',
+    clientCompany: '',
     clientName: '',
     clientStreet: '',
     clientZip: '',
@@ -279,9 +298,12 @@ export default function InvoicePage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50 p-4 md:p-8">
       <div className="max-w-[1800px] mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">
-          {data.type === 'invoice' ? 'Rechnung' : 'Angebot'} Generator
-        </h1>
+        <ToolHeader
+          title="Auftrags-Manager"
+          description="Rechnungen & Angebote erstellen. Mit einem Klick zum PDF."
+          icon={FileText}
+          color="emerald"
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* LEFT: Editor */}
@@ -291,13 +313,23 @@ export default function InvoicePage() {
               <h2 className="text-lg font-semibold mb-4">Deine Daten (Absender)</h2>
               <div className="space-y-4">
                 <div>
+                  <label className="block text-sm text-zinc-400 mb-1">Firma (optional)</label>
+                  <input
+                    type="text"
+                    value={data.senderCompany}
+                    onChange={(e) => setData({ ...data, senderCompany: e.target.value })}
+                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                    placeholder="Musterfirma GmbH"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm text-zinc-400 mb-1">Name</label>
                   <input
                     type="text"
                     value={data.senderName}
                     onChange={(e) => setData({ ...data, senderName: e.target.value })}
                     className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
-                    placeholder="Dein Name / Firma"
+                    placeholder="Dein Name"
                   />
                 </div>
                 <div>
@@ -340,13 +372,23 @@ export default function InvoicePage() {
               <h2 className="text-lg font-semibold mb-4">Der Kunde (Empfänger)</h2>
               <div className="space-y-4">
                 <div>
+                  <label className="block text-sm text-zinc-400 mb-1">Firma (optional)</label>
+                  <input
+                    type="text"
+                    value={data.clientCompany}
+                    onChange={(e) => setData({ ...data, clientCompany: e.target.value })}
+                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                    placeholder="Musterfirma GmbH"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm text-zinc-400 mb-1">Name</label>
                   <input
                     type="text"
                     value={data.clientName}
                     onChange={(e) => setData({ ...data, clientName: e.target.value })}
                     className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
-                    placeholder="Firma GmbH"
+                    placeholder="Kundenname"
                   />
                 </div>
                 <div>
@@ -561,9 +603,9 @@ export default function InvoicePage() {
               <div className="w-[210mm] min-h-[297mm] shrink-0 bg-white text-black shadow-2xl shadow-black origin-top transform scale-[0.55] xl:scale-[0.70] 2xl:scale-[0.85] p-10 text-xs">
                 <div className="text-black">
                   {/* Rücksendeangabe (Fensterkuvert) - ca. 45mm vom oberen Rand */}
-                  {data.senderName && (
+                  {(data.senderCompany || data.senderName) && (
                     <div className="text-[10px] text-zinc-500 underline decoration-zinc-300 mb-6">
-                      {data.senderName} • {data.senderStreet} • {data.senderZip} {data.senderCity}
+                      {data.senderCompany || data.senderName} • {data.senderStreet} • {data.senderZip} {data.senderCity}
                     </div>
                   )}
                   
@@ -571,9 +613,16 @@ export default function InvoicePage() {
                   <div className="flex justify-between items-start mt-8">
                     {/* Links: Empfängeradresse */}
                     <div className="flex-1">
-                      {data.clientName && (
+                      {(data.clientCompany || data.clientName) && (
                         <div>
-                          <p className="font-semibold text-base mb-1">{data.clientName}</p>
+                          {data.clientCompany ? (
+                            <>
+                              <p className="font-semibold text-base mb-1">{data.clientCompany}</p>
+                              {data.clientName && <p className="mb-1">{data.clientName}</p>}
+                            </>
+                          ) : (
+                            <p className="font-semibold text-base mb-1">{data.clientName}</p>
+                          )}
                           {data.clientStreet && <p className="mb-1">{data.clientStreet}</p>}
                           {(data.clientZip || data.clientCity) && (
                             <p>{data.clientZip} {data.clientCity}</p>
