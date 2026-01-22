@@ -321,8 +321,10 @@ export default function DashboardPage() {
             const glowClass = glowColorMap[tool.color] || 'bg-zinc-500';
 
             const cardClassName = cn(
-              'group relative flex flex-col h-full min-h-[180px] p-5 rounded-2xl border backdrop-blur-xl overflow-hidden transform-gpu backface-hidden',
-              'transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-2xl',
+              'group relative flex flex-col h-full min-h-[180px] p-5 rounded-2xl border overflow-hidden',
+              'transform-gpu will-change-transform [backface-visibility:hidden] translate-z-0',
+              'backdrop-blur-sm shadow-md transition-[transform,box-shadow] duration-300 ease-out',
+              'hover:-translate-y-2 hover:shadow-2xl',
               cardColors.bg,
               cardColors.border,
               cardColors.hoverBorder,
@@ -350,13 +352,13 @@ export default function DashboardPage() {
                 </div>
 
                 <h3
-                  className="font-bold text-lg text-white mb-2 relative z-10"
+                  className="font-bold text-lg text-white mb-2 relative z-10 subpixel-antialiased"
                   style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
                 >
                   {tool.title}
                 </h3>
 
-                <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3 relative z-10 flex-1">
+                <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3 relative z-10 flex-1 subpixel-antialiased">
                   {tool.description}
                 </p>
 
