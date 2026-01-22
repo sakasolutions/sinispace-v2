@@ -442,7 +442,7 @@ export default function InvoicePage() {
                   </select>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
+                  <div className="sm:max-w-none max-w-[200px]">
                     <label className="block text-sm text-zinc-400 mb-1">Datum</label>
                     <input
                       type="date"
