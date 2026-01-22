@@ -61,7 +61,7 @@ const allTools: Tool[] = [
     icon: Table2,
     color: 'green',
     category: 'business',
-    href: '/actions/excel',
+    href: '/tools/excel',
     available: true,
   },
 
@@ -169,7 +169,7 @@ const categoryFilterMap: Record<string, string[]> = {
 const quickAccessTools = [
   { id: 'email', title: 'Email-Profi', icon: Mail, color: 'blue', href: '/actions/email' },
   { id: 'chat', title: 'Chat', icon: MessageSquare, color: 'indigo', href: '/chat' },
-  { id: 'excel', title: 'Excel-Coach', icon: Table2, color: 'green', href: '/actions/excel' },
+  { id: 'excel', title: 'Excel-Coach', icon: Table2, color: 'green', href: '/tools/excel' },
   { id: 'summarize', title: 'Klartext', icon: FileInput, color: 'amber', href: '/actions/summarize' },
   { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'violet', href: '/actions/legal' },
 ];
