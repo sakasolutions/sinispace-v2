@@ -103,9 +103,24 @@ Erstelle ein perfektes Rezept für die Kategorie '${mealType}' für genau ${serv
       return { error: 'Ungültiges Rezept-Format. Bitte versuche es erneut.' };
     }
 
+    // Formatiere Rezept für Chat (schön lesbar, nicht als JSON)
+    const formattedRecipe = `# ${recipe.title}
+
+**⏱ Zeit:** ${recipe.time} | **Schwierigkeit:** ${recipe.difficulty} | **🔥 Kalorien:** ${recipe.calories} | **💪 Protein:** ${recipe.protein}
+
+## Zutaten
+
+${recipe.ingredients.map(ing => `- ${ing}`).join('\n')}
+
+## Zubereitung
+
+${recipe.steps.map((step, i) => `${i + 1}. ${step}`).join('\n\n')}
+
+💡 **Profi-Tipp:** ${recipe.tip}`;
+
     // Speichere in Chat (optional, für spätere Bearbeitung)
     const userInput = `Kategorie: ${mealType}, Personen: ${servings}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
-    await createHelperChat('recipe', userInput, JSON.stringify(recipe, null, 2));
+    await createHelperChat('recipe', userInput, formattedRecipe);
 
     // Gib das Rezept als JSON-String zurück (Frontend parsed es)
     return { result: JSON.stringify(recipe) };
