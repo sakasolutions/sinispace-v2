@@ -21,7 +21,7 @@ export async function generateLegal(prevState: any, formData: FormData) {
   const mode = formData.get('mode') as string;
   const details = formData.get('details') as string;
 
-  if (!mode) return { error: 'Bitte wähle einen Modus aus.' };
+  if (!mode || mode.trim() === '') return { error: 'Bitte wähle einen Modus aus.' };
   if (!details || details.trim().length === 0) {
     return { error: 'Bitte fülle alle erforderlichen Felder aus.' };
   }

@@ -208,13 +208,28 @@ export default function LegalPage() {
                 );
               })}
             </div>
-            <input type="hidden" name="mode" value={selectedMode || ''} />
           </div>
 
           {/* STEP 2: Dynamisches Formular */}
           {selectedMode && (
             <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
-              <form action={formAction} className="space-y-4 sm:space-y-5">
+              <form 
+                action={formAction} 
+                className="space-y-4 sm:space-y-5"
+                onSubmit={(e) => {
+                  if (!selectedMode) {
+                    e.preventDefault();
+                    return;
+                  }
+                  // Stelle sicher, dass der Modus-Wert im FormData gesetzt ist
+                  const form = e.currentTarget;
+                  const modeInput = form.querySelector('input[name="mode"]') as HTMLInputElement;
+                  if (modeInput) {
+                    modeInput.value = selectedMode;
+                  }
+                }}
+              >
+                <input type="hidden" name="mode" value={selectedMode} />
                 {selectedMode === 'cancellation' && (
                   <>
                     <div>
