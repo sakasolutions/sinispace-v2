@@ -103,6 +103,7 @@ export default function RecipePage() {
   const [state, formAction] = useActionState(generateRecipe, null);
   
   const [ingredients, setIngredients] = useState('');
+  const [mealType, setMealType] = useState('Hauptgericht');
   const [filters, setFilters] = useState<string[]>([]);
 
   // Parse Recipe aus State
@@ -128,6 +129,15 @@ export default function RecipePage() {
     );
   };
 
+  const mealTypeOptions = [
+    { id: 'main', label: '🥘 Hauptgericht', value: 'Hauptgericht' },
+    { id: 'salad', label: '🥗 Salat / Bowl', value: 'Salat / Bowl' },
+    { id: 'breakfast', label: '🥪 Frühstück / Snack', value: 'Frühstück / Snack' },
+    { id: 'dessert', label: '🍰 Dessert', value: 'Dessert' },
+    { id: 'sauce', label: '🥣 Soße / Dip', value: 'Soße / Dip' },
+    { id: 'drink', label: '🥤 Drink / Shake', value: 'Drink / Shake' },
+  ];
+
   const filterOptions = [
     { id: 'vegetarian', label: '🌱 Vegetarisch', value: 'Vegetarisch' },
     { id: 'high-protein', label: '💪 High Protein', value: 'High Protein' },
@@ -152,6 +162,29 @@ export default function RecipePage() {
         {/* LINKE SEITE: EINGABE */}
         <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
           <form action={formAction} className="space-y-4 sm:space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Gericht-Typ
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {mealTypeOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setMealType(option.value)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all min-h-[44px] ${
+                      mealType === option.value
+                        ? 'bg-orange-500/20 border-2 border-orange-500/50 text-orange-300'
+                        : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <input type="hidden" name="mealType" value={mealType} />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
                 Was hast du im Kühlschrank?

@@ -19,6 +19,7 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   if (!isAllowed) return { result: UPSELL_MESSAGE };
 
   const ingredients = formData.get('ingredients') as string;
+  const mealType = (formData.get('mealType') as string) || 'Hauptgericht';
   const filters = formData.getAll('filters') as string[];
 
   if (!ingredients || ingredients.trim().length === 0) {
@@ -31,7 +32,16 @@ export async function generateRecipe(prevState: any, formData: FormData) {
     filterText = `\n\nBerücksichtige diese Filter: ${filters.join(', ')}`;
   }
 
-  const systemPrompt = `Du bist ein 5-Sterne-Koch. Erstelle ein kreatives, leckeres Rezept aus den Zutaten: {ingredients}. Berücksichtige diese Filter: {filters}.
+  // Spezielle Instruktionen für Drinks/Shakes
+  let categoryInstruction = '';
+  if (mealType === 'Drink / Shake') {
+    categoryInstruction = `\n\nWICHTIG für Drinks/Shakes:
+- Die Zubereitungszeit sollte kurz sein (meist 5-10 Minuten)
+- Die Schwierigkeit sollte "Einfach" sein
+- Die Schritte sollten einfach und schnell umsetzbar sein`;
+  }
+
+  const systemPrompt = `Du bist ein 5-Sterne-Koch. Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'. Nutze primär diese Zutaten: {ingredients}. Berücksichtige diese Filter: {filters}.
 
 Antworte NUR mit validem JSON in diesem Format:
 {
@@ -50,11 +60,12 @@ WICHTIG:
 - Alle Werte müssen Strings sein (auch Zahlen in Anführungszeichen)
 - "ingredients" und "steps" sind Arrays von Strings
 - Die Nährwerte sollten realistisch sein (Kalorien pro Portion, Protein in Gramm)
-- Wenn Zutaten keinen Sinn ergeben, erstelle trotzdem ein kreatives, machbares Rezept`;
+- Das Rezept MUSS zur Kategorie '${mealType}' passen (z.B. bei "Soße / Dip" keine Hauptgerichte erstellen)
+- Wenn Zutaten keinen Sinn ergeben, erstelle trotzdem ein kreatives, machbares Rezept${categoryInstruction}`;
 
-  const userPrompt = `Zutaten im Kühlschrank: ${ingredients}${filterText}
+  const userPrompt = `Kategorie: ${mealType}\nZutaten im Kühlschrank: ${ingredients}${filterText}
 
-Erstelle ein perfektes Rezept basierend auf diesen Zutaten.`;
+Erstelle ein perfektes Rezept für die Kategorie '${mealType}' basierend auf diesen Zutaten.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -87,7 +98,7 @@ Erstelle ein perfektes Rezept basierend auf diesen Zutaten.`;
     }
 
     // Speichere in Chat (optional, für spätere Bearbeitung)
-    const userInput = `Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
+    const userInput = `Kategorie: ${mealType}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
     await createHelperChat('recipe', userInput, JSON.stringify(recipe, null, 2));
 
     // Gib das Rezept als JSON-String zurück (Frontend parsed es)
