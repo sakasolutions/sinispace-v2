@@ -203,9 +203,37 @@ const glowColorMap: Record<string, string> = {
   pink: 'bg-pink-500',
 };
 
+// Dynamische Begrüßung nach Tageszeit
+function getTimeBasedGreeting(): { greeting: string; subline: string } {
+  const hour = new Date().getHours();
+  
+  if (hour >= 5 && hour < 11) {
+    return {
+      greeting: 'Guten Morgen',
+      subline: 'Dein Business läuft. Was optimieren wir jetzt?'
+    };
+  } else if (hour >= 11 && hour < 18) {
+    return {
+      greeting: 'Guten Tag',
+      subline: 'Dein Business läuft. Was optimieren wir jetzt?'
+    };
+  } else if (hour >= 18 && hour < 22) {
+    return {
+      greeting: 'Guten Abend',
+      subline: 'Dein Business läuft. Was optimieren wir jetzt?'
+    };
+  } else {
+    return {
+      greeting: 'Nachtschicht?',
+      subline: 'Dein Business läuft. Was optimieren wir jetzt?'
+    };
+  }
+}
+
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<(typeof categoryTabs)[number]>('Alle');
+  const { greeting, subline } = getTimeBasedGreeting();
 
   const filteredTools = useMemo(() => {
     let filtered = allTools;
@@ -241,27 +269,34 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
-      <div className="mb-4 sm:mb-6 md:mb-8 lg:mb-12">
-        <h1
-          className="text-lg sm:text-xl md:text-2xl font-bold text-white"
-          style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
-        >
-          Willkommen zurück. 👋
-        </h1>
-        <p className="text-xs sm:text-sm md:text-base text-zinc-400 mt-0.5 sm:mt-1 md:mt-2 tracking-wide">
-          Welches Tool soll dir heute helfen?
-        </p>
+      {/* Header mit Background Glow */}
+      <div className="relative mb-6 sm:mb-8 md:mb-10 lg:mb-12">
+        {/* Background Glow für visuelle Tiefe */}
+        <div className="absolute bg-blue-600/20 blur-[100px] w-[300px] h-[300px] rounded-full -top-20 -left-20 -z-10 pointer-events-none" />
+        
+        <div className="relative">
+          <h1
+            className="text-3xl sm:text-4xl font-bold text-white tracking-tight"
+            style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
+          >
+            {greeting} 👋
+          </h1>
+          <p className="text-sm sm:text-base md:text-lg text-zinc-400 mt-2 sm:mt-3 tracking-wide">
+            {subline}
+          </p>
+        </div>
       </div>
 
+      {/* Search Bar mit Glass-Effekt */}
       <div className="mb-4 sm:mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-zinc-500" />
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-blue-400 transition-colors z-10" />
           <input
             type="text"
             placeholder="Suche nach Tools..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl sm:rounded-2xl border border-white/10 bg-zinc-900/50 pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all min-h-[44px] tracking-wide"
+            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-zinc-500 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all shadow-lg backdrop-blur-md text-sm sm:text-base min-h-[56px] tracking-wide"
           />
         </div>
       </div>
@@ -279,7 +314,7 @@ export default function DashboardPage() {
                   className="shrink-0 flex flex-col items-center group"
                 >
                   <div
-                    className={`w-16 h-16 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center shadow-lg transition-all group-active:scale-95 ${quickColors.hoverBorder}`}
+                    className={`w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center shadow-lg transition-all group-active:scale-95 group-active:bg-white/10 group-active:border-white/20 ${quickColors.hoverBorder}`}
                   >
                     <QuickIcon className={`w-6 h-6 ${quickColors.text}`} />
                   </div>
