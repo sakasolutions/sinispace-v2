@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 import {
   Mail,
   Languages,
@@ -175,18 +176,18 @@ const quickAccessTools = [
 ];
 
 const colorMap: Record<string, { bg: string; border: string; hoverBorder: string; hoverShadow: string }> = {
-  blue: { bg: 'bg-blue-950/30', border: 'border-blue-500/10', hoverBorder: 'hover:border-blue-500/30', hoverShadow: 'hover:shadow-blue-500/10' },
-  indigo: { bg: 'bg-indigo-950/30', border: 'border-indigo-500/10', hoverBorder: 'hover:border-indigo-500/30', hoverShadow: 'hover:shadow-indigo-500/10' },
-  rose: { bg: 'bg-rose-950/30', border: 'border-rose-500/10', hoverBorder: 'hover:border-rose-500/30', hoverShadow: 'hover:shadow-rose-500/10' },
-  violet: { bg: 'bg-violet-950/30', border: 'border-violet-500/10', hoverBorder: 'hover:border-violet-500/30', hoverShadow: 'hover:shadow-violet-500/10' },
-  green: { bg: 'bg-green-950/30', border: 'border-green-500/10', hoverBorder: 'hover:border-green-500/30', hoverShadow: 'hover:shadow-green-500/10' },
-  slate: { bg: 'bg-slate-950/30', border: 'border-slate-500/10', hoverBorder: 'hover:border-slate-500/30', hoverShadow: 'hover:shadow-slate-500/10' },
-  emerald: { bg: 'bg-emerald-950/30', border: 'border-emerald-500/10', hoverBorder: 'hover:border-emerald-500/30', hoverShadow: 'hover:shadow-emerald-500/10' },
-  cyan: { bg: 'bg-cyan-950/30', border: 'border-cyan-500/10', hoverBorder: 'hover:border-cyan-500/30', hoverShadow: 'hover:shadow-cyan-500/10' },
-  amber: { bg: 'bg-amber-950/30', border: 'border-amber-500/10', hoverBorder: 'hover:border-amber-500/30', hoverShadow: 'hover:shadow-amber-500/10' },
-  orange: { bg: 'bg-orange-950/30', border: 'border-orange-500/10', hoverBorder: 'hover:border-orange-500/30', hoverShadow: 'hover:shadow-orange-500/10' },
-  pink: { bg: 'bg-pink-950/30', border: 'border-pink-500/10', hoverBorder: 'hover:border-pink-500/30', hoverShadow: 'hover:shadow-pink-500/10' },
-  gray: { bg: 'bg-zinc-900/40', border: 'border-white/5', hoverBorder: 'hover:border-white/20', hoverShadow: 'hover:shadow-white/5' },
+  blue: { bg: 'bg-blue-950/30', border: 'border-blue-500/10', hoverBorder: 'hover:border-blue-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(59,130,246,0.3)]' },
+  indigo: { bg: 'bg-indigo-950/30', border: 'border-indigo-500/10', hoverBorder: 'hover:border-indigo-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.3)]' },
+  rose: { bg: 'bg-rose-950/30', border: 'border-rose-500/10', hoverBorder: 'hover:border-rose-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(244,63,94,0.3)]' },
+  violet: { bg: 'bg-violet-950/30', border: 'border-violet-500/10', hoverBorder: 'hover:border-violet-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.3)]' },
+  green: { bg: 'bg-green-950/30', border: 'border-green-500/10', hoverBorder: 'hover:border-green-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(34,197,94,0.3)]' },
+  slate: { bg: 'bg-slate-950/30', border: 'border-slate-500/10', hoverBorder: 'hover:border-slate-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(100,116,139,0.3)]' },
+  emerald: { bg: 'bg-emerald-950/30', border: 'border-emerald-500/10', hoverBorder: 'hover:border-emerald-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(16,185,129,0.3)]' },
+  cyan: { bg: 'bg-cyan-950/30', border: 'border-cyan-500/10', hoverBorder: 'hover:border-cyan-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(6,182,212,0.3)]' },
+  amber: { bg: 'bg-amber-950/30', border: 'border-amber-500/10', hoverBorder: 'hover:border-amber-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(245,158,11,0.3)]' },
+  orange: { bg: 'bg-orange-950/30', border: 'border-orange-500/10', hoverBorder: 'hover:border-orange-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(249,115,22,0.3)]' },
+  pink: { bg: 'bg-pink-950/30', border: 'border-pink-500/10', hoverBorder: 'hover:border-pink-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(236,72,153,0.3)]' },
+  gray: { bg: 'bg-zinc-900/40', border: 'border-white/5', hoverBorder: 'hover:border-white/20', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(255,255,255,0.1)]' },
 };
 
 const glowColorMap: Record<string, string> = {
@@ -319,7 +320,15 @@ export default function DashboardPage() {
             const cardColors = colorMap[tool.color] || colorMap.gray;
             const glowClass = glowColorMap[tool.color] || 'bg-zinc-500';
 
-            const cardClassName = `group relative flex flex-col h-full min-h-[180px] p-5 rounded-2xl border backdrop-blur-xl transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-lg overflow-hidden transform-gpu backface-hidden ${cardColors.bg} ${cardColors.border} ${cardColors.hoverBorder} ${cardColors.hoverShadow} ${tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'}`;
+            const cardClassName = cn(
+              'group relative flex flex-col h-full min-h-[180px] p-5 rounded-2xl border backdrop-blur-xl overflow-hidden transform-gpu backface-hidden',
+              'transition-all duration-300 ease-out hover:-translate-y-2',
+              cardColors.bg,
+              cardColors.border,
+              cardColors.hoverBorder,
+              cardColors.hoverShadow,
+              tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'
+            );
 
             const cardContent = (
               <>
@@ -332,7 +341,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   {tool.available ? (
-                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors shrink-0" />
+                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 shrink-0" />
                   ) : tool.status === 'soon' ? (
                     <span className="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full border border-zinc-600 bg-zinc-800/80 text-zinc-400 shrink-0">
                       In Kürze
@@ -352,7 +361,11 @@ export default function DashboardPage() {
                 </p>
 
                 <div
-                  className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-15 ${glowClass} pointer-events-none`}
+                  className={cn(
+                    'absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-15 pointer-events-none',
+                    'transition-all duration-500 group-hover:scale-125 group-hover:opacity-30',
+                    glowClass
+                  )}
                   style={{ zIndex: 0 }}
                 />
               </>
