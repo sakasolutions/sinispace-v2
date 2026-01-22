@@ -20,10 +20,15 @@ export async function generateRecipe(prevState: any, formData: FormData) {
 
   const ingredients = formData.get('ingredients') as string;
   const mealType = (formData.get('mealType') as string) || 'Hauptgericht';
+  const servings = parseInt(formData.get('servings') as string) || 2;
   const filters = formData.getAll('filters') as string[];
 
   if (!ingredients || ingredients.trim().length === 0) {
     return { error: 'Bitte gib vorhandene Zutaten ein.' };
+  }
+
+  if (servings < 1 || servings > 20) {
+    return { error: 'Die Anzahl der Personen muss zwischen 1 und 20 liegen.' };
   }
 
   // Baue Filter-String für den Prompt
@@ -61,11 +66,12 @@ WICHTIG:
 - "ingredients" und "steps" sind Arrays von Strings
 - Die Nährwerte sollten realistisch sein (Kalorien pro Portion, Protein in Gramm)
 - Das Rezept MUSS zur Kategorie '${mealType}' passen (z.B. bei "Soße / Dip" keine Hauptgerichte erstellen)
+- Erstelle das Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Berechne alle Mengenangaben (Gramm, Stückzahl, etc.) passend für diese Anzahl. Wenn für 2 Personen normalerweise "4 Eier" verwendet werden, dann sind es für ${servings} Personen entsprechend mehr/f weniger.
 - Wenn Zutaten keinen Sinn ergeben, erstelle trotzdem ein kreatives, machbares Rezept${categoryInstruction}`;
 
-  const userPrompt = `Kategorie: ${mealType}\nZutaten im Kühlschrank: ${ingredients}${filterText}
+  const userPrompt = `Kategorie: ${mealType}\nAnzahl Personen: ${servings}\nZutaten im Kühlschrank: ${ingredients}${filterText}
 
-Erstelle ein perfektes Rezept für die Kategorie '${mealType}' basierend auf diesen Zutaten.`;
+Erstelle ein perfektes Rezept für die Kategorie '${mealType}' für genau ${servings} ${servings === 1 ? 'Person' : 'Personen'} basierend auf diesen Zutaten.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -98,7 +104,7 @@ Erstelle ein perfektes Rezept für die Kategorie '${mealType}' basierend auf die
     }
 
     // Speichere in Chat (optional, für spätere Bearbeitung)
-    const userInput = `Kategorie: ${mealType}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
+    const userInput = `Kategorie: ${mealType}, Personen: ${servings}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
     await createHelperChat('recipe', userInput, JSON.stringify(recipe, null, 2));
 
     // Gib das Rezept als JSON-String zurück (Frontend parsed es)

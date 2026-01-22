@@ -3,7 +3,7 @@
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2 } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Users, Minus, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 
@@ -104,6 +104,7 @@ export default function RecipePage() {
   
   const [ingredients, setIngredients] = useState('');
   const [mealType, setMealType] = useState('Hauptgericht');
+  const [servings, setServings] = useState(2);
   const [filters, setFilters] = useState<string[]>([]);
 
   // Parse Recipe aus State
@@ -187,6 +188,33 @@ export default function RecipePage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Anzahl Personen
+              </label>
+              <div className="flex items-center gap-3 bg-zinc-800/50 border border-white/10 rounded-lg p-2 w-fit">
+                <button
+                  type="button"
+                  onClick={() => setServings(Math.max(1, servings - 1))}
+                  disabled={servings <= 1}
+                  className="w-8 h-8 rounded-md bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-700 hover:text-white hover:border-orange-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="text-sm font-medium text-white min-w-[80px] text-center">
+                  {servings} {servings === 1 ? 'Person' : 'Personen'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setServings(servings + 1)}
+                  className="w-8 h-8 rounded-md bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-700 hover:text-white hover:border-orange-500/30 transition-all flex items-center justify-center"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <input type="hidden" name="servings" value={servings} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
                 Was hast du im Kühlschrank?
               </label>
               <textarea
@@ -254,7 +282,7 @@ export default function RecipePage() {
                     <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{recipe.title}</h2>
                   </div>
 
-                  {/* BADGES: Zeit & Schwierigkeit */}
+                  {/* BADGES: Zeit, Schwierigkeit & Personen */}
                   <div className="flex flex-wrap gap-2 mb-4">
                     <div className="inline-flex items-center gap-1.5 bg-orange-500/10 text-orange-300 border border-orange-500/20 rounded-full px-3 py-1.5 text-xs font-medium">
                       <Clock className="w-3.5 h-3.5" />
@@ -263,6 +291,10 @@ export default function RecipePage() {
                     <div className="inline-flex items-center gap-1.5 bg-orange-500/10 text-orange-300 border border-orange-500/20 rounded-full px-3 py-1.5 text-xs font-medium">
                       <ChefHat className="w-3.5 h-3.5" />
                       {recipe.difficulty}
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 bg-orange-500/10 text-orange-300 border border-orange-500/20 rounded-full px-3 py-1.5 text-xs font-medium">
+                      <Users className="w-3.5 h-3.5" />
+                      {servings} {servings === 1 ? 'Person' : 'Personen'}
                     </div>
                   </div>
 
