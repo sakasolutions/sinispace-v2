@@ -110,11 +110,11 @@ Erstelle ein perfektes Rezept für die Kategorie '${mealType}' für genau ${serv
 
 ## Zutaten
 
-${recipe.ingredients.map(ing => `- ${ing}`).join('\n')}
+${recipe.ingredients.map((ing: string) => `- ${ing}`).join('\n')}
 
 ## Zubereitung
 
-${recipe.steps.map((step, i) => `${i + 1}. ${step}`).join('\n\n')}
+${recipe.steps.map((step: string, i: number) => `${i + 1}. ${step}`).join('\n\n')}
 
 💡 **Profi-Tipp:** ${recipe.tip}`;
 
