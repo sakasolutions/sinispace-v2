@@ -51,7 +51,7 @@ const allTools: Tool[] = [
     icon: Scale,
     color: 'violet',
     category: 'business',
-    href: '/actions/legal',
+    href: '/tools/legal',
     available: true,
   },
   {
