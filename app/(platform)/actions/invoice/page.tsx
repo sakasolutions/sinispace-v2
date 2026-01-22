@@ -38,20 +38,72 @@ type InvoiceData = {
   taxRate: number;
 };
 
-// PDF Styles
+// PDF Styles - DIN 5008 Form B
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 0, // Keine globalen Paddings, wir positionieren absolut
     fontSize: 10,
     fontFamily: 'Helvetica',
+    position: 'relative',
   },
-  header: {
-    marginBottom: 30,
+  // Rücksendeangabe (Fensterkuvert) - 45mm von oben
+  returnAddress: {
+    position: 'absolute',
+    top: '45mm',
+    left: '20mm',
+    fontSize: 6,
+    color: '#666',
+    textDecoration: 'underline',
+  },
+  // Empfängeradresse - 50mm von oben, 85mm breit, 40mm hoch
+  recipientAddress: {
+    position: 'absolute',
+    top: '50mm',
+    left: '20mm',
+    width: '85mm',
+    height: '40mm',
+    fontSize: 10,
+    lineHeight: 1.4,
+  },
+  recipientCompany: {
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  recipientName: {
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  // Info-Block rechts oben - 50mm von oben, 125mm von links (210mm - 20mm rechts - 65mm breite)
+  infoBlock: {
+    position: 'absolute',
+    top: '50mm',
+    left: '125mm', // 20mm rechts Rand = 210mm - 20mm - 65mm = 125mm
+    width: '65mm',
+    fontSize: 10,
+    textAlign: 'right',
+  },
+  infoLine: {
+    marginBottom: 3,
+  },
+  // Titel - erst ab 105mm (unter dem Briefkopf)
+  titleContainer: {
+    position: 'absolute',
+    top: '105mm',
+    left: '20mm',
+    right: '20mm',
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
     fontWeight: 'bold',
+  },
+  // Content-Bereich (ab Titel)
+  contentArea: {
+    position: 'absolute',
+    top: '105mm',
+    left: '20mm',
+    right: '20mm',
+    paddingTop: 30, // Abstand nach Titel
   },
   section: {
     marginBottom: 20,
@@ -89,62 +141,79 @@ const styles = StyleSheet.create({
   },
 });
 
-// PDF Document Component
+// Helper: Datum im Format DD.MM.YYYY formatieren
+const formatDate = (date: Date): string => {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+};
+
+// PDF Document Component - DIN 5008 Form B
 const InvoicePDF = ({ data }: { data: InvoiceData }) => {
   const netto = data.items.reduce((sum, item) => sum + item.quantity * item.priceOne, 0);
   const tax = (netto * data.taxRate) / 100;
   const brutto = netto + tax;
 
+  // Rücksendeangabe Text
+  const returnAddressText = [
+    data.senderCompany || data.senderName,
+    data.senderStreet,
+    `${data.senderZip} ${data.senderCity}`.trim()
+  ].filter(Boolean).join(' • ');
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.title}>
-            {data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
-          </Text>
-          {(data.senderCompany || data.senderName) && (
-            <View style={{ marginBottom: 10 }}>
-              {data.senderCompany ? (
-                <>
-                  <Text style={{ fontWeight: 'bold' }}>{data.senderCompany}</Text>
-                  {data.senderName && <Text>{data.senderName}</Text>}
-                </>
-              ) : (
-                <Text style={{ fontWeight: 'bold' }}>{data.senderName}</Text>
-              )}
-              {data.senderStreet && <Text>{data.senderStreet}</Text>}
-              {(data.senderZip || data.senderCity) && (
-                <Text>{data.senderZip} {data.senderCity}</Text>
-              )}
-            </View>
-          )}
-          <Text>{data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}: {data.invoiceNumber}</Text>
-          <Text>Datum: {new Date(data.date).toLocaleDateString('de-DE')}</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={{ marginBottom: 10 }}>An:</Text>
-          {data.clientCompany ? (
-            <>
-              <Text style={{ fontWeight: 'bold' }}>{data.clientCompany}</Text>
-              {data.clientName && <Text>{data.clientName}</Text>}
-            </>
-          ) : (
-            <Text style={{ fontWeight: 'bold' }}>{data.clientName}</Text>
-          )}
-          {data.clientStreet && <Text>{data.clientStreet}</Text>}
-          {(data.clientZip || data.clientCity) && (
-            <Text>{data.clientZip} {data.clientCity}</Text>
-          )}
-        </View>
-
-        {data.introText && (
-          <View style={styles.section}>
-            <Text>{data.introText}</Text>
+        {/* Rücksendeangabe (Fensterkuvert) - 45mm von oben */}
+        {returnAddressText && (
+          <View style={styles.returnAddress}>
+            <Text>{returnAddressText}</Text>
           </View>
         )}
 
-        <View style={styles.table}>
+        {/* Empfängeradresse - 50mm von oben, 85mm breit, 40mm hoch */}
+        {(data.clientCompany || data.clientName) && (
+          <View style={styles.recipientAddress}>
+            {data.clientCompany ? (
+              <>
+                <Text style={styles.recipientCompany}>{data.clientCompany}</Text>
+                {data.clientName && <Text>{data.clientName}</Text>}
+              </>
+            ) : (
+              <Text style={styles.recipientName}>{data.clientName}</Text>
+            )}
+            {data.clientStreet && <Text>{data.clientStreet}</Text>}
+            {(data.clientZip || data.clientCity) && (
+              <Text>{data.clientZip} {data.clientCity}</Text>
+            )}
+          </View>
+        )}
+
+        {/* Info-Block rechts oben - 50mm von oben */}
+        <View style={styles.infoBlock}>
+          <Text style={styles.infoLine}>Datum: {formatDate(new Date(data.date))}</Text>
+          <Text style={styles.infoLine}>
+            {data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}: {data.invoiceNumber || '-'}
+          </Text>
+        </View>
+
+        {/* Titel - erst ab 105mm (unter dem Briefkopf) */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>
+            {data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
+          </Text>
+        </View>
+
+        {/* Content-Bereich (ab 105mm + Titel-Höhe) */}
+        <View style={styles.contentArea}>
+          {data.introText && (
+            <View style={styles.section}>
+              <Text>{data.introText}</Text>
+            </View>
+          )}
+
+          <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
             <Text style={[styles.tableCell, { flex: 0.5 }]}>Menge</Text>
             <Text style={[styles.tableCell, { flex: 0.3 }]}>Einheit</Text>
@@ -164,28 +233,29 @@ const InvoicePDF = ({ data }: { data: InvoiceData }) => {
               </View>
             );
           })}
-        </View>
+          </View>
 
-        <View style={styles.totals}>
-          <View style={styles.totalRow}>
-            <Text>Netto:</Text>
-            <Text>{netto.toFixed(2)} €</Text>
+          <View style={styles.totals}>
+            <View style={styles.totalRow}>
+              <Text>Netto:</Text>
+              <Text>{netto.toFixed(2)} €</Text>
+            </View>
+            <View style={styles.totalRow}>
+              <Text>MwSt. ({data.taxRate}%):</Text>
+              <Text>{tax.toFixed(2)} €</Text>
+            </View>
+            <View style={[styles.totalRow, { marginTop: 10, borderTop: '1pt solid #000', paddingTop: 5 }]}>
+              <Text style={styles.totalLabel}>Gesamt:</Text>
+              <Text style={styles.totalLabel}>{brutto.toFixed(2)} €</Text>
+            </View>
           </View>
-          <View style={styles.totalRow}>
-            <Text>MwSt. ({data.taxRate}%):</Text>
-            <Text>{tax.toFixed(2)} €</Text>
-          </View>
-          <View style={[styles.totalRow, { marginTop: 10, borderTop: '1pt solid #000', paddingTop: 5 }]}>
-            <Text style={styles.totalLabel}>Gesamt:</Text>
-            <Text style={styles.totalLabel}>{brutto.toFixed(2)} €</Text>
-          </View>
-        </View>
 
-        {data.outroText && (
-          <View style={[styles.section, { marginTop: 30 }]}>
-            <Text>{data.outroText}</Text>
-          </View>
-        )}
+          {data.outroText && (
+            <View style={[styles.section, { marginTop: 30 }]}>
+              <Text>{data.outroText}</Text>
+            </View>
+          )}
+        </View>
       </Page>
     </Document>
   );
