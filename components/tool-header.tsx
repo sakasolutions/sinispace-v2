@@ -28,7 +28,7 @@ export function ToolHeader({ title, description, icon: Icon, color, backLink }: 
   const colors = colorMap[color] || colorMap.emerald;
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8 p-6 bg-white/5 border border-white/10 rounded-2xl">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 p-4 sm:p-6 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl">
       {backLink && (
         <Link
           href={backLink}
@@ -39,13 +39,13 @@ export function ToolHeader({ title, description, icon: Icon, color, backLink }: 
         </Link>
       )}
       
-      <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0`}>
-        <Icon className={`w-6 h-6 ${colors.text}`} />
+      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${colors.text}`} />
       </div>
       
       <div className="flex-1 min-w-0">
-        <h1 className="text-2xl font-bold text-white">{title}</h1>
-        <p className="text-zinc-400 text-sm mt-1">{description}</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-white">{title}</h1>
+        <p className="text-zinc-400 text-xs sm:text-sm mt-0.5 sm:mt-1">{description}</p>
       </div>
     </div>
   );
