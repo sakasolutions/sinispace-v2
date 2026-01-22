@@ -138,9 +138,8 @@ const allTools: Tool[] = [
     icon: ChefHat,
     color: 'orange',
     category: 'lifestyle',
-    href: '/actions/recipe',
-    available: false,
-    status: 'soon',
+    href: '/tools/recipe',
+    available: true,
   },
 
   // CONTENT

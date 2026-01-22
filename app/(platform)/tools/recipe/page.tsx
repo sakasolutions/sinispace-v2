@@ -13,9 +13,9 @@ type Recipe = {
   difficulty: string;
   calories: string;
   protein: string;
-  description: string;
   ingredients: string[];
   steps: string[];
+  tip: string;
 };
 
 function ActionButtons({ recipe }: { recipe: Recipe }) {
@@ -24,7 +24,10 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
 
   const handleCopy = async () => {
     try {
-      const recipeText = `${recipe.title}\n\n${recipe.description}\n\nZutaten:\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\nZubereitung:\n${recipe.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+      let recipeText = `${recipe.title}\n\nZutaten:\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\nZubereitung:\n${recipe.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+      if (recipe.tip) {
+        recipeText += `\n\n💡 Profi-Tipp: ${recipe.tip}`;
+      }
       await navigator.clipboard.writeText(recipeText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -100,7 +103,7 @@ export default function RecipePage() {
   const [state, formAction] = useActionState(generateRecipe, null);
   
   const [ingredients, setIngredients] = useState('');
-  const [preferences, setPreferences] = useState<string[]>([]);
+  const [filters, setFilters] = useState<string[]>([]);
 
   // Parse Recipe aus State
   let recipe: Recipe | null = null;
@@ -117,19 +120,19 @@ export default function RecipePage() {
     }
   }
 
-  const togglePreference = (pref: string) => {
-    setPreferences(prev => 
-      prev.includes(pref) 
-        ? prev.filter(p => p !== pref)
-        : [...prev, pref]
+  const toggleFilter = (filter: string) => {
+    setFilters(prev => 
+      prev.includes(filter) 
+        ? prev.filter(f => f !== filter)
+        : [...prev, filter]
     );
   };
 
-  const preferenceOptions = [
+  const filterOptions = [
     { id: 'vegetarian', label: '🌱 Vegetarisch', value: 'Vegetarisch' },
-    { id: 'vegan', label: '🥦 Vegan', value: 'Vegan' },
     { id: 'high-protein', label: '💪 High Protein', value: 'High Protein' },
-    { id: 'quick', label: '⚡️ Schnell (<20min)', value: 'Schnell (<20min)' },
+    { id: 'quick', label: '⏱ Schnell', value: 'Schnell' },
+    { id: 'low-carb', label: '📉 Low Carb', value: 'Low Carb' },
   ];
 
   return (
@@ -151,14 +154,14 @@ export default function RecipePage() {
           <form action={formAction} className="space-y-4 sm:space-y-5">
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Was ist im Kühlschrank?
+                Was hast du im Kühlschrank?
               </label>
               <textarea
                 name="ingredients"
                 required
                 value={ingredients}
                 onChange={(e) => setIngredients(e.target.value)}
-                placeholder="z.B. Eier, Tomaten, alter Käse, Nudeln, Zwiebeln..."
+                placeholder="z.B. Eier, Tomaten, Reis..."
                 className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 resize-none transition-all min-h-[150px]"
                 rows={6}
               />
@@ -169,13 +172,13 @@ export default function RecipePage() {
                 Filter & Präferenzen
               </label>
               <div className="flex flex-wrap gap-2">
-                {preferenceOptions.map((option) => (
+                {filterOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
-                    onClick={() => togglePreference(option.value)}
+                    onClick={() => toggleFilter(option.value)}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-all min-h-[44px] ${
-                      preferences.includes(option.value)
+                      filters.includes(option.value)
                         ? 'bg-orange-500/20 border-2 border-orange-500/50 text-orange-300'
                         : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
                     }`}
@@ -185,8 +188,8 @@ export default function RecipePage() {
                 ))}
               </div>
               {/* Hidden inputs für FormData */}
-              {preferences.map((pref) => (
-                <input key={pref} type="hidden" name="preferences" value={pref} />
+              {filters.map((filter) => (
+                <input key={filter} type="hidden" name="filters" value={filter} />
               ))}
             </div>
 
@@ -216,7 +219,6 @@ export default function RecipePage() {
                   {/* HEADER */}
                   <div className="mb-4">
                     <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{recipe.title}</h2>
-                    <p className="text-zinc-300 text-sm sm:text-base leading-relaxed">{recipe.description}</p>
                   </div>
 
                   {/* BADGES: Zeit & Schwierigkeit */}
@@ -257,7 +259,7 @@ export default function RecipePage() {
                   </div>
 
                   {/* ZUBEREITUNG */}
-                  <div>
+                  <div className="mb-6">
                     <h3 className="text-lg font-semibold text-white mb-3">Zubereitung</h3>
                     <ol className="space-y-3">
                       {recipe.steps.map((step, index) => (
@@ -270,6 +272,16 @@ export default function RecipePage() {
                       ))}
                     </ol>
                   </div>
+
+                  {/* TIP */}
+                  {recipe.tip && (
+                    <div className="pt-4 border-t border-white/10">
+                      <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3">
+                        <p className="text-sm text-orange-200 font-medium mb-1">💡 Profi-Tipp</p>
+                        <p className="text-sm text-zinc-300 leading-relaxed">{recipe.tip}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

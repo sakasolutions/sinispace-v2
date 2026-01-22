@@ -19,40 +19,40 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   if (!isAllowed) return { result: UPSELL_MESSAGE };
 
   const ingredients = formData.get('ingredients') as string;
-  const preferences = formData.getAll('preferences') as string[];
+  const filters = formData.getAll('filters') as string[];
 
   if (!ingredients || ingredients.trim().length === 0) {
     return { error: 'Bitte gib vorhandene Zutaten ein.' };
   }
 
-  // Baue Preference-String für den Prompt
-  let preferenceText = '';
-  if (preferences.length > 0) {
-    preferenceText = `\n\nBesondere Wünsche: ${preferences.join(', ')}`;
+  // Baue Filter-String für den Prompt
+  let filterText = '';
+  if (filters.length > 0) {
+    filterText = `\n\nBerücksichtige diese Filter: ${filters.join(', ')}`;
   }
 
-  const systemPrompt = `Du bist ein 5-Sterne-Koch spezialisiert auf kreative Resteverwertung und gesunde Küche. Erstelle basierend auf den Zutaten EIN perfektes Rezept. Sei kreativ, aber realistisch.
+  const systemPrompt = `Du bist ein 5-Sterne-Koch. Erstelle ein kreatives, leckeres Rezept aus den Zutaten: {ingredients}. Berücksichtige diese Filter: {filters}.
 
-WICHTIG: 
-- Antworte NUR mit einem gültigen JSON-Objekt (kein Markdown, kein Text davor oder danach)
-- Die JSON-Struktur muss exakt so sein:
+Antworte NUR mit validem JSON in diesem Format:
 {
-  "title": "Rezept-Titel",
-  "time": "XX Min",
-  "difficulty": "Einfach" oder "Mittel" oder "Schwer",
-  "calories": "XXX kcal",
-  "protein": "XXg",
-  "description": "Ein kurzer Teaser-Text (2 Sätze), warum das Gericht lecker ist.",
-  "ingredients": ["Menge Zutat 1", "Menge Zutat 2", ...],
-  "steps": ["Schritt 1...", "Schritt 2...", ...]
+  "title": "Name des Gerichts",
+  "time": "z.B. 20 Min",
+  "difficulty": "Einfach/Mittel/Schwer",
+  "calories": "z.B. 450 kcal",
+  "protein": "z.B. 25g",
+  "ingredients": ["Menge Zutat 1", "Menge Zutat 2"],
+  "steps": ["Schritt 1", "Schritt 2"],
+  "tip": "Ein kurzer Profi-Tipp dazu"
 }
 
+WICHTIG:
+- Antworte NUR mit einem gültigen JSON-Objekt (kein Markdown, kein Text davor oder danach)
 - Alle Werte müssen Strings sein (auch Zahlen in Anführungszeichen)
 - "ingredients" und "steps" sind Arrays von Strings
 - Die Nährwerte sollten realistisch sein (Kalorien pro Portion, Protein in Gramm)
 - Wenn Zutaten keinen Sinn ergeben, erstelle trotzdem ein kreatives, machbares Rezept`;
 
-  const userPrompt = `Zutaten im Kühlschrank: ${ingredients}${preferenceText}
+  const userPrompt = `Zutaten im Kühlschrank: ${ingredients}${filterText}
 
 Erstelle ein perfektes Rezept basierend auf diesen Zutaten.`;
 
@@ -82,12 +82,12 @@ Erstelle ein perfektes Rezept basierend auf diesen Zutaten.`;
     }
 
     // Validiere die Struktur
-    if (!recipe.title || !recipe.ingredients || !recipe.steps) {
+    if (!recipe.title || !recipe.ingredients || !recipe.steps || !recipe.tip) {
       return { error: 'Ungültiges Rezept-Format. Bitte versuche es erneut.' };
     }
 
     // Speichere in Chat (optional, für spätere Bearbeitung)
-    const userInput = `Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${preferences.length > 0 ? `, Präferenzen: ${preferences.join(', ')}` : ''}`;
+    const userInput = `Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
     await createHelperChat('recipe', userInput, JSON.stringify(recipe, null, 2));
 
     // Gib das Rezept als JSON-String zurück (Frontend parsed es)
