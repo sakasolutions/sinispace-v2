@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { getChats, deleteChat, updateChatTitle } from '@/actions/chat-actions';
 import { Pencil, Trash2, X, Check } from 'lucide-react';
+import { SwipeableChatItem } from './swipeable-chat-item';
 
 // Custom Confirm Modal
 function ConfirmModal({ 
@@ -225,106 +226,21 @@ export function ChatSidebar({ isOpen, onClose, userEmail, isPro }: ChatSidebarPr
             ) : (
               <div className="p-1.5 sm:p-2 space-y-0.5 sm:space-y-1">
                 {chats.map((chat) => (
-                  <div
+                  <SwipeableChatItem
                     key={chat.id}
-                    className={`
-                      group relative rounded-lg transition-colors
-                      ${pathname === `/chat/${chat.id}` 
-                        ? 'bg-white/10' 
-                        : 'hover:bg-white/5 active:bg-white/10'
-                      }
-                    `}
-                    onMouseEnter={() => setHoveredChatId(chat.id)}
-                    onMouseLeave={() => setHoveredChatId(null)}
-                    onTouchStart={() => setHoveredChatId(chat.id)}
-                  >
-                    {editingChatId === chat.id ? (
-                      // Edit-Modus
-                      <div className="p-2.5 sm:p-3">
-                        <input
-                          type="text"
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleSaveEdit(chat.id);
-                            } else if (e.key === 'Escape') {
-                              handleCancelEdit();
-                            }
-                          }}
-                          className="w-full px-2 py-1 text-xs sm:text-sm font-medium border border-white/10 bg-zinc-900/50 rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 mb-1 text-white placeholder:text-zinc-500"
-                          autoFocus
-                        />
-                        <div className="flex items-center gap-1.5 sm:gap-2 mt-1">
-                          <button
-                            onClick={() => handleSaveEdit(chat.id)}
-                            className="p-1 rounded hover:bg-white/10 transition-colors"
-                            aria-label="Speichern"
-                          >
-                            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" />
-                          </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="p-1 rounded hover:bg-white/10 transition-colors"
-                            aria-label="Abbrechen"
-                          >
-                            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400" />
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      // Normal-Modus
-                      <>
-                        <Link
-                          href={`/chat/${chat.id}`}
-                          className="block p-2.5 sm:p-3 pr-10 sm:pr-12"
-                          onClick={onClose}
-                        >
-                          <div className={`font-medium text-xs sm:text-sm truncate mb-0.5 sm:mb-1 ${
-                            pathname === `/chat/${chat.id}` 
-                              ? 'text-white' 
-                              : 'text-zinc-300'
-                          }`}>
-                            {chat.title}
-                          </div>
-                          <div className="text-[10px] sm:text-xs text-zinc-500">{formatDate(chat.updatedAt)}</div>
-                        </Link>
-                        
-                        {/* Action Buttons (immer sichtbar auf Mobile, beim Hover auf Desktop) */}
-                        <div className={`absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 sm:gap-1 ${
-                          hoveredChatId === chat.id || deletingChatId === chat.id 
-                            ? 'opacity-100' 
-                            : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
-                        } transition-opacity`}>
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleEdit(chat);
-                            }}
-                            className="p-1 sm:p-1.5 rounded hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation"
-                            aria-label="Chat umbenennen"
-                            title="Umbenennen"
-                          >
-                            <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400 hover:text-white" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleDelete(chat.id);
-                            }}
-                            disabled={deletingChatId === chat.id}
-                            className="p-1 sm:p-1.5 rounded hover:bg-red-500/20 active:bg-red-500/30 transition-colors disabled:opacity-50 touch-manipulation"
-                            aria-label="Chat löschen"
-                            title="Löschen"
-                          >
-                            <Trash2 className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${deletingChatId === chat.id ? 'text-zinc-500' : 'text-red-400'}`} />
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                    chat={chat}
+                    isActive={pathname === `/chat/${chat.id}`}
+                    pathname={pathname}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onClose={onClose}
+                    editingChatId={editingChatId}
+                    deletingChatId={deletingChatId}
+                    editingTitle={editingTitle}
+                    onSaveEdit={handleSaveEdit}
+                    onCancelEdit={handleCancelEdit}
+                    onTitleChange={setEditingTitle}
+                  />
                 ))}
               </div>
             )}

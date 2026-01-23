@@ -10,6 +10,8 @@ import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { SuggestedActions } from '@/components/suggested-actions';
 import { CopyButton } from '@/components/ui/copy-button';
 import { Tooltip } from '@/components/ui/tooltip';
+import { triggerHaptic } from '@/lib/haptic-feedback';
+import { Copy, RefreshCw, X } from 'lucide-react';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -98,6 +100,11 @@ export default function ChatDetailPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [swipingMessageIndex, setSwipingMessageIndex] = useState<number | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [longPressMessageIndex, setLongPressMessageIndex] = useState<number | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number; time: number; index: number } | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isLoadingChat, setIsLoadingChat] = useState(true);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -411,58 +418,200 @@ export default function ChatDetailPage() {
           </div>
         )}
 
-        {messages.map((msg, i) => (
-          <div key={i} className="w-full">
+        {messages.map((msg, i) => {
+          const isSwiping = swipingMessageIndex === i;
+          const showContextMenu = longPressMessageIndex === i;
+          const COPY_THRESHOLD = 80;
+          const LONG_PRESS_DURATION = 500;
+
+          const handleTouchStart = (e: React.TouchEvent) => {
+            const touch = e.touches[0];
+            touchStartRef.current = {
+              x: touch.clientX,
+              y: touch.clientY,
+              time: Date.now(),
+              index: i,
+            };
+
+            const timer = setTimeout(() => {
+              triggerHaptic('medium');
+              setLongPressMessageIndex(i);
+              touchStartRef.current = null;
+            }, LONG_PRESS_DURATION);
+            longPressTimerRef.current = timer;
+          };
+
+          const handleTouchMove = (e: React.TouchEvent) => {
+            if (!touchStartRef.current || touchStartRef.current.index !== i) return;
+
+            if (longPressTimerRef.current) {
+              clearTimeout(longPressTimerRef.current);
+              longPressTimerRef.current = null;
+            }
+
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartRef.current.x;
+            const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
+
+            if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 10) {
+              e.preventDefault();
+              setSwipingMessageIndex(i);
+              const maxSwipe = 120;
+              const limitedDeltaX = Math.max(-maxSwipe, Math.min(maxSwipe, deltaX));
+              setSwipeOffset(limitedDeltaX);
+
+              if (Math.abs(limitedDeltaX) >= COPY_THRESHOLD && Math.abs(swipeOffset) < COPY_THRESHOLD) {
+                triggerHaptic('light');
+              }
+            }
+          };
+
+          const handleTouchEnd = () => {
+            if (longPressTimerRef.current) {
+              clearTimeout(longPressTimerRef.current);
+              longPressTimerRef.current = null;
+            }
+
+            if (swipingMessageIndex !== i) {
+              touchStartRef.current = null;
+              return;
+            }
+
+            if (swipeOffset < -COPY_THRESHOLD) {
+              triggerHaptic('success');
+              navigator.clipboard.writeText(msg.content).catch(() => {});
+              setSwipeOffset(0);
+              setSwipingMessageIndex(null);
+            } else {
+              setSwipeOffset(0);
+              setSwipingMessageIndex(null);
+            }
+
+            touchStartRef.current = null;
+          };
+
+          const copyBgOpacity = swipeOffset < -50 && isSwiping ? Math.min(1, Math.abs(swipeOffset) / 100) : 0;
+
+          return (
             <div
-              className={`flex w-full gap-2 sm:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              key={i}
+              className="w-full relative"
+              style={{
+                transform: isSwiping ? `translateX(${swipeOffset}px)` : 'none',
+                transition: isSwiping ? 'none' : 'transform 0.2s ease-out',
+              }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
-              {msg.role === 'assistant' && (
-                <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white mt-1 overflow-hidden">
-                  <Image 
-                    src="/assets/logos/logo.webp" 
-                    alt="Sinispace Logo" 
-                    width={32}
-                    height={32}
-                    className="object-contain p-1.5" 
-                  />
+              {/* Copy Background (links) */}
+              {swipeOffset < 0 && isSwiping && (
+                <div
+                  className="absolute inset-0 flex items-center justify-start pl-4 bg-blue-500/20 rounded-lg pointer-events-none"
+                  style={{ opacity: copyBgOpacity }}
+                >
+                  <Copy className="w-5 h-5 text-blue-400" />
                 </div>
               )}
 
-              <div
-                className={`group relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 shadow-sm ${
-                  msg.role === 'user'
-                    ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
-                    : 'bg-zinc-900/30 backdrop-blur-sm border border-white/10 rounded-bl-none' // AI-Bubble: Transparenter für besseren Kontrast
-                }`}
-              >
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <CopyButton text={msg.content} variant="icon" size="md" />
+              <div className="w-full">
+                <div
+                  className={`flex w-full gap-2 sm:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {msg.role === 'assistant' && (
+                    <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white mt-1 overflow-hidden">
+                      <Image 
+                        src="/assets/logos/logo.webp" 
+                        alt="Sinispace Logo" 
+                        width={32}
+                        height={32}
+                        className="object-contain p-1.5" 
+                      />
+                    </div>
+                  )}
+
+                  <div
+                    className={`group relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 shadow-sm ${
+                      msg.role === 'user'
+                        ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
+                        : 'bg-zinc-900/30 backdrop-blur-sm border border-white/10 rounded-bl-none'
+                    }`}
+                  >
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <CopyButton text={msg.content} variant="icon" size="md" />
+                    </div>
+                    {msg.role === 'assistant' ? (
+                      <MarkdownRenderer content={msg.content} />
+                    ) : (
+                      <p className="whitespace-pre-wrap break-words text-white text-sm leading-6">{msg.content}</p>
+                    )}
+                  </div>
+
+                  {msg.role === 'user' && (
+                    <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-800/50 text-xs font-bold text-zinc-300 border border-white/10 mt-1">
+                      DU
+                    </div>
+                  )}
                 </div>
-                {msg.role === 'assistant' ? (
-                  // Perfektes Markdown-Rendering wie ChatGPT/Gemini
-                  <MarkdownRenderer content={msg.content} />
-                ) : (
-                  <p className="whitespace-pre-wrap break-words text-white text-sm leading-6">{msg.content}</p>
+                {/* Suggested Actions - Nur bei der letzten AI-Nachricht */}
+                {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
+                  <div className="ml-0 md:ml-10 mt-3">
+                    <SuggestedActions 
+                      content={msg.content} 
+                      onActionClick={(prompt) => sendMessage(prompt)}
+                    />
+                  </div>
                 )}
               </div>
 
-              {msg.role === 'user' && (
-                <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-800/50 text-xs font-bold text-zinc-300 border border-white/10 mt-1">
-                  DU
+              {/* Context Menu (Long-Press) */}
+              {showContextMenu && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setLongPressMessageIndex(null)}>
+                  <div
+                    className="bg-zinc-900 border border-white/10 rounded-xl p-4 max-w-xs w-full mx-4 shadow-xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-white">Nachricht</h3>
+                      <button
+                        onClick={() => setLongPressMessageIndex(null)}
+                        className="p-1 rounded hover:bg-white/10 transition-colors"
+                      >
+                        <X className="w-4 h-4 text-zinc-400" />
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      <button
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(msg.content);
+                          triggerHaptic('success');
+                          setLongPressMessageIndex(null);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                      >
+                        <Copy className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm text-white">Kopieren</span>
+                      </button>
+                      {msg.role === 'assistant' && (
+                        <button
+                          onClick={() => {
+                            sendMessage('Bitte generiere diese Antwort neu.');
+                            setLongPressMessageIndex(null);
+                            triggerHaptic('medium');
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                        >
+                          <RefreshCw className="w-4 h-4 text-green-400" />
+                          <span className="text-sm text-white">Neu generieren</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-            {/* Suggested Actions - Nur bei der letzten AI-Nachricht */}
-            {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
-              <div className="ml-0 md:ml-10 mt-3">
-                <SuggestedActions 
-                  content={msg.content} 
-                  onActionClick={(prompt) => sendMessage(prompt)}
-                />
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
         
         {isLoading && (
           <div className="flex w-full gap-4 justify-start">

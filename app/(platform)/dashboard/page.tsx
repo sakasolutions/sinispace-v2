@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo, Suspense, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { DashboardGreetingClient } from '@/components/platform/dashboard-greeting-client';
+import { triggerHaptic } from '@/lib/haptic-feedback';
 import {
   Mail,
   Languages,
@@ -207,6 +208,57 @@ const glowColorMap: Record<string, string> = {
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<(typeof categoryTabs)[number]>('Alle');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Pull-to-Refresh Handler
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (containerRef.current && containerRef.current.scrollTop === 0) {
+      const touch = e.touches[0];
+      touchStartRef.current = {
+        y: touch.clientY,
+        scrollTop: containerRef.current.scrollTop,
+      };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current || !containerRef.current) return;
+    if (containerRef.current.scrollTop > 0) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    const touch = e.touches[0];
+    const deltaY = touch.clientY - touchStartRef.current.y;
+
+    if (deltaY > 0) {
+      e.preventDefault();
+      const maxPull = 100;
+      const limitedDeltaY = Math.min(maxPull, deltaY);
+      setPullDistance(limitedDeltaY);
+
+      if (limitedDeltaY >= 60 && pullDistance < 60) {
+        triggerHaptic('light');
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (pullDistance >= 60) {
+      triggerHaptic('success');
+      setIsRefreshing(true);
+      // Simuliere Refresh (kann später durch echten Refresh ersetzt werden)
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } else {
+      setPullDistance(0);
+    }
+    touchStartRef.current = null;
+  };
 
   const filteredTools = useMemo(() => {
     let filtered = allTools;
@@ -241,7 +293,33 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
+    <div
+      ref={containerRef}
+      className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0 relative"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{
+        transform: pullDistance > 0 ? `translateY(${Math.min(pullDistance, 100)}px)` : 'none',
+        transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
+      }}
+    >
+      {/* Pull-to-Refresh Indicator */}
+      {pullDistance > 0 && (
+        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 z-50">
+          {pullDistance >= 60 ? (
+            <div className="flex items-center gap-2 text-green-400">
+              <div className="w-5 h-5 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium">Loslassen zum Aktualisieren</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-zinc-400">
+              <span className="text-sm">Ziehen zum Aktualisieren</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Header mit Background Glow */}
       <DashboardGreetingClient />
 
