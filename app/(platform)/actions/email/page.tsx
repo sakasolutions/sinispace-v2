@@ -12,6 +12,7 @@ import { toolInfoMap } from '@/lib/tool-info';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
+import { SwipeableResult } from '@/components/platform/swipeable-result';
 
 function ActionButtons({ text, recipientEmail }: { text: string; recipientEmail?: string }) {
   const router = useRouter();
