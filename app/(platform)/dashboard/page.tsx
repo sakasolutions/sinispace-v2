@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { DashboardGreeting } from '@/components/platform/dashboard-greeting';
 import {
   Mail,
   Languages,
@@ -203,37 +204,9 @@ const glowColorMap: Record<string, string> = {
   pink: 'bg-pink-500',
 };
 
-// Dynamische Begrüßung nach Tageszeit
-function getTimeBasedGreeting(): { greeting: string; subline: string } {
-  const hour = new Date().getHours();
-  
-  if (hour >= 5 && hour < 11) {
-    return {
-      greeting: 'Guten Morgen',
-      subline: 'Dein Business läuft. Was optimieren wir jetzt?'
-    };
-  } else if (hour >= 11 && hour < 18) {
-    return {
-      greeting: 'Guten Tag',
-      subline: 'Dein Business läuft. Was optimieren wir jetzt?'
-    };
-  } else if (hour >= 18 && hour < 22) {
-    return {
-      greeting: 'Guten Abend',
-      subline: 'Dein Business läuft. Was optimieren wir jetzt?'
-    };
-  } else {
-    return {
-      greeting: 'Nachtschicht?',
-      subline: 'Dein Business läuft. Was optimieren wir jetzt?'
-    };
-  }
-}
-
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<(typeof categoryTabs)[number]>('Alle');
-  const { greeting, subline } = getTimeBasedGreeting();
 
   const filteredTools = useMemo(() => {
     let filtered = allTools;
@@ -270,22 +243,7 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
       {/* Header mit Background Glow */}
-      <div className="relative mb-6 sm:mb-8 md:mb-10 lg:mb-12">
-        {/* Background Glow für visuelle Tiefe */}
-        <div className="absolute bg-blue-600/20 blur-[100px] w-[300px] h-[300px] rounded-full -top-20 -left-20 -z-10 pointer-events-none" />
-        
-        <div className="relative">
-          <h1
-            className="text-3xl sm:text-4xl font-bold text-white tracking-tight"
-            style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
-          >
-            {greeting} 👋
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg text-zinc-400 mt-2 sm:mt-3 tracking-wide">
-            {subline}
-          </p>
-        </div>
-      </div>
+      <DashboardGreeting />
 
       {/* Search Bar mit Glass-Effekt */}
       <div className="mb-4 sm:mb-6">
