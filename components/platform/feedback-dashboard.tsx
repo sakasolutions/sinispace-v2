@@ -287,7 +287,7 @@ export function FeedbackDashboard() {
                   <p className="text-sm font-medium text-blue-400">Top Tool</p>
                   <p className="text-xs text-zinc-400 mt-1">
                     <strong>{data.toolStats[0].toolName}</strong> hat das meiste Feedback ({data.toolStats[0].total}x).
-                    {data.toolStats[0].satisfactionRate >= 80 
+                    {parseFloat(data.toolStats[0].satisfactionRate) >= 80 
                       ? ' Nutzer sind sehr zufrieden!' 
                       : ' Hier gibt es Verbesserungspotenzial.'}
                   </p>
