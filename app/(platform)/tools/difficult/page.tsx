@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { Copy, MessageSquare, Loader2, Send, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
+import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { toolInfoMap } from '@/lib/tool-info';
 
 type ChatOption = {
   tone: string;

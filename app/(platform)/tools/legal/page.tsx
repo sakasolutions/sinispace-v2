@@ -163,6 +163,7 @@ export default function LegalPage() {
         description="Rechtssichere Schreiben für Kündigung, Mahnung, Vertrag & Beschwerde."
         icon={Scale}
         color="violet"
+        toolId="legal"
       />
 
       {/* MOBILE FIRST: flex-col auf Mobile, md:grid auf Desktop */}

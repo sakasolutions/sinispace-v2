@@ -182,6 +182,7 @@ export default function ExcelPage() {
         description="Formeln verstehen, erstellen und Daten blitzschnell analysieren."
         icon={Table2}
         color="green"
+        toolId="excel"
       />
 
       {/* MOBILE FIRST: flex-col auf Mobile, md:grid auf Desktop */}

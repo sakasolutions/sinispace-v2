@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { Mail, MessageSquare, Loader2 } from 'lucide-react';
 import { CopyButton } from '@/components/ui/copy-button';
 import { LabelWithTooltip } from '@/components/ui/tooltip';
+import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { toolInfoMap } from '@/lib/tool-info';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
@@ -94,10 +96,23 @@ export default function EmailPage() {
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-white">E-Mail Verfasser</h1>
-        <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
-          Wirf mir ein paar Stichpunkte hin, ich mache daraus eine professionelle Mail.
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">E-Mail Verfasser</h1>
+            <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
+              Wirf mir ein paar Stichpunkte hin, ich mache daraus eine professionelle Mail.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <WhatIsThisModal
+              title={toolInfoMap.email.title}
+              content={toolInfoMap.email.description}
+              useCases={toolInfoMap.email.useCases}
+              examples={toolInfoMap.email.examples}
+              tips={toolInfoMap.email.tips}
+            />
+          </div>
+        </div>
         <div className="mt-3 p-3 rounded-md bg-blue-500/10 border border-blue-500/20 text-sm text-blue-300">
           💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>SiniChat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
         </div>

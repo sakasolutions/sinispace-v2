@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Users, Minus, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
+import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { toolInfoMap } from '@/lib/tool-info';
 
 type Recipe = {
   title: string;

@@ -1,6 +1,8 @@
 import { LucideIcon } from 'lucide-react';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { toolInfoMap } from '@/lib/tool-info';
 
 type ToolHeaderProps = {
   title: string;
@@ -8,6 +10,7 @@ type ToolHeaderProps = {
   icon: LucideIcon;
   color: 'emerald' | 'blue' | 'indigo' | 'rose' | 'violet' | 'green' | 'orange' | 'amber' | 'cyan' | 'pink' | 'slate';
   backLink?: string;
+  toolId?: string; // ID für Tool-Info (z.B. 'email', 'excel', 'legal')
 };
 
 const colorMap: Record<string, { bg: string; text: string }> = {
@@ -24,8 +27,9 @@ const colorMap: Record<string, { bg: string; text: string }> = {
   slate: { bg: 'bg-slate-500/20', text: 'text-slate-500' },
 };
 
-export function ToolHeader({ title, description, icon: Icon, color, backLink }: ToolHeaderProps) {
+export function ToolHeader({ title, description, icon: Icon, color, backLink, toolId }: ToolHeaderProps) {
   const colors = colorMap[color] || colorMap.emerald;
+  const toolInfo = toolId ? toolInfoMap[toolId] : null;
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 p-4 sm:p-6 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl">
@@ -44,8 +48,23 @@ export function ToolHeader({ title, description, icon: Icon, color, backLink }: 
       </div>
       
       <div className="flex-1 min-w-0">
-        <h1 className="text-xl sm:text-2xl font-bold text-white">{title}</h1>
-        <p className="text-zinc-400 text-xs sm:text-sm mt-0.5 sm:mt-1">{description}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">{title}</h1>
+            <p className="text-zinc-400 text-xs sm:text-sm mt-0.5 sm:mt-1">{description}</p>
+          </div>
+          {toolInfo && (
+            <div className="flex-shrink-0">
+              <WhatIsThisModal
+                title={toolInfo.title}
+                content={toolInfo.description}
+                useCases={toolInfo.useCases}
+                examples={toolInfo.examples}
+                tips={toolInfo.tips}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

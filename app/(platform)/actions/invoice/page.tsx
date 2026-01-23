@@ -373,6 +373,7 @@ export default function InvoicePage() {
           description="Rechnungen & Angebote erstellen. Mit einem Klick zum PDF."
           icon={FileText}
           color="emerald"
+          toolId="invoice"
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

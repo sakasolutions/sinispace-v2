@@ -7,6 +7,8 @@ import { Copy, MessageSquare, Loader2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
+import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { toolInfoMap } from '@/lib/tool-info';
 
 function ActionButtons({ text, mode }: { text: string; mode: string }) {
   const [copied, setCopied] = useState(false);

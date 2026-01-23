@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { Copy, MessageSquare, Zap, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
+import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { toolInfoMap } from '@/lib/tool-info';
 
 function ActionButtons({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
