@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useActionState } from 'react';
 import { Pencil, Trash2, Crown, Key, X, Save } from 'lucide-react';
 import { updateUser, deleteUser, resetUserPassword, setUserPremium } from '@/actions/admin-actions';
@@ -37,9 +37,11 @@ export function AdminUserTable({ users: initialUsers }: AdminUserTableProps) {
   const [premiumState, premiumAction] = useActionState(setUserPremium, null);
 
   // Nach erfolgreichem Update: Seite neu laden
-  if (updateState?.success || deleteState?.success || passwordState?.success || premiumState?.success) {
-    router.refresh();
-  }
+  useEffect(() => {
+    if (updateState?.success || deleteState?.success || passwordState?.success || premiumState?.success) {
+      router.refresh();
+    }
+  }, [updateState?.success, deleteState?.success, passwordState?.success, premiumState?.success, router]);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('de-DE', {

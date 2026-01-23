@@ -19,7 +19,7 @@ async function requireAdmin() {
 }
 
 // User aktualisieren
-export async function updateUser(formData: FormData) {
+export async function updateUser(prevState: any, formData: FormData) {
   await requireAdmin();
 
   const userId = formData.get('userId') as string;
@@ -77,7 +77,7 @@ export async function updateUser(formData: FormData) {
 }
 
 // User Passwort zurücksetzen
-export async function resetUserPassword(formData: FormData) {
+export async function resetUserPassword(prevState: any, formData: FormData) {
   await requireAdmin();
 
   const userId = formData.get('userId') as string;
@@ -108,7 +108,7 @@ export async function resetUserPassword(formData: FormData) {
 }
 
 // User löschen
-export async function deleteUser(formData: FormData) {
+export async function deleteUser(prevState: any, formData: FormData) {
   await requireAdmin();
 
   const userId = formData.get('userId') as string;
@@ -142,7 +142,7 @@ export async function deleteUser(formData: FormData) {
 }
 
 // Premium für User setzen/entfernen
-export async function setUserPremium(formData: FormData) {
+export async function setUserPremium(prevState: any, formData: FormData) {
   await requireAdmin();
 
   const userId = formData.get('userId') as string;
