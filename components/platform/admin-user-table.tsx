@@ -13,6 +13,7 @@ type User = {
   image: string | null;
   createdAt: Date;
   subscriptionEnd: Date | null;
+  lastLoginAt: Date | null;
 };
 
 type AdminUserTableProps = {
@@ -105,6 +106,7 @@ export function AdminUserTable({ users: initialUsers }: AdminUserTableProps) {
               <th className="px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider">User</th>
               <th className="px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider">Status</th>
               <th className="px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider">Joined</th>
+              <th className="px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider">Last Login</th>
               <th className="px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider">ID</th>
               <th className="px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider">Aktionen</th>
             </tr>
@@ -201,6 +203,11 @@ export function AdminUserTable({ users: initialUsers }: AdminUserTableProps) {
                 <td className="px-4 sm:px-6 py-4">
                   <p className="text-sm text-zinc-300">
                     {formatDate(user.createdAt)}
+                  </p>
+                </td>
+                <td className="px-4 sm:px-6 py-4">
+                  <p className="text-xs text-zinc-400">
+                    {user.lastLoginAt ? formatDate(user.lastLoginAt) : <span className="text-zinc-600">Nie</span>}
                   </p>
                 </td>
                 <td className="px-4 sm:px-6 py-4">

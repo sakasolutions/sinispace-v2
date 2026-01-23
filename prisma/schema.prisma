@@ -16,6 +16,7 @@ model User {
   password      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime? // Letzter Login-Zeitpunkt
 
   // Payment & Subscription (KRITISCH - NICHT ÄNDERN!)
   stripeCustomerId String?   @unique

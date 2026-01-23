@@ -18,6 +18,8 @@ type AnalyticsData = {
   }>;
   totalUsers: number;
   activeUsers: number;
+  usersWithLogins: number;
+  recentLogins: number;
 };
 
 export function AnalyticsDashboard() {
@@ -110,11 +112,11 @@ export function AnalyticsDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-400 mb-1">Aktive User</p>
+              <p className="text-xs text-zinc-400 mb-1">Aktive User (7d)</p>
               <p className="text-2xl font-bold text-white">{data.activeUsers}</p>
             </div>
             <Users className="w-8 h-8 text-blue-400 opacity-50" />
@@ -124,8 +126,8 @@ export function AnalyticsDashboard() {
         <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-400 mb-1">Seitenaufrufe</p>
-              <p className="text-2xl font-bold text-white">{pageViews}</p>
+              <p className="text-xs text-zinc-400 mb-1">Logins ({timeRange}d)</p>
+              <p className="text-2xl font-bold text-white">{data.recentLogins || 0}</p>
             </div>
             <Activity className="w-8 h-8 text-green-400 opacity-50" />
           </div>
@@ -247,6 +249,19 @@ export function AnalyticsDashboard() {
                 <p className="text-xs text-zinc-400 mt-1">
                   {((data.activeUsers / data.totalUsers) * 100).toFixed(1)}% der User waren in den letzten 7 Tagen aktiv.
                   {data.activeUsers / data.totalUsers < 0.3 && ' Erwäge, Retention-Strategien zu implementieren.'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {data.recentLogins > 0 && (
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+              <Activity className="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-indigo-400">Login-Aktivität</p>
+                <p className="text-xs text-zinc-400 mt-1">
+                  <strong>{data.recentLogins}</strong> Logins in den letzten {timeRange} Tagen.
+                  {data.usersWithLogins > 0 && ` ${data.usersWithLogins} User haben sich bereits eingeloggt.`}
                 </p>
               </div>
             </div>

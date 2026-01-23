@@ -89,6 +89,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
 
           console.log(`[AUTH] ✅ Login erfolgreich für: ${email}`);
+          
+          // Last Login aktualisieren
+          try {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { lastLoginAt: new Date() },
+            }).catch(() => {
+              // Ignoriere Fehler wenn Spalte noch nicht existiert
+            });
+          } catch {
+            // Silent fail - sollte nicht die App crashen
+          }
+          
           return user;
         } catch (error) {
           // Datenbank-Fehler loggen

@@ -106,7 +106,7 @@ export async function getAnalyticsData(days: number = 30) {
 
   try {
     // Prüfe ob Tabellen existieren
-    const [activities, features, totalUsers, activeUsers] = await Promise.all([
+    const [activities, features, totalUsers, activeUsers, usersWithLastLogin] = await Promise.all([
       // User-Aktivitäten
       prisma.userActivity.findMany({
         where: { createdAt: { gte: startDate } },
@@ -140,13 +140,30 @@ export async function getAnalyticsData(days: number = 30) {
         select: { userId: true },
         distinct: ['userId'],
       }).catch(() => []),
+
+      // Users mit Last Login (für Statistiken)
+      prisma.user.findMany({
+        select: {
+          id: true,
+          lastLoginAt: true,
+          createdAt: true,
+        },
+      }).catch(() => []),
     ]);
+
+    // Berechne Login-Statistiken
+    const usersWithLogins = (usersWithLastLogin || []).filter((u: any) => u.lastLoginAt);
+    const recentLogins = (usersWithLastLogin || []).filter((u: any) => 
+      u.lastLoginAt && new Date(u.lastLoginAt) >= startDate
+    ).length;
 
     return {
       activities: activities || [],
       features: features || [],
       totalUsers: totalUsers || 0,
       activeUsers: activeUsers?.length || 0,
+      usersWithLogins: usersWithLogins.length,
+      recentLogins,
     };
   } catch (error) {
     console.error('[ANALYTICS] Fehler beim Abrufen der Daten:', error);
@@ -155,6 +172,8 @@ export async function getAnalyticsData(days: number = 30) {
       features: [],
       totalUsers: 0,
       activeUsers: 0,
+      usersWithLogins: 0,
+      recentLogins: 0,
     };
   }
 }

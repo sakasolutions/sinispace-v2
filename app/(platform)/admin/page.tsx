@@ -116,6 +116,7 @@ export default async function AdminPage() {
         image: true,
         createdAt: true,
         subscriptionEnd: true,
+        lastLoginAt: true,
       },
     }),
     
