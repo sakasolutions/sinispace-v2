@@ -109,16 +109,17 @@ export function SwipeableMessage({
     if (!showContextMenu) return;
 
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (messageRef.current && !messageRef.current.contains(e.target as Node)) {
+      const target = (e as MouseEvent).target || (e as TouchEvent).touches?.[0]?.target || (e as any).target;
+      if (messageRef.current && target && !messageRef.current.contains(target as Node)) {
         setShowContextMenu(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside as EventListener);
+    document.addEventListener('touchstart', handleClickOutside as EventListener);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside as EventListener);
+      document.removeEventListener('touchstart', handleClickOutside as EventListener);
     };
   }, [showContextMenu]);
 
