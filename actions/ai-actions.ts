@@ -1,6 +1,6 @@
 'use server';
 
-import { createChatCompletion } from '@/lib/openai-wrapper';
+import { createChatCompletion, openai } from '@/lib/openai-wrapper';
 import { auth } from '@/auth';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
