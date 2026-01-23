@@ -206,17 +206,7 @@ const glowColorMap: Record<string, string> = {
   pink: 'bg-pink-500',
 };
 
-type DashboardClientProps = {
-  lastActivity: {
-    id: string;
-    action: string;
-    page: string | null;
-    feature: string | null;
-    createdAt: Date;
-  } | null;
-};
-
-export default function DashboardClient({ lastActivity }: DashboardClientProps) {
+export default function DashboardClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<(typeof categoryTabs)[number]>('Alle');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -332,9 +322,6 @@ export default function DashboardClient({ lastActivity }: DashboardClientProps) 
 
       {/* Header mit Background Glow */}
       <DashboardGreetingClient />
-
-      {/* SiniBox: Head-Up Display */}
-      <SiniBox lastActivity={lastActivity} />
 
       {/* Search Bar mit Glass-Effekt */}
       <div className="mb-4 sm:mb-6">
