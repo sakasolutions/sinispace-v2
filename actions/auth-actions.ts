@@ -355,11 +355,24 @@ export async function changeName(prevState: any, formData: FormData) {
   }
 
   try {
-    // Namen aktualisieren
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: { name: newName },
-    });
+    // Namen aktualisieren - mit Fallback für fehlende isAdmin-Spalte
+    try {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { name: newName },
+      });
+    } catch (prismaError: any) {
+      // Wenn isAdmin-Spalte nicht existiert, verwende $executeRaw als Fallback
+      if (prismaError.code === 'P2022' || prismaError.message?.includes('isAdmin')) {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "User" SET "name" = $1 WHERE "id" = $2`,
+          newName,
+          session.user.id
+        );
+      } else {
+        throw prismaError;
+      }
+    }
 
     console.log(`[CHANGE_NAME] ✅ Name geändert für User: ${session.user.id} -> ${newName.trim()}`);
 
