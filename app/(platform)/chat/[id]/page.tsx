@@ -8,6 +8,7 @@ import { getChat, saveMessage } from '@/actions/chat-actions';
 import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { SuggestedActions } from '@/components/suggested-actions';
+import { CopyButton } from '@/components/ui/copy-button';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -23,29 +24,6 @@ type Document = {
   openaiFileId: string;
 };
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Fehler beim Kopieren:', err);
-    }
-  };
-
-  return (
-    <button
-      onClick={handleCopy}
-      className="absolute top-2 right-2 px-1.5 py-0.5 text-[10px] font-medium rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all opacity-0 group-hover:opacity-100"
-      title="In Zwischenablage kopieren"
-    >
-      {copied ? '✓' : '📋'}
-    </button>
-  );
-}
 
 // Custom Confirm Modal
 function ConfirmModal({ 
@@ -456,7 +434,9 @@ export default function ChatDetailPage() {
                     : 'bg-zinc-900/30 backdrop-blur-sm border border-white/10 rounded-bl-none' // AI-Bubble: Transparenter für besseren Kontrast
                 }`}
               >
-                <CopyButton text={msg.content} />
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <CopyButton text={msg.content} variant="icon" size="md" />
+                </div>
                 {msg.role === 'assistant' ? (
                   // Perfektes Markdown-Rendering wie ChatGPT/Gemini
                   <MarkdownRenderer content={msg.content} />
@@ -563,27 +543,11 @@ export default function ChatDetailPage() {
               )}
             </button>
           )}
-          {input.trim() && (
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(input);
-                } catch (err) {
-                  console.error('Fehler beim Kopieren:', err);
-                }
-              }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-medium rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all"
-              title="Eingabe kopieren"
-            >
-              📋
-            </button>
-          )}
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Schreib eine Nachricht..."
-            className={`flex-1 bg-transparent px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-base md:text-sm focus:outline-none min-w-0 text-white placeholder:text-zinc-500 ${input.trim() ? 'pl-8 sm:pl-10' : ''}`}
+            className="flex-1 bg-transparent px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-base md:text-sm focus:outline-none min-w-0 text-white placeholder:text-zinc-500"
             autoFocus
           />
           <button

@@ -3,24 +3,14 @@
 import { generateEmailWithChat } from '@/actions/ai-actions';
 import { useActionState } from 'react';
 import { useState } from 'react';
-import { Copy, Mail, MessageSquare, Loader2 } from 'lucide-react';
+import { Mail, MessageSquare, Loader2 } from 'lucide-react';
+import { CopyButton } from '@/components/ui/copy-button';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
 
 function ActionButtons({ text, recipientEmail }: { text: string; recipientEmail?: string }) {
-  const [copied, setCopied] = useState(false);
   const router = useRouter();
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Fehler beim Kopieren:', err);
-    }
-  };
 
   const handleOpenMailto = () => {
     // Extrahiere Betreff aus dem ersten Zeile, falls vorhanden
@@ -41,23 +31,7 @@ function ActionButtons({ text, recipientEmail }: { text: string; recipientEmail?
     <div className="flex justify-between items-center border-b border-white/5 bg-white/5 p-3 rounded-t-xl mb-4">
       <span className="text-xs uppercase tracking-wider text-zinc-500 font-medium">Dein Entwurf</span>
       <div className="flex gap-1.5">
-        <button
-          onClick={handleCopy}
-          className="h-8 px-2 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
-          title="In Zwischenablage kopieren"
-        >
-          {copied ? (
-            <>
-              <span className="text-green-400">✓</span>
-              <span className="hidden sm:inline">Kopiert!</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Kopieren</span>
-            </>
-          )}
-        </button>
+        <CopyButton text={text} size="sm" variant="default" className="h-8" />
         
         <button
           onClick={handleOpenMailto}
