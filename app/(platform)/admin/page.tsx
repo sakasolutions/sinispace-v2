@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { ArrowLeft, Users, TrendingUp, Crown, MessageSquare, FileText, Activity, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { AdminTabs } from '@/components/platform/admin-tabs';
+import { migrateAdminFlag } from '@/actions/admin-actions';
 
 export default async function AdminPage() {
   // SICHERHEIT: The Bouncer 🚪
@@ -15,10 +16,24 @@ export default async function AdminPage() {
   }
 
   // Prüfe Admin-Flag in DB (sicherer als E-Mail-Check)
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { isAdmin: true },
   });
+
+  // Fallback: Wenn Admin-Flag noch nicht gesetzt, aber E-Mail stimmt (Migration)
+  if (!user?.isAdmin) {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (session.user.email === adminEmail) {
+      console.log(`[ADMIN] 🔄 Migriere Admin-Flag für: ${session.user.email}`);
+      await migrateAdminFlag();
+      // Erneut prüfen
+      user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { isAdmin: true },
+      });
+    }
+  }
 
   if (!user?.isAdmin) {
     console.log(`[ADMIN] ❌ Unauthorized access attempt from: ${session.user.email} (ID: ${session.user.id})`);

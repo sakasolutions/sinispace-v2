@@ -238,3 +238,34 @@ export async function getChatMessages(chatId: string) {
     return { success: false, error: 'Fehler beim Abrufen der Messages.' };
   }
 }
+
+// Einmalig: Admin-Flag basierend auf E-Mail setzen (Migration-Helper)
+// WICHTIG: Diese Funktion sollte nur einmal aufgerufen werden, um bestehende Admin-User zu migrieren
+export async function migrateAdminFlag() {
+  const session = await auth();
+  const adminEmail = process.env.ADMIN_EMAIL;
+
+  // Nur wenn eingeloggt und E-Mail stimmt (einmalige Migration)
+  if (!session?.user?.email || session.user.email !== adminEmail) {
+    return { success: false, error: 'Nicht autorisiert für Migration.' };
+  }
+
+  try {
+    // Setze Admin-Flag für User mit Admin-E-Mail
+    const result = await prisma.user.updateMany({
+      where: {
+        email: adminEmail,
+        isAdmin: false, // Nur wenn noch nicht gesetzt
+      },
+      data: {
+        isAdmin: true,
+      },
+    });
+
+    console.log(`[ADMIN_MIGRATION] ✅ Admin-Flag gesetzt für ${result.count} User(s)`);
+    return { success: true, message: `Admin-Flag für ${result.count} User(s) gesetzt.` };
+  } catch (error: any) {
+    console.error('[ADMIN_MIGRATION] ❌ Fehler:', error);
+    return { success: false, error: 'Fehler beim Setzen des Admin-Flags.' };
+  }
+}
