@@ -7,6 +7,7 @@ import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Users, Minu
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 
 type Recipe = {
@@ -350,6 +351,14 @@ export default function RecipePage() {
                     </div>
                   )}
                 </div>
+              </div>
+              {/* FEEDBACK BUTTON */}
+              <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
+                <FeedbackButton 
+                  toolId="recipe" 
+                  toolName="Gourmet-Planer"
+                  resultId={recipe ? `recipe-${Date.now()}` : undefined}
+                />
               </div>
             </div>
           ) : (

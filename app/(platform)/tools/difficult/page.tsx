@@ -7,6 +7,7 @@ import { Copy, MessageSquare, Loader2, Send, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 
 type ChatOption = {
@@ -220,6 +221,14 @@ export default function ChatCoachPage() {
                 {chatOptions.map((option, index) => (
                   <OptionCard key={index} option={option} index={index} />
                 ))}
+              </div>
+              {/* FEEDBACK BUTTON */}
+              <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
+                <FeedbackButton 
+                  toolId="tough-msg" 
+                  toolName="Chat-Coach"
+                  resultId={chatOptions && chatOptions.length > 0 ? `chat-coach-${Date.now()}` : undefined}
+                />
               </div>
             </div>
           ) : (

@@ -7,6 +7,7 @@ import { Copy, MessageSquare, Loader2, Scale, FileX, AlertTriangle, Handshake, S
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { ToolHeader } from '@/components/tool-header';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 
 type LegalMode = 'cancellation' | 'reminder' | 'contract' | 'dispute' | null;
 

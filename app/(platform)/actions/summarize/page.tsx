@@ -7,6 +7,7 @@ import { Copy, MessageSquare, Zap, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 
 function ActionButtons({ text }: { text: string }) {
@@ -264,6 +265,14 @@ export default function SummarizePage() {
                 <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
                   {state.result}
                 </div>
+              </div>
+              {/* FEEDBACK BUTTON */}
+              <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
+                <FeedbackButton 
+                  toolId="summarize" 
+                  toolName="Klartext"
+                  resultId={state?.result ? `summarize-${Date.now()}` : undefined}
+                />
               </div>
             </div>
           ) : (

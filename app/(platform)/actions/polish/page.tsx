@@ -7,6 +7,7 @@ import { Copy, MessageSquare, Loader2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { toolInfoMap } from '@/lib/tool-info';
 
@@ -193,6 +194,14 @@ export default function PolishPage() {
                 <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
                   {state.result}
                 </div>
+              </div>
+              {/* FEEDBACK BUTTON */}
+              <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
+                <FeedbackButton 
+                  toolId="polish" 
+                  toolName="Wortschliff"
+                  resultId={state.result ? `polish-${Date.now()}` : undefined}
+                />
               </div>
             </div>
           ) : (
