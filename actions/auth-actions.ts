@@ -190,7 +190,7 @@ export async function deleteAccount() {
 }
 
 // Passwort ändern (für eingeloggte User)
-export async function changePassword(formData: FormData) {
+export async function changePassword(prevState: any, formData: FormData) {
   const session = await auth();
   
   if (!session?.user?.id) {
@@ -264,7 +264,7 @@ export async function changePassword(formData: FormData) {
 }
 
 // Passwort-Reset anfordern (für nicht eingeloggte User)
-export async function requestPasswordReset(formData: FormData) {
+export async function requestPasswordReset(prevState: any, formData: FormData) {
   const email = formData.get('email') as string;
 
   if (!email) {
@@ -343,7 +343,7 @@ export async function requestPasswordReset(formData: FormData) {
 }
 
 // Passwort zurücksetzen (mit Token)
-export async function resetPassword(formData: FormData) {
+export async function resetPassword(prevState: any, formData: FormData) {
   const token = formData.get('token') as string;
   const newPassword = formData.get('newPassword') as string;
   const confirmPassword = formData.get('confirmPassword') as string;

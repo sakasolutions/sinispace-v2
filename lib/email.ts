@@ -1,20 +1,43 @@
 import nodemailer from 'nodemailer';
 
-// SMTP-Transporter für IONOS
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.ionos.de',
-  port: parseInt(process.env.SMTP_PORT || '465'),
-  secure: true, // true für Port 465 (SSL/TLS)
-  auth: {
-    user: process.env.SMTP_USER || 'kontakt@sinispace.app',
-    pass: process.env.SMTP_PASS || '',
-  },
-});
+// SMTP-Transporter für IONOS (nur erstellen wenn Konfiguration vorhanden)
+let transporter: nodemailer.Transporter | null = null;
+
+function getTransporter() {
+  if (transporter) return transporter;
+  
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !port || !user || !pass) {
+    console.warn('[EMAIL] ⚠️ SMTP-Konfiguration unvollständig. E-Mails können nicht gesendet werden.');
+    return null;
+  }
+
+  transporter = nodemailer.createTransport({
+    host,
+    port: parseInt(port),
+    secure: true, // true für Port 465 (SSL/TLS)
+    auth: {
+      user,
+      pass,
+    },
+  });
+
+  return transporter;
+}
 
 // Teste SMTP-Verbindung (optional, für Debugging)
 export async function testEmailConnection() {
   try {
-    await transporter.verify();
+    const transport = getTransporter();
+    if (!transport) {
+      console.warn('[EMAIL] ⚠️ Kein SMTP-Transporter verfügbar');
+      return false;
+    }
+    await transport.verify();
     console.log('[EMAIL] ✅ SMTP-Verbindung erfolgreich');
     return true;
   } catch (error) {
@@ -78,7 +101,12 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const transport = getTransporter();
+    if (!transport) {
+      console.error('[EMAIL] ❌ SMTP nicht konfiguriert');
+      throw new Error('E-Mail-Service nicht konfiguriert. Bitte kontaktiere den Support.');
+    }
+    const info = await transport.sendMail(mailOptions);
     console.log(`[EMAIL] ✅ Passwort-Reset E-Mail gesendet an: ${email}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
@@ -134,7 +162,12 @@ export async function sendPasswordChangedEmail(email: string) {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const transport = getTransporter();
+    if (!transport) {
+      console.warn('[EMAIL] ⚠️ SMTP nicht konfiguriert - Bestätigungs-E-Mail nicht gesendet');
+      return { success: false };
+    }
+    const info = await transport.sendMail(mailOptions);
     console.log(`[EMAIL] ✅ Passwort-Änderung Bestätigung gesendet an: ${email}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
