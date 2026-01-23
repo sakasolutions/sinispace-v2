@@ -326,13 +326,19 @@ export async function requestPasswordReset(prevState: any, formData: FormData) {
     try {
       await sendPasswordResetEmail(user.email!, token);
       console.log(`[REQUEST_PASSWORD_RESET] ✅ E-Mail gesendet an: ${user.email}`);
-    } catch (emailError) {
+    } catch (emailError: any) {
       console.error('[REQUEST_PASSWORD_RESET] ❌ Fehler beim Senden der E-Mail:', emailError);
+      console.error('[REQUEST_PASSWORD_RESET] ❌ Error Details:', {
+        message: emailError?.message,
+        code: emailError?.code,
+        stack: emailError?.stack,
+      });
       // Token löschen, wenn E-Mail nicht gesendet werden konnte
       await prisma.passwordResetToken.deleteMany({
         where: { token },
       });
-      return { success: false, error: 'Fehler beim Senden der E-Mail. Bitte versuche es später erneut.' };
+      // Fehlermeldung weitergeben
+      return { success: false, error: emailError?.message || 'Fehler beim Senden der E-Mail. Bitte versuche es später erneut.' };
     }
 
     return { success: true, message: 'Falls ein Account mit dieser E-Mail existiert, wurde eine E-Mail gesendet.' };

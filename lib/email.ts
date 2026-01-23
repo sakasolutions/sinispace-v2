@@ -103,14 +103,31 @@ export async function sendPasswordResetEmail(email: string, resetToken: string) 
   try {
     const transport = getTransporter();
     if (!transport) {
-      console.error('[EMAIL] ❌ SMTP nicht konfiguriert');
+      const missing = [];
+      if (!process.env.SMTP_HOST) missing.push('SMTP_HOST');
+      if (!process.env.SMTP_PORT) missing.push('SMTP_PORT');
+      if (!process.env.SMTP_USER) missing.push('SMTP_USER');
+      if (!process.env.SMTP_PASS) missing.push('SMTP_PASS');
+      console.error(`[EMAIL] ❌ SMTP nicht konfiguriert. Fehlende Variablen: ${missing.join(', ')}`);
       throw new Error('E-Mail-Service nicht konfiguriert. Bitte kontaktiere den Support.');
     }
     const info = await transport.sendMail(mailOptions);
-    console.log(`[EMAIL] ✅ Passwort-Reset E-Mail gesendet an: ${email}`);
+    console.log(`[EMAIL] ✅ Passwort-Reset E-Mail gesendet an: ${email}, MessageID: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`[EMAIL] ❌ Fehler beim Senden der E-Mail an ${email}:`, error);
+    
+    // Spezifischere Fehlermeldungen
+    if (error.code === 'EAUTH') {
+      console.error('[EMAIL] ❌ Authentifizierung fehlgeschlagen - Prüfe SMTP_USER und SMTP_PASS');
+      throw new Error('E-Mail-Authentifizierung fehlgeschlagen. Bitte kontaktiere den Support.');
+    } else if (error.code === 'ECONNECTION' || error.code === 'ETIMEDOUT') {
+      console.error('[EMAIL] ❌ Verbindungsfehler - Prüfe SMTP_HOST und SMTP_PORT');
+      throw new Error('E-Mail-Server nicht erreichbar. Bitte versuche es später erneut.');
+    } else if (error.message?.includes('nicht konfiguriert')) {
+      throw error; // Bereits spezifische Meldung
+    }
+    
     throw new Error('Fehler beim Senden der E-Mail. Bitte versuche es später erneut.');
   }
 }
