@@ -170,10 +170,24 @@ export async function resetUserPassword(prevState: any, formData: FormData) {
   try {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    });
+    // Wrapper für update, der isAdmin-Fehler abfängt
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
+    } catch (prismaError: any) {
+      // Wenn isAdmin-Spalte nicht existiert, verwende $executeRaw als Fallback
+      if (prismaError.code === 'P2022' || prismaError.message?.includes('isAdmin')) {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "User" SET "password" = $1 WHERE "id" = $2`,
+          hashedPassword,
+          userId
+        );
+      } else {
+        throw prismaError;
+      }
+    }
 
     console.log(`[ADMIN] ✅ Passwort zurückgesetzt für User: ${userId}`);
     return { success: true, message: 'Passwort erfolgreich zurückgesetzt.' };
