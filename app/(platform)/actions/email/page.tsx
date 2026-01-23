@@ -2,7 +2,7 @@
 
 import { generateEmailWithChat } from '@/actions/ai-actions';
 import { useActionState } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, MessageSquare, Loader2 } from 'lucide-react';
 import { CopyButton } from '@/components/ui/copy-button';
 import { LabelWithTooltip } from '@/components/ui/tooltip';
@@ -97,21 +97,22 @@ export default function EmailPage() {
   const [recipientName, setRecipientName] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [recipient, setRecipient] = useState('');
-  const [tone, setTone] = useState(chain === 'invoice' ? 'Professionell' : 'Professionell');
+  const [tone, setTone] = useState('Professionell');
   const [formality, setFormality] = useState<'Sie' | 'Du'>('Sie');
   const [language, setLanguage] = useState('Deutsch');
   const [length, setLength] = useState<'Kurz' | 'Mittel' | 'Ausführlich'>('Mittel');
+  const [topic, setTopic] = useState('');
+  const [showChainBadge, setShowChainBadge] = useState(false);
   
-  // Smart Pre-fill für Invoice Chain
-  const getInitialTopic = () => {
+  // Smart Pre-fill für Invoice Chain (useEffect für Client-Side)
+  useEffect(() => {
     if (chain === 'invoice' && client && ref && type) {
-      return `Sende dem Kunden '${client}' das Dokument '${ref}' (${type}). Bitte freundlich und professionell formulieren.`;
+      const prefillText = `Sende dem Kunden '${client}' das Dokument '${ref}' (${type}). Bitte freundlich und professionell formulieren.`;
+      setTopic(prefillText);
+      setTone('Professionell');
+      setShowChainBadge(true);
     }
-    return '';
-  };
-  
-  const [topic, setTopic] = useState(getInitialTopic());
-  const [showChainBadge, setShowChainBadge] = useState(chain === 'invoice');
+  }, [chain, client, ref, type]);
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
