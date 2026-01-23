@@ -14,13 +14,32 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Prüfe Admin-Flag in DB
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { isAdmin: true },
-  });
+  const adminEmail = process.env.ADMIN_EMAIL;
+  let isAdmin = false;
 
-  if (!user?.isAdmin) {
+  try {
+    // Versuche Admin-Flag aus DB zu lesen
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAdmin: true },
+    });
+
+    if (user?.isAdmin) {
+      isAdmin = true;
+    } else {
+      // Fallback: E-Mail-Check (wenn Migration noch nicht ausgeführt)
+      if (session.user.email === adminEmail) {
+        isAdmin = true;
+      }
+    }
+  } catch (dbError: any) {
+    // Fehler beim DB-Zugriff - Fallback auf E-Mail
+    if (session.user.email === adminEmail) {
+      isAdmin = true;
+    }
+  }
+
+  if (!isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -15,13 +15,34 @@ async function requireAdmin() {
     redirect('/');
   }
 
-  // Prüfe Admin-Flag in DB (sicherer als E-Mail-Check)
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { isAdmin: true },
-  });
+  const adminEmail = process.env.ADMIN_EMAIL;
+  let isAdmin = false;
 
-  if (!user?.isAdmin) {
+  try {
+    // Versuche Admin-Flag aus DB zu lesen
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAdmin: true },
+    });
+
+    if (user?.isAdmin) {
+      isAdmin = true;
+    } else {
+      // Fallback: E-Mail-Check (wenn Migration noch nicht ausgeführt)
+      if (session.user.email === adminEmail) {
+        console.log(`[ADMIN_ACTION] 🔄 Fallback: E-Mail-Check für: ${session.user.email}`);
+        isAdmin = true;
+      }
+    }
+  } catch (dbError: any) {
+    // Fehler beim DB-Zugriff (z.B. Spalte existiert noch nicht) - Fallback auf E-Mail
+    console.log(`[ADMIN_ACTION] ⚠️ DB-Fehler, nutze E-Mail-Check: ${dbError.message}`);
+    if (session.user.email === adminEmail) {
+      isAdmin = true;
+    }
+  }
+
+  if (!isAdmin) {
     console.log(`[ADMIN_ACTION] ❌ Unauthorized access attempt from: ${session?.user?.email} (ID: ${session.user.id})`);
     redirect('/');
   }

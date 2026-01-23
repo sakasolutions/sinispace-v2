@@ -15,27 +15,49 @@ export default async function AdminPage() {
     redirect('/');
   }
 
-  // Prüfe Admin-Flag in DB (sicherer als E-Mail-Check)
-  let user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { isAdmin: true },
-  });
+  // SICHERHEIT: Prüfe Admin-Zugriff
+  // Fallback auf E-Mail-Check wenn Migration noch nicht ausgeführt wurde
+  const adminEmail = process.env.ADMIN_EMAIL;
+  let isAdmin = false;
 
-  // Fallback: Wenn Admin-Flag noch nicht gesetzt, aber E-Mail stimmt (Migration)
-  if (!user?.isAdmin) {
-    const adminEmail = process.env.ADMIN_EMAIL;
+  try {
+    // Versuche Admin-Flag aus DB zu lesen
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAdmin: true },
+    });
+
+    if (user?.isAdmin) {
+      isAdmin = true;
+    } else {
+      // Fallback: E-Mail-Check (wenn Migration noch nicht ausgeführt)
+      if (session.user.email === adminEmail) {
+        console.log(`[ADMIN] 🔄 Fallback: E-Mail-Check für: ${session.user.email}`);
+        // Versuche Admin-Flag zu setzen (Migration)
+        try {
+          await migrateAdminFlag();
+          // Erneut prüfen
+          const updatedUser = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { isAdmin: true },
+          });
+          isAdmin = updatedUser?.isAdmin || false;
+        } catch (migrationError) {
+          // Migration fehlgeschlagen (z.B. Spalte existiert noch nicht) - nutze E-Mail-Check
+          console.log(`[ADMIN] ⚠️ Migration fehlgeschlagen, nutze E-Mail-Check: ${migrationError}`);
+          isAdmin = true; // E-Mail stimmt, erlaube Zugriff
+        }
+      }
+    }
+  } catch (dbError: any) {
+    // Fehler beim DB-Zugriff (z.B. Spalte existiert noch nicht) - Fallback auf E-Mail
+    console.log(`[ADMIN] ⚠️ DB-Fehler (wahrscheinlich Migration noch nicht ausgeführt), nutze E-Mail-Check: ${dbError.message}`);
     if (session.user.email === adminEmail) {
-      console.log(`[ADMIN] 🔄 Migriere Admin-Flag für: ${session.user.email}`);
-      await migrateAdminFlag();
-      // Erneut prüfen
-      user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { isAdmin: true },
-      });
+      isAdmin = true; // E-Mail stimmt, erlaube Zugriff
     }
   }
 
-  if (!user?.isAdmin) {
+  if (!isAdmin) {
     console.log(`[ADMIN] ❌ Unauthorized access attempt from: ${session.user.email} (ID: ${session.user.id})`);
     redirect('/');
   }
