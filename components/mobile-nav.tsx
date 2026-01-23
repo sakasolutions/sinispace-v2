@@ -36,13 +36,13 @@ export function MobileNav() {
           const Icon = item.icon;
           const isActive = item.active;
 
-          // SiniChat Button - Auf gleicher Höhe wie andere Buttons
+          // SiniChat Button - Auf gleicher Höhe wie andere Buttons mit etwas Freiraum
           if (item.highlight) {
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-col items-center justify-center gap-1 min-w-[60px]"
+                className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-2"
               >
                 <div className={`h-10 w-10 rounded-full ${
                   isActive 
