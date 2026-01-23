@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TrendingUp, Users, Activity, Zap, BarChart3, Target, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { TrendingUp, Users, Activity, Zap, BarChart3, Target, ArrowUpRight, ArrowDownRight, User } from 'lucide-react';
+import { UserAnalytics } from './user-analytics';
 
 type AnalyticsData = {
   activities: Array<{
@@ -26,6 +27,7 @@ export function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState(30);
+  const [showUserAnalytics, setShowUserAnalytics] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/analytics?days=${timeRange}`)
@@ -100,16 +102,38 @@ export function AnalyticsDashboard() {
           </h2>
           <p className="text-sm text-zinc-400 mt-1">Automatische Datenauswertung für App-Optimierung</p>
         </div>
-        <select
-          value={timeRange}
-          onChange={(e) => setTimeRange(Number(e.target.value))}
-          className="rounded-md border border-white/10 bg-zinc-800/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-        >
-          <option value={7}>Letzte 7 Tage</option>
-          <option value={30}>Letzte 30 Tage</option>
-          <option value={90}>Letzte 90 Tage</option>
-        </select>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowUserAnalytics(!showUserAnalytics)}
+            className={`px-4 py-2 rounded-md border transition-all flex items-center gap-2 text-sm font-medium ${
+              showUserAnalytics
+                ? 'border-purple-500/50 bg-purple-500/10 text-purple-400'
+                : 'border-white/10 bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50'
+            }`}
+          >
+            <User className="w-4 h-4" />
+            {showUserAnalytics ? 'Gesamt-Ansicht' : 'User-Ansicht'}
+          </button>
+          <select
+            value={timeRange}
+            onChange={(e) => setTimeRange(Number(e.target.value))}
+            className="rounded-md border border-white/10 bg-zinc-800/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          >
+            <option value={7}>Letzte 7 Tage</option>
+            <option value={30}>Letzte 30 Tage</option>
+            <option value={90}>Letzte 90 Tage</option>
+          </select>
+        </div>
       </div>
+
+      {/* User Analytics View */}
+      {showUserAnalytics && (
+        <UserAnalytics />
+      )}
+
+      {/* Standard Analytics View */}
+      {!showUserAnalytics && (
+        <>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -268,6 +292,8 @@ export function AnalyticsDashboard() {
           )}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
