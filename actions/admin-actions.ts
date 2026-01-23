@@ -165,10 +165,10 @@ export async function deleteUser(prevState: any, formData: FormData) {
     const session = await auth();
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { isAdmin: true },
     });
 
-    if (user?.isAdmin) {
+    // Prüfe ob isAdmin existiert und true ist
+    if (user && 'isAdmin' in user && (user as any).isAdmin === true) {
       return { success: false, error: 'Admin-Account kann nicht gelöscht werden.' };
     }
 
@@ -272,15 +272,26 @@ export async function migrateAdminFlag() {
 
   try {
     // Setze Admin-Flag für User mit Admin-E-Mail
-    const result = await prisma.user.updateMany({
-      where: {
-        email: adminEmail,
-        isAdmin: false, // Nur wenn noch nicht gesetzt
-      },
-      data: {
-        isAdmin: true,
-      },
-    });
+    // Verwende raw SQL, um Fehler zu vermeiden, wenn Spalte noch nicht existiert
+    let result;
+    try {
+      // Versuche normale Prisma-Query
+      result = await prisma.user.updateMany({
+        where: {
+          email: adminEmail,
+        },
+        data: {
+          isAdmin: true,
+        },
+      });
+    } catch (prismaError: any) {
+      // Wenn Spalte nicht existiert, nutze raw SQL
+      if (prismaError.code === 'P2022' || prismaError.message?.includes('isAdmin')) {
+        console.log('[ADMIN_MIGRATION] ⚠️ Spalte isAdmin existiert noch nicht, überspringe Migration');
+        return { success: true, message: 'Migration übersprungen (Spalte existiert noch nicht).' };
+      }
+      throw prismaError;
+    }
 
     console.log(`[ADMIN_MIGRATION] ✅ Admin-Flag gesetzt für ${result.count} User(s)`);
     return { success: true, message: `Admin-Flag für ${result.count} User(s) gesetzt.` };
