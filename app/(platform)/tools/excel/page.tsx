@@ -233,9 +233,17 @@ export default function ExcelPage() {
           {/* STEP 2: Modus Wahl (Grid) */}
           {selectedSoftware && (
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-3">
-                Was möchtest du tun?
-              </label>
+              <div className="flex items-center gap-2 mb-3">
+                <label className="block text-sm font-medium text-zinc-300">
+                  Was möchtest du tun?
+                </label>
+                <Tooltip
+                  content="Wähle den passenden Modus für dein Problem. Jeder Modus ist speziell auf bestimmte Aufgaben optimiert."
+                  variant="help"
+                  position="top"
+                  iconOnly
+                />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {modeOptions.map((option) => {
                   const Icon = option.icon;
