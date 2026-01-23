@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, MessageSquare, FileText, BarChart3, Eye, TrendingUp, MessageSquare as FeedbackIcon } from 'lucide-react';
+import { Users, MessageSquare, FileText, BarChart3, Eye, TrendingUp, MessageSquare as FeedbackIcon, Zap } from 'lucide-react';
 import { AdminUserTable } from './admin-user-table';
 import { AdminChatsView } from './admin-chats-view';
 import { AdminDocumentsView } from './admin-documents-view';
 import { AdminStatsView } from './admin-stats-view';
 import { AnalyticsDashboard } from './analytics-dashboard';
 import { FeedbackDashboard } from './feedback-dashboard';
+import { UsageAnalytics } from './usage-analytics';
 
-type Tab = 'users' | 'chats' | 'documents' | 'stats' | 'analytics' | 'feedback';
+type Tab = 'users' | 'chats' | 'documents' | 'stats' | 'analytics' | 'feedback' | 'usage';
 
 type AdminTabsProps = {
   users: any[];
@@ -28,6 +29,7 @@ export function AdminTabs({ users, chats, documents, stats }: AdminTabsProps) {
     { id: 'stats' as Tab, label: 'Statistiken', icon: BarChart3 },
     { id: 'analytics' as Tab, label: 'Analytics', icon: TrendingUp },
     { id: 'feedback' as Tab, label: 'Feedback', icon: FeedbackIcon },
+    { id: 'usage' as Tab, label: 'Token-Usage', icon: Zap },
   ];
 
   return (
@@ -62,6 +64,7 @@ export function AdminTabs({ users, chats, documents, stats }: AdminTabsProps) {
         {activeTab === 'stats' && <AdminStatsView stats={stats} />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
         {activeTab === 'feedback' && <FeedbackDashboard />}
+        {activeTab === 'usage' && <UsageAnalytics />}
       </div>
     </div>
   );

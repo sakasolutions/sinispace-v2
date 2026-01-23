@@ -1,6 +1,6 @@
 'use server';
 
-import { openai } from '@/lib/openai';
+import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
 
@@ -74,7 +74,7 @@ WICHTIG:
 Erstelle ein perfektes Rezept für die Kategorie '${mealType}' für genau ${servings} ${servings === 1 ? 'Person' : 'Personen'} basierend auf diesen Zutaten.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -82,7 +82,7 @@ Erstelle ein perfektes Rezept für die Kategorie '${mealType}' für genau ${serv
       ],
       response_format: { type: 'json_object' }, // Zwingend JSON
       temperature: 0.8, // Etwas kreativer für Rezepte
-    });
+    }, 'recipe', 'Gourmet-Planer');
 
     const content = response.choices[0].message.content;
     if (!content) {

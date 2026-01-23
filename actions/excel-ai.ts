@@ -1,6 +1,6 @@
 'use server';
 
-import { openai } from '@/lib/openai';
+import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
 
@@ -97,14 +97,14 @@ WICHTIG:
 - Antworte NUR mit der Lösung und kurzer Erklärung, keine zusätzlichen Einleitungen.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
       temperature: 0.3, // Niedriger für präzise technische Lösungen
-    });
+    }, 'excel', 'Excel-Coach');
 
     const result = response.choices[0].message.content;
     if (!result) {

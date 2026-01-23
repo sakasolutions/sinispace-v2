@@ -1,6 +1,6 @@
 'use server';
 
-import { openai } from '@/lib/openai';
+import { createChatCompletion } from '@/lib/openai-wrapper';
 import { auth } from '@/auth';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
@@ -110,13 +110,13 @@ export async function generateEmail(prevState: any, formData: FormData) {
   }
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-    });
+    }, 'email', 'E-Mail Verfasser');
     return { result: response.choices[0].message.content };
   } catch (error) {
     return { error: 'KI Fehler.' };
@@ -159,13 +159,13 @@ export async function generateSummary(prevState: any, formData: FormData) {
   const systemPrompt = `Du bist ein Text-Analyse-Experte. ${formatInstruction} ${lengthInstruction} Antworte nur mit dem zusammengefassten Text, ohne zusätzliche Erklärungen.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: text }
       ],
-    });
+    }, 'summarize', 'Klartext');
     return { result: response.choices[0].message.content };
   } catch (error) {
     return { error: 'KI Fehler.' };
@@ -225,7 +225,7 @@ Formatiere die Antwort wie folgt:
 Antworte NUR mit der Formel/Code und der Erklärung, keine zusätzlichen Einleitungen.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -335,7 +335,7 @@ ${contextInstruction}
 Antworte NUR mit der übersetzten Version des Textes, ohne zusätzliche Erklärungen oder Kommentare.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -398,7 +398,7 @@ ${modeInstruction}
 Antworte NUR mit dem verbesserten Text. Keine Erklärungen, keine Kommentare, nur der aufpolierte Text.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -464,13 +464,13 @@ ${strategyInstruction}
 WICHTIG: Formuliere die Nachricht so, dass sie professionell, respektvoll und angemessen ist. Antworte NUR mit dem formulierten Text, ohne zusätzliche Erklärungen oder Kommentare.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Empfänger: ${recipient}\n\nThema: ${message}` }
       ],
-    });
+    }, 'tough-msg', 'Chat-Coach');
     return { result: response.choices[0].message.content };
   } catch (error) {
     return { error: 'KI Fehler.' };
@@ -546,7 +546,7 @@ WICHTIG:
 - Bei allen Modi außer "Erklären": Füge am Ende den Platzhalter hinzu`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -630,13 +630,13 @@ WICHTIGE REGELN:
 Antworte NUR mit der fertigen Stellenanzeige im Markdown-Format, keine zusätzlichen Kommentare.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Job-Titel: ${jobTitle}\n\nAnstellungsart: ${employmentType}\n\nStichpunkte:\n${points}` }
       ],
-    });
+    }, 'job-desc', 'Stellenanzeige Generator');
     return { result: response.choices[0].message.content };
   } catch (error) {
     return { error: 'KI Fehler.' };
@@ -688,7 +688,7 @@ WICHTIG:
   const userPrompt = `Formuliere diese Leistungsbeschreibung professionell für eine ${documentType}:\n\n"${rawText}"`;
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await createChatCompletion({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -696,7 +696,7 @@ WICHTIG:
       ],
       temperature: 0.7,
       max_tokens: 150,
-    });
+    }, 'invoice', 'Angebot & Rechnung');
 
     const polishedText = completion.choices[0]?.message?.content?.trim() || rawText;
     return polishedText;
@@ -744,7 +744,7 @@ Gesamtbetrag: ${totalAmount.toFixed(2)} EUR
 Erstelle Einleitung und Schluss für diese ${documentType}.`;
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await createChatCompletion({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -753,7 +753,7 @@ Erstelle Einleitung und Schluss für diese ${documentType}.`;
       temperature: 0.7,
       max_tokens: 300,
       response_format: { type: 'json_object' },
-    });
+    }, 'invoice', 'Angebot & Rechnung');
 
     const response = completion.choices[0]?.message?.content?.trim() || '{}';
     const parsed = JSON.parse(response);
@@ -855,7 +855,7 @@ export async function chatWithAI(
 
         console.log('🖼️ Sende', imageContent.length, 'Bild(er) an Vision API');
 
-        const response = await openai.chat.completions.create({
+        const response = await createChatCompletion({
           model: 'gpt-4o',
           messages: [
             { 
@@ -871,7 +871,7 @@ export async function chatWithAI(
               ]
             }
           ] as any,
-        });
+        }, 'chat', 'SiniChat');
 
         console.log('✅ Vision API erfolgreich');
         return { result: response.choices[0].message.content };
@@ -1173,7 +1173,7 @@ export async function chatWithAI(
     }
 
     // Normale Chat-API ohne Dateien (oder als Fallback)
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { 
@@ -1182,7 +1182,7 @@ export async function chatWithAI(
         },
         ...messages
       ] as any,
-    });
+    }, 'chat', 'SiniChat');
     return { result: response.choices[0].message.content };
   } catch (error: any) {
     console.error('Chat error:', error);

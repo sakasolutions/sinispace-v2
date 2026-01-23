@@ -1,6 +1,6 @@
 'use server';
 
-import { openai } from '@/lib/openai';
+import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
 
@@ -105,14 +105,14 @@ WICHTIG:
 - Füge am Ende einen Platzhalter ein: '[Bitte prüfen Sie diesen Entwurf auf Ihre spezifische Situation]'`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
       temperature: 0.3, // Niedriger für präzise juristische Texte
-    });
+    }, 'legal', 'Rechtstexte & Formales');
 
     const result = response.choices[0].message.content;
     if (!result) {

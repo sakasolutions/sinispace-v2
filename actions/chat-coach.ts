@@ -1,6 +1,6 @@
 'use server';
 
-import { openai } from '@/lib/openai';
+import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
 
@@ -68,7 +68,7 @@ Empfänger: ${recipient}
 Generiere 3 verschiedene Antwort-Optionen für diese Situation.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -76,7 +76,7 @@ Generiere 3 verschiedene Antwort-Optionen für diese Situation.`;
       ],
       response_format: { type: 'json_object' }, // Zwingend JSON
       temperature: 0.9, // Kreativer für verschiedene Varianten
-    });
+    }, 'tough-msg', 'Chat-Coach');
 
     const content = response.choices[0].message.content;
     if (!content) {

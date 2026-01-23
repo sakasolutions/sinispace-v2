@@ -34,6 +34,7 @@ model User {
   userActivities      UserActivity[]
   featureUsages       FeatureUsage[]
   feedbacks           Feedback[]
+  tokenUsages         TokenUsage[]
 }
 
 model Account {
@@ -193,5 +194,25 @@ model Feedback {
   @@index([userId, createdAt])
   @@index([toolId, createdAt])
   @@index([type, createdAt])
+  @@index([createdAt])
+}
+
+// Usage-Tracking: AI-Token-Verbrauch pro User und Tool
+model TokenUsage {
+  id               String   @id @default(cuid())
+  userId           String
+  toolId           String   // z.B. 'email', 'excel', 'chat'
+  toolName         String   // z.B. 'E-Mail Verfasser', 'Excel-Coach'
+  model            String   // z.B. 'gpt-4o-mini', 'gpt-4o'
+  promptTokens     Int      // Input-Tokens
+  completionTokens Int      // Output-Tokens
+  totalTokens      Int      // Gesamt-Tokens
+  estimatedCost    Float    // Geschätzte Kosten in USD
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([toolId, createdAt])
   @@index([createdAt])
 }
