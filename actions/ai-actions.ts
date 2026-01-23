@@ -341,7 +341,7 @@ Antworte NUR mit der übersetzten Version des Textes, ohne zusätzliche Erkläru
         { role: 'system', content: systemPrompt },
         { role: 'user', content: text }
       ],
-    });
+    }, 'translate', 'Sprachbrücke');
     return { result: response.choices[0].message.content };
   } catch (error) {
     return { error: 'KI Fehler.' };
@@ -404,7 +404,7 @@ Antworte NUR mit dem verbesserten Text. Keine Erklärungen, keine Kommentare, nu
         { role: 'system', content: systemPrompt },
         { role: 'user', content: text }
       ],
-    });
+    }, 'polish', 'Wortschliff');
     return { result: response.choices[0].message.content };
   } catch (error) {
     return { error: 'KI Fehler.' };
@@ -552,7 +552,7 @@ WICHTIG:
         { role: 'system', content: systemPrompt },
         { role: 'user', content: content }
       ],
-    });
+    }, 'legal', 'Rechtstexte & Formales');
     return { result: response.choices[0].message.content };
   } catch (error) {
     return { error: 'KI Fehler.' };
