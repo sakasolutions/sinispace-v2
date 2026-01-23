@@ -18,16 +18,53 @@ export function CopyButton({
   variant = 'default'
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
+  const [longPressActive, setLongPressActive] = useState(false);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartRef = useRef<{ time: number } | null>(null);
+
+  const LONG_PRESS_DURATION = 500;
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
+      triggerHaptic('success');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Fehler beim Kopieren:', err);
     }
   };
+
+  // Long-Press Handler
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = { time: Date.now() };
+    const timer = setTimeout(() => {
+      triggerHaptic('medium');
+      setLongPressActive(true);
+      handleCopy();
+      touchStartRef.current = null;
+    }, LONG_PRESS_DURATION);
+    longPressTimerRef.current = timer;
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (longPressActive) {
+      setTimeout(() => setLongPressActive(false), 1000);
+    }
+    touchStartRef.current = null;
+  };
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
+    };
+  }, []);
 
   // Size classes
   const sizeClasses = {
@@ -52,37 +89,55 @@ export function CopyButton({
 
   if (variant === 'icon') {
     return (
-      <button
-        onClick={handleCopy}
-        className={`rounded-md transition-all ${variantClasses.icon} ${className}`}
-        title={copied ? 'Kopiert!' : 'In Zwischenablage kopieren'}
-      >
-        {copied ? (
-          <Check className={iconSizes[size]} />
-        ) : (
-          <Copy className={iconSizes[size]} />
+      <div className="relative">
+        <button
+          onClick={handleCopy}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className={`rounded-md transition-all ${variantClasses.icon} ${className} ${longPressActive ? 'bg-green-500/20' : ''}`}
+          title={copied ? 'Kopiert!' : 'In Zwischenablage kopieren (Long-Press für direktes Kopieren)'}
+        >
+          {copied ? (
+            <Check className={iconSizes[size]} />
+          ) : (
+            <Copy className={iconSizes[size]} />
+          )}
+        </button>
+        {longPressActive && (
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-green-500/90 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none z-50">
+            Kopiert!
+          </div>
         )}
-      </button>
+      </div>
     );
   }
 
   return (
-    <button
-      onClick={handleCopy}
-      className={`inline-flex items-center gap-2 rounded-md font-medium transition-all ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
-      title={copied ? 'Kopiert!' : 'In Zwischenablage kopieren'}
-    >
-      {copied ? (
-        <>
-          <Check className={iconSizes[size]} />
-          <span>Kopiert!</span>
-        </>
-      ) : (
-        <>
-          <Copy className={iconSizes[size]} />
-          <span>Kopieren</span>
-        </>
+    <div className="relative">
+      <button
+        onClick={handleCopy}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className={`inline-flex items-center gap-2 rounded-md font-medium transition-all ${sizeClasses[size]} ${variantClasses[variant]} ${className} ${longPressActive ? 'bg-green-500/20 border-green-500/50' : ''}`}
+        title={copied ? 'Kopiert!' : 'In Zwischenablage kopieren (Long-Press für direktes Kopieren)'}
+      >
+        {copied ? (
+          <>
+            <Check className={iconSizes[size]} />
+            <span>Kopiert!</span>
+          </>
+        ) : (
+          <>
+            <Copy className={iconSizes[size]} />
+            <span>Kopieren</span>
+          </>
+        )}
+      </button>
+      {longPressActive && (
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-green-500/90 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none z-50">
+          Kopiert!
+        </div>
       )}
-    </button>
+    </div>
   );
 }
