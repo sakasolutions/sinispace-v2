@@ -106,10 +106,43 @@ export async function updateUser(prevState: any, formData: FormData) {
       updateData.subscriptionEnd = null;
     }
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-    });
+    // Wrapper für update, der isAdmin-Fehler abfängt
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+      });
+    } catch (prismaError: any) {
+      // Wenn isAdmin-Spalte nicht existiert, verwende $executeRaw als Fallback
+      if (prismaError.code === 'P2022' || prismaError.message?.includes('isAdmin')) {
+        const setClauses: string[] = [];
+        const values: any[] = [];
+        let paramIndex = 1;
+        
+        if (updateData.name !== undefined) {
+          setClauses.push(`"name" = $${paramIndex++}`);
+          values.push(updateData.name);
+        }
+        if (updateData.email !== undefined) {
+          setClauses.push(`"email" = $${paramIndex++}`);
+          values.push(updateData.email);
+        }
+        if (updateData.subscriptionEnd !== undefined) {
+          setClauses.push(`"subscriptionEnd" = $${paramIndex++}`);
+          values.push(updateData.subscriptionEnd);
+        }
+        
+        if (setClauses.length > 0) {
+          await prisma.$executeRawUnsafe(
+            `UPDATE "User" SET ${setClauses.join(', ')} WHERE "id" = $${paramIndex}`,
+            ...values,
+            userId
+          );
+        }
+      } else {
+        throw prismaError;
+      }
+    }
 
     console.log(`[ADMIN] ✅ User aktualisiert: ${userId}`);
     return { success: true, message: 'User erfolgreich aktualisiert.' };
@@ -199,10 +232,24 @@ export async function setUserPremium(prevState: any, formData: FormData) {
     const subscriptionEnd = new Date();
     subscriptionEnd.setDate(subscriptionEnd.getDate() + days);
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: { subscriptionEnd },
-    });
+    // Wrapper für update, der isAdmin-Fehler abfängt
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { subscriptionEnd },
+      });
+    } catch (prismaError: any) {
+      // Wenn isAdmin-Spalte nicht existiert, verwende $executeRaw als Fallback
+      if (prismaError.code === 'P2022' || prismaError.message?.includes('isAdmin')) {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "User" SET "subscriptionEnd" = $1 WHERE "id" = $2`,
+          subscriptionEnd,
+          userId
+        );
+      } else {
+        throw prismaError;
+      }
+    }
 
     console.log(`[ADMIN] ✅ Premium gesetzt für User: ${userId} (${days} Tage)`);
     return { success: true, message: `Premium für ${days} Tage gesetzt.` };
@@ -223,10 +270,23 @@ export async function removeUserPremium(prevState: any, formData: FormData) {
   }
 
   try {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { subscriptionEnd: null },
-    });
+    // Wrapper für update, der isAdmin-Fehler abfängt
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { subscriptionEnd: null },
+      });
+    } catch (prismaError: any) {
+      // Wenn isAdmin-Spalte nicht existiert, verwende $executeRaw als Fallback
+      if (prismaError.code === 'P2022' || prismaError.message?.includes('isAdmin')) {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "User" SET "subscriptionEnd" = NULL WHERE "id" = $1`,
+          userId
+        );
+      } else {
+        throw prismaError;
+      }
+    }
 
     console.log(`[ADMIN] ✅ Premium entfernt für User: ${userId}`);
     return { success: true, message: 'Premium erfolgreich entfernt.' };
