@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { polishInvoiceText, generateInvoiceTexts } from '@/actions/ai-actions';
-import { Sparkles, Plus, Download, Wand2, Loader2, FileText } from 'lucide-react';
+import { Sparkles, Plus, Download, Wand2, Loader2, FileText, Mail } from 'lucide-react';
+import Link from 'next/link';
 import { Page, Text, View, StyleSheet, Document, pdf, BlobProvider } from '@react-pdf/renderer';
 import { ToolHeader } from '@/components/tool-header';
 
@@ -793,6 +794,15 @@ export default function InvoicePage() {
               <Download className="w-5 h-5" />
               PDF Herunterladen
             </button>
+            
+            {/* Smart Chain: Passende E-Mail schreiben */}
+            <Link
+              href={`/actions/email?chain=invoice&client=${encodeURIComponent(data.clientName || data.clientCompany || 'Kunde')}&ref=${encodeURIComponent(data.invoiceNumber || '')}&type=${encodeURIComponent(data.type === 'invoice' ? 'Rechnung' : 'Angebot')}`}
+              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 bg-zinc-800/50 hover:bg-zinc-700/50 border border-white/10 hover:border-white/20 rounded-lg font-medium transition-all text-zinc-200 hover:text-white"
+            >
+              <Mail className="w-5 h-5" />
+              Passende E-Mail schreiben
+            </Link>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ import { LabelWithTooltip } from '@/components/ui/tooltip';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { SwipeableResult } from '@/components/platform/swipeable-result';
@@ -84,21 +84,57 @@ function SubmitButton() {
 export default function EmailPage() {
   // @ts-ignore
   const [state, formAction] = useActionState(generateEmailWithChat, null);
+  const searchParams = useSearchParams();
+  
+  // Smart Chain: Lese Query-Params
+  const chain = searchParams.get('chain');
+  const client = searchParams.get('client');
+  const ref = searchParams.get('ref');
+  const type = searchParams.get('type');
   
   // State für Formularfelder, damit sie nicht geleert werden
   const [senderName, setSenderName] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [recipient, setRecipient] = useState('');
-  const [tone, setTone] = useState('Professionell');
+  const [tone, setTone] = useState(chain === 'invoice' ? 'Professionell' : 'Professionell');
   const [formality, setFormality] = useState<'Sie' | 'Du'>('Sie');
   const [language, setLanguage] = useState('Deutsch');
   const [length, setLength] = useState<'Kurz' | 'Mittel' | 'Ausführlich'>('Mittel');
-  const [topic, setTopic] = useState('');
+  
+  // Smart Pre-fill für Invoice Chain
+  const getInitialTopic = () => {
+    if (chain === 'invoice' && client && ref && type) {
+      return `Sende dem Kunden '${client}' das Dokument '${ref}' (${type}). Bitte freundlich und professionell formulieren.`;
+    }
+    return '';
+  };
+  
+  const [topic, setTopic] = useState(getInitialTopic());
+  const [showChainBadge, setShowChainBadge] = useState(chain === 'invoice');
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
       <BackButton />
+      
+      {/* Smart Chain Badge */}
+      {showChainBadge && chain === 'invoice' && (
+        <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🔗</span>
+            <span className="text-sm text-blue-300">
+              Workflow aktiv: Daten aus {type || 'Rechnung'} übernommen
+            </span>
+          </div>
+          <button
+            onClick={() => setShowChainBadge(false)}
+            className="text-blue-400 hover:text-blue-300 transition-colors text-sm"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      
       <div className="mb-6 sm:mb-8">
         <div className="flex items-start justify-between gap-4">
           <div>
