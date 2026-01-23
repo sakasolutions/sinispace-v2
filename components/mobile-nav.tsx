@@ -48,7 +48,7 @@ export function MobileNav() {
                   isActive 
                     ? 'bg-gradient-to-br from-teal-500 to-indigo-500 shadow-lg shadow-teal-500/30' 
                     : 'bg-gradient-to-br from-teal-500/60 to-indigo-500/60 shadow-lg shadow-teal-500/20'
-                } flex items-center justify-center transition-all duration-300`}>
+                } border-2 border-zinc-950 flex items-center justify-center transition-all duration-300`}>
                   <Icon 
                     className={`h-5 w-5 text-white transition-all duration-300`} 
                     strokeWidth={isActive ? 2.5 : 2}
