@@ -6,18 +6,17 @@
 import { openai } from './openai';
 import { auth } from '@/auth';
 import { trackUsage, checkUsageLimit, type UsageLimit, type TokenUsage } from './usage-tracking';
-
-type ChatCompletionOptions = Parameters<typeof openai.chat.completions.create>[0];
+import type { ChatCompletion, ChatCompletionCreateParams } from 'openai/resources/chat/completions';
 
 /**
  * Wrapper für chat.completions.create mit automatischem Tracking
  */
 export async function createChatCompletion(
-  options: ChatCompletionOptions,
+  options: ChatCompletionCreateParams,
   toolId: string,
   toolName: string,
   limits?: UsageLimit
-) {
+): Promise<ChatCompletion> {
   const session = await auth();
   
   if (!session?.user?.id) {
@@ -32,8 +31,14 @@ export async function createChatCompletion(
     }
   }
 
+  // Stelle sicher, dass stream: false ist (wir wollen keine Streams)
+  const optionsWithoutStream = {
+    ...options,
+    stream: false as const,
+  };
+
   // Führe den API-Call aus
-  const response = await openai.chat.completions.create(options);
+  const response = await openai.chat.completions.create(optionsWithoutStream) as ChatCompletion;
 
   // Tracke Usage (async, blockiert nicht)
   if (response.usage) {
