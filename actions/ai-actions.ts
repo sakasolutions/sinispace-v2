@@ -231,7 +231,7 @@ Antworte NUR mit der Formel/Code und der Erklärung, keine zusätzlichen Einleit
         { role: 'system', content: systemPrompt },
         { role: 'user', content: problem }
       ],
-    });
+    }, 'excel', 'Excel-Coach');
     return { result: response.choices[0].message.content };
   } catch (error) {
     return { error: 'KI Fehler.' };
