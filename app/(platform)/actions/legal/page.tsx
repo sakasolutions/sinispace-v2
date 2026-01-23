@@ -7,6 +7,7 @@ import { Copy, MessageSquare, Loader2, Scale } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
+import { BackButton } from '@/components/ui/back-button';
 
 function ActionButtons({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
