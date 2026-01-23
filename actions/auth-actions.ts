@@ -36,10 +36,28 @@ export async function registerUser(formData: FormData) {
   try {
     console.log(`[REGISTER] 🔍 Prüfe ob User existiert: ${email}`);
     
-    // Prüfen ob User bereits existiert
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    // Prüfen ob User bereits existiert - mit select um isAdmin-Fehler zu vermeiden
+    let existingUser;
+    try {
+      existingUser = await prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+        },
+      });
+    } catch (prismaError: any) {
+      // Wenn isAdmin-Spalte nicht existiert, verwende Raw SQL als Fallback
+      if (prismaError.code === 'P2022' || prismaError.message?.includes('isAdmin')) {
+        const result = await prisma.$queryRawUnsafe<Array<{ id: string; email: string | null }>>(
+          `SELECT id, email FROM "User" WHERE email = $1 LIMIT 1`,
+          email
+        );
+        existingUser = result[0] || null;
+      } else {
+        throw prismaError;
+      }
+    }
 
     if (existingUser) {
       console.error(`[REGISTER] ❌ User existiert bereits: ${email}`);

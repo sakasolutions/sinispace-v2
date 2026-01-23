@@ -24,10 +24,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = credentials.email as string;
         
         try {
-          // User suchen
-          const user = await prisma.user.findUnique({
-            where: { email },
-          });
+          // User suchen - mit select um isAdmin-Fehler zu vermeiden
+          let user;
+          try {
+            user = await prisma.user.findUnique({
+              where: { email },
+              select: {
+                id: true,
+                email: true,
+                password: true,
+                name: true,
+                image: true,
+                emailVerified: true,
+                createdAt: true,
+                updatedAt: true,
+                subscriptionEnd: true,
+                stripeCustomerId: true,
+              },
+            });
+          } catch (prismaError: any) {
+            // Wenn isAdmin-Spalte nicht existiert, verwende Raw SQL als Fallback
+            if (prismaError.code === 'P2022' || prismaError.message?.includes('isAdmin')) {
+              const result = await prisma.$queryRawUnsafe<Array<{
+                id: string;
+                email: string | null;
+                password: string | null;
+                name: string | null;
+                image: string | null;
+                emailVerified: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                subscriptionEnd: Date | null;
+                stripeCustomerId: string | null;
+              }>>(
+                `SELECT id, email, password, name, image, "emailVerified", "createdAt", "updatedAt", "subscriptionEnd", "stripeCustomerId" FROM "User" WHERE email = $1 LIMIT 1`,
+                email
+              );
+              user = result[0] || null;
+            } else {
+              throw prismaError;
+            }
+          }
 
           // Prüfen ob User existiert und ein Passwort hat
           if (!user) {
