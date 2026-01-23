@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { DashboardGreetingClient } from '@/components/platform/dashboard-greeting-client';
 import { triggerHaptic } from '@/lib/haptic-feedback';
-import { SiniBox } from '@/components/sini-box';
 import {
   Mail,
   Languages,
