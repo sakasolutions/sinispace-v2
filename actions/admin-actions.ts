@@ -168,3 +168,50 @@ export async function setUserPremium(prevState: any, formData: FormData) {
     return { success: false, error: 'Fehler beim Setzen von Premium.' };
   }
 }
+
+// Premium entfernen
+export async function removeUserPremium(prevState: any, formData: FormData) {
+  await requireAdmin();
+
+  const userId = formData.get('userId') as string;
+
+  if (!userId) {
+    return { success: false, error: 'User ID fehlt.' };
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { subscriptionEnd: null },
+    });
+
+    console.log(`[ADMIN] ✅ Premium entfernt für User: ${userId}`);
+    return { success: true, message: 'Premium erfolgreich entfernt.' };
+  } catch (error: any) {
+    console.error('[ADMIN] ❌ Fehler beim Entfernen von Premium:', error);
+    return { success: false, error: 'Fehler beim Entfernen von Premium.' };
+  }
+}
+
+// Chat Messages für Admin abrufen
+export async function getChatMessages(chatId: string) {
+  await requireAdmin();
+
+  try {
+    const messages = await prisma.message.findMany({
+      where: { chatId },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        role: true,
+        content: true,
+        createdAt: true,
+      },
+    });
+
+    return { success: true, messages };
+  } catch (error: any) {
+    console.error('[ADMIN] ❌ Fehler beim Abrufen der Messages:', error);
+    return { success: false, error: 'Fehler beim Abrufen der Messages.' };
+  }
+}

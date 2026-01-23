@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useActionState } from 'react';
-import { Pencil, Trash2, Crown, Key, X, Save } from 'lucide-react';
-import { updateUser, deleteUser, resetUserPassword, setUserPremium } from '@/actions/admin-actions';
+import { Pencil, Trash2, Crown, Key, X, Save, XCircle } from 'lucide-react';
+import { updateUser, deleteUser, resetUserPassword, setUserPremium, removeUserPremium } from '@/actions/admin-actions';
 import { useRouter } from 'next/navigation';
 
 type User = {
@@ -25,6 +25,7 @@ export function AdminUserTable({ users: initialUsers }: AdminUserTableProps) {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState<string | null>(null);
   const [showPremiumModal, setShowPremiumModal] = useState<string | null>(null);
+  const [showRemovePremiumModal, setShowRemovePremiumModal] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
 
   // @ts-ignore
@@ -35,13 +36,18 @@ export function AdminUserTable({ users: initialUsers }: AdminUserTableProps) {
   const [passwordState, passwordAction] = useActionState(resetUserPassword, null);
   // @ts-ignore
   const [premiumState, premiumAction] = useActionState(setUserPremium, null);
+  // @ts-ignore
+  const [removePremiumState, removePremiumAction] = useActionState(removeUserPremium, null);
 
-  // Nach erfolgreichem Update: Seite neu laden
+  // Automatisches Refresh nach erfolgreichen Änderungen
   useEffect(() => {
-    if (updateState?.success || deleteState?.success || passwordState?.success || premiumState?.success) {
-      router.refresh();
+    if (updateState?.success || deleteState?.success || passwordState?.success || premiumState?.success || removePremiumState?.success) {
+      const timer = setTimeout(() => {
+        router.refresh();
+      }, 1500); // 1.5 Sekunden Verzögerung, damit User Success-Meldung sieht
+      return () => clearTimeout(timer);
     }
-  }, [updateState?.success, deleteState?.success, passwordState?.success, premiumState?.success, router]);
+  }, [updateState?.success, deleteState?.success, passwordState?.success, premiumState?.success, removePremiumState?.success, router]);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('de-DE', {
@@ -182,13 +188,23 @@ export function AdminUserTable({ users: initialUsers }: AdminUserTableProps) {
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={() => setShowPremiumModal(user.id)}
-                      className="p-1.5 rounded-md bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 hover:text-yellow-300 transition-all"
-                      title="Premium setzen"
-                    >
-                      <Crown className="w-4 h-4" />
-                    </button>
+                    {isPremium(user.subscriptionEnd) ? (
+                      <button
+                        onClick={() => setShowRemovePremiumModal(user.id)}
+                        className="p-1.5 rounded-md bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-all"
+                        title="Premium entfernen"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowPremiumModal(user.id)}
+                        className="p-1.5 rounded-md bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 hover:text-yellow-300 transition-all"
+                        title="Premium setzen"
+                      >
+                        <Crown className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       onClick={() => setShowPasswordModal(user.id)}
                       className="p-1.5 rounded-md bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 hover:text-blue-300 transition-all"
@@ -247,6 +263,42 @@ export function AdminUserTable({ users: initialUsers }: AdminUserTableProps) {
                 <button
                   type="button"
                   onClick={() => setShowPremiumModal(null)}
+                  className="px-4 py-2 rounded-md bg-zinc-700 hover:bg-zinc-600 text-white text-sm font-medium transition-all"
+                >
+                  Abbrechen
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Premium entfernen Modal */}
+      {showRemovePremiumModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 rounded-xl border border-white/10 p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold text-white mb-2">Premium entfernen?</h3>
+            <p className="text-sm text-zinc-400 mb-4">
+              Premium-Status wird für diesen User entfernt. Der User verliert sofort den Premium-Zugriff.
+            </p>
+            <form action={removePremiumAction} className="space-y-4">
+              <input type="hidden" name="userId" value={showRemovePremiumModal} />
+              {removePremiumState?.error && (
+                <p className="text-sm text-red-400">{removePremiumState.error}</p>
+              )}
+              {removePremiumState?.success && (
+                <p className="text-sm text-green-400">{removePremiumState.message}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-all"
+                >
+                  Premium entfernen
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRemovePremiumModal(null)}
                   className="px-4 py-2 rounded-md bg-zinc-700 hover:bg-zinc-600 text-white text-sm font-medium transition-all"
                 >
                   Abbrechen
