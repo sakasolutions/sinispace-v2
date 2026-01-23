@@ -4,6 +4,7 @@ import { signOutAction } from '@/actions/auth-actions';
 import { prisma } from '@/lib/prisma';
 import { DeleteAccount } from '@/components/platform/delete-account';
 import { ChangePassword } from '@/components/platform/change-password';
+import { ChangeName } from '@/components/platform/change-name';
 
 export default async function SettingsPage({
   searchParams,
@@ -14,12 +15,13 @@ export default async function SettingsPage({
   const params = await searchParams;
 
   // Performance-Optimierung: Email aus Session nutzen (bereits verfügbar)
-  // Nur subscriptionEnd und id aus DB holen (für Display)
+  // Nur subscriptionEnd, id und name aus DB holen (für Display)
   const user = await prisma.user.findUnique({
     where: { id: session?.user?.id },
     select: {
       id: true,
       email: true, // Fallback falls nicht in Session
+      name: true, // Für Anzeige des aktuellen Namens
       subscriptionEnd: true,
     },
   });
@@ -55,12 +57,17 @@ export default async function SettingsPage({
                👤
             </div>
             <div className="min-w-0 flex-1">
-               <p className="text-xs sm:text-sm font-medium text-zinc-400">Angemeldet als:</p>
+               <p className="text-xs sm:text-sm font-medium text-zinc-400">Nutzernamen:</p>
+               <p className="text-white text-sm sm:text-base font-semibold truncate">{user?.name || userEmail}</p>
+               <p className="text-xs sm:text-sm font-medium text-zinc-400 mt-1">E-Mail:</p>
                <p className="text-white font-mono text-xs sm:text-sm truncate">{userEmail}</p>
                <p className="text-[10px] sm:text-xs text-zinc-500 mt-0.5 sm:mt-1 truncate">ID: {userId}</p>
             </div>
          </div>
       </div>
+
+      {/* NUTZERNAMEN ÄNDERN */}
+      <ChangeName />
 
       {/* SUBSCRIPTION STATUS CARD */}
       <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">

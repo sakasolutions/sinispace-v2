@@ -35,10 +35,11 @@ export async function registerUser(formData: FormData) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     console.log(`[REGISTER] ➕ Erstelle neuen User: ${email}`);
-    // User erstellen
+    // User erstellen - Name automatisch auf E-Mail setzen
     const newUser = await prisma.user.create({
       data: {
         email,
+        name: email, // Automatisch E-Mail als Nutzernamen setzen
         password: hashedPassword,
       },
     });
@@ -260,6 +261,41 @@ export async function changePassword(prevState: any, formData: FormData) {
   } catch (error) {
     console.error('[CHANGE_PASSWORD] ❌ Fehler:', error);
     return { success: false, error: 'Fehler beim Ändern des Passworts. Bitte versuche es erneut.' };
+  }
+}
+
+// Nutzernamen ändern
+export async function changeName(prevState: any, formData: FormData) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, error: 'Nicht angemeldet.' };
+  }
+
+  const newName = formData.get('newName') as string;
+
+  // Validierung
+  if (!newName || newName.trim() === '') {
+    return { success: false, error: 'Bitte gib einen Nutzernamen ein.' };
+  }
+
+  if (newName.length > 50) {
+    return { success: false, error: 'Der Nutzernamen darf maximal 50 Zeichen lang sein.' };
+  }
+
+  try {
+    // Namen aktualisieren
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { name: newName.trim() },
+    });
+
+    console.log(`[CHANGE_NAME] ✅ Name geändert für User: ${session.user.id} -> ${newName.trim()}`);
+
+    return { success: true, message: 'Nutzernamen erfolgreich geändert.' };
+  } catch (error: any) {
+    console.error('[CHANGE_NAME] ❌ Fehler beim Ändern des Namens:', error);
+    return { success: false, error: 'Fehler beim Ändern des Nutzernamens.' };
   }
 }
 
