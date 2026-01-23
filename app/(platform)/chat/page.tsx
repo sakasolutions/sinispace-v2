@@ -11,6 +11,7 @@ import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { SuggestedActions } from '@/components/suggested-actions';
 import { CopyButton } from '@/components/ui/copy-button';
+import { Tooltip } from '@/components/ui/tooltip';
 
 type Message = {
   role: 'user' | 'assistant';

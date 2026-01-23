@@ -7,6 +7,7 @@ import { Copy, MessageSquare, Loader2, Table2, FunctionSquare, BrainCircuit, Fil
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { ToolHeader } from '@/components/tool-header';
+import { Tooltip } from '@/components/ui/tooltip';
 
 type ExcelMode = 'generator' | 'explainer' | 'script' | 'data' | null;
 type Software = 'excel-de' | 'excel-en' | 'sheets' | null;
@@ -189,9 +190,25 @@ export default function ExcelPage() {
         <div className="space-y-6">
           {/* STEP 1: Software Wahl (Tabs) */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-3">
-              Software wählen <span className="text-zinc-500 text-xs">(wichtig für Syntax!)</span>
-            </label>
+            <div className="flex items-center gap-2 mb-3">
+              <label className="block text-sm font-medium text-zinc-300">
+                Software wählen
+              </label>
+              <Tooltip
+                content={
+                  <div className="space-y-1">
+                    <p className="font-semibold mb-1">Warum ist das wichtig?</p>
+                    <p>📊 <strong>Excel (Deutsch):</strong> Formeln wie SVERWEIS, WENN, SUMMEWENN. Trennzeichen: Semikolon (;)</p>
+                    <p>📊 <strong>Excel (Englisch):</strong> Formeln wie VLOOKUP, IF, SUMIF. Trennzeichen: Komma (,)</p>
+                    <p>📊 <strong>Google Sheets:</strong> Meist englische Syntax, internationales Format</p>
+                    <p className="mt-2 text-xs opacity-90">Die richtige Auswahl sorgt für korrekte Formel-Syntax!</p>
+                  </div>
+                }
+                variant="tip"
+                position="top"
+                iconOnly
+              />
+            </div>
             <div className="flex flex-wrap gap-2">
               {softwareOptions.map((option) => {
                 const isSelected = selectedSoftware === option.id;

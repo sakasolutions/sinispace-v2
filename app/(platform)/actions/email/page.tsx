@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { useState } from 'react';
 import { Mail, MessageSquare, Loader2 } from 'lucide-react';
 import { CopyButton } from '@/components/ui/copy-button';
+import { LabelWithTooltip } from '@/components/ui/tooltip';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
@@ -162,7 +163,11 @@ export default function EmailPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Tonfall</label>
+              <LabelWithTooltip
+                label="Tonfall"
+                tooltip="Wähle den passenden Ton für deine E-Mail. Professionell für Geschäftliches, Freundlich für lockere Kommunikation, Bestimmt für dringende Angelegenheiten."
+                variant="help"
+              />
               <CustomSelect
                 name="tone"
                 value={tone}
@@ -180,7 +185,11 @@ export default function EmailPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Anrede</label>
+              <LabelWithTooltip
+                label="Anrede"
+                tooltip="Sie = formell (Geschäftlich, Unbekannte Personen). Du = informell (Kollegen, Bekannte, Freunde)."
+                variant="help"
+              />
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -209,7 +218,11 @@ export default function EmailPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Sprache</label>
+              <LabelWithTooltip
+                label="Sprache"
+                tooltip="Die E-Mail wird in der gewählten Sprache mit natürlichen, idiomatischen Formulierungen verfasst - keine wörtlichen Übersetzungen!"
+                variant="tip"
+              />
               <CustomSelect
                 name="language"
                 value={language}
@@ -227,7 +240,11 @@ export default function EmailPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Länge</label>
+              <LabelWithTooltip
+                label="Länge"
+                tooltip="Kurz = 2-3 Sätze (Quick Updates). Mittel = 1-2 Absätze (Standard). Ausführlich = Mehrere Absätze (Detaillierte Erklärungen)."
+                variant="help"
+              />
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
