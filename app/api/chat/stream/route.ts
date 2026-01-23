@@ -85,7 +85,14 @@ export async function POST(req: Request) {
             for await (const chunk of stream) {
               const content = chunk.choices[0]?.delta?.content || '';
               if (content) {
-                controller.enqueue(encoder.encode(content));
+                // Sende Zeichen für Zeichen für Schreibmaschinen-Effekt
+                for (let i = 0; i < content.length; i++) {
+                  controller.enqueue(encoder.encode(content[i]));
+                  // Kleine Verzögerung zwischen Zeichen (schneller als echte Schreibmaschine)
+                  if (i < content.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 5)); // 5ms pro Zeichen = schnell aber sichtbar
+                  }
+                }
               }
             }
             controller.close();
@@ -135,7 +142,14 @@ export async function POST(req: Request) {
           for await (const chunk of stream) {
             const content = chunk.choices[0]?.delta?.content || '';
             if (content) {
-              controller.enqueue(encoder.encode(content));
+              // Sende Zeichen für Zeichen für Schreibmaschinen-Effekt
+              for (let i = 0; i < content.length; i++) {
+                controller.enqueue(encoder.encode(content[i]));
+                // Kleine Verzögerung zwischen Zeichen (schneller als echte Schreibmaschine)
+                if (i < content.length - 1) {
+                  await new Promise(resolve => setTimeout(resolve, 5)); // 5ms pro Zeichen = schnell aber sichtbar
+                }
+              }
             }
           }
           controller.close();

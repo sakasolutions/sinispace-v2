@@ -313,7 +313,7 @@ export default function ChatDetailPage() {
       const assistantMessage: Message = { role: 'assistant', content: '' };
       setMessages([...newHistory, assistantMessage]);
 
-      // Lese Stream
+      // Lese Stream zeichenweise
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let fullContent = '';
@@ -324,10 +324,15 @@ export default function ChatDetailPage() {
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
-          fullContent += chunk;
-
-          // Update Nachricht mit neuem Content
-          setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
+          
+          // Füge jedes Zeichen einzeln hinzu für Schreibmaschinen-Effekt
+          for (let i = 0; i < chunk.length; i++) {
+            fullContent += chunk[i];
+            // Update sofort für jeden Zeichen
+            setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
+            // Kleine Verzögerung für sichtbaren Effekt (optional, da Server schon verzögert)
+            await new Promise(resolve => setTimeout(resolve, 2));
+          }
         }
 
         // Speichere vollständige Nachricht in DB
@@ -421,7 +426,7 @@ export default function ChatDetailPage() {
         const assistantMessage: Message = { role: 'assistant', content: '' };
         setMessages([...newHistory, assistantMessage]);
 
-        // Lese Stream
+        // Lese Stream zeichenweise
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
         let fullContent = '';
@@ -432,10 +437,15 @@ export default function ChatDetailPage() {
             if (done) break;
 
             const chunk = decoder.decode(value, { stream: true });
-            fullContent += chunk;
-
-            // Update Nachricht mit neuem Content
-            setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
+            
+            // Füge jedes Zeichen einzeln hinzu für Schreibmaschinen-Effekt
+            for (let i = 0; i < chunk.length; i++) {
+              fullContent += chunk[i];
+              // Update sofort für jeden Zeichen
+              setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
+              // Kleine Verzögerung für sichtbaren Effekt (optional, da Server schon verzögert)
+              await new Promise(resolve => setTimeout(resolve, 2));
+            }
           }
 
           // Speichere vollständige Nachricht in DB
