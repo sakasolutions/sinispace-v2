@@ -404,9 +404,17 @@ export default function LegalPage() {
               
               {/* Footer Disclaimer */}
               <div className="border-t border-white/5 bg-white/5 p-3 rounded-b-xl">
-                <p className="text-xs text-zinc-500 text-center">
+                <p className="text-xs text-zinc-500 text-center mb-3">
                   Keine Rechtsberatung. Bitte vor Verwendung prüfen.
                 </p>
+                {/* FEEDBACK BUTTON */}
+                <div className="pt-3 border-t border-white/5">
+                  <FeedbackButton 
+                    toolId="legal" 
+                    toolName="Rechtstexte & Formales"
+                    resultId={state?.result ? `legal-${Date.now()}` : undefined}
+                  />
+                </div>
               </div>
             </div>
           ) : (
