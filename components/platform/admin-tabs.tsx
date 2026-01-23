@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, MessageSquare, FileText, BarChart3, Eye } from 'lucide-react';
+import { Users, MessageSquare, FileText, BarChart3, Eye, TrendingUp } from 'lucide-react';
 import { AdminUserTable } from './admin-user-table';
 import { AdminChatsView } from './admin-chats-view';
 import { AdminDocumentsView } from './admin-documents-view';
 import { AdminStatsView } from './admin-stats-view';
+import { AnalyticsDashboard } from './analytics-dashboard';
 
-type Tab = 'users' | 'chats' | 'documents' | 'stats';
+type Tab = 'users' | 'chats' | 'documents' | 'stats' | 'analytics';
 
 type AdminTabsProps = {
   users: any[];
@@ -24,6 +25,7 @@ export function AdminTabs({ users, chats, documents, stats }: AdminTabsProps) {
     { id: 'chats' as Tab, label: 'Chats', icon: MessageSquare },
     { id: 'documents' as Tab, label: 'Dokumente', icon: FileText },
     { id: 'stats' as Tab, label: 'Statistiken', icon: BarChart3 },
+    { id: 'analytics' as Tab, label: 'Analytics', icon: TrendingUp },
   ];
 
   return (
@@ -56,6 +58,7 @@ export function AdminTabs({ users, chats, documents, stats }: AdminTabsProps) {
         {activeTab === 'chats' && <AdminChatsView chats={chats} />}
         {activeTab === 'documents' && <AdminDocumentsView documents={documents} />}
         {activeTab === 'stats' && <AdminStatsView stats={stats} />}
+        {activeTab === 'analytics' && <AnalyticsDashboard />}
       </div>
     </div>
   );

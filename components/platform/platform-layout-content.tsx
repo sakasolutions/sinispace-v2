@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { HeroBackground } from '@/components/ui/hero-background';
 import { MobileNav } from '@/components/mobile-nav';
+import { AnalyticsTracker } from '@/components/platform/analytics-tracker';
 
 interface PlatformLayoutContentProps {
   children: React.ReactNode;
@@ -156,6 +157,9 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
       
       {/* Mobile Bottom Navigation */}
       <MobileNav />
+      
+      {/* Analytics Tracker */}
+      <AnalyticsTracker />
     </div>
   );
 }

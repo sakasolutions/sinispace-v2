@@ -30,6 +30,8 @@ model User {
   chats               Chat[]
   documents           Document[]
   passwordResetTokens PasswordResetToken[]
+  userActivities      UserActivity[]
+  featureUsages       FeatureUsage[]
 }
 
 model Account {
@@ -131,5 +133,44 @@ model LoginAttempt {
 
   @@index([email, createdAt])
   @@index([ipAddress, createdAt])
+  @@index([createdAt])
+}
+
+// Analytics: User-Aktivitäten tracken
+model UserActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // z.B. 'page_view', 'feature_used', 'tool_opened'
+  page      String?  // Welche Seite/Route
+  feature   String?  // Welches Feature/Tool
+  metadata  String?  // JSON-String für zusätzliche Daten
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([feature, createdAt])
+  @@index([createdAt])
+}
+
+// Analytics: Feature-Nutzung detailliert
+model FeatureUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String   // Tool-Name oder Feature-Name
+  category  String?  // Kategorie (z.B. 'Büro & Organisation')
+  duration  Int?     // Nutzungsdauer in Sekunden (optional)
+  success   Boolean  @default(true) // War die Nutzung erfolgreich?
+  metadata  String?  // JSON-String für zusätzliche Daten
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([feature, createdAt])
+  @@index([category, createdAt])
   @@index([createdAt])
 }
