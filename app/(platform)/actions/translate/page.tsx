@@ -133,12 +133,25 @@ export default function TranslatePage() {
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-white">Kontext Übersetzer</h1>
-        <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
-          Übersetze Texte mit Kontext – nicht nur wörtlich, sondern natürlich und passend.
-        </p>
-        <div className="mt-3 p-3 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-sm text-indigo-300">
-          💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>SiniChat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">Kontext Übersetzer</h1>
+            <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
+              Übersetze Texte mit Kontext – nicht nur wörtlich, sondern natürlich und passend.
+            </p>
+            <div className="mt-3 p-3 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-sm text-indigo-300">
+              💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>SiniChat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
+            </div>
+          </div>
+          <div className="flex-shrink-0">
+            <WhatIsThisModal
+              title={toolInfoMap.translate.title}
+              content={toolInfoMap.translate.description}
+              useCases={toolInfoMap.translate.useCases}
+              examples={toolInfoMap.translate.examples}
+              tips={toolInfoMap.translate.tips}
+            />
+          </div>
         </div>
       </div>
 

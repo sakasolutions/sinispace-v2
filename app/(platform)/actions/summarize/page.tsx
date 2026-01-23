@@ -120,12 +120,25 @@ export default function SummarizePage() {
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-white">Text Zusammenfasser</h1>
-        <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
-          Zu viel Text, zu wenig Zeit? Ich gib dir die Kernaussagen.
-        </p>
-        <div className="mt-3 p-3 rounded-md bg-teal-500/10 border border-teal-500/20 text-sm text-teal-300">
-          💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>SiniChat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">Text Zusammenfasser</h1>
+            <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
+              Zu viel Text, zu wenig Zeit? Ich gib dir die Kernaussagen.
+            </p>
+            <div className="mt-3 p-3 rounded-md bg-teal-500/10 border border-teal-500/20 text-sm text-teal-300">
+              💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>SiniChat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
+            </div>
+          </div>
+          <div className="flex-shrink-0">
+            <WhatIsThisModal
+              title={toolInfoMap.summarize.title}
+              content={toolInfoMap.summarize.description}
+              useCases={toolInfoMap.summarize.useCases}
+              examples={toolInfoMap.summarize.examples}
+              tips={toolInfoMap.summarize.tips}
+            />
+          </div>
         </div>
       </div>
 
