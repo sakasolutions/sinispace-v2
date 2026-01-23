@@ -17,25 +17,24 @@ export async function GET(
   const adminEmail = process.env.ADMIN_EMAIL;
   let isAdmin = false;
 
-  try {
-    // Versuche Admin-Flag aus DB zu lesen
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isAdmin: true },
-    });
+  // Prüfe zuerst E-Mail (schneller Fallback)
+  if (session.user.email === adminEmail) {
+    try {
+      // Versuche Admin-Flag aus DB zu lesen (ohne select, um Fehler zu vermeiden)
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
 
-    if (user?.isAdmin) {
-      isAdmin = true;
-    } else {
-      // Fallback: E-Mail-Check (wenn Migration noch nicht ausgeführt)
-      if (session.user.email === adminEmail) {
+      // Prüfe ob isAdmin existiert und true ist
+      if (user && 'isAdmin' in user && (user as any).isAdmin === true) {
         isAdmin = true;
+      } else {
+        // Spalte existiert noch nicht oder ist false - nutze E-Mail-Check
+        isAdmin = true; // E-Mail stimmt, erlaube Zugriff
       }
-    }
-  } catch (dbError: any) {
-    // Fehler beim DB-Zugriff - Fallback auf E-Mail
-    if (session.user.email === adminEmail) {
-      isAdmin = true;
+    } catch (dbError: any) {
+      // Fehler beim DB-Zugriff - Fallback auf E-Mail
+      isAdmin = true; // E-Mail stimmt, erlaube Zugriff
     }
   }
 

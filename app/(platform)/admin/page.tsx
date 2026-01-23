@@ -20,39 +20,25 @@ export default async function AdminPage() {
   const adminEmail = process.env.ADMIN_EMAIL;
   let isAdmin = false;
 
-  try {
-    // Versuche Admin-Flag aus DB zu lesen
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isAdmin: true },
-    });
+  // Prüfe zuerst E-Mail (schneller Fallback)
+  if (session.user.email === adminEmail) {
+    try {
+      // Versuche Admin-Flag aus DB zu lesen (ohne select, um Fehler zu vermeiden)
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
 
-    if (user?.isAdmin) {
-      isAdmin = true;
-    } else {
-      // Fallback: E-Mail-Check (wenn Migration noch nicht ausgeführt)
-      if (session.user.email === adminEmail) {
+      // Prüfe ob isAdmin existiert und true ist
+      if (user && 'isAdmin' in user && (user as any).isAdmin === true) {
+        isAdmin = true;
+      } else {
+        // Spalte existiert noch nicht oder ist false - nutze E-Mail-Check
         console.log(`[ADMIN] 🔄 Fallback: E-Mail-Check für: ${session.user.email}`);
-        // Versuche Admin-Flag zu setzen (Migration)
-        try {
-          await migrateAdminFlag();
-          // Erneut prüfen
-          const updatedUser = await prisma.user.findUnique({
-            where: { id: session.user.id },
-            select: { isAdmin: true },
-          });
-          isAdmin = updatedUser?.isAdmin || false;
-        } catch (migrationError) {
-          // Migration fehlgeschlagen (z.B. Spalte existiert noch nicht) - nutze E-Mail-Check
-          console.log(`[ADMIN] ⚠️ Migration fehlgeschlagen, nutze E-Mail-Check: ${migrationError}`);
-          isAdmin = true; // E-Mail stimmt, erlaube Zugriff
-        }
+        isAdmin = true; // E-Mail stimmt, erlaube Zugriff
       }
-    }
-  } catch (dbError: any) {
-    // Fehler beim DB-Zugriff (z.B. Spalte existiert noch nicht) - Fallback auf E-Mail
-    console.log(`[ADMIN] ⚠️ DB-Fehler (wahrscheinlich Migration noch nicht ausgeführt), nutze E-Mail-Check: ${dbError.message}`);
-    if (session.user.email === adminEmail) {
+    } catch (dbError: any) {
+      // Fehler beim DB-Zugriff - Fallback auf E-Mail
+      console.log(`[ADMIN] ⚠️ DB-Fehler, nutze E-Mail-Check: ${dbError.message}`);
       isAdmin = true; // E-Mail stimmt, erlaube Zugriff
     }
   }
