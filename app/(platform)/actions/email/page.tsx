@@ -7,6 +7,7 @@ import { Mail, MessageSquare, Loader2 } from 'lucide-react';
 import { CopyButton } from '@/components/ui/copy-button';
 import { LabelWithTooltip } from '@/components/ui/tooltip';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
@@ -330,6 +331,14 @@ export default function EmailPage() {
                 <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
                   {state.result}
                 </div>
+              </div>
+              {/* FEEDBACK BUTTON */}
+              <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
+                <FeedbackButton 
+                  toolId="email" 
+                  toolName="E-Mail Verfasser"
+                  resultId={state.result ? `email-${Date.now()}` : undefined}
+                />
               </div>
             </div>
           ) : (

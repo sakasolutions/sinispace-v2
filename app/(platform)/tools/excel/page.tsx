@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { ToolHeader } from '@/components/tool-header';
 import { Tooltip } from '@/components/ui/tooltip';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 
 type ExcelMode = 'generator' | 'explainer' | 'script' | 'data' | null;
 type Software = 'excel-de' | 'excel-en' | 'sheets' | null;
@@ -427,6 +428,14 @@ export default function ExcelPage() {
                     </div>
                   </div>
                 )}
+              </div>
+              {/* FEEDBACK BUTTON */}
+              <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
+                <FeedbackButton 
+                  toolId="excel" 
+                  toolName="Excel-Coach"
+                  resultId={state?.result ? `excel-${Date.now()}` : undefined}
+                />
               </div>
             </div>
           ) : (
