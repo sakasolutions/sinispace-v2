@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutGrid, MessageSquare, Settings } from 'lucide-react';
+import { triggerHaptic } from '@/lib/haptic-feedback';
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -42,6 +43,7 @@ export function MobileNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => triggerHaptic('light')}
                 className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-1"
               >
                 <div className={`h-10 w-10 rounded-full ${
@@ -68,6 +70,7 @@ export function MobileNav() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => triggerHaptic('light')}
               className="flex flex-col items-center justify-center gap-1 min-w-[60px]"
             >
               <Icon 

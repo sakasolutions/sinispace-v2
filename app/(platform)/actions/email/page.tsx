@@ -323,24 +323,26 @@ export default function EmailPage() {
         {/* RECHTE SEITE: ERGEBNIS */}
         <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px] sm:min-h-[400px] overflow-hidden">
           {state?.result ? (
-            <div className="h-full flex flex-col">
-              {/* HEADER LEISTE OBERHALB DES TEXTES */}
-              <ActionButtons text={state.result} recipientEmail={recipientEmail} />
-              {/* TEXT BEREICH DARUNTER */}
-              <div className="flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto">
-                <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
-                  {state.result}
+            <SwipeableResult copyText={state.result}>
+              <div className="h-full flex flex-col">
+                {/* HEADER LEISTE OBERHALB DES TEXTES */}
+                <ActionButtons text={state.result} recipientEmail={recipientEmail} />
+                {/* TEXT BEREICH DARUNTER */}
+                <div className="flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto">
+                  <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
+                    {state.result}
+                  </div>
+                </div>
+                {/* FEEDBACK BUTTON */}
+                <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
+                  <FeedbackButton 
+                    toolId="email" 
+                    toolName="E-Mail Verfasser"
+                    resultId={state.result ? `email-${Date.now()}` : undefined}
+                  />
                 </div>
               </div>
-              {/* FEEDBACK BUTTON */}
-              <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
-                <FeedbackButton 
-                  toolId="email" 
-                  toolName="E-Mail Verfasser"
-                  resultId={state.result ? `email-${Date.now()}` : undefined}
-                />
-              </div>
-            </div>
+            </SwipeableResult>
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-zinc-500 p-4 sm:p-5 md:p-6">
               <Mail className="w-12 h-12 mb-3 opacity-50" />

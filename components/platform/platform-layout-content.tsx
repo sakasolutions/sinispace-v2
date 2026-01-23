@@ -9,6 +9,7 @@ import { Menu, X } from 'lucide-react';
 import { HeroBackground } from '@/components/ui/hero-background';
 import { MobileNav } from '@/components/mobile-nav';
 import { AnalyticsTracker } from '@/components/platform/analytics-tracker';
+import { triggerHaptic } from '@/lib/haptic-feedback';
 
 interface PlatformLayoutContentProps {
   children: React.ReactNode;
@@ -170,6 +171,7 @@ function NavItem({ href, label, pathname }: { href: string; label: string; pathn
   return (
     <Link
       href={href}
+      onClick={() => triggerHaptic('light')}
       className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
         isActive
           ? 'bg-zinc-900 text-white'

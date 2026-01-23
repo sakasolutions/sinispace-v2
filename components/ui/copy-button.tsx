@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { triggerHaptic } from '@/lib/haptic-feedback';
 
 type CopyButtonProps = {
   text: string;
