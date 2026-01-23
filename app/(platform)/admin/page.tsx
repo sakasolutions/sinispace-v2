@@ -1,8 +1,9 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { Users, TrendingUp, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Users, TrendingUp, CheckCircle2, ArrowLeft, Crown, MessageSquare, FileText, Activity } from 'lucide-react';
 import Link from 'next/link';
+import { AdminUserTable } from '@/components/platform/admin-user-table';
 
 export default async function AdminPage() {
   // SICHERHEIT: The Bouncer 🚪
@@ -23,8 +24,17 @@ export default async function AdminPage() {
   // DATEN-ABFRAGE (Performance: Promise.all)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const now = new Date();
 
-  const [totalUsers, newUsers7d, recentUsers] = await Promise.all([
+  const [
+    totalUsers,
+    newUsers7d,
+    premiumUsers,
+    totalChats,
+    totalMessages,
+    activeSessions,
+    recentUsers,
+  ] = await Promise.all([
     // Total Users
     prisma.user.count(),
     
@@ -37,7 +47,31 @@ export default async function AdminPage() {
       },
     }),
     
-    // Recent Users List (letzte 20)
+    // Premium Users
+    prisma.user.count({
+      where: {
+        subscriptionEnd: {
+          gt: now,
+        },
+      },
+    }),
+    
+    // Total Chats
+    prisma.chat.count(),
+    
+    // Total Messages
+    prisma.message.count(),
+    
+    // Active Sessions
+    prisma.session.count({
+      where: {
+        expires: {
+          gt: now,
+        },
+      },
+    }),
+    
+    // Recent Users List (letzte 20) - mit Premium Status
     prisma.user.findMany({
       take: 20,
       orderBy: {
@@ -49,23 +83,11 @@ export default async function AdminPage() {
         email: true,
         image: true,
         createdAt: true,
+        subscriptionEnd: true,
       },
     }),
   ]);
 
-  // Formatierung: Datum
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('de-DE', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(date);
-  };
-
-  // Formatierung: User-ID kürzen
-  const shortenId = (id: string) => {
-    return `${id.substring(0, 8)}...`;
-  };
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
@@ -88,8 +110,8 @@ export default async function AdminPage() {
         </Link>
       </div>
 
-      {/* KPI CARDS (Grid, 3 Cols) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
+      {/* KPI CARDS (Grid, 2 Rows) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         {/* Gesamt User */}
         <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
           <div className="flex items-center justify-between mb-4">
@@ -112,11 +134,55 @@ export default async function AdminPage() {
           <p className="text-3xl font-bold text-green-400">+{newUsers7d}</p>
         </div>
 
-        {/* Status */}
+        {/* Premium Users */}
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+              <Crown className="w-6 h-6 text-yellow-400" />
+            </div>
+          </div>
+          <p className="text-sm text-zinc-400 mb-1">Premium User</p>
+          <p className="text-3xl font-bold text-yellow-400">{premiumUsers}</p>
+        </div>
+
+        {/* Total Chats */}
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-purple-400" />
+            </div>
+          </div>
+          <p className="text-sm text-zinc-400 mb-1">Total Chats</p>
+          <p className="text-3xl font-bold text-white">{totalChats.toLocaleString('de-DE')}</p>
+        </div>
+
+        {/* Total Messages */}
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+              <FileText className="w-6 h-6 text-indigo-400" />
+            </div>
+          </div>
+          <p className="text-sm text-zinc-400 mb-1">Total Messages</p>
+          <p className="text-3xl font-bold text-white">{totalMessages.toLocaleString('de-DE')}</p>
+        </div>
+
+        {/* Active Sessions */}
         <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              <Activity className="w-6 h-6 text-emerald-400" />
+            </div>
+          </div>
+          <p className="text-sm text-zinc-400 mb-1">Active Sessions</p>
+          <p className="text-3xl font-bold text-white">{activeSessions}</p>
+        </div>
+
+        {/* Status */}
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-green-400" />
             </div>
           </div>
           <p className="text-sm text-zinc-400 mb-1">Status</p>
@@ -134,60 +200,7 @@ export default async function AdminPage() {
           <p className="text-sm text-zinc-400 mt-1">Die letzten 20 registrierten User</p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-white/5 text-zinc-400 border-b border-white/10">
-                <th className="px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider">User</th>
-                <th className="px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider">Joined</th>
-                <th className="px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider">ID</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {recentUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-white/5 transition-colors"
-                >
-                  <td className="px-4 sm:px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {/* Avatar */}
-                      {user.image ? (
-                        <img
-                          src={user.image}
-                          alt={user.name || user.email || 'User'}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-400 text-xs font-medium">
-                          {(user.name || user.email || 'U').charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">
-                          {user.name || 'Kein Name'}
-                        </p>
-                        <p className="text-xs text-zinc-500 truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 sm:px-6 py-4">
-                    <p className="text-sm text-zinc-300">
-                      {formatDate(user.createdAt)}
-                    </p>
-                  </td>
-                  <td className="px-4 sm:px-6 py-4">
-                    <p className="text-xs font-mono text-zinc-500">
-                      {shortenId(user.id)}
-                    </p>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AdminUserTable users={recentUsers} />
 
         {recentUsers.length === 0 && (
           <div className="p-8 text-center text-zinc-500">
