@@ -1,9 +1,9 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { Users, TrendingUp, CheckCircle2, ArrowLeft, Crown, MessageSquare, FileText, Activity } from 'lucide-react';
+import { ArrowLeft, Users, TrendingUp, Crown, MessageSquare, FileText, Activity, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { AdminUserTable } from '@/components/platform/admin-user-table';
+import { AdminTabs } from '@/components/platform/admin-tabs';
 
 export default async function AdminPage() {
   // SICHERHEIT: The Bouncer 🚪
@@ -34,6 +34,11 @@ export default async function AdminPage() {
     totalMessages,
     activeSessions,
     recentUsers,
+    recentChats,
+    recentDocuments,
+    usersWithChats,
+    totalDocuments,
+    totalDocumentsSize,
   ] = await Promise.all([
     // Total Users
     prisma.user.count(),
@@ -86,7 +91,102 @@ export default async function AdminPage() {
         subscriptionEnd: true,
       },
     }),
+    
+    // Recent Chats (letzte 20) - mit User und Counts
+    prisma.chat.findMany({
+      take: 20,
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        updatedAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        _count: {
+          select: {
+            messages: true,
+            documents: true,
+          },
+        },
+      },
+    }),
+    
+    // Recent Documents (letzte 50)
+    prisma.document.findMany({
+      take: 50,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        fileName: true,
+        fileSize: true,
+        mimeType: true,
+        createdAt: true,
+        expiresAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        chat: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    }),
+    
+    // Users with Chats
+    prisma.user.count({
+      where: {
+        chats: {
+          some: {},
+        },
+      },
+    }),
+    
+    // Total Documents
+    prisma.document.count(),
+    
+    // Total Documents Size (Sum)
+    prisma.document.aggregate({
+      _sum: {
+        fileSize: true,
+      },
+    }),
   ]);
+
+  // Berechne Durchschnitte
+  const avgMessagesPerChat = totalChats > 0 ? totalMessages / totalChats : 0;
+  const avgChatsPerUser = totalUsers > 0 ? totalChats / totalUsers : 0;
+
+  // Stats für Stats-View
+  const stats = {
+    totalUsers,
+    newUsers7d,
+    premiumUsers,
+    totalChats,
+    totalMessages,
+    activeSessions,
+    avgMessagesPerChat,
+    avgChatsPerUser,
+    totalDocuments,
+    totalDocumentsSize: totalDocumentsSize._sum.fileSize || 0,
+    usersWithChats,
+    usersWithPremium: premiumUsers,
+  };
 
 
   return (
@@ -193,20 +293,21 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      {/* USER-LISTE (Tabelle) */}
+      {/* TABS MIT DATEN */}
       <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] overflow-hidden">
         <div className="p-4 sm:p-6 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">Letzte Anmeldungen</h2>
-          <p className="text-sm text-zinc-400 mt-1">Die letzten 20 registrierten User</p>
+          <h2 className="text-lg font-semibold text-white">Datenbank-Übersicht</h2>
+          <p className="text-sm text-zinc-400 mt-1">Vollständige Einsicht in alle gespeicherten Daten</p>
         </div>
-
-        <AdminUserTable users={recentUsers} />
-
-        {recentUsers.length === 0 && (
-          <div className="p-8 text-center text-zinc-500">
-            <p>Noch keine User registriert.</p>
-          </div>
-        )}
+        
+        <div className="p-4 sm:p-6">
+          <AdminTabs 
+            users={recentUsers} 
+            chats={recentChats}
+            documents={recentDocuments}
+            stats={stats}
+          />
+        </div>
       </div>
     </div>
   );
