@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { DashboardGreeting } from '@/components/platform/dashboard-greeting';
+import { DashboardGreetingClient } from '@/components/platform/dashboard-greeting-client';
 import {
   Mail,
   Languages,
@@ -243,7 +243,7 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
       {/* Header mit Background Glow */}
-      <DashboardGreeting />
+      <DashboardGreetingClient />
 
       {/* Search Bar mit Glass-Effekt */}
       <div className="mb-4 sm:mb-6">

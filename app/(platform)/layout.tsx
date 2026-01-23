@@ -1,6 +1,7 @@
 import { auth, signOut } from '@/auth';
 import { redirect } from 'next/navigation';
 import { PlatformLayoutContent } from '@/components/platform/platform-layout-content';
+import { headers } from 'next/headers';
 
 export default async function PlatformLayout({
   children,
