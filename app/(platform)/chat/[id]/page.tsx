@@ -292,18 +292,53 @@ export default function ChatDetailPage() {
 
     await saveMessage(chatId, 'user', messageContent);
 
-    const response = await chatWithAI(newHistory);
+    // Streaming für Suggested Actions
+    try {
+      const response = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: newHistory,
+        }),
+      });
 
-    if (response.result) {
-      const assistantMessage: Message = { role: 'assistant', content: response.result };
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Fehler beim Streamen');
+      }
+
+      // Erstelle leere Assistant-Nachricht für Streaming
+      const assistantMessage: Message = { role: 'assistant', content: '' };
       setMessages([...newHistory, assistantMessage]);
-      await saveMessage(chatId, 'assistant', response.result);
-    } else {
-      console.error('❌ Keine Antwort von AI:', response.error);
-      setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
+
+      // Lese Stream
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullContent = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          fullContent += chunk;
+
+          // Update Nachricht mit neuem Content
+          setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
+        }
+
+        // Speichere vollständige Nachricht in DB
+        await saveMessage(chatId, 'assistant', fullContent);
+      }
+    } catch (error: any) {
+      console.error('Stream error:', error);
+      setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + (error.message || 'Verbindungsproblem.') }]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -347,20 +382,73 @@ export default function ChatDetailPage() {
     // ✅ Dokumente aus der Liste entfernen NACH dem AI-Call (sie sind ja schon gesendet)
     setDocuments([]);
     
-    const response = await chatWithAI(newHistory, docFileIds, docMimeTypes);
-
-    if (response.result) {
-      const assistantMessage: Message = { role: 'assistant', content: response.result };
-      setMessages([...newHistory, assistantMessage]);
-      
-      // Assistant-Nachricht in DB speichern
-      await saveMessage(chatId, 'assistant', response.result);
-    } else {
-      const errorMessage: Message = { role: 'assistant', content: "⚠️ Fehler: " + response.error };
-      setMessages([...newHistory, errorMessage]);
-    }
+    // Prüfe ob Streaming möglich ist (nur wenn keine Dokumente oder nur Bilder)
+    const hasNonImageDocs = docMimeTypes?.some(mime => !mime?.startsWith('image/')) || false;
     
-    setIsLoading(false);
+    if (hasNonImageDocs) {
+      // Fallback auf nicht-streaming für Dokumente
+      const response = await chatWithAI(newHistory, docFileIds, docMimeTypes);
+      if (response.result) {
+        const assistantMessage: Message = { role: 'assistant', content: response.result };
+        setMessages([...newHistory, assistantMessage]);
+        await saveMessage(chatId, 'assistant', response.result);
+      } else {
+        const errorMessage: Message = { role: 'assistant', content: "⚠️ Fehler: " + response.error };
+        setMessages([...newHistory, errorMessage]);
+      }
+      setIsLoading(false);
+    } else {
+      // Streaming für normale Chats und Bilder
+      try {
+        const response = await fetch('/api/chat/stream', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: newHistory,
+            fileIds: docFileIds,
+            fileMimeTypes: docMimeTypes,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Fehler beim Streamen');
+        }
+
+        // Erstelle leere Assistant-Nachricht für Streaming
+        const assistantMessage: Message = { role: 'assistant', content: '' };
+        setMessages([...newHistory, assistantMessage]);
+
+        // Lese Stream
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = '';
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            fullContent += chunk;
+
+            // Update Nachricht mit neuem Content
+            setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
+          }
+
+          // Speichere vollständige Nachricht in DB
+          await saveMessage(chatId, 'assistant', fullContent);
+        }
+      } catch (error: any) {
+        console.error('Stream error:', error);
+        const errorMessage: Message = { role: 'assistant', content: "⚠️ Fehler: " + (error.message || 'Verbindungsproblem.') };
+        setMessages([...newHistory, errorMessage]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
   }
 
   if (isLoadingChat) {
