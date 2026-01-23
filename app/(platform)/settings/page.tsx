@@ -3,6 +3,7 @@ import { createCheckoutSession } from '@/actions/payment-actions';
 import { signOutAction } from '@/actions/auth-actions';
 import { prisma } from '@/lib/prisma';
 import { DeleteAccount } from '@/components/platform/delete-account';
+import { ChangePassword } from '@/components/platform/change-password';
 
 export default async function SettingsPage({
   searchParams,
@@ -90,6 +91,9 @@ export default async function SettingsPage({
           )}
         </div>
       </div>
+
+      {/* PASSWORT ÄNDERN */}
+      <ChangePassword />
 
       {/* LOGOUT */}
       <div className="mt-4 sm:mt-6 rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">

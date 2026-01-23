@@ -106,7 +106,9 @@ export default function LoginPage() {
                 <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="password">
                   Passwort
                 </label>
-                {/* Optional: Passwort vergessen Link hier einfügen wenn gewünscht */}
+                <Link href="/forgot-password" className="text-xs text-zinc-400 hover:text-orange-400 transition-colors">
+                  Passwort vergessen?
+                </Link>
               </div>
               <input
                 className="flex h-12 w-full rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-orange-500/50 focus:outline-none focus:ring-4 focus:ring-orange-500/10 transition-all disabled:opacity-50"

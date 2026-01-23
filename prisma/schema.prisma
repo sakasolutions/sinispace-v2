@@ -22,10 +22,11 @@ model User {
   subscriptionEnd  DateTime? // Wenn null oder in Vergangenheit -> Kein Zugriff
 
   // Relationen
-  accounts  Account[]
-  sessions  Session[]
-  chats     Chat[]
-  documents Document[]
+  accounts            Account[]
+  sessions            Session[]
+  chats               Chat[]
+  documents           Document[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Account {
@@ -57,11 +58,11 @@ model Session {
 }
 
 model Chat {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
   title     String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relationen
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -72,8 +73,8 @@ model Chat {
 model Message {
   id        String   @id @default(cuid())
   chatId    String
-  content   String   // Text für lange Nachrichten
-  role      String   // 'user' oder 'assistant'
+  content   String // Text für lange Nachrichten
+  role      String // 'user' oder 'assistant'
   createdAt DateTime @default(now())
 
   // Relationen
@@ -83,16 +84,16 @@ model Message {
 }
 
 model Document {
-  id          String   @id @default(cuid())
-  chatId      String
-  userId      String
-  fileName    String   // Original-Dateiname
-  fileSize    Int      // Größe in Bytes
-  mimeType    String   // MIME-Type
+  id           String   @id @default(cuid())
+  chatId       String
+  userId       String
+  fileName     String // Original-Dateiname
+  fileSize     Int // Größe in Bytes
+  mimeType     String // MIME-Type
   openaiFileId String?  @unique // OpenAI File ID (null für Bilder, die nur Base64 haben)
-  base64Data  String?  // Base64 für Bilder (nur für Vision API)
-  createdAt   DateTime @default(now())
-  expiresAt   DateTime // Automatische Löschung nach 30 Tagen
+  base64Data   String? // Base64 für Bilder (nur für Vision API)
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime // Automatische Löschung nach 30 Tagen
 
   // Relationen
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
@@ -101,4 +102,19 @@ model Document {
   @@index([chatId])
   @@index([userId])
   @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expires   DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([expires])
 }
