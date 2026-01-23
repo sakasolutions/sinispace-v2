@@ -10,6 +10,7 @@ import { CustomSelect } from '@/components/ui/custom-select';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { toolInfoMap } from '@/lib/tool-info';
+import { BackButton } from '@/components/ui/back-button';
 
 function ActionButtons({ text, mode }: { text: string; mode: string }) {
   const [copied, setCopied] = useState(false);
@@ -133,6 +134,7 @@ export default function TranslatePage() {
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
+      <BackButton />
       <div className="mb-6 sm:mb-8">
         <div className="flex items-start justify-between gap-4">
           <div>

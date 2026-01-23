@@ -165,6 +165,7 @@ export default function LegalPage() {
         icon={Scale}
         color="violet"
         toolId="legal"
+        backLink="/dashboard"
       />
 
       {/* MOBILE FIRST: flex-col auf Mobile, md:grid auf Desktop */}

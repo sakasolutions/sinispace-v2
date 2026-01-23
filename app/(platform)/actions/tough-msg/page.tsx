@@ -7,6 +7,7 @@ import { Copy, MessageSquare, Loader2, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
+import { BackButton } from '@/components/ui/back-button';
 
 function ActionButtons({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -108,6 +109,7 @@ export default function ToughMessagePage() {
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
+      <BackButton />
       <div className="mb-6 sm:mb-8">
         <h1 className="text-xl sm:text-2xl font-bold text-white">Schwierige Nachrichten</h1>
         <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">

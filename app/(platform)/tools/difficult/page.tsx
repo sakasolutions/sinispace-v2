@@ -9,6 +9,7 @@ import { useFormStatus } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
+import { BackButton } from '@/components/ui/back-button';
 
 type ChatOption = {
   tone: string;
@@ -154,6 +155,7 @@ export default function ChatCoachPage() {
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
+      <BackButton />
       <div className="mb-6 sm:mb-8">
         <h1 className="text-xl sm:text-2xl font-bold text-white">Chat-Coach</h1>
         <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">

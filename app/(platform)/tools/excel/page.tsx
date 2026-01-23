@@ -184,6 +184,7 @@ export default function ExcelPage() {
         icon={Table2}
         color="green"
         toolId="excel"
+        backLink="/dashboard"
       />
 
       {/* MOBILE FIRST: flex-col auf Mobile, md:grid auf Desktop */}
