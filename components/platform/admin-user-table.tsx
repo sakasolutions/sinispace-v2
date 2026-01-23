@@ -39,12 +39,41 @@ export function AdminUserTable({ users: initialUsers }: AdminUserTableProps) {
   // @ts-ignore
   const [removePremiumState, removePremiumAction] = useActionState(removeUserPremium, null);
 
-  // Automatisches Refresh nach erfolgreichen Änderungen
+  // Automatisches Refresh nach erfolgreichen Änderungen + Modal schließen
   useEffect(() => {
-    if (updateState?.success || deleteState?.success || passwordState?.success || premiumState?.success || removePremiumState?.success) {
+    if (updateState?.success) {
+      setEditingUserId(null);
       const timer = setTimeout(() => {
         router.refresh();
-      }, 1500); // 1.5 Sekunden Verzögerung, damit User Success-Meldung sieht
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+    if (deleteState?.success) {
+      setShowDeleteModal(null);
+      const timer = setTimeout(() => {
+        router.refresh();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+    if (passwordState?.success) {
+      setShowPasswordModal(null);
+      const timer = setTimeout(() => {
+        router.refresh();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+    if (premiumState?.success) {
+      setShowPremiumModal(null);
+      const timer = setTimeout(() => {
+        router.refresh();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+    if (removePremiumState?.success) {
+      setShowRemovePremiumModal(null);
+      const timer = setTimeout(() => {
+        router.refresh();
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [updateState?.success, deleteState?.success, passwordState?.success, premiumState?.success, removePremiumState?.success, router]);
