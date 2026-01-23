@@ -36,26 +36,25 @@ export function MobileNav() {
           const Icon = item.icon;
           const isActive = item.active;
 
-          // SiniChat Button - Hero Button (herausragend)
+          // SiniChat Button - Auf gleicher Höhe wie andere Buttons
           if (item.highlight) {
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-col items-center justify-center gap-1 relative"
+                className="flex flex-col items-center justify-center gap-1 min-w-[60px]"
               >
-                {/* Hero Button Circle - Herausragend */}
-                <div className={`relative -top-4 h-14 w-14 rounded-full ${
+                <div className={`h-10 w-10 rounded-full ${
                   isActive 
                     ? 'bg-gradient-to-br from-teal-500 to-indigo-500 shadow-lg shadow-teal-500/30' 
                     : 'bg-gradient-to-br from-teal-500/60 to-indigo-500/60 shadow-lg shadow-teal-500/20'
-                } border-4 border-zinc-950 flex items-center justify-center transition-all duration-300`}>
+                } flex items-center justify-center transition-all duration-300`}>
                   <Icon 
-                    className="h-7 w-7 text-white transition-all duration-300" 
-                    strokeWidth={2.5}
+                    className={`h-5 w-5 text-white transition-all duration-300`} 
+                    strokeWidth={isActive ? 2.5 : 2}
                   />
                 </div>
-                <span className={`text-[10px] font-medium mt-4 ${
+                <span className={`text-[10px] font-medium ${
                   isActive ? 'text-teal-400' : 'text-zinc-500'
                 } transition-colors duration-300`}>
                   {item.label}
