@@ -8,16 +8,20 @@ import { AdminTabs } from '@/components/platform/admin-tabs';
 export default async function AdminPage() {
   // SICHERHEIT: The Bouncer 🚪
   const session = await auth();
-  const adminEmail = process.env.ADMIN_EMAIL;
 
   // Prüfe ob User eingeloggt ist
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     redirect('/');
   }
 
-  // Prüfe ob User Admin ist
-  if (session.user.email !== adminEmail) {
-    console.log(`[ADMIN] ❌ Unauthorized access attempt from: ${session.user.email}`);
+  // Prüfe Admin-Flag in DB (sicherer als E-Mail-Check)
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { isAdmin: true },
+  });
+
+  if (!user?.isAdmin) {
+    console.log(`[ADMIN] ❌ Unauthorized access attempt from: ${session.user.email} (ID: ${session.user.id})`);
     redirect('/');
   }
 

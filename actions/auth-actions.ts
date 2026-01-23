@@ -6,15 +6,31 @@ import bcrypt from 'bcryptjs';
 import { auth } from '@/auth';
 import { sendPasswordResetEmail, sendPasswordChangedEmail } from '@/lib/email';
 import crypto from 'crypto';
+import { sanitizeName, sanitizeEmail } from '@/lib/sanitize';
+import { checkRateLimit, recordLoginAttempt } from '@/lib/rate-limit';
 
 // User registrieren
 export async function registerUser(formData: FormData) {
-  const email = formData.get('email') as string;
+  let email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
   if (!email || !password) {
     console.error('[REGISTER] ❌ Email oder Passwort fehlt');
     throw new Error('Email und Passwort sind erforderlich.');
+  }
+
+  // Email sanitizen
+  email = sanitizeEmail(email);
+
+  if (!email || email.length === 0) {
+    throw new Error('Ungültige E-Mail-Adresse.');
+  }
+
+  // Rate Limiting: Prüfe ob zu viele Registrierungsversuche
+  const rateLimit = await checkRateLimit(email, 3, 15); // 3 Versuche pro 15 Minuten
+  if (!rateLimit.allowed) {
+    console.log(`[REGISTER] ⚠️ Rate Limit erreicht für: ${email}`);
+    throw new Error(`Zu viele Registrierungsversuche. Bitte versuche es in ${Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 60000)} Minuten erneut.`);
   }
 
   try {
@@ -46,10 +62,18 @@ export async function registerUser(formData: FormData) {
 
     console.log(`[REGISTER] ✅ User erfolgreich erstellt: ${newUser.id}`);
     
+    // Erfolgreichen Versuch loggen
+    await recordLoginAttempt(email, true);
+    
     // WICHTIG: NICHT disconnecten - Prisma Client wird wiederverwendet
     // await prisma.$disconnect();
   } catch (error) {
     console.error('[REGISTER] ❌ Fehler beim Registrieren:', error);
+    
+    // Fehlgeschlagenen Versuch loggen (nur wenn nicht Rate-Limit-Fehler)
+    if (error instanceof Error && !error.message.includes('Rate Limit')) {
+      await recordLoginAttempt(email, false);
+    }
     
     // WICHTIG: NICHT disconnecten bei Fehler
     // await prisma.$disconnect();
@@ -68,11 +92,30 @@ export async function registerUser(formData: FormData) {
 
 // User einloggen
 export async function loginUser(formData: FormData) {
-  const email = formData.get('email') as string;
+  let email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
   if (!email || !password) {
     return { success: false, error: 'Email und Passwort sind erforderlich.' };
+  }
+
+  // Email sanitizen
+  email = sanitizeEmail(email);
+
+  if (!email || email.length === 0) {
+    return { success: false, error: 'Ungültige E-Mail-Adresse.' };
+  }
+
+  // Rate Limiting: Prüfe ob zu viele Login-Versuche
+  const rateLimit = await checkRateLimit(email, 5, 15); // 5 Versuche pro 15 Minuten
+  if (!rateLimit.allowed) {
+    console.log(`[LOGIN] ⚠️ Rate Limit erreicht für: ${email}`);
+    await recordLoginAttempt(email, false);
+    const minutesUntilReset = Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 60000);
+    return { 
+      success: false, 
+      error: `Zu viele Login-Versuche. Bitte versuche es in ${minutesUntilReset} Minute${minutesUntilReset !== 1 ? 'n' : ''} erneut.` 
+    };
   }
 
   try {
@@ -82,9 +125,16 @@ export async function loginUser(formData: FormData) {
       redirectTo: '/dashboard',
       redirect: false, // Wichtig: Kein automatischer Redirect, damit wir Fehler abfangen können
     });
+    
+    // Erfolgreichen Login loggen
+    await recordLoginAttempt(email, true);
+    
     // Session wird automatisch in DB gespeichert via signIn-Callback in auth.ts
     return { success: true };
   } catch (error: any) {
+    // Fehlgeschlagenen Login loggen
+    await recordLoginAttempt(email, false);
+    
     // NextAuth wirft verschiedene Fehlertypen - alle abfangen
     console.error('Login error:', error);
     
@@ -272,22 +322,25 @@ export async function changeName(prevState: any, formData: FormData) {
     return { success: false, error: 'Nicht angemeldet.' };
   }
 
-  const newName = formData.get('newName') as string;
+  let newName = formData.get('newName') as string;
 
   // Validierung
   if (!newName || newName.trim() === '') {
     return { success: false, error: 'Bitte gib einen Nutzernamen ein.' };
   }
 
-  if (newName.length > 50) {
-    return { success: false, error: 'Der Nutzernamen darf maximal 50 Zeichen lang sein.' };
+  // Namen sanitizen (XSS-Schutz)
+  newName = sanitizeName(newName, 50);
+
+  if (newName.length === 0) {
+    return { success: false, error: 'Ungültiger Nutzernamen.' };
   }
 
   try {
     // Namen aktualisieren
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { name: newName.trim() },
+      data: { name: newName },
     });
 
     console.log(`[CHANGE_NAME] ✅ Name geändert für User: ${session.user.id} -> ${newName.trim()}`);
@@ -301,10 +354,17 @@ export async function changeName(prevState: any, formData: FormData) {
 
 // Passwort-Reset anfordern (für nicht eingeloggte User)
 export async function requestPasswordReset(prevState: any, formData: FormData) {
-  const email = formData.get('email') as string;
+  let email = formData.get('email') as string;
 
   if (!email) {
     return { success: false, error: 'Bitte gib deine E-Mail-Adresse ein.' };
+  }
+
+  // Email sanitizen
+  email = sanitizeEmail(email);
+
+  if (!email || email.length === 0) {
+    return { success: false, error: 'Ungültige E-Mail-Adresse.' };
   }
 
   // Rate Limiting: Prüfe ob in letzter Stunde bereits ein Request kam

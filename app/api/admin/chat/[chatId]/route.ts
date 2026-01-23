@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
-import { redirect } from 'next/navigation';
 
 // Admin-Endpoint: Chat Messages abrufen
 export async function GET(
@@ -9,10 +8,19 @@ export async function GET(
   { params }: { params: Promise<{ chatId: string }> }
 ) {
   const session = await auth();
-  const adminEmail = process.env.ADMIN_EMAIL;
 
   // Sicherheits-Check
-  if (!session?.user?.email || session.user.email !== adminEmail) {
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Prüfe Admin-Flag in DB
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { isAdmin: true },
+  });
+
+  if (!user?.isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

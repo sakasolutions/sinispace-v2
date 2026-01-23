@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { openai } from '@/lib/openai';
+import { sanitizeFileName } from '@/lib/sanitize';
 
 // Unterstützte Dateiformate (basierend auf OpenAI API)
 // OpenAI File Search unterstützt: PDF, Word, Excel, PowerPoint, Text, Code
@@ -130,8 +131,10 @@ export async function uploadDocument(chatId: string, formData: FormData) {
     } else {
       // Für Dokumente: Zu OpenAI hochladen
       try {
+        // Dateinamen sanitizen für OpenAI Upload
+        const sanitizedFileName = sanitizeFileName(file.name);
         const openaiFile = await openai.files.create({
-          file: new File([fileBlob], file.name, { type: file.type }),
+          file: new File([fileBlob], sanitizedFileName, { type: file.type }),
           purpose: 'assistants', // Für Chat/Assistants
         });
         openaiFileId = openaiFile.id;
@@ -146,12 +149,15 @@ export async function uploadDocument(chatId: string, formData: FormData) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
+    // Dateinamen sanitizen (Sicherheit: Path Traversal verhindern)
+    const sanitizedFileName = sanitizeFileName(file.name);
+
     // Dokument in DB speichern
     const document = await prisma.document.create({
       data: {
         chatId: chatId,
         userId: session.user.id,
-        fileName: file.name,
+        fileName: sanitizedFileName, // Sanitized Dateiname
         fileSize: file.size,
         mimeType: file.type,
         openaiFileId: openaiFileId, // null für Bilder, File-ID für Dokumente

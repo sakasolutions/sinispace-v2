@@ -4,14 +4,25 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
+import { sanitizeName, sanitizeEmail } from '@/lib/sanitize';
 
 // Sicherheits-Check: Nur Admin darf diese Actions ausführen
 async function requireAdmin() {
   const session = await auth();
-  const adminEmail = process.env.ADMIN_EMAIL;
 
-  if (!session?.user?.email || session.user.email !== adminEmail) {
-    console.log(`[ADMIN_ACTION] ❌ Unauthorized access attempt from: ${session?.user?.email}`);
+  if (!session?.user?.id) {
+    console.log(`[ADMIN_ACTION] ❌ Keine Session`);
+    redirect('/');
+  }
+
+  // Prüfe Admin-Flag in DB (sicherer als E-Mail-Check)
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { isAdmin: true },
+  });
+
+  if (!user?.isAdmin) {
+    console.log(`[ADMIN_ACTION] ❌ Unauthorized access attempt from: ${session?.user?.email} (ID: ${session.user.id})`);
     redirect('/');
   }
 
@@ -23,8 +34,8 @@ export async function updateUser(prevState: any, formData: FormData) {
   await requireAdmin();
 
   const userId = formData.get('userId') as string;
-  const name = formData.get('name') as string;
-  const email = formData.get('email') as string;
+  let name = formData.get('name') as string;
+  let email = formData.get('email') as string;
   const subscriptionEnd = formData.get('subscriptionEnd') as string;
 
   if (!userId) {
@@ -35,10 +46,22 @@ export async function updateUser(prevState: any, formData: FormData) {
     const updateData: any = {};
     
     if (name !== null && name !== undefined) {
-      updateData.name = name || null;
+      // Name sanitizen (XSS-Schutz)
+      if (name && name.trim()) {
+        updateData.name = sanitizeName(name, 50) || null;
+      } else {
+        updateData.name = null;
+      }
     }
     
     if (email) {
+      // Email sanitizen
+      email = sanitizeEmail(email);
+      
+      if (!email || email.length === 0) {
+        return { success: false, error: 'Ungültige E-Mail-Adresse.' };
+      }
+      
       // Prüfe ob Email bereits existiert (außer für diesen User)
       const existingUser = await prisma.user.findUnique({
         where: { email },
@@ -122,10 +145,10 @@ export async function deleteUser(prevState: any, formData: FormData) {
     const session = await auth();
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { email: true },
+      select: { isAdmin: true },
     });
 
-    if (user?.email === process.env.ADMIN_EMAIL) {
+    if (user?.isAdmin) {
       return { success: false, error: 'Admin-Account kann nicht gelöscht werden.' };
     }
 

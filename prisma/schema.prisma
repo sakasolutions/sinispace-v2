@@ -21,6 +21,9 @@ model User {
   stripeCustomerId String?   @unique
   subscriptionEnd  DateTime? // Wenn null oder in Vergangenheit -> Kein Zugriff
 
+  // Admin-Flag (Sicherheit: Statt E-Mail-Check)
+  isAdmin Boolean @default(false)
+
   // Relationen
   accounts            Account[]
   sessions            Session[]
@@ -117,4 +120,16 @@ model PasswordResetToken {
   @@index([token])
   @@index([userId])
   @@index([expires])
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ipAddress String?
+  success   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([createdAt])
 }

@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
+import { sanitizeName } from '@/lib/sanitize';
 
 // Einen neuen Chat erstellen
 export async function createChat(firstMessage: string) {
@@ -14,7 +15,10 @@ export async function createChat(firstMessage: string) {
   }
 
   // Titel aus ersten 30 Zeichen der ersten Nachricht generieren (oder Standard-Titel)
-  const title = firstMessage?.slice(0, 30).trim() || 'Neuer Chat';
+  let title = firstMessage?.slice(0, 100).trim() || 'Neuer Chat';
+  
+  // Titel sanitizen (XSS-Schutz)
+  title = sanitizeName(title, 100);
 
   try {
     // Chat sofort in DB schreiben mit User-Bindung
@@ -174,6 +178,9 @@ export async function updateChatTitle(chatId: string, title: string) {
     return { success: false, error: 'Nicht autorisiert' };
   }
 
+  // Titel sanitizen (XSS-Schutz)
+  const sanitizedTitle = sanitizeName(title, 100) || 'Unbenannter Chat';
+
   try {
     // Titel aktualisieren - NUR wenn Chat dem User gehört
     const result = await prisma.chat.updateMany({
@@ -182,7 +189,7 @@ export async function updateChatTitle(chatId: string, title: string) {
         userId: session.user.id, // WICHTIG: User-Bindung & Sicherheit
       },
       data: {
-        title: title.trim() || 'Unbenannter Chat',
+        title: sanitizedTitle,
       },
     });
     
@@ -263,7 +270,10 @@ export async function createHelperChat(
     };
     
     const title = titles[helperType] || 'Helfer Chat';
-    const titleWithPreview = `${title}: ${userInput.slice(0, 20)}...`;
+    let titleWithPreview = `${title}: ${userInput.slice(0, 20)}...`;
+    
+    // Titel sanitizen (XSS-Schutz)
+    titleWithPreview = sanitizeName(titleWithPreview, 100);
 
     // Chat erstellen
     const chat = await prisma.chat.create({
