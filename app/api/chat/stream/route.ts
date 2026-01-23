@@ -64,7 +64,18 @@ export async function POST(req: Request) {
         messages: [
           {
             role: 'system',
-            content: 'Du bist Sinispace, ein warmer, empathischer und hochintelligenter KI-Begleiter. Nutze Markdown, Tabellen und Emojis. Sei hilfreich. Du kannst Bilder sehen und analysieren.',
+            content: `Du bist Sinispace, ein warmer, empathischer und hochintelligenter KI-Begleiter.
+
+WICHTIG: Passe dein Antwort-Format an die Art der Frage an:
+
+- **Kurze, direkte Fragen** → Kurze, prägnante Antworten ohne Listen
+- **Vergleichs-/Pro-Contra-Fragen** → Tabellen oder strukturierte Listen
+- **Erklärungs-/Wie-Fragen** → Fließtext mit Absätzen, ggf. kurze Bullet-Points
+- **Liste/Übersicht gewünscht** → Nummerierte oder Bullet-Listen
+- **Code/Technische Fragen** → Code-Blöcke mit Erklärungen
+- **Definitionen** → Klare Definition + kurze Erklärung
+
+Nutze Markdown, Tabellen und Emojis sinnvoll. Vermeide unnötige nummerierte Listen (1-2-3) wenn nicht explizit gewünscht. Du kannst Bilder sehen und analysieren. Sei hilfreich und passe das Format an den Kontext an.`,
           },
           ...messages.slice(0, -1),
           {
@@ -85,12 +96,15 @@ export async function POST(req: Request) {
             for await (const chunk of stream) {
               const content = chunk.choices[0]?.delta?.content || '';
               if (content) {
-                // Sende Zeichen für Zeichen für Schreibmaschinen-Effekt
-                for (let i = 0; i < content.length; i++) {
-                  controller.enqueue(encoder.encode(content[i]));
-                  // Kleine Verzögerung zwischen Zeichen (schneller als echte Schreibmaschine)
-                  if (i < content.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 5)); // 5ms pro Zeichen = schnell aber sichtbar
+                // WICHTIG: UTF-8 Encoding für korrekte Emoji-Darstellung
+                // Sende in kleinen Chunks (Wörter) statt einzelne Zeichen für bessere Performance
+                const words = content.split(/(\s+)/); // Split bei Whitespace, behalte Whitespace
+                for (const word of words) {
+                  if (word) {
+                    // Encode als UTF-8 für korrekte Emoji/Unicode-Darstellung
+                    controller.enqueue(encoder.encode(word));
+                    // Kleine Verzögerung zwischen Wörtern (schneller als echte Schreibmaschine)
+                    await new Promise(resolve => setTimeout(resolve, 3)); // 3ms pro Wort = schnell aber sichtbar
                   }
                 }
               }
@@ -128,7 +142,18 @@ export async function POST(req: Request) {
       messages: [
         {
           role: 'system',
-          content: 'Du bist Sinispace, ein warmer, empathischer und hochintelligenter KI-Begleiter. Nutze Markdown, Tabellen und Emojis. Sei hilfreich.',
+          content: `Du bist Sinispace, ein warmer, empathischer und hochintelligenter KI-Begleiter.
+
+WICHTIG: Passe dein Antwort-Format an die Art der Frage an:
+
+- **Kurze, direkte Fragen** → Kurze, prägnante Antworten ohne Listen
+- **Vergleichs-/Pro-Contra-Fragen** → Tabellen oder strukturierte Listen
+- **Erklärungs-/Wie-Fragen** → Fließtext mit Absätzen, ggf. kurze Bullet-Points
+- **Liste/Übersicht gewünscht** → Nummerierte oder Bullet-Listen
+- **Code/Technische Fragen** → Code-Blöcke mit Erklärungen
+- **Definitionen** → Klare Definition + kurze Erklärung
+
+Nutze Markdown, Tabellen und Emojis sinnvoll. Vermeide unnötige nummerierte Listen (1-2-3) wenn nicht explizit gewünscht. Sei hilfreich und passe das Format an den Kontext an.`,
         },
         ...messages,
       ] as any,
@@ -142,12 +167,15 @@ export async function POST(req: Request) {
           for await (const chunk of stream) {
             const content = chunk.choices[0]?.delta?.content || '';
             if (content) {
-              // Sende Zeichen für Zeichen für Schreibmaschinen-Effekt
-              for (let i = 0; i < content.length; i++) {
-                controller.enqueue(encoder.encode(content[i]));
-                // Kleine Verzögerung zwischen Zeichen (schneller als echte Schreibmaschine)
-                if (i < content.length - 1) {
-                  await new Promise(resolve => setTimeout(resolve, 5)); // 5ms pro Zeichen = schnell aber sichtbar
+              // WICHTIG: UTF-8 Encoding für korrekte Emoji-Darstellung
+              // Sende in kleinen Chunks (Wörter) statt einzelne Zeichen für bessere Performance
+              const words = content.split(/(\s+)/); // Split bei Whitespace, behalte Whitespace
+              for (const word of words) {
+                if (word) {
+                  // Encode als UTF-8 für korrekte Emoji/Unicode-Darstellung
+                  controller.enqueue(encoder.encode(word));
+                  // Kleine Verzögerung zwischen Wörtern (schneller als echte Schreibmaschine)
+                  await new Promise(resolve => setTimeout(resolve, 3)); // 3ms pro Wort = schnell aber sichtbar
                 }
               }
             }

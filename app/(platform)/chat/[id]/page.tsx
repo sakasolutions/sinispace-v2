@@ -324,15 +324,10 @@ export default function ChatDetailPage() {
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
+          fullContent += chunk;
           
-          // Füge jedes Zeichen einzeln hinzu für Schreibmaschinen-Effekt
-          for (let i = 0; i < chunk.length; i++) {
-            fullContent += chunk[i];
-            // Update sofort für jeden Zeichen
-            setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
-            // Kleine Verzögerung für sichtbaren Effekt (optional, da Server schon verzögert)
-            await new Promise(resolve => setTimeout(resolve, 2));
-          }
+          // Update sofort für bessere Performance (Server sendet bereits in Wörtern)
+          setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
         }
 
         // Speichere vollständige Nachricht in DB
@@ -436,16 +431,11 @@ export default function ChatDetailPage() {
             const { done, value } = await reader.read();
             if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            
-            // Füge jedes Zeichen einzeln hinzu für Schreibmaschinen-Effekt
-            for (let i = 0; i < chunk.length; i++) {
-              fullContent += chunk[i];
-              // Update sofort für jeden Zeichen
-              setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
-              // Kleine Verzögerung für sichtbaren Effekt (optional, da Server schon verzögert)
-              await new Promise(resolve => setTimeout(resolve, 2));
-            }
+          const chunk = decoder.decode(value, { stream: true });
+          fullContent += chunk;
+          
+          // Update sofort für bessere Performance (Server sendet bereits in Wörtern)
+          setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
           }
 
           // Speichere vollständige Nachricht in DB
