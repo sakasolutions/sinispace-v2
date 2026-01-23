@@ -42,7 +42,7 @@ export function MobileNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-2"
+                className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-1"
               >
                 <div className={`h-10 w-10 rounded-full ${
                   isActive 
