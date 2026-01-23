@@ -115,6 +115,7 @@ export default function LegalPage() {
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
+      <BackButton />
       {/* WARN-BANNER GANZ OBEN */}
       <div className="mb-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
         ⚠️ <strong>Wichtiger Hinweis:</strong> Dieses Tool erstellt Entwürfe auf Basis von KI. Es ersetzt keine anwaltliche Beratung. Nutzung auf eigene Verantwortung.
