@@ -33,28 +33,49 @@ export async function checkRateLimit(
   }
 
   // Zähle fehlgeschlagene Versuche in Zeitfenster
-  const failedAttempts = await prisma.loginAttempt.count({
-    where: {
-      email,
-      success: false,
-      createdAt: {
-        gte: windowStart,
-      },
-    },
-  });
-
-  // Zähle auch IP-basierte Versuche (zusätzlicher Schutz)
-  let ipAttempts = 0;
-  if (ipAddress) {
-    ipAttempts = await prisma.loginAttempt.count({
+  let failedAttempts = 0;
+  try {
+    failedAttempts = await prisma.loginAttempt.count({
       where: {
-        ipAddress,
+        email,
         success: false,
         createdAt: {
           gte: windowStart,
         },
       },
     });
+  } catch (error: any) {
+    // Tabelle existiert noch nicht - Rate Limiting deaktiviert
+    if (error.code === 'P2021' || error.message?.includes('does not exist') || error.message?.includes('LoginAttempt')) {
+      console.log('[RATE_LIMIT] ⚠️ LoginAttempt Tabelle existiert noch nicht, Rate Limiting deaktiviert');
+      return {
+        allowed: true,
+        remainingAttempts: maxAttempts,
+        resetAt: new Date(Date.now() + windowMinutes * 60000),
+      };
+    }
+    throw error;
+  }
+
+  // Zähle auch IP-basierte Versuche (zusätzlicher Schutz)
+  let ipAttempts = 0;
+  if (ipAddress) {
+    try {
+      ipAttempts = await prisma.loginAttempt.count({
+        where: {
+          ipAddress,
+          success: false,
+          createdAt: {
+            gte: windowStart,
+          },
+        },
+      });
+    } catch (error: any) {
+      // Ignoriere Fehler bei IP-Check
+      if (error.code === 'P2021' || error.message?.includes('does not exist')) {
+        ipAttempts = 0;
+      }
+    }
   }
 
   // Blockiere wenn zu viele Versuche (Email ODER IP)
@@ -103,15 +124,24 @@ export async function recordLoginAttempt(
     const oneHourAgo = new Date();
     oneHourAgo.setHours(oneHourAgo.getHours() - 1);
     
-    await prisma.loginAttempt.deleteMany({
-      where: {
-        createdAt: {
-          lt: oneHourAgo,
+    try {
+      await prisma.loginAttempt.deleteMany({
+        where: {
+          createdAt: {
+            lt: oneHourAgo,
+          },
         },
-      },
-    });
-  } catch (error) {
+      });
+    } catch (cleanupError) {
+      // Cleanup-Fehler ignorieren
+    }
+  } catch (error: any) {
     // Rate Limiting sollte nicht die App crashen
+    // Wenn Tabelle nicht existiert, einfach ignorieren
+    if (error.code === 'P2021' || error.message?.includes('does not exist') || error.message?.includes('LoginAttempt')) {
+      console.log('[RATE_LIMIT] ⚠️ LoginAttempt Tabelle existiert noch nicht, Versuch nicht geloggt');
+      return;
+    }
     console.error('[RATE_LIMIT] Fehler beim Speichern:', error);
   }
 }
