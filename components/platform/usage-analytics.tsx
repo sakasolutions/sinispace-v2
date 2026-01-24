@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Zap, TrendingUp, DollarSign, BarChart3, Users } from 'lucide-react';
+import { CustomSelect } from '@/components/ui/custom-select';
 
 type UsageData = {
   total: {
@@ -95,15 +96,15 @@ export function UsageAnalytics() {
           </h2>
           <p className="text-sm text-zinc-400 mt-1">Globale AI-Token-Verbrauch und Kosten-Tracking</p>
         </div>
-        <select
-          value={timeRange}
-          onChange={(e) => setTimeRange(Number(e.target.value))}
-          className="rounded-md border border-white/10 bg-zinc-800/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-        >
-          <option value={7}>Letzte 7 Tage</option>
-          <option value={30}>Letzte 30 Tage</option>
-          <option value={90}>Letzte 90 Tage</option>
-        </select>
+        <CustomSelect
+          value={String(timeRange)}
+          onChange={(value) => setTimeRange(Number(value))}
+          options={[
+            { value: '7', label: 'Letzte 7 Tage' },
+            { value: '30', label: 'Letzte 30 Tage' },
+            { value: '90', label: 'Letzte 90 Tage' },
+          ]}
+        />
       </div>
 
       {/* KPI Cards */}

@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { polishInvoiceText, generateInvoiceTexts } from '@/actions/ai-actions';
 import { Sparkles, Plus, Download, Wand2, Loader2, FileText, Mail } from 'lucide-react';
 import Link from 'next/link';
+import { CustomSelect } from '@/components/ui/custom-select';
 import { Page, Text, View, StyleSheet, Document, pdf, BlobProvider } from '@react-pdf/renderer';
 import { ToolHeader } from '@/components/tool-header';
 
@@ -505,14 +506,14 @@ export default function InvoicePage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-zinc-400 mb-1">Typ</label>
-                  <select
+                  <CustomSelect
                     value={data.type}
-                    onChange={(e) => setData({ ...data, type: e.target.value as 'invoice' | 'offer' })}
-                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
-                  >
-                    <option value="offer">Angebot</option>
-                    <option value="invoice">Rechnung</option>
-                  </select>
+                    onChange={(value) => setData({ ...data, type: value as 'invoice' | 'offer' })}
+                    options={[
+                      { value: 'offer', label: 'Angebot' },
+                      { value: 'invoice', label: 'Rechnung' },
+                    ]}
+                  />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:max-w-none max-w-[200px]">

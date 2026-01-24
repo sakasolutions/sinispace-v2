@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Dumbbell, Loader2, CheckCircle2 } from 'lucide-react';
 import { ToolHeader } from '@/components/tool-header';
 import { useFormStatus } from 'react-dom';
+import { CustomSelect } from '@/components/ui/custom-select';
 
 type FitnessPlan = {
   title: string;
@@ -132,34 +133,22 @@ export default function FitnessPage() {
           <form action={formAction} className="space-y-4 sm:space-y-5">
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">Ziel</label>
-              <select
-                name="goal"
+              <CustomSelect
                 value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
-              >
-                {goalOptions.map((opt) => (
-                  <option key={opt.id} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setGoal(value)}
+                options={goalOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
+                name="goal"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">Fokus</label>
-              <select
-                name="focus"
+              <CustomSelect
                 value={focus}
-                onChange={(e) => setFocus(e.target.value)}
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
-              >
-                {focusOptions.map((opt) => (
-                  <option key={opt.id} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setFocus(value)}
+                options={focusOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
+                name="focus"
+              />
             </div>
 
             <div>
