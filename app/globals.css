@@ -27,6 +27,23 @@
   }
 }
 
+@layer utilities {
+  @keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 700ms ease-out both;
+  }
+}
+
 /* Typography Upgrade */
 @layer base {
   /* Plus Jakarta Sans für alle Überschriften */

@@ -2,9 +2,9 @@
 
 import { generateChatCoach } from '@/actions/chat-coach';
 import { useActionState } from 'react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Copy, MessageSquare, Loader2, Send, Users } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
@@ -131,9 +131,48 @@ function SubmitButton() {
 export default function ChatCoachPage() {
   // @ts-ignore
   const [state, formAction] = useActionState(generateChatCoach, null);
+  const searchParams = useSearchParams();
   
   const [recipient, setRecipient] = useState('');
   const [situation, setSituation] = useState('');
+  const [toastMessage, setToastMessage] = useState<{ title: string; description: string } | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const chain = searchParams.get('chain');
+  const recipeName = searchParams.get('recipe');
+  const ingredients = searchParams.get('ingredients');
+
+  // Smart Pre-fill für Gourmet Chain
+  useEffect(() => {
+    if (chain === 'gourmet' && recipeName && ingredients) {
+      const prefillText =
+        `Erstelle eine übersichtliche Einkaufsliste für '${recipeName}' basierend auf diesen Zutaten: ${ingredients}. ` +
+        `Format: WhatsApp-Nachricht mit Emojis (Listen-Format). Zusatztext: 'Kannst du das bitte mitbringen?'`;
+      setSituation(prefillText);
+      setRecipient('Partner');
+
+      setToastMessage({
+        title: '🥦 Zutaten übernommen! Bereit für WhatsApp.',
+        description: 'Die Nachricht ist vorbereitet.',
+      });
+    }
+  }, [chain, recipeName, ingredients]);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  // Auto-Focus auf Generieren-Button bei aktivem Chain
+  useEffect(() => {
+    if (!chain || !formRef.current) return;
+    const submitButton = formRef.current.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+    if (submitButton) {
+      submitButton.focus();
+      submitButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [chain]);
 
   // Parse Response aus State
   let chatOptions: ChatOption[] | null = null;
@@ -154,8 +193,14 @@ export default function ChatCoachPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8 animate-fade-in-up">
       <BackButton />
+      {toastMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-emerald-500/90 text-white px-4 py-3 rounded-lg shadow-lg border border-emerald-400/30 backdrop-blur-sm max-w-sm">
+          <div className="font-semibold">{toastMessage.title}</div>
+          <div className="text-sm text-emerald-50/90 mt-0.5">{toastMessage.description}</div>
+        </div>
+      )}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-xl sm:text-2xl font-bold text-white">Chat-Coach</h1>
         <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
@@ -170,7 +215,7 @@ export default function ChatCoachPage() {
       <div className="flex flex-col md:grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
         {/* LINKE SEITE: EINGABE */}
         <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
-          <form action={formAction} className="space-y-4 sm:space-y-5">
+          <form ref={formRef} action={formAction} className="space-y-4 sm:space-y-5">
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
                 An wen geht's?

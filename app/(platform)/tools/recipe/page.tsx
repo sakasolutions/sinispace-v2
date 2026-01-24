@@ -3,8 +3,9 @@
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Users, Minus, Plus } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Users, Minus, Plus, Share2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
@@ -25,6 +26,8 @@ type Recipe = {
 function ActionButtons({ recipe }: { recipe: Recipe }) {
   const [copied, setCopied] = useState(false);
   const router = useRouter();
+  const ingredientsText = recipe.ingredients.join(', ');
+  const chatLink = `/tools/difficult?chain=gourmet&recipe=${encodeURIComponent(recipe.title)}&ingredients=${encodeURIComponent(ingredientsText)}`;
 
   const handleCopy = async () => {
     try {
@@ -74,6 +77,15 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
           <MessageSquare className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Zu SiniChat</span>
         </button>
+
+        <Link
+          href={chatLink}
+          className="h-8 px-2 rounded-md bg-zinc-800/50 hover:bg-zinc-700/70 text-zinc-200 hover:text-white border border-white/10 hover:border-white/20 transition-all flex items-center gap-1.5 text-xs font-medium"
+          title="Zutaten per WhatsApp teilen"
+        >
+          <Share2 className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Zutaten teilen</span>
+        </Link>
       </div>
     </div>
   );
