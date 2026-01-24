@@ -11,21 +11,30 @@ Upgrade deinen Account, um unbegrenzten Zugriff auf alle KI-Tools zu erhalten.
 
 [👉 **Hier klicken zum Freischalten**](/settings)`;
 
+type ItinerarySlot = {
+  activity?: string;
+  logistics?: string;
+  mapsQuery?: string;
+  name?: string;
+  description?: string;
+  vibe?: string;
+};
+
 type ItineraryDay = {
   day: number;
-  focus: string;
-  morning: string;
-  afternoon: string;
-  evening: string;
-  hiddenGem: string;
+  areaFocus: string;
+  morning: ItinerarySlot;
+  lunch: ItinerarySlot;
+  afternoon: ItinerarySlot;
+  dinner: ItinerarySlot;
+  evening: ItinerarySlot;
 };
 
 type TravelPlan = {
-  title: string;
-  summary: string;
+  tripTitle: string;
+  vibeDescription: string;
+  generalTips: string[];
   itinerary: ItineraryDay[];
-  packingTip: string;
-  localDish: string;
 };
 
 export async function generateTravelPlan(prevState: any, formData: FormData) {
@@ -34,40 +43,65 @@ export async function generateTravelPlan(prevState: any, formData: FormData) {
 
   const destination = (formData.get('destination') as string) || 'Dein Zielort';
   const days = Math.min(7, Math.max(1, Number(formData.get('days') || 3)));
-  const budget = (formData.get('budget') as string) || 'Mittel';
-  const vibe = (formData.getAll('vibe') as string[]) || [];
-  const companions = (formData.get('companions') as string) || 'Solo';
+  const season = (formData.get('season') as string) || 'Sommer';
+  const budget = (formData.get('budget') as string) || '€€';
+  const companions = (formData.get('companions') as string) || 'Paar';
+  const pace = Math.min(5, Math.max(1, Number(formData.get('pace') || 3)));
+  const diet = (formData.get('diet') as string) || 'Alles';
 
-  const vibeText = vibe.length > 0 ? vibe.join(', ') : 'Ausgewogen';
+  const systemPrompt = `Du bist ein lokaler Reise-Experte und Logistik-Genie. Erstelle einen Reiseplan, der GEOGRAPHISCH Sinn macht (kein Zick-Zack durch die Stadt).
 
-  const systemPrompt = `Du bist ein lokaler Reiseführer. Erstelle einen Tag-für-Tag Reiseplan.
-Berücksichtige logische Wege (kein Hin-und-Her in der Stadt).
+INPUT CONTEXT:
+- Pace: ${pace} (Wenn 'Chillig': Max 1-2 Aktivitäten, lange Pausen. Wenn 'Power': Volles Programm).
+- Diet: ${diet} (Restaurant-Tipps müssen passen!).
 
-INPUT: ${days} Tage in ${destination}, Budget: ${budget}, Vibe: ${vibeText}, Reisende: ${companions}.
+INPUT: ${days} Tage in ${destination}, Saison: ${season}, Budget: ${budget}, Reisende: ${companions}.
 
 OUTPUT JSON STRUKTUR:
 {
-  "title": "Romantisches Wochenende in Rom",
-  "summary": "Ein Mix aus klassischer Kultur und versteckten Food-Spots.",
+  "tripTitle": "Titel des Trips",
+  "vibeDescription": "Kurze Intro zum Vibe (z.B. 'Kulinarische Entdeckungstour').",
+  "generalTips": ["Packliste Tipp 1", "Betrugsmasche X vermeiden"],
   "itinerary": [
     {
       "day": 1,
-      "focus": "Das antike Rom",
-      "morning": "Kolosseum (Ticket vorbuchen!)",
-      "afternoon": "Forum Romanum & Picknick",
-      "evening": "Abendessen im Viertel Monti (Trattoria X)",
-      "hiddenGem": "Ein geheimer Aussichtspunkt..."
+      "areaFocus": "Das antike Zentrum",
+      "morning": {
+         "activity": "Kolosseum & Palatin",
+         "logistics": "Metro B bis 'Colosseo'. Tickets online buchen!",
+         "mapsQuery": "Colosseum Rome"
+      },
+      "lunch": {
+         "name": "Trattoria Geheimtipp",
+         "description": "Beste Carbonara, keine Touristen.",
+         "mapsQuery": "Trattoria X Rome"
+      },
+      "afternoon": {
+         "activity": "Forum Romanum & Kapitol",
+         "logistics": "Zu Fuß 12 Min.",
+         "mapsQuery": "Roman Forum Rome"
+      },
+      "dinner": {
+         "name": "Osteria Locale",
+         "description": "Regionale Küche, ${diet}-Optionen vorhanden.",
+         "mapsQuery": "Osteria Rome"
+      },
+      "evening": {
+         "activity": "Spaziergang am Tiber",
+         "vibe": "Romantisch",
+         "mapsQuery": "Tiber River Rome"
+      }
     }
-  ],
-  "packingTip": "Bequeme Schuhe sind Pflicht wegen Kopfsteinpflaster!",
-  "localDish": "Probier unbedingt Carbonara."
+  ]
 }`;
 
   const userPrompt = `Ziel: ${destination}
 Tage: ${days}
+Saison: ${season}
 Budget: ${budget}
-Vibe: ${vibeText}
 Reisende: ${companions}
+Pace: ${pace}
+Ernährung: ${diet}
 
 Bitte erstelle den Reiseplan im JSON-Format.`;
 
@@ -99,25 +133,32 @@ Bitte erstelle den Reiseplan im JSON-Format.`;
       return { error: 'Fehler beim Verarbeiten der Antwort. Bitte versuche es erneut.' };
     }
 
-    if (!plan.title || !plan.itinerary || !plan.packingTip) {
+    if (!plan.tripTitle || !plan.itinerary || !plan.generalTips) {
       return { error: 'Ungültiges Format. Bitte versuche es erneut.' };
     }
 
-    const formattedPlan = `# ${plan.title}
+    const formattedPlan = `# ${plan.tripTitle}
 
-${plan.summary}
+${plan.vibeDescription}
 
 ${plan.itinerary
-  .map(
-    (d) =>
-      `Tag ${d.day}: ${d.focus}\n- Morgen: ${d.morning}\n- Nachmittag: ${d.afternoon}\n- Abend: ${d.evening}\n- Hidden Gem: ${d.hiddenGem}`
-  )
+  .map((d) => {
+    const lines = [
+      `Tag ${d.day}: ${d.areaFocus}`,
+      d.morning?.activity ? `- Morgen: ${d.morning.activity}` : '',
+      d.lunch?.name ? `- Mittag: ${d.lunch.name}` : '',
+      d.afternoon?.activity ? `- Nachmittag: ${d.afternoon.activity}` : '',
+      d.dinner?.name ? `- Abendessen: ${d.dinner.name}` : '',
+      d.evening?.activity ? `- Abend: ${d.evening.activity}` : '',
+    ].filter(Boolean);
+    return lines.join('\n');
+  })
   .join('\n\n')}
 
-Packing-Tipp: ${plan.packingTip}
-Local Dish: ${plan.localDish}`;
+Tipps:
+${plan.generalTips.map((t) => `- ${t}`).join('\n')}`;
 
-    const userInput = `${days} Tage in ${destination} (${budget}, ${vibeText})`;
+    const userInput = `${days} Tage in ${destination} (${budget}, ${season}, Pace ${pace})`;
     await createHelperChat('travel', userInput, formattedPlan);
 
     return { result: JSON.stringify(plan) };

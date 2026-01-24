@@ -2,27 +2,48 @@
 
 import { useActionState } from 'react';
 import { useState } from 'react';
-import { Plane, Loader2, ChevronDown } from 'lucide-react';
+import { Map, Loader2, ChevronDown, Footprints, Train } from 'lucide-react';
 import { ToolHeader } from '@/components/tool-header';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { useFormStatus } from 'react-dom';
 import { generateTravelPlan } from '@/actions/travel-ai';
+import { CustomSelect } from '@/components/ui/custom-select';
 
 type ItineraryDay = {
   day: number;
-  focus: string;
-  morning: string;
-  afternoon: string;
-  evening: string;
-  hiddenGem: string;
+  areaFocus: string;
+  morning: {
+    activity?: string;
+    logistics?: string;
+    mapsQuery?: string;
+  };
+  lunch: {
+    name?: string;
+    description?: string;
+    mapsQuery?: string;
+  };
+  afternoon: {
+    activity?: string;
+    logistics?: string;
+    mapsQuery?: string;
+  };
+  dinner: {
+    name?: string;
+    description?: string;
+    mapsQuery?: string;
+  };
+  evening: {
+    activity?: string;
+    vibe?: string;
+    mapsQuery?: string;
+  };
 };
 
 type TravelPlan = {
-  title: string;
-  summary: string;
+  tripTitle: string;
+  vibeDescription: string;
+  generalTips: string[];
   itinerary: ItineraryDay[];
-  packingTip: string;
-  localDish: string;
 };
 
 function SubmitButton() {
@@ -40,7 +61,7 @@ function SubmitButton() {
         </>
       ) : (
         <>
-          <Plane className="w-4 h-4" />
+          <Map className="w-4 h-4" />
           <span>Reiseplan generieren</span>
         </>
       )}
@@ -54,15 +75,17 @@ export default function TravelPage() {
 
   const [destination, setDestination] = useState('');
   const [days, setDays] = useState(3);
-  const [budget, setBudget] = useState('Mittel');
+  const [season, setSeason] = useState('Sommer');
+  const [budget, setBudget] = useState('€€');
   const [companions, setCompanions] = useState('Paar');
-  const [vibe, setVibe] = useState<string[]>([]);
+  const [pace, setPace] = useState(3);
+  const [diet, setDiet] = useState('Alles');
   const [openDay, setOpenDay] = useState(1);
 
   const budgetOptions = [
-    { id: 'low', label: '€', value: 'Low Budget' },
-    { id: 'mid', label: '€€', value: 'Mittel' },
-    { id: 'high', label: '€€€', value: 'Luxus' },
+    { id: 'low', label: '€', value: '€' },
+    { id: 'mid', label: '€€', value: '€€' },
+    { id: 'high', label: '€€€', value: '€€€' },
   ];
 
   const companionOptions = [
@@ -72,18 +95,19 @@ export default function TravelPage() {
     { id: 'friends', label: 'Freunde', value: 'Freunde' },
   ];
 
-  const vibeOptions = [
-    { id: 'culture', label: 'Kultur', value: 'Kultur' },
-    { id: 'relax', label: 'Entspannung', value: 'Entspannung' },
-    { id: 'party', label: 'Party', value: 'Party' },
-    { id: 'foodie', label: 'Foodie', value: 'Foodie' },
-    { id: 'adventure', label: 'Abenteuer', value: 'Abenteuer' },
-    { id: 'nature', label: 'Natur', value: 'Natur' },
+  const seasonOptions = [
+    { value: 'Frühling', label: 'Frühling' },
+    { value: 'Sommer', label: 'Sommer' },
+    { value: 'Herbst', label: 'Herbst' },
+    { value: 'Winter', label: 'Winter' },
   ];
 
-  const toggleVibe = (value: string) => {
-    setVibe((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
-  };
+  const dietOptions = [
+    { value: 'Alles', label: 'Allesesser' },
+    { value: 'Vegetarisch', label: 'Vegetarisch' },
+    { value: 'Vegan', label: 'Vegan' },
+    { value: 'Glutenfrei', label: 'Glutenfrei' },
+  ];
 
   let plan: TravelPlan | null = null;
   if (state?.result && !state.error) {
@@ -96,18 +120,18 @@ export default function TravelPage() {
     }
   }
 
-  const mapUrl = (place: string) => {
-    const dest = destination || plan?.title || '';
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place} ${dest}`)}`;
+  const mapUrl = (query?: string) => {
+    if (!query) return '#';
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
   };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <ToolHeader
         title="Travel-Agent"
-        description="Komplette Reise-Routen mit klarer Tagesstruktur, Hidden Gems und lokalen Food-Tipps."
-        icon={Plane}
-        color="blue"
+        description="Logische Tagesrouten mit Logistik, Food-Spots und Karten-Links."
+        icon={Map}
+        color="cyan"
         backLink="/dashboard"
         toolId="travel"
       />
@@ -147,6 +171,18 @@ export default function TravelPage() {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Reisezeit</label>
+              <CustomSelect
+                name="season"
+                value={season}
+                onChange={(value) => setSeason(value)}
+                options={seasonOptions}
+                placeholder="Saison auswählen..."
+                variant="dropdown"
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">Budget</label>
               <div className="flex gap-2">
                 {budgetOptions.map((opt) => (
@@ -165,6 +201,26 @@ export default function TravelPage() {
                 ))}
               </div>
               <input type="hidden" name="budget" value={budget} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Reise-Stil <span className="text-zinc-500 text-xs font-normal">(Pace)</span>
+              </label>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-zinc-500">Entspannt 🐢</span>
+                <input
+                  type="range"
+                  name="pace"
+                  min={1}
+                  max={5}
+                  value={pace}
+                  onChange={(e) => setPace(Number(e.target.value))}
+                  className="w-full"
+                />
+                <span className="text-xs text-zinc-500">Aktiv 🏃‍♂️</span>
+              </div>
+              <div className="mt-1 text-xs text-zinc-500">Stufe {pace} von 5</div>
             </div>
 
             <div>
@@ -189,29 +245,15 @@ export default function TravelPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Vibe</label>
-              <div className="flex flex-wrap gap-2">
-                {vibeOptions.map((opt) => {
-                  const active = vibe.includes(opt.value);
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => toggleVibe(opt.value)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-all min-h-[44px] ${
-                        active
-                          ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
-                          : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {vibe.map((v) => (
-                <input key={v} type="hidden" name="vibe" value={v} />
-              ))}
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Ernährung</label>
+              <CustomSelect
+                name="diet"
+                value={diet}
+                onChange={(value) => setDiet(value)}
+                options={dietOptions}
+                placeholder="Ernährung auswählen..."
+                variant="dropdown"
+              />
             </div>
 
             <SubmitButton />
@@ -231,15 +273,15 @@ export default function TravelPage() {
             <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto">
                 <div className="mb-4">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{plan.title}</h2>
-                  <p className="text-sm text-zinc-300">{plan.summary}</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{plan.tripTitle}</h2>
+                  <p className="text-sm text-zinc-300">{plan.vibeDescription}</p>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-white/10">
                   {plan.itinerary.map((day) => {
                     const isOpen = openDay === day.day;
                     return (
-                      <div key={day.day} className="border border-white/10 rounded-xl overflow-hidden">
+                      <div key={day.day} className="border border-white/10 rounded-xl overflow-hidden ml-6">
                         <button
                           type="button"
                           onClick={() => setOpenDay(isOpen ? 0 : day.day)}
@@ -247,59 +289,103 @@ export default function TravelPage() {
                         >
                           <div className="text-left">
                             <p className="text-xs uppercase tracking-wider text-zinc-500">Tag {day.day}</p>
-                            <p className="text-sm sm:text-base text-white font-medium">{day.focus}</p>
+                            <p className="text-sm sm:text-base text-white font-medium">{day.areaFocus}</p>
                           </div>
                           <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                         </button>
                         {isOpen && (
                           <div className="px-4 py-3 bg-zinc-900/40 space-y-3 text-sm text-zinc-300">
                             <div>
-                              <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">Morgen</div>
-                              <div>{day.morning}</div>
-                              <a
-                                href={mapUrl(day.morning)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-300 hover:text-blue-200 inline-flex mt-1"
-                              >
-                                🔍 Auf Karte zeigen
-                              </a>
+                              <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">🌅 Morgen</div>
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div>{day.morning.activity}</div>
+                                  {day.morning.logistics && (
+                                    <div className="text-xs text-zinc-500 mt-1 flex items-center gap-2">
+                                      <Footprints className="w-3.5 h-3.5" />
+                                      {day.morning.logistics}
+                                    </div>
+                                  )}
+                                </div>
+                                {day.morning.mapsQuery && (
+                                  <a
+                                    href={mapUrl(day.morning.mapsQuery)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-300 hover:text-blue-200 inline-flex items-center gap-1"
+                                  >
+                                    📍 Auf Karte
+                                  </a>
+                                )}
+                              </div>
                             </div>
                             <div>
-                              <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">Nachmittag</div>
-                              <div>{day.afternoon}</div>
-                              <a
-                                href={mapUrl(day.afternoon)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-300 hover:text-blue-200 inline-flex mt-1"
-                              >
-                                🔍 Auf Karte zeigen
-                              </a>
+                              <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">🍽️ Mittag</div>
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-white">{day.lunch.name}</div>
+                                  {day.lunch.description && <div className="text-xs text-zinc-500 mt-1">{day.lunch.description}</div>}
+                                </div>
+                                {day.lunch.mapsQuery && (
+                                  <a
+                                    href={mapUrl(day.lunch.mapsQuery)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-300 hover:text-blue-200 inline-flex items-center gap-1"
+                                  >
+                                    📍 Auf Karte
+                                  </a>
+                                )}
+                              </div>
                             </div>
                             <div>
-                              <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">Abend</div>
-                              <div>{day.evening}</div>
-                              <a
-                                href={mapUrl(day.evening)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-300 hover:text-blue-200 inline-flex mt-1"
-                              >
-                                🔍 Auf Karte zeigen
-                              </a>
+                              <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">☀️ Nachmittag</div>
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div>{day.afternoon.activity}</div>
+                                  {day.afternoon.logistics && (
+                                    <div className="text-xs text-zinc-500 mt-1 flex items-center gap-2">
+                                      <Train className="w-3.5 h-3.5" />
+                                      {day.afternoon.logistics}
+                                    </div>
+                                  )}
+                                </div>
+                                {day.afternoon.mapsQuery && (
+                                  <a
+                                    href={mapUrl(day.afternoon.mapsQuery)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-300 hover:text-blue-200 inline-flex items-center gap-1"
+                                  >
+                                    📍 Auf Karte
+                                  </a>
+                                )}
+                              </div>
                             </div>
                             <div>
-                              <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">Hidden Gem</div>
-                              <div>{day.hiddenGem}</div>
-                              <a
-                                href={mapUrl(day.hiddenGem)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-300 hover:text-blue-200 inline-flex mt-1"
-                              >
-                                🔍 Auf Karte zeigen
-                              </a>
+                              <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">🍷 Abend</div>
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-white">{day.dinner.name}</div>
+                                  {day.dinner.description && <div className="text-xs text-zinc-500 mt-1">{day.dinner.description}</div>}
+                                  {day.evening.activity && (
+                                    <div className="text-xs text-zinc-400 mt-2">
+                                      {day.evening.activity}
+                                      {day.evening.vibe ? ` · ${day.evening.vibe}` : ''}
+                                    </div>
+                                  )}
+                                </div>
+                                {(day.dinner.mapsQuery || day.evening.mapsQuery) && (
+                                  <a
+                                    href={mapUrl(day.dinner.mapsQuery || day.evening.mapsQuery)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-300 hover:text-blue-200 inline-flex items-center gap-1"
+                                  >
+                                    📍 Auf Karte
+                                  </a>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )}
@@ -308,16 +394,16 @@ export default function TravelPage() {
                   })}
                 </div>
 
-                <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="rounded-lg border border-white/10 bg-zinc-900/60 p-3 text-sm text-zinc-300">
-                    <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Packing-Tipp</div>
-                    {plan.packingTip}
+                {plan.generalTips?.length ? (
+                  <div className="mt-5 rounded-lg border border-white/10 bg-zinc-900/60 p-3 text-sm text-zinc-300">
+                    <div className="text-xs uppercase tracking-wider text-zinc-500 mb-2">General Tips</div>
+                    <ul className="space-y-1">
+                      {plan.generalTips.map((tip, i) => (
+                        <li key={i}>• {tip}</li>
+                      ))}
+                    </ul>
                   </div>
-                  <div className="rounded-lg border border-white/10 bg-zinc-900/60 p-3 text-sm text-zinc-300">
-                    <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Local Dish</div>
-                    {plan.localDish}
-                  </div>
-                </div>
+                ) : null}
               </div>
               <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
                 <FeedbackButton
@@ -329,7 +415,7 @@ export default function TravelPage() {
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-zinc-500 p-4 sm:p-5 md:p-6">
-              <Plane className="w-10 h-10 mx-auto mb-3 opacity-40" />
+              <Map className="w-10 h-10 mx-auto mb-3 opacity-40" />
               <p className="text-sm">Dein Reiseplan erscheint hier</p>
             </div>
           )}
