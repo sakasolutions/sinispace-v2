@@ -200,5 +200,25 @@ export const toolInfoMap: Record<string, ToolInfo> = {
       'Du kannst auch Präferenzen angeben (vegetarisch, scharf, etc.)',
       'Das Tool schlägt auch Variationen und Alternativen vor'
     ]
+  },
+  travel: {
+    title: 'Travel-Agent',
+    description: 'Erstelle komplette Reise-Routen inkl. Tagesplan, Hidden Gems und lokalen Food-Tipps. Ideal für Kurztrips oder intensive Städtetrips.',
+    useCases: [
+      'Wochenendtrip mit klarer Tagesstruktur planen',
+      'Reise nach Budget und Vibe ausrichten',
+      'Schnelle, logische Routen ohne Hin-und-Her',
+      'Lokale Highlights + Geheimtipps finden'
+    ],
+    examples: [
+      '3 Tage in Lissabon, Budget: Mittel, Vibe: Foodie & Kultur',
+      '5 Tage in Barcelona, Budget: Low Budget, Vibe: Party',
+      '2 Tage in Wien, Budget: Luxus, Vibe: Kultur & Entspannung'
+    ],
+    tips: [
+      'Halte die Tagezahl niedrig für maximale Präzision',
+      'Mehrere Vibes kombinieren erzeugt abwechslungsreiche Tage',
+      'Budget beeinflusst Restaurant- und Aktivitätswahl'
+    ]
   }
 };

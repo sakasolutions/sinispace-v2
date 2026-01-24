@@ -244,7 +244,7 @@ export async function deleteChat(chatId: string) {
 
 // Helfer-Chat erstellen und User-Eingabe + KI-Response speichern
 export async function createHelperChat(
-  helperType: 'email' | 'excel' | 'summarize' | 'translate' | 'polish' | 'tough-msg' | 'legal' | 'job-desc' | 'recipe' | 'chat-coach' | 'fitness',
+  helperType: 'email' | 'excel' | 'summarize' | 'translate' | 'polish' | 'tough-msg' | 'legal' | 'job-desc' | 'recipe' | 'chat-coach' | 'fitness' | 'travel',
   userInput: string,
   aiResponse: string
 ) {
@@ -256,7 +256,7 @@ export async function createHelperChat(
 
   try {
     // Titel basierend auf Helper-Type
-    const titles: Record<'email' | 'excel' | 'summarize' | 'translate' | 'polish' | 'tough-msg' | 'legal' | 'job-desc' | 'recipe' | 'chat-coach' | 'fitness', string> = {
+    const titles: Record<'email' | 'excel' | 'summarize' | 'translate' | 'polish' | 'tough-msg' | 'legal' | 'job-desc' | 'recipe' | 'chat-coach' | 'fitness' | 'travel', string> = {
       email: 'E-Mail generiert',
       excel: 'Excel Formel generiert',
       summarize: 'Text zusammengefasst',
@@ -268,6 +268,7 @@ export async function createHelperChat(
       recipe: 'Rezept generiert',
       'chat-coach': 'Chat-Antworten generiert',
       fitness: 'Trainingsplan erstellt',
+      travel: 'Reiseplan erstellt',
     };
     
     const title = titles[helperType] || 'Helfer Chat';
