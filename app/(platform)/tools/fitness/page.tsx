@@ -11,7 +11,7 @@ type FitnessPlan = {
   title: string;
   summary: string;
   warmup: string[];
-  exercises: { name: string; sets: string; reps: string; tip: string }[];
+  exercises: { name: string; setsReps: string; visualCue: string; youtubeQuery: string }[];
   cooldown: string[];
 };
 
@@ -46,6 +46,9 @@ export default function FitnessPage() {
   const [level, setLevel] = useState('Anfänger');
   const [duration, setDuration] = useState('30');
   const [equipment, setEquipment] = useState<string[]>([]);
+  const [focus, setFocus] = useState('Ganzkörper (Balance)');
+  const [constraints, setConstraints] = useState<string[]>([]);
+  const [energy, setEnergy] = useState('Normal');
 
   const goalOptions = [
     { id: 'muscle', label: 'Muskeln', value: 'Muskelaufbau' },
@@ -68,8 +71,35 @@ export default function FitnessPage() {
     { id: 'gym', label: 'Fitnessstudio', value: 'Fitnessstudio' },
   ];
 
+  const focusOptions = [
+    { id: 'full', label: 'Ganzkörper (Balance)', value: 'Ganzkörper (Balance)' },
+    { id: 'upper', label: 'Oberkörper & Arme (Beach)', value: 'Oberkörper & Arme (Beach)' },
+    { id: 'lower', label: 'Beine & Po (Booty)', value: 'Beine & Po (Booty)' },
+    { id: 'core', label: 'Core & Sixpack', value: 'Core & Sixpack' },
+    { id: 'back', label: 'Rücken fit (Anti-Schmerz)', value: 'Rücken fit (Anti-Schmerz)' },
+    { id: 'cardio', label: 'Cardio & Burn (Abnehmen)', value: 'Cardio & Burn (Abnehmen)' },
+  ];
+
+  const constraintOptions = [
+    { id: 'quiet', label: '🤫 Leise / Keine Sprünge', value: 'Leise / Keine Sprünge' },
+    { id: 'knee', label: '🦵 Knie-schonend', value: 'Knie-schonend' },
+    { id: 'low-energy', label: '🧘‍♂️ Wenig Energie / Flow', value: 'Wenig Energie / Flow' },
+  ];
+
+  const energyOptions = [
+    { id: 'low', label: 'Wenig Energie', value: 'Wenig Energie' },
+    { id: 'normal', label: 'Normal', value: 'Normal' },
+    { id: 'high', label: 'High Energy', value: 'High Energy' },
+  ];
+
   const toggleEquipment = (value: string) => {
     setEquipment((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
+
+  const toggleConstraint = (value: string) => {
+    setConstraints((prev) =>
       prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
     );
   };
@@ -109,6 +139,22 @@ export default function FitnessPage() {
                 className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
               >
                 {goalOptions.map((opt) => (
+                  <option key={opt.id} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Fokus</label>
+              <select
+                name="focus"
+                value={focus}
+                onChange={(e) => setFocus(e.target.value)}
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
+              >
+                {focusOptions.map((opt) => (
                   <option key={opt.id} value={opt.value}>
                     {opt.label}
                   </option>
@@ -181,6 +227,50 @@ export default function FitnessPage() {
               ))}
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Besonderheiten</label>
+              <div className="flex flex-wrap gap-2">
+                {constraintOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => toggleConstraint(opt.value)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all min-h-[44px] ${
+                      constraints.includes(opt.value)
+                        ? 'bg-rose-500/20 border-2 border-rose-500/50 text-rose-300'
+                        : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {constraints.map((c) => (
+                <input key={c} type="hidden" name="constraints" value={c} />
+              ))}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Energie</label>
+              <div className="flex flex-wrap gap-2">
+                {energyOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setEnergy(opt.value)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all min-h-[44px] ${
+                      energy === opt.value
+                        ? 'bg-rose-500/20 border-2 border-rose-500/50 text-rose-300'
+                        : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <input type="hidden" name="energy" value={energy} />
+            </div>
+
             <SubmitButton />
           </form>
 
@@ -224,9 +314,21 @@ export default function FitnessPage() {
                           <div className="text-sm sm:text-base">
                             <div className="text-white font-medium">{ex.name}</div>
                             <div className="text-zinc-400">
-                              {ex.sets} Sätze × {ex.reps}
+                              {ex.setsReps}
                             </div>
-                            {ex.tip && <div className="text-zinc-500 text-xs mt-1">💡 {ex.tip}</div>}
+                            {ex.visualCue && (
+                              <div className="text-zinc-500 text-xs mt-1 italic">„{ex.visualCue}“</div>
+                            )}
+                            {ex.youtubeQuery && (
+                              <a
+                                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.youtubeQuery)}+Tutorial`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center text-xs text-rose-300 hover:text-rose-200 mt-1"
+                              >
+                                ▶️ Technik-Video
+                              </a>
+                            )}
                           </div>
                         </li>
                       ))}
