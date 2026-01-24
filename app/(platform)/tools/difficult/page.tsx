@@ -141,14 +141,20 @@ export default function ChatCoachPage() {
   const chain = searchParams.get('chain');
   const recipeName = searchParams.get('recipe');
   const ingredients = searchParams.get('ingredients');
+  const mode = searchParams.get('mode');
 
   // Smart Pre-fill für Gourmet Chain
   useEffect(() => {
     if (chain === 'gourmet' && recipeName && ingredients) {
-      const prefillText =
-        `Erstelle eine übersichtliche Einkaufsliste für '${recipeName}' basierend auf diesen Zutaten: ${ingredients}. ` +
+      const isShopping = mode === 'shopping';
+      const prefillText = isShopping
+        ? `Wir kochen heute ${recipeName}. Das haben wir da, aber kannst du das bitte noch besorgen: ${ingredients}?`
+        : `Heute gibt es Reste-Essen: ${recipeName}. Ich hab alles da.`;
+
+      const instruction =
         `Format: WhatsApp-Nachricht mit Emojis (Listen-Format). Zusatztext: 'Kannst du das bitte mitbringen?'`;
-      setSituation(prefillText);
+
+      setSituation(`${prefillText} ${instruction}`);
       setRecipient('Partner');
 
       setToastMessage({
@@ -156,7 +162,7 @@ export default function ChatCoachPage() {
         description: 'Die Nachricht ist vorbereitet.',
       });
     }
-  }, [chain, recipeName, ingredients]);
+  }, [chain, recipeName, ingredients, mode]);
 
   useEffect(() => {
     if (!toastMessage) return;

@@ -22,6 +22,7 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   const mealType = (formData.get('mealType') as string) || 'Hauptgericht';
   const servings = parseInt(formData.get('servings') as string) || 2;
   const filters = formData.getAll('filters') as string[];
+  const shoppingMode = (formData.get('shoppingMode') as string) || 'strict';
 
   if (!ingredients || ingredients.trim().length === 0) {
     return { error: 'Bitte gib vorhandene Zutaten ein.' };
@@ -48,28 +49,35 @@ export async function generateRecipe(prevState: any, formData: FormData) {
 
   const systemPrompt = `Du bist ein 5-Sterne-Koch. Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'. Nutze primär diese Zutaten: {ingredients}. Berücksichtige diese Filter: {filters}.
 
+Modus: ${shoppingMode}
+WICHTIG:
+- Wenn Modus "strict": Nutze NUR die genannten Zutaten + Standard-Basics (Öl, Salz, Pfeffer, Wasser). Erfinde keine neuen Hauptzutaten dazu.
+- Wenn Modus "shopping": Nutze die Zutaten als Basis. Füge fehlende Zutaten (Gemüse, Kräuter, Beilagen) hinzu, um das Gericht perfekt zu machen.
+
 Antworte NUR mit validem JSON in diesem Format:
 {
-  "title": "Name des Gerichts",
+  "recipeName": "Name des Gerichts",
+  "description": "Kurze Beschreibung",
+  "fullIngredients": ["Menge Zutat 1", "Menge Zutat 2"],
+  "missingIngredients": ["Nur das was eingekauft werden muss"],
+  "instructions": ["Schritt 1", "Schritt 2"],
   "time": "z.B. 20 Min",
   "difficulty": "Einfach/Mittel/Schwer",
   "calories": "z.B. 450 kcal",
   "protein": "z.B. 25g",
-  "ingredients": ["Menge Zutat 1", "Menge Zutat 2"],
-  "steps": ["Schritt 1", "Schritt 2"],
   "tip": "Ein kurzer Profi-Tipp dazu"
 }
 
 WICHTIG:
 - Antworte NUR mit einem gültigen JSON-Objekt (kein Markdown, kein Text davor oder danach)
 - Alle Werte müssen Strings sein (auch Zahlen in Anführungszeichen)
-- "ingredients" und "steps" sind Arrays von Strings
+- "fullIngredients", "missingIngredients" und "instructions" sind Arrays von Strings
 - Die Nährwerte sollten realistisch sein (Kalorien pro Portion, Protein in Gramm)
 - Das Rezept MUSS zur Kategorie '${mealType}' passen (z.B. bei "Soße / Dip" keine Hauptgerichte erstellen)
 - Erstelle das Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Berechne alle Mengenangaben (Gramm, Stückzahl, etc.) passend für diese Anzahl. Wenn für 2 Personen normalerweise "4 Eier" verwendet werden, dann sind es für ${servings} Personen entsprechend mehr/f weniger.
 - Wenn Zutaten keinen Sinn ergeben, erstelle trotzdem ein kreatives, machbares Rezept${categoryInstruction}`;
 
-  const userPrompt = `Kategorie: ${mealType}\nAnzahl Personen: ${servings}\nZutaten im Kühlschrank: ${ingredients}${filterText}
+  const userPrompt = `Kategorie: ${mealType}\nAnzahl Personen: ${servings}\nZutaten im Kühlschrank: ${ingredients}\nModus: ${shoppingMode}${filterText}
 
 Erstelle ein perfektes Rezept für die Kategorie '${mealType}' für genau ${servings} ${servings === 1 ? 'Person' : 'Personen'} basierend auf diesen Zutaten.`;
 
@@ -99,22 +107,22 @@ Erstelle ein perfektes Rezept für die Kategorie '${mealType}' für genau ${serv
     }
 
     // Validiere die Struktur
-    if (!recipe.title || !recipe.ingredients || !recipe.steps || !recipe.tip) {
+    if (!recipe.recipeName || !recipe.fullIngredients || !recipe.instructions) {
       return { error: 'Ungültiges Rezept-Format. Bitte versuche es erneut.' };
     }
 
     // Formatiere Rezept für Chat (schön lesbar, nicht als JSON)
-    const formattedRecipe = `# ${recipe.title}
+    const formattedRecipe = `# ${recipe.recipeName}
 
 **⏱ Zeit:** ${recipe.time} | **Schwierigkeit:** ${recipe.difficulty} | **🔥 Kalorien:** ${recipe.calories} | **💪 Protein:** ${recipe.protein}
 
 ## Zutaten
 
-${recipe.ingredients.map((ing: string) => `- ${ing}`).join('\n')}
+${recipe.fullIngredients.map((ing: string) => `- ${ing}`).join('\n')}
 
 ## Zubereitung
 
-${recipe.steps.map((step: string, i: number) => `${i + 1}. ${step}`).join('\n\n')}
+${recipe.instructions.map((step: string, i: number) => `${i + 1}. ${step}`).join('\n\n')}
 
 💡 **Profi-Tipp:** ${recipe.tip}`;
 
