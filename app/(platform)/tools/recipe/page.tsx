@@ -14,29 +14,29 @@ import { BackButton } from '@/components/ui/back-button';
 
 type Recipe = {
   recipeName: string;
-  description: string;
-  fullIngredients: string[];
-  missingIngredients: string[];
+  stats: {
+    time: string;
+    calories: string;
+    difficulty: string;
+  };
+  ingredients: string[];
+  shoppingList: string[];
   instructions: string[];
-  time: string;
-  difficulty: string;
-  calories: string;
-  protein: string;
-  tip: string;
+  chefTip: string;
 };
 
 function ActionButtons({ recipe }: { recipe: Recipe }) {
   const [copied, setCopied] = useState(false);
   const router = useRouter();
-  const hasMissing = recipe.missingIngredients && recipe.missingIngredients.length > 0;
-  const ingredientsText = hasMissing ? recipe.missingIngredients.join(', ') : recipe.fullIngredients.join(', ');
+  const hasMissing = recipe.shoppingList && recipe.shoppingList.length > 0;
+  const ingredientsText = hasMissing ? recipe.shoppingList.join(', ') : recipe.ingredients.join(', ');
   const chatLink = `/tools/difficult?chain=gourmet&mode=${hasMissing ? 'shopping' : 'strict'}&recipe=${encodeURIComponent(recipe.recipeName)}&ingredients=${encodeURIComponent(ingredientsText)}`;
 
   const handleCopy = async () => {
     try {
-      let recipeText = `${recipe.recipeName}\n\nZutaten:\n${recipe.fullIngredients.map(i => `- ${i}`).join('\n')}\n\nZubereitung:\n${recipe.instructions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
-      if (recipe.tip) {
-        recipeText += `\n\n💡 Profi-Tipp: ${recipe.tip}`;
+      let recipeText = `${recipe.recipeName}\n\nZutaten:\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\nZubereitung:\n${recipe.instructions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+      if (recipe.chefTip) {
+        recipeText += `\n\n💡 Profi-Tipp: ${recipe.chefTip}`;
       }
       await navigator.clipboard.writeText(recipeText);
       setCopied(true);
@@ -143,17 +143,24 @@ export default function RecipePage() {
         if (!recipe.recipeName && legacy.title) {
           recipe.recipeName = legacy.title;
         }
-        if (!recipe.fullIngredients && Array.isArray(legacy.ingredients)) {
-          recipe.fullIngredients = legacy.ingredients;
+        if (!recipe.ingredients && Array.isArray(legacy.ingredients)) {
+          recipe.ingredients = legacy.ingredients;
         }
         if (!recipe.instructions && Array.isArray(legacy.steps)) {
           recipe.instructions = legacy.steps;
         }
-        if (!recipe.description) {
-          recipe.description = '';
+        if (!recipe.stats) {
+          recipe.stats = {
+            time: legacy.time || '',
+            calories: legacy.calories || '',
+            difficulty: legacy.difficulty || '',
+          };
         }
-        if (!Array.isArray(recipe.missingIngredients)) {
-          recipe.missingIngredients = [];
+        if (!Array.isArray(recipe.shoppingList)) {
+          recipe.shoppingList = legacy.missingIngredients || [];
+        }
+        if (!recipe.chefTip) {
+          recipe.chefTip = legacy.tip || '';
         }
       }
     } catch (e) {
@@ -365,11 +372,11 @@ export default function RecipePage() {
                   <div className="flex flex-wrap gap-2 mb-4">
                     <div className="inline-flex items-center gap-1.5 bg-orange-500/10 text-orange-300 border border-orange-500/20 rounded-full px-3 py-1.5 text-xs font-medium">
                       <Clock className="w-3.5 h-3.5" />
-                      {recipe.time}
+                      {recipe.stats?.time}
                     </div>
                     <div className="inline-flex items-center gap-1.5 bg-orange-500/10 text-orange-300 border border-orange-500/20 rounded-full px-3 py-1.5 text-xs font-medium">
                       <ChefHat className="w-3.5 h-3.5" />
-                      {recipe.difficulty}
+                      {recipe.stats?.difficulty}
                     </div>
                     <div className="inline-flex items-center gap-1.5 bg-orange-500/10 text-orange-300 border border-orange-500/20 rounded-full px-3 py-1.5 text-xs font-medium">
                       <Users className="w-3.5 h-3.5" />
@@ -380,10 +387,7 @@ export default function RecipePage() {
                   {/* NUTRITION GRID */}
                   <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-white/10">
                     <div className="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-full px-3 py-1.5 text-xs font-medium">
-                      🔥 {recipe.calories}
-                    </div>
-                    <div className="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-full px-3 py-1.5 text-xs font-medium">
-                      💪 {recipe.protein}
+                      🔥 {recipe.stats?.calories}
                     </div>
                   </div>
 
@@ -391,7 +395,7 @@ export default function RecipePage() {
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold text-white mb-3">Zutaten</h3>
                     <ul className="space-y-2">
-                      {recipe.fullIngredients.map((ingredient, index) => (
+                      {recipe.ingredients.map((ingredient, index) => (
                         <li key={index} className="flex items-start gap-3 text-zinc-300 group cursor-pointer hover:text-white transition-colors">
                           <div className="mt-1.5 w-5 h-5 rounded border-2 border-orange-500/30 bg-orange-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-500/20 group-hover:border-orange-500/50 transition-all">
                             <CheckCircle2 className="w-3 h-3 text-orange-400 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -402,12 +406,12 @@ export default function RecipePage() {
                     </ul>
                   </div>
 
-                  {recipe.missingIngredients && recipe.missingIngredients.length > 0 && (
+                  {recipe.shoppingList && recipe.shoppingList.length > 0 && (
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold text-white mb-3">Das fehlt noch (Einkaufsliste):</h3>
                       <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3">
                         <ul className="space-y-1 text-sm text-zinc-200">
-                          {recipe.missingIngredients.map((ingredient, index) => (
+                          {recipe.shoppingList.map((ingredient, index) => (
                             <li key={index}>• {ingredient}</li>
                           ))}
                         </ul>
@@ -431,11 +435,11 @@ export default function RecipePage() {
                   </div>
 
                   {/* TIP */}
-                  {recipe.tip && (
+                  {recipe.chefTip && (
                     <div className="pt-4 border-t border-white/10">
                       <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3">
                         <p className="text-sm text-orange-200 font-medium mb-1">💡 Profi-Tipp</p>
-                        <p className="text-sm text-zinc-300 leading-relaxed">{recipe.tip}</p>
+                        <p className="text-sm text-zinc-300 leading-relaxed">{recipe.chefTip}</p>
                       </div>
                     </div>
                   )}

@@ -54,24 +54,29 @@ WICHTIG:
 - Wenn Modus "strict": Nutze NUR die genannten Zutaten + Standard-Basics (Öl, Salz, Pfeffer, Wasser). Erfinde keine neuen Hauptzutaten dazu.
 - Wenn Modus "shopping": Nutze die Zutaten als Basis. Füge fehlende Zutaten (Gemüse, Kräuter, Beilagen) hinzu, um das Gericht perfekt zu machen.
 
+Du berechnest ein Rezept exakt für die angegebene Personenzahl (${servings}).
+Deine wichtigste Aufgabe ist die präzise Mengenangabe.
+
 Antworte NUR mit validem JSON in diesem Format:
 {
   "recipeName": "Name des Gerichts",
-  "description": "Kurze Beschreibung",
-  "fullIngredients": ["Menge Zutat 1", "Menge Zutat 2"],
-  "missingIngredients": ["Nur das was eingekauft werden muss"],
+  "stats": { "time": "z.B. 20 Min", "calories": "z.B. 450 kcal", "difficulty": "Einfach/Mittel/Schwer" },
+  "ingredients": [
+    "2 große Tomaten",
+    "150g Feta-Käse"
+  ],
+  "shoppingList": [
+    "1 Packung Feta-Käse (ca. 150g)",
+    "1 Bund Rucola (ca. 50g)"
+  ],
   "instructions": ["Schritt 1", "Schritt 2"],
-  "time": "z.B. 20 Min",
-  "difficulty": "Einfach/Mittel/Schwer",
-  "calories": "z.B. 450 kcal",
-  "protein": "z.B. 25g",
-  "tip": "Ein kurzer Profi-Tipp dazu"
+  "chefTip": "Ein kurzer Profi-Tipp dazu"
 }
 
 WICHTIG:
 - Antworte NUR mit einem gültigen JSON-Objekt (kein Markdown, kein Text davor oder danach)
 - Alle Werte müssen Strings sein (auch Zahlen in Anführungszeichen)
-- "fullIngredients", "missingIngredients" und "instructions" sind Arrays von Strings
+- "ingredients", "shoppingList" und "instructions" sind Arrays von Strings
 - Die Nährwerte sollten realistisch sein (Kalorien pro Portion, Protein in Gramm)
 - Das Rezept MUSS zur Kategorie '${mealType}' passen (z.B. bei "Soße / Dip" keine Hauptgerichte erstellen)
 - Erstelle das Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Berechne alle Mengenangaben (Gramm, Stückzahl, etc.) passend für diese Anzahl. Wenn für 2 Personen normalerweise "4 Eier" verwendet werden, dann sind es für ${servings} Personen entsprechend mehr/f weniger.
@@ -107,24 +112,24 @@ Erstelle ein perfektes Rezept für die Kategorie '${mealType}' für genau ${serv
     }
 
     // Validiere die Struktur
-    if (!recipe.recipeName || !recipe.fullIngredients || !recipe.instructions) {
+    if (!recipe.recipeName || !recipe.ingredients || !recipe.instructions) {
       return { error: 'Ungültiges Rezept-Format. Bitte versuche es erneut.' };
     }
 
     // Formatiere Rezept für Chat (schön lesbar, nicht als JSON)
     const formattedRecipe = `# ${recipe.recipeName}
 
-**⏱ Zeit:** ${recipe.time} | **Schwierigkeit:** ${recipe.difficulty} | **🔥 Kalorien:** ${recipe.calories} | **💪 Protein:** ${recipe.protein}
+**⏱ Zeit:** ${recipe.stats?.time || ''} | **Schwierigkeit:** ${recipe.stats?.difficulty || ''} | **🔥 Kalorien:** ${recipe.stats?.calories || ''}
 
 ## Zutaten
 
-${recipe.fullIngredients.map((ing: string) => `- ${ing}`).join('\n')}
+${recipe.ingredients.map((ing: string) => `- ${ing}`).join('\n')}
 
 ## Zubereitung
 
 ${recipe.instructions.map((step: string, i: number) => `${i + 1}. ${step}`).join('\n\n')}
 
-💡 **Profi-Tipp:** ${recipe.tip}`;
+💡 **Profi-Tipp:** ${recipe.chefTip || ''}`;
 
     // Speichere in Chat (optional, für spätere Bearbeitung)
     const userInput = `Kategorie: ${mealType}, Personen: ${servings}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
