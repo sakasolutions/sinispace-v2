@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { Page, Text, View, StyleSheet, Document, pdf, BlobProvider } from '@react-pdf/renderer';
 import { ToolHeader } from '@/components/tool-header';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 
 // Types
 type InvoiceItem = {
@@ -804,6 +805,14 @@ export default function InvoicePage() {
               <Mail className="w-5 h-5" />
               Passende E-Mail schreiben
             </Link>
+
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <FeedbackButton
+                toolId="invoice"
+                toolName="Rechnung & Angebot"
+                resultId={`invoice-${Date.now()}`}
+              />
+            </div>
           </div>
         </div>
       </div>

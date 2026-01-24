@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { useState } from 'react';
 import { Dumbbell, Loader2, CheckCircle2 } from 'lucide-react';
 import { ToolHeader } from '@/components/tool-header';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
 
@@ -333,6 +334,13 @@ export default function FitnessPage() {
                     </ul>
                   </div>
                 </div>
+              </div>
+              <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
+                <FeedbackButton
+                  toolId="fitness"
+                  toolName="Fit-Coach"
+                  resultId={state?.result ? `fitness-${Date.now()}` : undefined}
+                />
               </div>
             </div>
           ) : (

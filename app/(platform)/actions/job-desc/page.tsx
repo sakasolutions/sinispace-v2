@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { BackButton } from '@/components/ui/back-button';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 
 function ActionButtons({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -201,6 +202,13 @@ export default function JobDescriptionPage() {
                 <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
                   {state.result}
                 </div>
+              </div>
+              <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
+                <FeedbackButton
+                  toolId="job-desc"
+                  toolName="Job-Beschreibung"
+                  resultId={state?.result ? `job-desc-${Date.now()}` : undefined}
+                />
               </div>
             </div>
           ) : (

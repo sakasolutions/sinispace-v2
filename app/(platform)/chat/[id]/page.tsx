@@ -9,6 +9,7 @@ import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { SuggestedActions } from '@/components/suggested-actions';
 import { CopyButton } from '@/components/ui/copy-button';
+import { FeedbackButton } from '@/components/ui/feedback-button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { Copy, RefreshCw, X } from 'lucide-react';
@@ -647,6 +648,15 @@ export default function ChatDetailPage() {
                     <SuggestedActions 
                       content={msg.content} 
                       onActionClick={(prompt) => sendMessage(prompt)}
+                    />
+                  </div>
+                )}
+                {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
+                  <div className="ml-0 md:ml-10 mt-3">
+                    <FeedbackButton
+                      toolId="chat"
+                      toolName="SiniChat"
+                      resultId={msg.content ? `chat-${i}-${Date.now()}` : undefined}
                     />
                   </div>
                 )}
