@@ -363,9 +363,6 @@ export default function RecipePage() {
                   {/* HEADER */}
                   <div className="mb-4">
                     <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{recipe.recipeName}</h2>
-                    {recipe.description && (
-                      <p className="text-sm text-zinc-300">{recipe.description}</p>
-                    )}
                   </div>
 
                   {/* BADGES: Zeit, Schwierigkeit & Personen */}
