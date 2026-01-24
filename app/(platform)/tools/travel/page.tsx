@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 import { useState } from 'react';
-import { Map, Loader2, ChevronDown, Footprints, Train } from 'lucide-react';
+import { Map, Loader2, ChevronDown, Star } from 'lucide-react';
 import { ToolHeader } from '@/components/tool-header';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { useFormStatus } from 'react-dom';
@@ -11,38 +11,15 @@ import { CustomSelect } from '@/components/ui/custom-select';
 
 type ItineraryDay = {
   day: number;
-  areaFocus: string;
-  morning: {
-    activity?: string;
-    logistics?: string;
-    mapsQuery?: string;
-  };
-  lunch: {
-    name?: string;
-    description?: string;
-    mapsQuery?: string;
-  };
-  afternoon: {
-    activity?: string;
-    logistics?: string;
-    mapsQuery?: string;
-  };
-  dinner: {
-    name?: string;
-    description?: string;
-    mapsQuery?: string;
-  };
-  evening: {
-    activity?: string;
-    vibe?: string;
-    mapsQuery?: string;
-  };
+  title: string;
+  morning: { place?: string; desc?: string; mapQuery?: string; tag?: string };
+  afternoon: { place?: string; desc?: string; mapQuery?: string; tag?: string };
+  evening: { place?: string; desc?: string; mapQuery?: string; tag?: string };
 };
 
 type TravelPlan = {
   tripTitle: string;
   vibeDescription: string;
-  generalTips: string[];
   itinerary: ItineraryDay[];
 };
 
@@ -80,6 +57,7 @@ export default function TravelPage() {
   const [companions, setCompanions] = useState('Paar');
   const [pace, setPace] = useState(3);
   const [diet, setDiet] = useState('Alles');
+  const [extras, setExtras] = useState('');
   const [openDay, setOpenDay] = useState(1);
 
   const budgetOptions = [
@@ -124,6 +102,8 @@ export default function TravelPage() {
     if (!query) return '#';
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
   };
+
+  const isExtra = (tag?: string) => Boolean(tag && tag.toLowerCase().includes('wunsch'));
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -256,6 +236,18 @@ export default function TravelPage() {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Besondere Wünsche / Extras ✨</label>
+              <textarea
+                name="extras"
+                value={extras}
+                onChange={(e) => setExtras(e.target.value)}
+                placeholder="z.B. 'Suche eine gute Shisha-Bar', 'Will Fußball schauen', 'Wir lieben Vintage-Shopping'..."
+                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none transition-all min-h-[110px]"
+                rows={4}
+              />
+            </div>
+
             <SubmitButton />
           </form>
 
@@ -289,7 +281,7 @@ export default function TravelPage() {
                         >
                           <div className="text-left">
                             <p className="text-xs uppercase tracking-wider text-zinc-500">Tag {day.day}</p>
-                            <p className="text-sm sm:text-base text-white font-medium">{day.areaFocus}</p>
+                            <p className="text-sm sm:text-base text-white font-medium">{day.title}</p>
                           </div>
                           <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                         </button>
@@ -297,38 +289,19 @@ export default function TravelPage() {
                           <div className="px-4 py-3 bg-zinc-900/40 space-y-3 text-sm text-zinc-300">
                             <div>
                               <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">🌅 Morgen</div>
-                              <div className="flex items-start justify-between gap-3">
+                              <div className={`flex items-start justify-between gap-3 ${isExtra(day.morning.tag) ? 'rounded-lg border border-amber-400/40 bg-amber-500/5 p-2' : ''}`}>
                                 <div>
-                                  <div>{day.morning.activity}</div>
-                                  {day.morning.logistics && (
-                                    <div className="text-xs text-zinc-500 mt-1 flex items-center gap-2">
-                                      <Footprints className="w-3.5 h-3.5" />
-                                      {day.morning.logistics}
+                                  <div className="text-white">{day.morning.place}</div>
+                                  {day.morning.desc && <div className="text-xs text-zinc-500 mt-1">{day.morning.desc}</div>}
+                                  {isExtra(day.morning.tag) && (
+                                    <div className="text-xs text-amber-300 mt-1 inline-flex items-center gap-1">
+                                      <Star className="w-3.5 h-3.5" /> {day.morning.tag}
                                     </div>
                                   )}
                                 </div>
-                                {day.morning.mapsQuery && (
+                                {day.morning.mapQuery && (
                                   <a
-                                    href={mapUrl(day.morning.mapsQuery)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-blue-300 hover:text-blue-200 inline-flex items-center gap-1"
-                                  >
-                                    📍 Auf Karte
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">🍽️ Mittag</div>
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <div className="text-white">{day.lunch.name}</div>
-                                  {day.lunch.description && <div className="text-xs text-zinc-500 mt-1">{day.lunch.description}</div>}
-                                </div>
-                                {day.lunch.mapsQuery && (
-                                  <a
-                                    href={mapUrl(day.lunch.mapsQuery)}
+                                    href={mapUrl(day.morning.mapQuery)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-xs text-blue-300 hover:text-blue-200 inline-flex items-center gap-1"
@@ -340,19 +313,19 @@ export default function TravelPage() {
                             </div>
                             <div>
                               <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">☀️ Nachmittag</div>
-                              <div className="flex items-start justify-between gap-3">
+                              <div className={`flex items-start justify-between gap-3 ${isExtra(day.afternoon.tag) ? 'rounded-lg border border-amber-400/40 bg-amber-500/5 p-2' : ''}`}>
                                 <div>
-                                  <div>{day.afternoon.activity}</div>
-                                  {day.afternoon.logistics && (
-                                    <div className="text-xs text-zinc-500 mt-1 flex items-center gap-2">
-                                      <Train className="w-3.5 h-3.5" />
-                                      {day.afternoon.logistics}
+                                  <div className="text-white">{day.afternoon.place}</div>
+                                  {day.afternoon.desc && <div className="text-xs text-zinc-500 mt-1">{day.afternoon.desc}</div>}
+                                  {isExtra(day.afternoon.tag) && (
+                                    <div className="text-xs text-amber-300 mt-1 inline-flex items-center gap-1">
+                                      <Star className="w-3.5 h-3.5" /> {day.afternoon.tag}
                                     </div>
                                   )}
                                 </div>
-                                {day.afternoon.mapsQuery && (
+                                {day.afternoon.mapQuery && (
                                   <a
-                                    href={mapUrl(day.afternoon.mapsQuery)}
+                                    href={mapUrl(day.afternoon.mapQuery)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-xs text-blue-300 hover:text-blue-200 inline-flex items-center gap-1"
@@ -364,20 +337,19 @@ export default function TravelPage() {
                             </div>
                             <div>
                               <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">🍷 Abend</div>
-                              <div className="flex items-start justify-between gap-3">
+                              <div className={`flex items-start justify-between gap-3 ${isExtra(day.evening.tag) ? 'rounded-lg border border-amber-400/40 bg-amber-500/5 p-2' : ''}`}>
                                 <div>
-                                  <div className="text-white">{day.dinner.name}</div>
-                                  {day.dinner.description && <div className="text-xs text-zinc-500 mt-1">{day.dinner.description}</div>}
-                                  {day.evening.activity && (
-                                    <div className="text-xs text-zinc-400 mt-2">
-                                      {day.evening.activity}
-                                      {day.evening.vibe ? ` · ${day.evening.vibe}` : ''}
+                                  <div className="text-white">{day.evening.place}</div>
+                                  {day.evening.desc && <div className="text-xs text-zinc-500 mt-1">{day.evening.desc}</div>}
+                                  {isExtra(day.evening.tag) && (
+                                    <div className="text-xs text-amber-300 mt-1 inline-flex items-center gap-1">
+                                      <Star className="w-3.5 h-3.5" /> {day.evening.tag}
                                     </div>
                                   )}
                                 </div>
-                                {(day.dinner.mapsQuery || day.evening.mapsQuery) && (
+                                {day.evening.mapQuery && (
                                   <a
-                                    href={mapUrl(day.dinner.mapsQuery || day.evening.mapsQuery)}
+                                    href={mapUrl(day.evening.mapQuery)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-xs text-blue-300 hover:text-blue-200 inline-flex items-center gap-1"
@@ -394,16 +366,6 @@ export default function TravelPage() {
                   })}
                 </div>
 
-                {plan.generalTips?.length ? (
-                  <div className="mt-5 rounded-lg border border-white/10 bg-zinc-900/60 p-3 text-sm text-zinc-300">
-                    <div className="text-xs uppercase tracking-wider text-zinc-500 mb-2">General Tips</div>
-                    <ul className="space-y-1">
-                      {plan.generalTips.map((tip, i) => (
-                        <li key={i}>• {tip}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
               </div>
               <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
                 <FeedbackButton
