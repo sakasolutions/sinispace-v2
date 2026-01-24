@@ -17,6 +17,7 @@ type ItineraryDay = {
   morning: { place?: string; desc?: string; mapQuery?: string; tag?: string };
   afternoon: { place?: string; desc?: string; mapQuery?: string; tag?: string };
   evening: { place?: string; desc?: string; mapQuery?: string; tag?: string };
+  googleMapsRouteUrl?: string;
 };
 
 type TravelPlan = {
@@ -40,6 +41,10 @@ export async function generateTravelPlan(prevState: any, formData: FormData) {
 
   const systemPrompt = `Du bist ein lokaler Insider. Erstelle einen Reiseplan für ${destination}.
 
+QUALITÄTS-KONTROLLE (CRITICAL): Du bist ein anspruchsvoller Reise-Experte (Snob). Empfiehl NUR Orte, die real existieren und für hohe Qualität bekannt sind (>4.0 Sterne).
+VERBOTEN: Erfinde niemals generische Namen (wie 'Ali Baba Shisha' oder 'Tasty Burger'). Wenn du keinen spezifischen Top-Spot kennst, beschreibe lieber die Gegend ('Suche im Viertel X nach...').
+LOGIK: Wenn der User nach 'Shisha' fragt, suche nach 'Premium Hookah Lounge' oder 'High-End Shisha', nicht nach der erstbesten Absteige.
+
 LOGIK-PRIORITÄTEN:
 1. Geographie: Der Plan muss laufbar/fahrbar sein. Keine Sprünge quer durch die Stadt.
 2. User-Wünsche: ${extras || 'Keine speziellen Wünsche genannt'} <- DAS HAT VORRANG! Wenn der User 'Shisha' will, baue JEDEN Abend oder zumindest einmal prominent eine Top-Shisha-Lounge ein. Wenn er 'Fußball' will, finde das Stadion oder eine Sportsbar.
@@ -61,7 +66,8 @@ OUTPUT STRUKTUR (JSON):
       "title": "Ankunft & Das Herz der Stadt",
       "morning": { "place": "Kolosseum", "desc": "Früh starten, Tickets vorab buchen.", "mapQuery": "Colosseum Rome" },
       "afternoon": { "place": "Trastevere", "desc": "Bummeln & kleine Läden entdecken.", "mapQuery": "Trastevere Rome" },
-      "evening": { "place": "Ali Baba Shisha Lounge", "desc": "Wie gewünscht: Die beste Doppel-Apfel der Stadt.", "mapQuery": "Shisha Lounge Rome", "tag": "Dein Wunsch ✨" }
+      "evening": { "place": "Premium Hookah Lounge", "desc": "Wie gewünscht: High-End Shisha-Erlebnis.", "mapQuery": "Premium Hookah Lounge Rome", "tag": "Dein Wunsch ✨" },
+      "googleMapsRouteUrl": "https://www.google.com/maps/dir/Colosseum+Rome/Trastevere+Rome/Premium+Hookah+Lounge+Rome"
     }
   ]
 }`;

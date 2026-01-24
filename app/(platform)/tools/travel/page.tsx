@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Map, Loader2, ChevronDown, Star } from 'lucide-react';
 import { ToolHeader } from '@/components/tool-header';
 import { FeedbackButton } from '@/components/ui/feedback-button';
@@ -15,6 +15,7 @@ type ItineraryDay = {
   morning: { place?: string; desc?: string; mapQuery?: string; tag?: string };
   afternoon: { place?: string; desc?: string; mapQuery?: string; tag?: string };
   evening: { place?: string; desc?: string; mapQuery?: string; tag?: string };
+  googleMapsRouteUrl?: string;
 };
 
 type TravelPlan = {
@@ -59,6 +60,7 @@ export default function TravelPage() {
   const [diet, setDiet] = useState('Alles');
   const [extras, setExtras] = useState('');
   const [openDay, setOpenDay] = useState(1);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const budgetOptions = [
     { id: 'low', label: '€', value: '€' },
@@ -104,6 +106,14 @@ export default function TravelPage() {
   };
 
   const isExtra = (tag?: string) => Boolean(tag && tag.toLowerCase().includes('wunsch'));
+
+  useEffect(() => {
+    if (plan && resultRef.current) {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [plan]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -254,7 +264,10 @@ export default function TravelPage() {
           {state?.error && <p className="mt-4 text-sm text-red-400">{state.error}</p>}
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px] sm:min-h-[400px] overflow-hidden">
+        <div
+          ref={resultRef}
+          className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px] sm:min-h-[400px] overflow-hidden"
+        >
           {state?.result && state.result.includes('🔒 Premium Feature') ? (
             <div className="p-4 sm:p-5 md:p-6">
               <div className="prose prose-sm max-w-none text-white prose-invert">
@@ -359,13 +372,25 @@ export default function TravelPage() {
                                 )}
                               </div>
                             </div>
+                            {day.googleMapsRouteUrl && (
+                              <a
+                                href={day.googleMapsRouteUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full mt-4 flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition"
+                              >
+                                🗺️ Ganze Tages-Route auf Maps öffnen
+                              </a>
+                            )}
                           </div>
                         )}
                       </div>
                     );
                   })}
                 </div>
-
+                <p className="text-xs text-zinc-500 mt-4">
+                  Hinweis: Öffnungszeiten und Verfügbarkeiten können variieren. Bitte prüfe die Orte kurz vor dem Besuch.
+                </p>
               </div>
               <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
                 <FeedbackButton
