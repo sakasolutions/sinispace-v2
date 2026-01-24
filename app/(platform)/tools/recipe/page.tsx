@@ -88,7 +88,7 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
         >
           <Share2 className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">
-            {hasMissing ? 'Einkaufsliste an Partner senden' : 'Rezept an Partner senden'}
+            {hasMissing ? 'Einkaufsliste senden' : 'Rezept senden'}
           </span>
         </Link>
       </div>
