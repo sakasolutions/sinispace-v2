@@ -2,6 +2,15 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, ArrowRight } from 'lucide-react';
+
+// Type Guard Helper
+type AutoPlanResult = 
+  | { error: string; message?: string }
+  | { success: boolean; plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe: any }> };
+
+function isErrorResult(result: AutoPlanResult): result is { error: string; message?: string } {
+  return 'error' in result && !('success' in result);
+}
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { PremiumOnboardingModal } from './premium-onboarding-modal';
 import { AlternativeRecipesModal } from './alternative-recipes-modal';
@@ -208,15 +217,18 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       console.log('[WEEK-PLANNER] Auto-Plan Result:', result);
       
       // Type Guard: Prüfe ob es ein Fehler ist
-      if (result && 'error' in result && result.error) {
-        const errorResult = result as { error: string; message?: string };
-        if (errorResult.error === 'PREMIUM_REQUIRED') {
+      if (!result) {
+        console.error('[WEEK-PLANNER] ❌ Kein Result erhalten');
+        alert('Fehler: Keine Antwort vom Server');
+      } else if (isErrorResult(result)) {
+        // TypeScript weiß jetzt, dass result.error existiert
+        if (result.error === 'PREMIUM_REQUIRED') {
           router.push('/settings');
         } else {
-          console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', errorResult.error);
-          alert(`Fehler: ${errorResult.error}`);
+          console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', result.error);
+          alert(`Fehler: ${result.error}`);
         }
-      } else if (result && 'plan' in result && result.plan) {
+      } else if ('plan' in result && result.plan) {
         console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(result.plan).length, 'Tage');
         console.log('[WEEK-PLANNER] Verfügbare Rezepte:', myRecipes.length);
         
