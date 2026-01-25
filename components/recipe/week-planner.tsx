@@ -157,7 +157,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         return;
       }
       
-      Object.entries(planData).forEach(([dateKey, planEntry]) => {
+      // Verwende for...of statt forEach für async/await Support
+      for (const [dateKey, planEntry] of Object.entries(planData)) {
         console.log(`[WEEK-PLANNER] 🔍 Verarbeite ${dateKey}:`, {
           hasRecipe: !!planEntry.recipe,
           resultId: planEntry.resultId,
@@ -213,7 +214,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
             }
           }
         }
-      });
+      }
       
         console.log('[WEEK-PLANNER] ✅ Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
         setWeekPlan(transformedPlan);
