@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 // Type Guard Helper (nicht mehr benötigt, aber für zukünftige Verwendung behalten)
@@ -118,47 +118,80 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     loadData();
   }, []);
 
-  // Lade gespeicherten Wochenplan
-  useEffect(() => {
-    async function loadPlan() {
-      const savedPlan = await getWeeklyPlan(currentWeek);
-      if (savedPlan && savedPlan.planData) {
-        // Transformiere Plan-Format: Verwende Rezepte direkt aus Plan oder suche in myRecipes
-        const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
+  // Lade gespeicherten Wochenplan (useCallback für stabile Referenz)
+  const loadPlan = useCallback(async () => {
+    const weekStartStr = currentWeek.toISOString().split('T')[0];
+    console.log('[WEEK-PLANNER] 🔄 Lade Wochenplan für:', weekStartStr);
+    
+    const savedPlan = await getWeeklyPlan(currentWeek);
+    console.log('[WEEK-PLANNER] 📦 Geladener Plan:', savedPlan ? 'gefunden' : 'nicht gefunden');
+    
+    if (savedPlan && savedPlan.planData) {
+      // Transformiere Plan-Format: Verwende Rezepte direkt aus Plan oder suche in myRecipes
+      const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
+      
+      type PlanEntry = { 
+        recipeId: string; 
+        resultId: string; 
+        feedback: 'positive' | 'negative' | null;
+        recipe?: any; // Temporäre Rezepte haben recipe direkt im PlanEntry
+      };
+      const planData = savedPlan.planData as Record<string, PlanEntry>;
+      console.log('[WEEK-PLANNER] 📋 Plan-Daten:', Object.keys(planData).length, 'Tage');
+      console.log('[WEEK-PLANNER] 📋 Plan-Daten Details:', JSON.stringify(planData, null, 2));
+      
+      Object.entries(planData).forEach(([dateKey, planEntry]) => {
+        console.log(`[WEEK-PLANNER] 🔍 Verarbeite ${dateKey}:`, {
+          hasRecipe: !!planEntry.recipe,
+          resultId: planEntry.resultId,
+          feedback: planEntry.feedback
+        });
         
-        type PlanEntry = { 
-          recipeId: string; 
-          resultId: string; 
-          feedback: 'positive' | 'negative' | null;
-          recipe?: any; // Temporäre Rezepte haben recipe direkt im PlanEntry
-        };
-        const planData = savedPlan.planData as Record<string, PlanEntry>;
-        
-        Object.entries(planData).forEach(([dateKey, planEntry]) => {
-          // Prüfe ob Rezept direkt im PlanEntry enthalten ist (temporäre Rezepte)
-          if (planEntry.recipe) {
+        // Prüfe ob Rezept direkt im PlanEntry enthalten ist (temporäre Rezepte)
+        if (planEntry.recipe) {
+          console.log(`[WEEK-PLANNER] ✅ Rezept direkt im Plan für ${dateKey}:`, planEntry.recipe.recipeName);
+          transformedPlan[dateKey] = {
+            recipe: planEntry.recipe as Recipe,
+            resultId: planEntry.resultId,
+            feedback: planEntry.feedback || null,
+          };
+        } else {
+          // Fallback: Suche in myRecipes
+          const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
+          if (recipeResult) {
+            console.log(`[WEEK-PLANNER] ✅ Rezept in myRecipes gefunden für ${dateKey}`);
             transformedPlan[dateKey] = {
-              recipe: planEntry.recipe as Recipe,
+              recipe: recipeResult.recipe,
               resultId: planEntry.resultId,
               feedback: planEntry.feedback || null,
             };
           } else {
-            // Fallback: Suche in myRecipes
-            const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
-            if (recipeResult) {
-              transformedPlan[dateKey] = {
-                recipe: recipeResult.recipe,
-                resultId: planEntry.resultId,
-                feedback: planEntry.feedback || null,
-              };
-            }
+            console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für ${dateKey}, resultId: ${planEntry.resultId}, myRecipes: ${myRecipes.length}`);
           }
-        });
-        
-        setWeekPlan(transformedPlan);
-      }
+        }
+      });
+      
+      console.log('[WEEK-PLANNER] ✅ Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
+      setWeekPlan(transformedPlan);
+    } else {
+      console.log('[WEEK-PLANNER] ℹ️ Kein Plan gefunden, setze leeren Plan');
+      setWeekPlan({});
     }
+  }, [currentWeek, myRecipes]);
+
+  useEffect(() => {
     loadPlan();
+  }, [currentWeek, myRecipes]);
+
+  // Lade Plan auch wenn Component fokussiert wird (Tab-Wechsel)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('[WEEK-PLANNER] 🔄 Tab fokussiert, lade Plan neu...');
+      loadPlan();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [currentWeek, myRecipes]);
 
   // Berechne Wochentage
@@ -348,6 +381,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         alert(`Fehler beim Speichern: ${result.error}`);
       } else {
         alert('✅ Wochenplan erfolgreich gespeichert!');
+        // Plan nach dem Speichern neu laden
+        await loadPlan();
       }
     } catch (error) {
       console.error('[WEEK-PLANNER] ❌ Error saving plan:', error);
@@ -382,6 +417,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           alert('Fehler beim Speichern des Feedbacks');
         } else {
           console.log('[WEEK-PLANNER] ✅ Feedback gespeichert');
+          // Plan nach Feedback-Speicherung neu laden, um sicherzustellen dass alles synchron ist
+          await loadPlan();
         }
       } catch (error) {
         console.error('[WEEK-PLANNER] ❌ Error saving feedback:', error);

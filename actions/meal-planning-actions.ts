@@ -262,23 +262,37 @@ export async function getWeeklyPlan(weekStart: Date) {
       },
     });
 
+    // Normalisiere weekStart auf Montag 00:00:00 für exakte Übereinstimmung
+    const normalizedWeekStart = new Date(weekStart);
+    normalizedWeekStart.setHours(0, 0, 0, 0);
+    // Stelle sicher, dass es Montag ist
+    const dayOfWeek = normalizedWeekStart.getDay();
+    const diff = normalizedWeekStart.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // adjust when day is Sunday
+    normalizedWeekStart.setDate(diff);
+
+    console.log('[MEAL-PLANNING] 🔍 Suche Plan für Woche:', normalizedWeekStart.toISOString().split('T')[0]);
+
     const plan = await prisma.weeklyPlan.findUnique({
       where: {
         userId_weekStart: {
           userId: session.user.id,
-          weekStart: weekStart,
+          weekStart: normalizedWeekStart,
         },
       },
     });
 
-    if (!plan) return null;
+    if (!plan) {
+      console.log('[MEAL-PLANNING] ⚠️ Kein Plan gefunden für:', normalizedWeekStart.toISOString().split('T')[0]);
+      return null;
+    }
 
+    console.log('[MEAL-PLANNING] ✅ Plan gefunden:', plan.id, 'mit', Object.keys(JSON.parse(plan.planData)).length, 'Tagen');
     return {
       ...plan,
       planData: JSON.parse(plan.planData),
     };
   } catch (error) {
-    console.error('Error fetching weekly plan:', error);
+    console.error('[MEAL-PLANNING] ❌ Error fetching weekly plan:', error);
     return null;
   }
 }
@@ -340,20 +354,30 @@ export async function saveWeeklyPlan(weekStart: Date, planData: Record<string, a
   }
 
   try {
-    const weekEnd = new Date(weekStart);
+    // Normalisiere weekStart auf Montag 00:00:00 für exakte Übereinstimmung
+    const normalizedWeekStart = new Date(weekStart);
+    normalizedWeekStart.setHours(0, 0, 0, 0);
+    // Stelle sicher, dass es Montag ist
+    const dayOfWeek = normalizedWeekStart.getDay();
+    const diff = normalizedWeekStart.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // adjust when day is Sunday
+    normalizedWeekStart.setDate(diff);
+
+    const weekEnd = new Date(normalizedWeekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
+
+    console.log('[MEAL-PLANNING] 💾 Speichere Plan für Woche:', normalizedWeekStart.toISOString().split('T')[0], 'mit', Object.keys(planData).length, 'Tagen');
 
     await prisma.weeklyPlan.upsert({
       where: {
         userId_weekStart: {
           userId: session.user.id,
-          weekStart: weekStart,
+          weekStart: normalizedWeekStart,
         },
       },
       create: {
         userId: session.user.id,
         workspaceId: workspaceId || null,
-        weekStart: weekStart,
+        weekStart: normalizedWeekStart,
         weekEnd: weekEnd,
         planData: JSON.stringify(planData),
         autoPlanned: false,
@@ -364,7 +388,7 @@ export async function saveWeeklyPlan(weekStart: Date, planData: Record<string, a
       },
     });
 
-    console.log('[MEAL-PLANNING] ✅ Wochenplan explizit gespeichert');
+    console.log('[MEAL-PLANNING] ✅ Wochenplan explizit gespeichert für:', normalizedWeekStart.toISOString().split('T')[0]);
     return { success: true };
   } catch (error) {
     console.error('[MEAL-PLANNING] ❌ Fehler beim Speichern des Wochenplans:', error);
