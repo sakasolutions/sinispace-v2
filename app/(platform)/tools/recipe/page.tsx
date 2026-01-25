@@ -12,7 +12,7 @@ import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 import { BackButton } from '@/components/ui/back-button';
 import { WorkspaceSelect } from '@/components/ui/workspace-select';
-import { getWorkspaceResults } from '@/actions/workspace-actions';
+import { getWorkspaceResults, deleteResult, cleanupOldResults } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { RecipeDetailView } from '@/components/recipe/recipe-detail-view';
 
@@ -189,6 +189,9 @@ export default function RecipePage() {
     if (!workspaceId) return;
     setIsLoadingRecipes(true);
     try {
+      // Auto-Cleanup: Alte Results (30 Tage) löschen
+      await cleanupOldResults();
+      
       const result = await getWorkspaceResults(workspaceId, 50);
       if (result.success && result.results) {
         // Filtere nur Recipe-Results
@@ -212,6 +215,29 @@ export default function RecipePage() {
       console.error('Fehler beim Laden der Rezepte:', error);
     } finally {
       setIsLoadingRecipes(false);
+    }
+  };
+
+  const handleDeleteRecipe = async (resultId: string) => {
+    if (!confirm('Rezept wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+      return;
+    }
+
+    try {
+      const result = await deleteResult(resultId);
+      if (result.success) {
+        // Rezept aus Liste entfernen
+        setMyRecipes(prev => prev.filter(r => r.id !== resultId));
+        // Wenn gelöschtes Rezept gerade angezeigt wird, zurück zur Liste
+        if (selectedRecipe && selectedRecipe.resultId === resultId) {
+          setSelectedRecipe(null);
+        }
+      } else {
+        alert('Fehler beim Löschen: ' + (result.error || 'Unbekannter Fehler'));
+      }
+    } catch (error) {
+      console.error('Fehler beim Löschen:', error);
+      alert('Fehler beim Löschen des Rezepts');
     }
   };
 
@@ -610,11 +636,9 @@ export default function RecipePage() {
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => {
-                            // TODO: Rezept löschen
-                            if (confirm('Rezept wirklich löschen?')) {
-                              alert('Delete-Feature kommt gleich!');
-                            }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteRecipe(result.id);
                           }}
                           className="p-1.5 rounded-md hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
                           title="Löschen"

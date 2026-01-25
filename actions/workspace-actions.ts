@@ -357,3 +357,61 @@ export async function moveResult(resultId: string, targetWorkspaceId: string) {
     return { success: false, error: 'Fehler beim Verschieben des Results' };
   }
 }
+
+// Result löschen
+export async function deleteResult(resultId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Nicht autorisiert' };
+  }
+
+  try {
+    // Prüfe ob Result dem User gehört
+    const result = await prisma.result.findFirst({
+      where: {
+        id: resultId,
+        userId: session.user.id,
+      },
+    });
+
+    if (!result) {
+      return { success: false, error: 'Result nicht gefunden' };
+    }
+
+    await prisma.result.delete({
+      where: { id: resultId },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Fehler beim Löschen des Results:', error);
+    return { success: false, error: 'Fehler beim Löschen des Results' };
+  }
+}
+
+// Alte Results automatisch löschen (30 Tage)
+export async function cleanupOldResults() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Nicht autorisiert' };
+  }
+
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const result = await prisma.result.deleteMany({
+      where: {
+        userId: session.user.id,
+        createdAt: {
+          lt: thirtyDaysAgo,
+        },
+      },
+    });
+
+    return { success: true, deletedCount: result.count };
+  } catch (error) {
+    console.error('Fehler beim Cleanup alter Results:', error);
+    return { success: false, error: 'Fehler beim Cleanup' };
+  }
+}
