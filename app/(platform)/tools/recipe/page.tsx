@@ -179,9 +179,9 @@ export default function RecipePage() {
     }
   }
 
-  // Lade "Meine Rezepte" wenn Tab gewechselt wird
+  // Lade "Meine Rezepte" wenn Tab gewechselt wird (auch für Wochenplaner)
   useEffect(() => {
-    if (activeTab === 'my-recipes' && workspaceId) {
+    if ((activeTab === 'my-recipes' || activeTab === 'week-planner') && workspaceId) {
       loadMyRecipes();
     }
   }, [activeTab, workspaceId]);

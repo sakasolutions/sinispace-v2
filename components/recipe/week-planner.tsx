@@ -42,6 +42,12 @@ interface WeekPlannerProps {
 
 export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremium }: WeekPlannerProps) {
   const router = useRouter();
+  
+  // Debug: Log wenn myRecipes sich ändert
+  useEffect(() => {
+    console.log('[WEEK-PLANNER] myRecipes aktualisiert:', myRecipes.length, 'Rezepte');
+  }, [myRecipes]);
+  
   const [currentWeek, setCurrentWeek] = useState(() => {
     const date = new Date();
     const day = date.getDay();
