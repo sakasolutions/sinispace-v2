@@ -20,7 +20,7 @@ import {
   getPremiumStatus,
   getMealPreferences
 } from '@/actions/meal-planning-actions';
-import { saveResult, getResultById } from '@/actions/workspace-actions';
+import { saveResult } from '@/actions/workspace-actions';
 import { saveRecipeToCollection } from '@/actions/recipe-collection-actions';
 import { useRouter } from 'next/navigation';
 
@@ -186,32 +186,9 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
               feedback: planEntry.feedback || null,
             };
           } else {
-            console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für ${dateKey}, resultId: ${planEntry.resultId}, myRecipes: ${myRecipes.length}`);
-            console.warn(`[WEEK-PLANNER] ⚠️ Verfügbare resultIds in myRecipes:`, myRecipes.map(r => r.id));
-            console.warn(`[WEEK-PLANNER] ⚠️ PlanEntry vollständig:`, JSON.stringify(planEntry, null, 2));
-            
-            // Versuche Rezept direkt aus der DB zu laden über Server Action
-            // Hinweis: getResultById wird am Anfang der Datei importiert
-            try {
-              const resultData = await getResultById(planEntry.resultId);
-              if (resultData && resultData.content) {
-                try {
-                  const recipeContent = JSON.parse(resultData.content);
-                  console.log(`[WEEK-PLANNER] ✅ Rezept aus DB geladen für ${dateKey}:`, recipeContent.recipeName);
-                  transformedPlan[dateKey] = {
-                    recipe: recipeContent as Recipe,
-                    resultId: planEntry.resultId,
-                    feedback: planEntry.feedback || null,
-                  };
-                } catch (parseError) {
-                  console.error(`[WEEK-PLANNER] ❌ Fehler beim Parsen des Rezepts:`, parseError);
-                }
-              } else {
-                console.error(`[WEEK-PLANNER] ❌ Rezept nicht in DB gefunden für resultId: ${planEntry.resultId}`);
-              }
-            } catch (error) {
-              console.error(`[WEEK-PLANNER] ❌ Fehler beim Laden aus DB:`, error);
-            }
+            // Rezept nicht gefunden - überspringe diesen Tag
+            // TODO: Später wieder hinzufügen mit getResultById Fallback
+            console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für ${dateKey}, resultId: ${planEntry.resultId}`);
           }
         }
       }
