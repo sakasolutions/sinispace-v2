@@ -2,11 +2,6 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
-
-// Type Guard Helper (nicht mehr benötigt, aber für zukünftige Verwendung behalten)
-function isErrorResult(result: any): result is { error: string; message?: string } {
-  return result && typeof result === 'object' && 'error' in result && !('success' in result);
-}
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { PremiumOnboardingModal } from './premium-onboarding-modal';
 import { AlternativeRecipesModal } from './alternative-recipes-modal';
@@ -24,7 +19,7 @@ import { saveResult } from '@/actions/workspace-actions';
 import { saveRecipeToCollection } from '@/actions/recipe-collection-actions';
 import { useRouter } from 'next/navigation';
 
-// Type Definitions für Auto-Planning Result
+// Type Definitions
 interface WeekPlanError {
   error: string;
   message?: string;
@@ -71,11 +66,6 @@ interface WeekPlannerProps {
 export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremium }: WeekPlannerProps) {
   const router = useRouter();
   
-  // Debug: Log wenn myRecipes sich ändert
-  useEffect(() => {
-    console.log('[WEEK-PLANNER] myRecipes aktualisiert:', myRecipes.length, 'Rezepte');
-  }, [myRecipes]);
-  
   const [currentWeek, setCurrentWeek] = useState(() => {
     const date = new Date();
     const day = date.getDay();
@@ -105,98 +95,51 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     async function loadData() {
       const premium = await getPremiumStatus();
       setIsPremium(premium);
-      console.log('[WEEK-PLANNER] Premium Status:', premium);
-      
       if (!premium) {
         const trial = await getAutoPlanTrialCount();
         setTrialCount(trial);
-        console.log('[WEEK-PLANNER] Trial Count:', trial);
       }
-      
       const prefs = await getMealPreferences();
-      console.log('[WEEK-PLANNER] Meal Preferences:', prefs);
       setHasPreferences(!!prefs);
     }
     loadData();
   }, []);
 
-  // Lade gespeicherten Wochenplan (useCallback für stabile Referenz)
+  // Lade gespeicherten Wochenplan
   const loadPlan = useCallback(async () => {
     if (isAutoPlanning) {
-      console.log('[WEEK-PLANNER] ⏸️ Lade übersprungen - Auto-Planning läuft');
       return;
     }
 
     setIsLoadingPlan(true);
-    const weekStartStr = currentWeek.toISOString().split('T')[0];
-    console.log('[WEEK-PLANNER] 🔄 Lade Wochenplan für:', weekStartStr);
-    console.log('[WEEK-PLANNER] 📊 myRecipes beim Laden:', myRecipes.length, 'Rezepte');
-    
     try {
       const savedPlan = await getWeeklyPlan(currentWeek);
-      console.log('[WEEK-PLANNER] 📦 Geladener Plan:', savedPlan ? 'gefunden' : 'nicht gefunden');
       
       if (savedPlan && savedPlan.planData) {
-        // Transformiere Plan-Format: Verwende Rezepte direkt aus Plan oder suche in myRecipes
         const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
+        const planData = savedPlan.planData as Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe?: any }>;
         
-        type PlanEntry = { 
-          recipeId: string; 
-          resultId: string; 
-          feedback: 'positive' | 'negative' | null;
-          recipe?: any; // Temporäre Rezepte haben recipe direkt im PlanEntry
-        };
-        const planData = savedPlan.planData as Record<string, PlanEntry>;
-        console.log('[WEEK-PLANNER] 📋 Plan-Daten:', Object.keys(planData).length, 'Tage');
-        console.log('[WEEK-PLANNER] 📋 Plan-Daten Details (erste 500 Zeichen):', JSON.stringify(planData).substring(0, 500));
-        
-        // Prüfe ob planData ein Objekt ist
-        if (!planData || typeof planData !== 'object') {
-          console.error('[WEEK-PLANNER] ❌ planData ist kein Objekt:', typeof planData, planData);
-          setWeekPlan({});
-          return;
-        }
-        
-        // Verwende for...of statt forEach für async/await Support
         for (const [dateKey, planEntry] of Object.entries(planData)) {
-          console.log(`[WEEK-PLANNER] 🔍 Verarbeite ${dateKey}:`, {
-            hasRecipe: !!planEntry.recipe,
-            resultId: planEntry.resultId,
-            feedback: planEntry.feedback,
-            planEntryKeys: Object.keys(planEntry)
-          });
-          
-          // Prüfe ob Rezept direkt im PlanEntry enthalten ist (temporäre Rezepte)
           if (planEntry.recipe && typeof planEntry.recipe === 'object' && planEntry.recipe.recipeName) {
-            console.log(`[WEEK-PLANNER] ✅ Rezept direkt im Plan für ${dateKey}:`, planEntry.recipe.recipeName);
             transformedPlan[dateKey] = {
               recipe: planEntry.recipe as Recipe,
               resultId: planEntry.resultId,
               feedback: planEntry.feedback || null,
             };
           } else {
-            // Fallback: Suche in myRecipes
-            console.log(`[WEEK-PLANNER] 🔍 Suche Rezept in myRecipes (${myRecipes.length} Rezepte) für resultId: ${planEntry.resultId}`);
             const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
             if (recipeResult) {
-              console.log(`[WEEK-PLANNER] ✅ Rezept in myRecipes gefunden für ${dateKey}:`, recipeResult.recipe.recipeName);
               transformedPlan[dateKey] = {
                 recipe: recipeResult.recipe,
                 resultId: planEntry.resultId,
                 feedback: planEntry.feedback || null,
               };
-            } else {
-              // Rezept nicht gefunden - überspringe diesen Tag
-              // TODO: Später wieder hinzufügen mit getResultById Fallback
-              console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für ${dateKey}, resultId: ${planEntry.resultId}`);
             }
           }
         }
         
-        console.log('[WEEK-PLANNER] ✅ Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
         setWeekPlan(transformedPlan);
       } else {
-        console.log('[WEEK-PLANNER] ℹ️ Kein Plan gefunden, setze leeren Plan');
         setWeekPlan({});
       }
     } catch (error) {
@@ -207,36 +150,14 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   }, [currentWeek, myRecipes, isAutoPlanning]);
 
   useEffect(() => {
-    // Überspringe Laden wenn Flag gesetzt ist (z.B. nach Auto-Planning)
     if (skipNextLoad) {
-      console.log('[WEEK-PLANNER] ⏸️ Lade übersprungen - skipNextLoad Flag');
       setSkipNextLoad(false);
       return;
     }
-    
-    // Nur laden wenn nicht gerade Auto-Planning läuft UND wenn weekPlan leer ist
-    // Wenn weekPlan bereits Daten hat, nicht überschreiben (verhindert Flackern)
     if (!isAutoPlanning && !isLoadingPlan && Object.keys(weekPlan).length === 0) {
-      console.log('[WEEK-PLANNER] 🔄 Lade Plan (weekPlan ist leer)');
       loadPlan();
-    } else if (!isAutoPlanning && !isLoadingPlan && Object.keys(weekPlan).length > 0) {
-      console.log('[WEEK-PLANNER] ⏸️ Lade übersprungen - weekPlan hat bereits Daten');
     }
   }, [currentWeek, myRecipes, isAutoPlanning, isLoadingPlan, skipNextLoad, loadPlan, weekPlan]);
-
-  // Lade Plan auch wenn Component fokussiert wird (Tab-Wechsel)
-  useEffect(() => {
-    const handleFocus = () => {
-      // Nur laden wenn nicht gerade Auto-Planning läuft
-      if (!isAutoPlanning && !isLoadingPlan) {
-        console.log('[WEEK-PLANNER] 🔄 Tab fokussiert, lade Plan neu...');
-        loadPlan();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [isAutoPlanning, isLoadingPlan, loadPlan]);
 
   // Berechne Wochentage
   const weekDays = useMemo(() => {
@@ -296,121 +217,15 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 
   // Auto-Planning
   const handleAutoPlan = async () => {
-    console.log('[WEEK-PLANNER] Auto-Plan gestartet');
-    console.log('[WEEK-PLANNER] isPremium:', isPremium, 'trialCount:', trialCount, 'hasPreferences:', hasPreferences);
-    
     if (!isPremium && trialCount.remaining === 0) {
-      console.log('[WEEK-PLANNER] Keine Trial-Versuche mehr, redirect zu Settings');
       router.push('/settings');
       return;
     }
 
-    // IMMER Präferenzen-Modal öffnen (auch wenn bereits vorhanden, für Anpassung)
-    console.log('[WEEK-PLANNER] Öffne Präferenzen-Modal');
     setIsOnboardingOpen(true);
-    return;
-
-    setIsAutoPlanning(true);
-    setPlanningProgress({ current: 0, total: 7 });
-    try {
-      console.log('[WEEK-PLANNER] Rufe autoPlanWeek auf...');
-      // Simuliere Progress (wird von Server-Seite aktualisiert)
-      const progressInterval = setInterval(() => {
-        setPlanningProgress(prev => prev ? { ...prev, current: Math.min(prev.current + 1, prev.total) } : null);
-      }, 2000);
-      
-      const result = await autoPlanWeek(currentWeek, workspaceId);
-      clearInterval(progressInterval);
-      setPlanningProgress(null);
-      console.log('[WEEK-PLANNER] Auto-Plan Result:', result);
-      
-      // Explizite Type-Checks mit Type Assertions
-      if (!result) {
-        console.error('[WEEK-PLANNER] ❌ Kein Result erhalten');
-        alert('Fehler: Keine Antwort vom Server');
-        return;
-      }
-
-      // Type Guard: Prüfe ob es ein Fehler ist
-      const typedResult = result as WeekPlanResult;
-      if ('error' in typedResult) {
-        const errorResult = typedResult as WeekPlanError;
-        if (errorResult.error === 'PREMIUM_REQUIRED') {
-          router.push('/settings');
-        } else {
-          console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', errorResult.error);
-          alert(`Fehler: ${errorResult.error}`);
-        }
-        return;
-      }
-
-      // Type Guard: Prüfe ob es ein erfolgreicher Plan ist
-      if ('success' in typedResult && 'plan' in typedResult) {
-        const planResult = typedResult as WeekPlanSuccess;
-        if (planResult.success && planResult.plan) {
-          console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(planResult.plan).length, 'Tage');
-          console.log('[WEEK-PLANNER] Verfügbare Rezepte:', myRecipes.length);
-          
-          // DIREKT: Rezepte sind bereits im Plan enthalten (von generateWeekRecipes)
-          const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
-          
-          Object.entries(planResult.plan).forEach(([dateKey, planEntry]) => {
-          // Prüfe ob Rezept direkt im Plan-Entry enthalten ist
-          if ('recipe' in planEntry && planEntry.recipe) {
-            transformedPlan[dateKey] = {
-              recipe: planEntry.recipe as Recipe,
-              resultId: planEntry.resultId,
-              feedback: planEntry.feedback || null,
-            };
-          } else {
-            // Fallback: Suche in myRecipes
-            const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
-            if (recipeResult) {
-              transformedPlan[dateKey] = {
-                recipe: recipeResult.recipe,
-                resultId: planEntry.resultId,
-                feedback: planEntry.feedback || null,
-              };
-            } else {
-              console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für resultId: ${planEntry.resultId}`);
-            }
-          }
-          });
-          
-          console.log('[WEEK-PLANNER] ✅ Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
-          
-          // Setze Flag, damit loadPlan nicht sofort den Plan überschreibt
-          setSkipNextLoad(true);
-          setWeekPlan(transformedPlan);
-          
-          // Reload trial count
-          if (!isPremium) {
-            const trial = await getAutoPlanTrialCount();
-            setTrialCount(trial);
-          }
-          
-          // WICHTIG: Plan wurde bereits in DB gespeichert von autoPlanWeek
-          // Setze skipNextLoad zurück, damit Plan beim nächsten Tab-Wechsel geladen wird
-          // ABER: Überschreibe nicht den gerade gesetzten Plan
-          setTimeout(() => {
-            console.log('[WEEK-PLANNER] ✅ Plan gesetzt, skipNextLoad wird zurückgesetzt');
-            setSkipNextLoad(false);
-          }, 3000);
-        } else {
-          console.warn('[WEEK-PLANNER] ⚠️ Plan ist leer');
-        }
-      } else {
-        console.warn('[WEEK-PLANNER] ⚠️ Kein Plan im Result:', result);
-      }
-    } catch (error) {
-      console.error('[WEEK-PLANNER] ❌ Error auto-planning:', error);
-      alert('Fehler bei der automatischen Planung');
-    } finally {
-      setIsAutoPlanning(false);
-    }
   };
 
-  // Wochenplan explizit speichern
+  // Wochenplan speichern
   const handleSavePlan = async () => {
     if (Object.keys(weekPlan).length === 0) {
       alert('Kein Wochenplan zum Speichern vorhanden');
@@ -419,7 +234,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 
     setIsSavingPlan(true);
     try {
-      // Transformiere weekPlan zurück in das Format für die DB
       const planDataForDB: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe?: any }> = {};
       
       Object.entries(weekPlan).forEach(([dateKey, planEntry]) => {
@@ -427,7 +241,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           recipeId: planEntry.resultId,
           resultId: planEntry.resultId,
           feedback: planEntry.feedback,
-          recipe: planEntry.recipe, // Behalte Rezept für temporäre Rezepte
+          recipe: planEntry.recipe,
         };
       });
 
@@ -436,7 +250,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         alert(`Fehler beim Speichern: ${result.error}`);
       } else {
         alert('✅ Wochenplan erfolgreich gespeichert!');
-        // Plan nach dem Speichern neu laden
         await loadPlan();
       }
     } catch (error) {
@@ -452,32 +265,25 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     const current = weekPlan[dateKey];
     if (!current) return;
 
-    // Sofort State aktualisieren für UI-Responsiveness
     setWeekPlan(prev => ({
       ...prev,
       [dateKey]: { ...prev[dateKey]!, feedback },
     }));
 
-    // Bei Daumen hoch: SOFORT speichern
     if (feedback === 'positive') {
       try {
         const result = await saveDayFeedback(currentWeek, dateKey, feedback);
         if (result.error) {
-          console.error('[WEEK-PLANNER] ❌ Fehler beim Speichern:', result.error);
-          // State zurücksetzen bei Fehler
           setWeekPlan(prev => ({
             ...prev,
             [dateKey]: { ...prev[dateKey]!, feedback: null },
           }));
           alert('Fehler beim Speichern des Feedbacks');
         } else {
-          console.log('[WEEK-PLANNER] ✅ Feedback gespeichert');
-          // Plan nach Feedback-Speicherung neu laden, um sicherzustellen dass alles synchron ist
           await loadPlan();
         }
       } catch (error) {
         console.error('[WEEK-PLANNER] ❌ Error saving feedback:', error);
-        // State zurücksetzen bei Fehler
         setWeekPlan(prev => ({
           ...prev,
           [dateKey]: { ...prev[dateKey]!, feedback: null },
@@ -485,8 +291,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         alert('Fehler beim Speichern des Feedbacks');
       }
     } else {
-      // Bei Daumen runter: Alternative-Modal öffnen (KEIN Feedback speichern)
-      // State zurücksetzen, da wir kein negatives Feedback speichern wollen
       setWeekPlan(prev => ({
         ...prev,
         [dateKey]: { ...prev[dateKey]!, feedback: null },
@@ -503,7 +307,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     }
   };
 
-  // Master Einkaufsliste: Konsolidiere alle Zutaten der Woche
+  // Master Einkaufsliste
   const masterShoppingList = useMemo(() => {
     const allIngredients: Record<string, { amount: number; unit: string }> = {};
     
@@ -514,20 +318,13 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           : day.recipe.recipe.ingredients;
         
         ingredientsToUse.forEach(ingredient => {
-          // Verbesserte Regex: Erkenne auch "Glas", "Bund", "Packung" etc.
-          const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk|Stück|EL|TL|Glas|glas|Bund|bund|Packung|packung)?\s*(.*)$/i);
+          const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk|Stück|EL|TL|Glas|Bund|Packung)?\s*(.*)$/i);
           if (match) {
             const amount = parseFloat(match[1].replace(',', '.'));
             let unit = match[2] || '';
             const name = match[3].trim() || ingredient;
             
-            // Normalisiere Einheiten: "Glas" statt "G", "Bund" statt "B"
-            if (unit.toLowerCase() === 'g' && name.toLowerCase().startsWith('las')) {
-              unit = 'Glas';
-            } else if (unit.toLowerCase() === 'g' && name.toLowerCase().startsWith('urke')) {
-              unit = '';
-            } else if (unit) {
-              // Capitalize erste Buchstabe für bessere Lesbarkeit
+            if (unit) {
               unit = unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
             }
             
@@ -563,14 +360,13 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     });
   }, [weekDays]);
 
-  // Format Datum
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
   };
 
   const canAutoPlan = isPremium || trialCount.remaining > 0;
 
-  // Wenn Rezept-Detail ausgewählt, zeige Detail-View
+  // Rezept-Detail View
   if (selectedRecipeDetail) {
     return (
       <RecipeDetailView
@@ -618,13 +414,10 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         </button>
       </div>
 
-      {/* Smart Planning Button */}
+      {/* Auto-Plan Button */}
       <div className="flex gap-2">
         <button
-          onClick={() => {
-            console.log('[WEEK-PLANNER] Button geklickt - hasPreferences:', hasPreferences, 'canAutoPlan:', canAutoPlan);
-            handleAutoPlan();
-          }}
+          onClick={handleAutoPlan}
           disabled={isAutoPlanning}
           className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-medium transition-colors ${
             isAutoPlanning
@@ -661,7 +454,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           )}
         </button>
         
-        {/* Wochenplan speichern Button */}
         {Object.keys(weekPlan).length > 0 && (
           <button
             onClick={handleSavePlan}
@@ -671,7 +463,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                 ? 'bg-zinc-700 opacity-50 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700'
             }`}
-            title="Wochenplan explizit speichern"
           >
             {isSavingPlan ? (
               <>
@@ -698,8 +489,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         </div>
       )}
 
-      {/* 7-Tage Kalender-Grid - Mobile: Horizontal Scroll, Desktop: Grid */}
-      {/* Mobile: Horizontal Scroll */}
+      {/* 7-Tage Grid - Mobile: Horizontal Scroll */}
       <div className="sm:hidden overflow-x-auto pb-4 -mx-4 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="flex gap-4 min-w-max">
           {weekDays.map((day) => {
@@ -718,7 +508,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                     <button
                       onClick={() => removeRecipeFromDay(dateKey)}
                       className="p-1 rounded-md hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
-                      title="Rezept entfernen"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -744,9 +533,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                       {day.recipe.recipe.stats?.time && (
                         <p className="text-xs text-zinc-400">⏱️ {day.recipe.recipe.stats.time}</p>
                       )}
-                      {day.recipe.recipe.stats?.calories && (
-                        <p className="text-xs text-zinc-400">🔥 {day.recipe.recipe.stats.calories}</p>
-                      )}
                     </div>
                     
                     {isPremium && (
@@ -762,24 +548,20 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                           <ThumbsUp className="w-3 h-3 inline mr-1" />
                           👍
                         </button>
-                        {day.recipe && (() => {
-                          const currentRecipe = day.recipe.recipe;
-                          return (
-                            <button
-                              onClick={() => {
-                                setAlternativeModal({
-                                  day: day.dayName,
-                                  dateKey: dateKey,
-                                  recipe: currentRecipe,
-                                });
-                              }}
-                              className="flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-red-400"
-                            >
-                              <ThumbsDown className="w-3 h-3 inline mr-1" />
-                              😕 Alternative
-                            </button>
-                          );
-                        })()}
+                        <button
+                          onClick={() => {
+                            const currentRecipe = day.recipe!.recipe;
+                            setAlternativeModal({
+                              day: day.dayName,
+                              dateKey: dateKey,
+                              recipe: currentRecipe,
+                            });
+                          }}
+                          className="flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-red-400"
+                        >
+                          <ThumbsDown className="w-3 h-3 inline mr-1" />
+                          😕 Alternative
+                        </button>
                       </div>
                     )}
                   </div>
@@ -815,7 +597,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                   <button
                     onClick={() => removeRecipeFromDay(day.dateKey)}
                     className="p-1 rounded-md hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
-                    title="Rezept entfernen"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -841,12 +622,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                     {day.recipe.recipe.stats?.time && (
                       <p className="text-xs text-zinc-400">⏱️ {day.recipe.recipe.stats.time}</p>
                     )}
-                    {day.recipe.recipe.stats?.calories && (
-                      <p className="text-xs text-zinc-400">🔥 {day.recipe.recipe.stats.calories}</p>
-                    )}
                   </div>
                   
-                  {/* Feedback Buttons (Premium) */}
                   {isPremium && (
                     <div className="flex gap-2">
                       <button
@@ -856,30 +633,24 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                             ? 'bg-green-500/20 text-green-400 border border-green-500/30'
                             : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
                         }`}
-                        title="Gefällt mir"
                       >
                         <ThumbsUp className="w-3 h-3 inline mr-1" />
                         👍
                       </button>
-                      {day.recipe && (() => {
-                        const currentRecipe = day.recipe.recipe;
-                        return (
-                          <button
-                            onClick={() => {
-                              setAlternativeModal({
-                                day: day.dayName,
-                                dateKey: day.dateKey,
-                                recipe: currentRecipe,
-                              });
-                            }}
-                            className="flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-red-400"
-                            title="Gefällt mir nicht - Alternative generieren"
-                          >
-                            <ThumbsDown className="w-3 h-3 inline mr-1" />
-                            😕 Alternative
-                          </button>
-                        );
-                      })()}
+                      <button
+                        onClick={() => {
+                          const currentRecipe = day.recipe!.recipe;
+                          setAlternativeModal({
+                            day: day.dayName,
+                            dateKey: day.dateKey,
+                            recipe: currentRecipe,
+                          });
+                        }}
+                        className="flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-red-400"
+                      >
+                        <ThumbsDown className="w-3 h-3 inline mr-1" />
+                        😕 Alternative
+                      </button>
                     </div>
                   )}
                 </div>
@@ -910,7 +681,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         </div>
       )}
 
-      {/* Rezept-Auswahl-Modal */}
+      {/* Modals */}
       {selectedDay && (
         <RecipeSelectionModal
           isOpen={true}
@@ -922,7 +693,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         />
       )}
 
-      {/* Master Shopping List Modal */}
       {masterShoppingList.length > 0 && (
         <ShoppingListModal
           isOpen={isShoppingListOpen}
@@ -932,17 +702,14 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         />
       )}
 
-      {/* Premium Onboarding Modal */}
       <PremiumOnboardingModal
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
         onComplete={async () => {
-          console.log('[WEEK-PLANNER] Präferenzen gespeichert, starte Auto-Planning...');
           const prefs = await getMealPreferences();
           setHasPreferences(!!prefs);
           setIsOnboardingOpen(false);
           
-          // Starte Auto-Planning direkt (ohne erneuten Modal-Check)
           setIsAutoPlanning(true);
           setPlanningProgress({ current: 0, total: 7 });
           try {
@@ -961,11 +728,9 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                 alert(`Fehler: ${result.error}`);
               }
             } else if ('plan' in result && result.plan) {
-              // DIREKT: Rezepte sind bereits im Plan enthalten (von generateWeekRecipes)
               const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
               
               Object.entries(result.plan).forEach(([dateKey, planEntry]) => {
-                // Prüfe ob Rezept direkt im Plan-Entry enthalten ist
                 if ('recipe' in planEntry && planEntry.recipe) {
                   transformedPlan[dateKey] = {
                     recipe: planEntry.recipe as Recipe,
@@ -973,7 +738,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                     feedback: planEntry.feedback || null,
                   };
                 } else {
-                  // Fallback: Suche in myRecipes
                   const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
                   if (recipeResult) {
                     transformedPlan[dateKey] = {
@@ -981,18 +745,21 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                       resultId: planEntry.resultId,
                       feedback: planEntry.feedback || null,
                     };
-                  } else {
-                    console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für resultId: ${planEntry.resultId}`);
                   }
                 }
               });
               
+              setSkipNextLoad(true);
               setWeekPlan(transformedPlan);
               
               if (!isPremium) {
                 const trial = await getAutoPlanTrialCount();
                 setTrialCount(trial);
               }
+              
+              setTimeout(() => {
+                setSkipNextLoad(false);
+              }, 3000);
             }
           } catch (error) {
             console.error('[WEEK-PLANNER] ❌ Error:', error);
@@ -1003,13 +770,11 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         }}
       />
 
-      {/* Alternative Recipes Modal */}
       {alternativeModal && (
         <AlternativeRecipesModal
           isOpen={!!alternativeModal}
           onClose={() => setAlternativeModal(null)}
           onSelect={async (recipe, resultId) => {
-            // Speichere neues Rezept
             if (!resultId) {
               const saved = await saveResult(
                 'recipe',
@@ -1022,13 +787,11 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
               if (saved.success && saved.result) {
                 resultId = saved.result.id;
               } else {
-                console.error('[WEEK-PLANNER] ❌ Fehler beim Speichern des alternativen Rezepts:', saved.error);
-                alert('Fehler beim Speichern des Rezepts. Bitte versuche es erneut.');
+                alert('Fehler beim Speichern des Rezepts.');
                 return;
               }
             }
 
-            // Ersetze Rezept im Plan
             setWeekPlan(prev => ({
               ...prev,
               [alternativeModal.dateKey]: {
