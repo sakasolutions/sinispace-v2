@@ -121,20 +121,35 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     async function loadPlan() {
       const savedPlan = await getWeeklyPlan(currentWeek);
       if (savedPlan && savedPlan.planData) {
-        // Transformiere Plan-Format: Finde Rezepte aus myRecipes basierend auf resultId
+        // Transformiere Plan-Format: Verwende Rezepte direkt aus Plan oder suche in myRecipes
         const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
         
-        type PlanEntry = { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null };
+        type PlanEntry = { 
+          recipeId: string; 
+          resultId: string; 
+          feedback: 'positive' | 'negative' | null;
+          recipe?: any; // Temporäre Rezepte haben recipe direkt im PlanEntry
+        };
         const planData = savedPlan.planData as Record<string, PlanEntry>;
         
         Object.entries(planData).forEach(([dateKey, planEntry]) => {
-          const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
-          if (recipeResult) {
+          // Prüfe ob Rezept direkt im PlanEntry enthalten ist (temporäre Rezepte)
+          if (planEntry.recipe) {
             transformedPlan[dateKey] = {
-              recipe: recipeResult.recipe,
+              recipe: planEntry.recipe as Recipe,
               resultId: planEntry.resultId,
               feedback: planEntry.feedback || null,
             };
+          } else {
+            // Fallback: Suche in myRecipes
+            const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
+            if (recipeResult) {
+              transformedPlan[dateKey] = {
+                recipe: recipeResult.recipe,
+                resultId: planEntry.resultId,
+                feedback: planEntry.feedback || null,
+              };
+            }
           }
         });
         
@@ -310,15 +325,52 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     const current = weekPlan[dateKey];
     if (!current) return;
 
+    // Sofort State aktualisieren für UI-Responsiveness
     setWeekPlan(prev => ({
       ...prev,
       [dateKey]: { ...prev[dateKey]!, feedback },
     }));
 
-    try {
-      await saveDayFeedback(currentWeek, dateKey, feedback);
-    } catch (error) {
-      console.error('Error saving feedback:', error);
+    // Bei Daumen hoch: SOFORT speichern
+    if (feedback === 'positive') {
+      try {
+        const result = await saveDayFeedback(currentWeek, dateKey, feedback);
+        if (result.error) {
+          console.error('[WEEK-PLANNER] ❌ Fehler beim Speichern:', result.error);
+          // State zurücksetzen bei Fehler
+          setWeekPlan(prev => ({
+            ...prev,
+            [dateKey]: { ...prev[dateKey]!, feedback: null },
+          }));
+          alert('Fehler beim Speichern des Feedbacks');
+        } else {
+          console.log('[WEEK-PLANNER] ✅ Feedback gespeichert');
+        }
+      } catch (error) {
+        console.error('[WEEK-PLANNER] ❌ Error saving feedback:', error);
+        // State zurücksetzen bei Fehler
+        setWeekPlan(prev => ({
+          ...prev,
+          [dateKey]: { ...prev[dateKey]!, feedback: null },
+        }));
+        alert('Fehler beim Speichern des Feedbacks');
+      }
+    } else {
+      // Bei Daumen runter: Alternative-Modal öffnen (KEIN Feedback speichern)
+      // State zurücksetzen, da wir kein negatives Feedback speichern wollen
+      setWeekPlan(prev => ({
+        ...prev,
+        [dateKey]: { ...prev[dateKey]!, feedback: null },
+      }));
+      
+      const day = weekDays.find(d => d.dateKey === dateKey);
+      if (day && day.recipe) {
+        setAlternativeModal({
+          day: day.dayName,
+          dateKey: dateKey,
+          recipe: day.recipe.recipe,
+        });
+      }
     }
   };
 
