@@ -14,6 +14,7 @@ import { BackButton } from '@/components/ui/back-button';
 import { WorkspaceSelect } from '@/components/ui/workspace-select';
 import { getWorkspaceResults } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
+import { RecipeDetailView } from '@/components/recipe/recipe-detail-view';
 
 type Recipe = {
   recipeName: string;
@@ -136,6 +137,7 @@ export default function RecipePage() {
   const [myRecipes, setMyRecipes] = useState<any[]>([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; resultId: string; createdAt: Date } | null>(null);
 
   // Parse Recipe aus State
   let recipe: Recipe | null = null;
@@ -553,6 +555,20 @@ export default function RecipePage() {
         </div>
       </div>
       </>
+      ) : selectedRecipe ? (
+        /* Rezept-Detail-View */
+        <RecipeDetailView
+          recipe={selectedRecipe.recipe}
+          resultId={selectedRecipe.resultId}
+          createdAt={selectedRecipe.createdAt}
+          onBack={() => setSelectedRecipe(null)}
+          onCookAgain={(recipe, servings) => {
+            setSelectedRecipe(null);
+            setActiveTab('create');
+            // TODO: Rezept-Daten in Form übernehmen mit angepassten Portionen
+            alert(`Rezept wird für ${servings} Personen angepasst - Feature kommt gleich!`);
+          }}
+        />
       ) : (
         /* Meine Rezepte Tab */
         <div className="space-y-4">
@@ -579,7 +595,12 @@ export default function RecipePage() {
                 return (
                   <div
                     key={result.id}
-                    className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-5 hover:border-orange-500/30 transition-colors"
+                    className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-5 hover:border-orange-500/30 transition-colors cursor-pointer"
+                    onClick={() => setSelectedRecipe({
+                      recipe: r,
+                      resultId: result.id,
+                      createdAt: new Date(result.createdAt)
+                    })}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="text-lg font-semibold text-white line-clamp-2">{r.recipeName || 'Rezept'}</h3>
@@ -628,22 +649,27 @@ export default function RecipePage() {
                       {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </p>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={() => {
-                          // TODO: Nochmal kochen - Rezept anzeigen
-                          setActiveTab('create');
-                          // TODO: Rezept-Daten in Form übernehmen
-                        }}
+                        onClick={() => setSelectedRecipe({
+                          recipe: r,
+                          resultId: result.id,
+                          createdAt: new Date(result.createdAt)
+                        })}
                         className="flex-1 px-3 py-2 rounded-md bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 text-sm font-medium transition-colors"
                       >
-                        Nochmal kochen
+                        Rezept öffnen
                       </button>
                       {r.shoppingList && r.shoppingList.length > 0 && (
                         <button
-                          onClick={() => {
-                            // TODO: Einkaufsliste erstellen
-                            alert('Einkaufsliste-Feature kommt gleich!');
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedRecipe({
+                              recipe: r,
+                              resultId: result.id,
+                              createdAt: new Date(result.createdAt)
+                            });
+                            // Shopping List wird in Detail-View geöffnet
                           }}
                           className="flex-1 px-3 py-2 rounded-md bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-300 text-sm font-medium transition-colors flex items-center justify-center gap-1"
                         >
