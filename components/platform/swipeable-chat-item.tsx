@@ -92,18 +92,24 @@ export function SwipeableChatItem({
 
     // Nur horizontal swipen (deltaY < deltaX)
     if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 10) {
-      e.preventDefault(); // Verhindere Scroll
+      // Nur preventDefault wenn wirklich geswiped wird und Event cancelable ist
+      if (e.cancelable) {
+        e.preventDefault(); // Verhindere Scroll
+      }
       setIsSwiping(true);
       
-      // Limit Swipe-Distanz
-      const maxSwipe = 150;
-      const limitedDeltaX = Math.max(-maxSwipe, Math.min(maxSwipe, deltaX));
-      setSwipeOffset(limitedDeltaX);
+      // Performance: requestAnimationFrame für smooth updates
+      requestAnimationFrame(() => {
+        // Limit Swipe-Distanz
+        const maxSwipe = 150;
+        const limitedDeltaX = Math.max(-maxSwipe, Math.min(maxSwipe, deltaX));
+        setSwipeOffset(limitedDeltaX);
 
-      // Haptic Feedback bei Threshold
-      if (Math.abs(limitedDeltaX) >= DELETE_THRESHOLD && swipeOffset < DELETE_THRESHOLD) {
-        triggerHaptic('light');
-      }
+        // Haptic Feedback bei Threshold
+        if (Math.abs(limitedDeltaX) >= DELETE_THRESHOLD && swipeOffset < DELETE_THRESHOLD) {
+          triggerHaptic('light');
+        }
+      });
     }
   };
 
@@ -158,7 +164,7 @@ export function SwipeableChatItem({
     };
 
     document.addEventListener('mousedown', handleClickOutside as EventListener);
-    document.addEventListener('touchstart', handleClickOutside as EventListener);
+    document.addEventListener('touchstart', handleClickOutside as EventListener, { passive: true });
     return () => {
       document.removeEventListener('mousedown', handleClickOutside as EventListener);
       document.removeEventListener('touchstart', handleClickOutside as EventListener);

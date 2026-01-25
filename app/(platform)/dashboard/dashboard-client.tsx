@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { DashboardGreetingClient } from '@/components/platform/dashboard-greeting-client';
 import { triggerHaptic } from '@/lib/haptic-feedback';
-import { getWorkspaceResults } from '@/actions/workspace-actions';
 import {
   Mail,
   Languages,
@@ -23,7 +22,6 @@ import {
   Share2,
   ArrowUpRight,
   Search,
-  ArrowRight,
 } from 'lucide-react';
 
 type Tool = {
@@ -200,21 +198,6 @@ const quickAccessTools = [
   { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'violet', href: '/actions/legal' },
 ];
 
-const toolIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  email: Mail,
-  invoice: FileText,
-  legal: Scale,
-  excel: Table2,
-  recipe: ChefHat,
-  fitness: Dumbbell,
-  travel: Plane,
-  polish: Sparkles,
-  translate: Languages,
-  'tough-msg': MessageCircleHeart,
-  'job-desc': FileText,
-  summarize: FileText,
-};
-
 const colorMap: Record<string, { bg: string; border: string; hoverBorder: string; hoverShadow: string }> = {
   blue: { bg: 'bg-blue-950/30', border: 'border-zinc-700/50 md:border-blue-500/10', hoverBorder: 'hover:border-blue-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(59,130,246,0.4)]' },
   indigo: { bg: 'bg-indigo-950/30', border: 'border-zinc-700/50 md:border-indigo-500/10', hoverBorder: 'hover:border-indigo-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.4)]' },
@@ -244,39 +227,13 @@ const glowColorMap: Record<string, string> = {
   pink: 'bg-pink-500',
 };
 
-type Result = {
-  id: string;
-  toolId: string;
-  toolName: string;
-  title: string | null;
-  content: string;
-  createdAt: Date;
-};
-
 export default function DashboardClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<(typeof categoryTabs)[number]>('Alle');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
-  const [recentResults, setRecentResults] = useState<Result[]>([]);
   const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Lade Recent Results (ohne Workspace-Filter)
-  useEffect(() => {
-    loadRecentResults();
-  }, []);
-
-  const loadRecentResults = async () => {
-    try {
-      const result = await getWorkspaceResults(undefined, 6);
-      if (result.success && result.results) {
-        setRecentResults(result.results);
-      }
-    } catch (error) {
-      console.error('Fehler beim Laden der Results:', error);
-    }
-  };
 
   // Pull-to-Refresh Handler
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -300,14 +257,21 @@ export default function DashboardClient() {
     const deltaY = touch.clientY - touchStartRef.current.y;
 
     if (deltaY > 0) {
-      e.preventDefault();
-      const maxPull = 100;
-      const limitedDeltaY = Math.min(maxPull, deltaY);
-      setPullDistance(limitedDeltaY);
-
-      if (limitedDeltaY >= 60 && pullDistance < 60) {
-        triggerHaptic('light');
+      // Nur preventDefault wenn Event cancelable ist (Pull-to-Refresh)
+      if (e.cancelable) {
+        e.preventDefault();
       }
+      
+      // Performance: requestAnimationFrame für smooth updates
+      requestAnimationFrame(() => {
+        const maxPull = 100;
+        const limitedDeltaY = Math.min(maxPull, deltaY);
+        setPullDistance(limitedDeltaY);
+
+        if (limitedDeltaY >= 60 && pullDistance < 60) {
+          triggerHaptic('light');
+        }
+      });
     }
   };
 
@@ -386,55 +350,6 @@ export default function DashboardClient() {
 
       {/* Header mit Background Glow */}
       <DashboardGreetingClient />
-
-      {/* Recent Results Section (nur Desktop, auf Mobile ausgeblendet) */}
-      {recentResults.length > 0 && (
-        <div className="mb-6 hidden md:block">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-white">Letzte Ergebnisse</h2>
-          </div>
-          <div className="overflow-x-auto scrollbar-hide pb-2">
-            <div className="flex gap-3 min-w-max">
-              {recentResults.slice(0, 6).map((result) => {
-                const ToolIcon = toolIconMap[result.toolId] || FileText;
-                let preview = '';
-                try {
-                  const parsed = JSON.parse(result.content);
-                  preview = parsed.title || parsed.tripTitle || parsed.recipeName || result.title || 'Ergebnis';
-                } catch {
-                  preview = result.title || result.content.substring(0, 30) + '...';
-                }
-
-                return (
-                  <div
-                    key={result.id}
-                    className="shrink-0 w-[200px] rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 hover:border-white/20 transition-colors"
-                  >
-                    <div className="flex items-start gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center flex-shrink-0">
-                        <ToolIcon className="w-4 h-4 text-zinc-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-xs font-medium text-white truncate">{result.toolName}</h3>
-                        {result.title && (
-                          <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{result.title}</p>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-xs text-zinc-400 line-clamp-2 mb-2">{preview}</p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-[10px] text-zinc-500">
-                        {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
-                      </p>
-                      <ArrowRight className="w-3 h-3 text-zinc-500" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Search Bar mit Glass-Effekt */}
       <div className="mb-4 sm:mb-6 sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-md pb-4 -mx-3 px-3 md:static md:bg-transparent md:backdrop-blur-none md:pb-0 md:mx-0 md:px-0">
