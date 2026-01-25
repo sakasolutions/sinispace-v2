@@ -170,10 +170,14 @@ Stelle sicher, dass die Woche ausgewogen ist (nicht zu viel Fleisch, verschieden
           })
         );
 
-        savedRecipes.push({
-          recipe: recipeData,
-          resultId: result.id,
-        });
+        if (result.success && result.result) {
+          savedRecipes.push({
+            recipe: recipeData,
+            resultId: result.result.id,
+          });
+        } else {
+          console.error(`[WEEK-PLANNING-AI] ❌ Fehler beim Speichern: ${result.error}`);
+        }
       } catch (error) {
         console.error(`[WEEK-PLANNING-AI] ❌ Fehler beim Speichern von ${recipeData.day}:`, error);
       }
