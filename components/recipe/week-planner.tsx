@@ -251,9 +251,9 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       }
 
       // Type Guard: Prüfe ob es ein erfolgreicher Plan ist
-      if ('success' in typedResult && typedResult.success && 'plan' in typedResult) {
+      if ('success' in typedResult && 'plan' in typedResult) {
         const planResult = typedResult as WeekPlanSuccess;
-        if (planResult.plan) {
+        if (planResult.success && planResult.plan) {
           console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(planResult.plan).length, 'Tage');
           console.log('[WEEK-PLANNER] Verfügbare Rezepte:', myRecipes.length);
           
