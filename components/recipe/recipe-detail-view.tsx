@@ -222,6 +222,8 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack }: Recipe
         )}
       </div>
 
+      {/* Header mit Rezept-Info */}
+      <div className="mb-6">
         <div className="flex items-start gap-4 mb-4">
           <div className="w-16 h-16 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
             <ChefHat className="w-8 h-8 text-orange-400" />
