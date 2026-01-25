@@ -9,9 +9,11 @@ interface ShoppingListModalProps {
   onClose: () => void;
   ingredients: string[];
   recipeName: string;
+  showBackToRecipe?: boolean;
+  onBackToRecipe?: () => void;
 }
 
-export function ShoppingListModal({ isOpen, onClose, ingredients, recipeName }: ShoppingListModalProps) {
+export function ShoppingListModal({ isOpen, onClose, ingredients, recipeName, showBackToRecipe, onBackToRecipe }: ShoppingListModalProps) {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>(ingredients);
   const [copied, setCopied] = useState(false);
   const [format, setFormat] = useState<'simple' | 'whatsapp'>('simple');
@@ -137,32 +139,42 @@ export function ShoppingListModal({ isOpen, onClose, ingredients, recipeName }: 
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10 flex gap-2">
-          <button
-            onClick={handleCopy}
-            disabled={selectedIngredients.length === 0}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
-          >
-            {copied ? (
-              <>
-                <CheckCircle2 className="w-4 h-4 text-green-400" />
-                Kopiert!
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                Kopieren
-              </>
-            )}
-          </button>
-          {format === 'whatsapp' && (
+        <div className="p-4 border-t border-white/10 space-y-2">
+          <div className="flex gap-2">
             <button
-              onClick={handleWhatsApp}
+              onClick={handleCopy}
               disabled={selectedIngredients.length === 0}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
             >
-              <MessageSquare className="w-4 h-4" />
-              WhatsApp öffnen
+              {copied ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  Kopiert!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  Kopieren
+                </>
+              )}
+            </button>
+            {format === 'whatsapp' && (
+              <button
+                onClick={handleWhatsApp}
+                disabled={selectedIngredients.length === 0}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" />
+                WhatsApp öffnen
+              </button>
+            )}
+          </div>
+          {showBackToRecipe && onBackToRecipe && (
+            <button
+              onClick={onBackToRecipe}
+              className="w-full px-4 py-2 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 text-sm font-medium transition-colors"
+            >
+              Zurück zum Rezept
             </button>
           )}
         </div>

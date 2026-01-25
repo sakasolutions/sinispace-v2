@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2 } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 
 type Recipe = {
@@ -22,15 +22,19 @@ interface RecipeDetailViewProps {
   resultId: string;
   createdAt: Date;
   onBack: () => void;
-  onCookAgain: (recipe: Recipe, servings: number) => void;
 }
 
-export function RecipeDetailView({ recipe, resultId, createdAt, onBack, onCookAgain }: RecipeDetailViewProps) {
-  const [servings, setServings] = useState(2);
+export function RecipeDetailView({ recipe, resultId, createdAt, onBack }: RecipeDetailViewProps) {
+  // Original-Servings aus Recipe (normalerweise 2)
+  const originalServings = 2;
+  const [servings, setServings] = useState(originalServings);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [showMissingIngredients, setShowMissingIngredients] = useState(false);
+  const [cookingMode, setCookingMode] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
-  // Parse Zutaten-Mengen für Portionen-Anpassung
+  // Parse Zutaten-Mengen für Portionen-Anpassung (verbessert)
   const parseIngredient = (ingredient: string) => {
     // Versuche Mengen zu extrahieren (z.B. "500g Hackfleisch" → 500)
     const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk|Stück|EL|TL|Tasse|Tassen)?\s*(.*)$/i);
@@ -61,9 +65,50 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, onCookAg
     return ingredient;
   };
 
-  const adjustedIngredients = recipe.ingredients.map(ing => 
-    adjustIngredientForServings(ing, 2, servings)
-  );
+  // Live-Recalculation: Zutatenmengen ändern sich sofort
+  const adjustedIngredients = useMemo(() => {
+    return recipe.ingredients.map(ing => 
+      adjustIngredientForServings(ing, originalServings, servings)
+    );
+  }, [recipe.ingredients, servings, originalServings]);
+
+  // Kalorien pro Portion anpassen
+  const adjustedCalories = useMemo(() => {
+    if (!recipe.stats?.calories) return null;
+    const match = recipe.stats.calories.match(/(\d+)/);
+    if (match) {
+      const originalCalories = parseInt(match[1]);
+      const ratio = servings / originalServings;
+      const newCalories = Math.round(originalCalories * ratio);
+      return `${newCalories} kcal`;
+    }
+    return recipe.stats.calories;
+  }, [recipe.stats?.calories, servings, originalServings]);
+
+  // Smart "Was fehlt mir?" - Priorität: Hauptzutaten > Gewürze
+  const prioritizedMissingIngredients = useMemo(() => {
+    if (!recipe.shoppingList || recipe.shoppingList.length === 0) return [];
+    
+    // Kategorisiere Zutaten nach Priorität
+    const mainIngredients = recipe.shoppingList.filter(ing => {
+      const lower = ing.toLowerCase();
+      return lower.includes('fleisch') || lower.includes('hack') || lower.includes('huhn') || 
+             lower.includes('fisch') || lower.includes('reis') || lower.includes('nudeln') ||
+             lower.includes('kartoffel') || lower.includes('tomate') || lower.includes('zwiebel') ||
+             lower.includes('paprika') || lower.includes('käse') || lower.includes('milch');
+    });
+    
+    const spices = recipe.shoppingList.filter(ing => {
+      const lower = ing.toLowerCase();
+      return lower.includes('salz') || lower.includes('pfeffer') || lower.includes('gewürz') ||
+             lower.includes('paprika') || lower.includes('kümmel') || lower.includes('oregano');
+    });
+    
+    // Priorität: Hauptzutaten zuerst, dann Rest
+    return [...mainIngredients, ...recipe.shoppingList.filter(ing => 
+      !mainIngredients.includes(ing) && !spices.includes(ing)
+    ), ...spices];
+  }, [recipe.shoppingList]);
 
   // Parse Kochzeit für Timer
   const parseTime = (timeStr: string) => {
@@ -73,17 +118,109 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, onCookAg
 
   const cookingTime = parseTime(recipe.stats?.time || '');
 
+  // Kochmodus: Step-by-Step View
+  if (cookingMode) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        {/* Breadcrumb */}
+        <div className="mb-4 flex items-center gap-2 text-sm text-zinc-400">
+          <button onClick={() => setCookingMode(false)} className="hover:text-white transition-colors">
+            Rezept
+          </button>
+          <span>/</span>
+          <span className="text-white">Kochmodus</span>
+        </div>
+
+        {/* Step-by-Step Anleitung */}
+        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">{recipe.recipeName}</h2>
+            <p className="text-zinc-400">
+              Schritt {currentStep + 1} von {recipe.instructions.length}
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-300 text-xl font-bold">
+                {currentStep + 1}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">Schritt {currentStep + 1}</h3>
+              </div>
+              <button
+                onClick={() => {
+                  const newCompleted = new Set(completedSteps);
+                  if (newCompleted.has(currentStep)) {
+                    newCompleted.delete(currentStep);
+                  } else {
+                    newCompleted.add(currentStep);
+                  }
+                  setCompletedSteps(newCompleted);
+                }}
+                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                  completedSteps.has(currentStep)
+                    ? 'bg-green-500/20 border border-green-500/30 text-green-400'
+                    : 'bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-700'
+                }`}
+              >
+                <CheckCircle2 className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-lg text-zinc-300 leading-relaxed pl-16">
+              {recipe.instructions[currentStep]}
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex gap-3 pt-4 border-t border-white/10">
+            <button
+              onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+              disabled={currentStep === 0}
+              className="flex-1 px-4 py-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-medium transition-colors"
+            >
+              Zurück
+            </button>
+            {currentStep < recipe.instructions.length - 1 ? (
+              <button
+                onClick={() => setCurrentStep(currentStep + 1)}
+                className="flex-1 px-4 py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors"
+              >
+                Weiter
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setCookingMode(false);
+                  setCurrentStep(0);
+                }}
+                className="flex-1 px-4 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium transition-colors"
+              >
+                Fertig! 🎉
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header mit Zurück-Button */}
-      <div className="mb-6">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white mb-4 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Zurück zu Meine Rezepte
+      {/* Breadcrumb Navigation */}
+      <div className="mb-4 flex items-center gap-2 text-sm text-zinc-400">
+        <button onClick={onBack} className="hover:text-white transition-colors">
+          Meine Rezepte
         </button>
+        <span>/</span>
+        <span className="text-white">{recipe.recipeName}</span>
+        {isShoppingListOpen && (
+          <>
+            <span>/</span>
+            <span className="text-white">Einkaufsliste</span>
+          </>
+        )}
+      </div>
 
         <div className="flex items-start gap-4 mb-4">
           <div className="w-16 h-16 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
@@ -98,9 +235,9 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, onCookAg
                   {recipe.stats.time}
                 </div>
               )}
-              {recipe.stats?.calories && (
+              {adjustedCalories && (
                 <div className="flex items-center gap-1.5 text-zinc-400 text-sm">
-                  🔥 {recipe.stats.calories}
+                  🔥 {adjustedCalories} {servings !== originalServings && `(pro Portion)`}
                 </div>
               )}
               {recipe.stats?.difficulty && (
@@ -116,30 +253,43 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, onCookAg
         </div>
       </div>
 
-      {/* Smart "Nochmal kochen" Panel */}
+      {/* Smart "Nochmal kochen" Panel - In-Place Bearbeitung */}
       <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Nochmal kochen</h2>
-          <button
-            onClick={() => onCookAgain(recipe, servings)}
-            className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors"
-          >
-            Rezept anpassen
-          </button>
+          <h2 className="text-lg font-semibold text-white">Rezept anpassen</h2>
+          <div className="flex gap-2">
+            {servings !== originalServings && (
+              <button
+                onClick={() => setServings(originalServings)}
+                className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium transition-colors flex items-center gap-1.5"
+                title="Original-Portionen wiederherstellen"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Original
+              </button>
+            )}
+            <button
+              onClick={() => setCookingMode(true)}
+              className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors flex items-center gap-2"
+            >
+              <Play className="w-4 h-4" />
+              Jetzt kochen
+            </button>
+          </div>
         </div>
 
-        {/* Portionen-Slider */}
+        {/* Portionen-Slider - Touch-friendly mit Live-Updates */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-zinc-300 mb-3">
-            Anzahl Personen: <span className="text-orange-400 font-bold">{servings}</span>
+            Anzahl Personen: <span className="text-orange-400 font-bold text-lg">{servings}</span>
           </label>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setServings(Math.max(1, servings - 1))}
               disabled={servings <= 1}
-              className="w-10 h-10 rounded-lg bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+              className="w-12 h-12 rounded-lg bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center touch-manipulation"
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-5 h-5" />
             </button>
             <div className="flex-1">
               <input
@@ -148,7 +298,8 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, onCookAg
                 max="8"
                 value={servings}
                 onChange={(e) => setServings(parseInt(e.target.value))}
-                className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                className="w-full h-3 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-orange-500 touch-manipulation"
+                style={{ transition: 'none' }}
               />
               <div className="flex justify-between text-xs text-zinc-500 mt-1">
                 <span>1</span>
@@ -159,27 +310,26 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, onCookAg
             <button
               onClick={() => setServings(Math.min(8, servings + 1))}
               disabled={servings >= 8}
-              className="w-10 h-10 rounded-lg bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+              className="w-12 h-12 rounded-lg bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center touch-manipulation"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* "Was fehlt mir?" Button */}
-        {recipe.shoppingList && recipe.shoppingList.length > 0 && (
+        {/* Smart "Was fehlt mir?" Button - Priorität */}
+        {prioritizedMissingIngredients.length > 0 && (
           <div className="pt-4 border-t border-white/10">
             <button
               onClick={() => {
-                setShowMissingIngredients(!showMissingIngredients);
-                if (!showMissingIngredients) {
-                  setIsShoppingListOpen(true);
-                }
+                setIsShoppingListOpen(true);
               }}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-blue-300 font-medium transition-colors"
             >
               <AlertCircle className="w-5 h-5" />
-              Was fehlt mir? ({recipe.shoppingList.length} Zutaten)
+              {prioritizedMissingIngredients.length <= 3 
+                ? `Was fehlt mir? (${prioritizedMissingIngredients.length} wichtige Zutaten)`
+                : `${prioritizedMissingIngredients.length} Zutaten fehlen`}
             </button>
           </div>
         )}
@@ -192,9 +342,9 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, onCookAg
             <Users className="w-5 h-5 text-orange-400" />
             <h2 className="text-lg font-semibold text-white">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
           </div>
-          <ul className="space-y-2">
+          <ul className="space-y-2 transition-all duration-200">
             {adjustedIngredients.map((ingredient, index) => (
-              <li key={index} className="text-zinc-300 flex items-start gap-2">
+              <li key={index} className="text-zinc-300 flex items-start gap-2 transition-all duration-200">
                 <span className="text-orange-400 mt-1">•</span>
                 <span className="text-sm leading-relaxed">{ingredient}</span>
               </li>
@@ -245,13 +395,15 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, onCookAg
         </div>
       )}
 
-      {/* Shopping List Modal */}
-      {recipe.shoppingList && recipe.shoppingList.length > 0 && (
+      {/* Shopping List Modal - mit "Zurück zum Rezept" */}
+      {prioritizedMissingIngredients.length > 0 && (
         <ShoppingListModal
           isOpen={isShoppingListOpen}
           onClose={() => setIsShoppingListOpen(false)}
-          ingredients={recipe.shoppingList}
+          ingredients={prioritizedMissingIngredients}
           recipeName={recipe.recipeName}
+          showBackToRecipe={true}
+          onBackToRecipe={() => setIsShoppingListOpen(false)}
         />
       )}
     </div>

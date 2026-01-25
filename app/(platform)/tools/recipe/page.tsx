@@ -562,12 +562,6 @@ export default function RecipePage() {
           resultId={selectedRecipe.resultId}
           createdAt={selectedRecipe.createdAt}
           onBack={() => setSelectedRecipe(null)}
-          onCookAgain={(recipe, servings) => {
-            setSelectedRecipe(null);
-            setActiveTab('create');
-            // TODO: Rezept-Daten in Form übernehmen mit angepassten Portionen
-            alert(`Rezept wird für ${servings} Personen angepasst - Feature kommt gleich!`);
-          }}
         />
       ) : (
         /* Meine Rezepte Tab */
