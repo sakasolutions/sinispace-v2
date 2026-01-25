@@ -23,6 +23,24 @@ import { saveResult } from '@/actions/workspace-actions';
 import { saveRecipeToCollection } from '@/actions/recipe-collection-actions';
 import { useRouter } from 'next/navigation';
 
+// Type Definitions für Auto-Planning Result
+interface WeekPlanError {
+  error: string;
+  message?: string;
+}
+
+interface WeekPlanSuccess {
+  success: boolean;
+  plan: Record<string, {
+    recipeId: string;
+    resultId: string;
+    feedback: 'positive' | 'negative' | null;
+    recipe: any;
+  }>;
+}
+
+type WeekPlanResult = WeekPlanError | WeekPlanSuccess;
+
 type Recipe = {
   recipeName: string;
   stats: {
@@ -219,9 +237,10 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         return;
       }
 
-      // Prüfe ob es ein Fehler ist
-      if ('error' in result) {
-        const errorResult = result as { error: string; message?: string };
+      // Type Guard: Prüfe ob es ein Fehler ist
+      const typedResult = result as WeekPlanResult;
+      if ('error' in typedResult) {
+        const errorResult = typedResult as WeekPlanError;
         if (errorResult.error === 'PREMIUM_REQUIRED') {
           router.push('/settings');
         } else {
@@ -231,16 +250,17 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         return;
       }
 
-      // Prüfe ob es ein erfolgreicher Plan ist
-      if ('plan' in result && result.plan) {
-        const planResult = result as { success: boolean; plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe: any }> };
-        console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(planResult.plan).length, 'Tage');
-        console.log('[WEEK-PLANNER] Verfügbare Rezepte:', myRecipes.length);
-        
-        // DIREKT: Rezepte sind bereits im Plan enthalten (von generateWeekRecipes)
-        const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
-        
-        Object.entries(planResult.plan).forEach(([dateKey, planEntry]) => {
+      // Type Guard: Prüfe ob es ein erfolgreicher Plan ist
+      if ('success' in typedResult && typedResult.success && 'plan' in typedResult) {
+        const planResult = typedResult as WeekPlanSuccess;
+        if (planResult.plan) {
+          console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(planResult.plan).length, 'Tage');
+          console.log('[WEEK-PLANNER] Verfügbare Rezepte:', myRecipes.length);
+          
+          // DIREKT: Rezepte sind bereits im Plan enthalten (von generateWeekRecipes)
+          const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
+          
+          Object.entries(planResult.plan).forEach(([dateKey, planEntry]) => {
           // Prüfe ob Rezept direkt im Plan-Entry enthalten ist
           if ('recipe' in planEntry && planEntry.recipe) {
             transformedPlan[dateKey] = {
@@ -261,15 +281,18 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
               console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für resultId: ${planEntry.resultId}`);
             }
           }
-        });
-        
-        console.log('[WEEK-PLANNER] Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
-        setWeekPlan(transformedPlan);
-        
-        // Reload trial count
-        if (!isPremium) {
-          const trial = await getAutoPlanTrialCount();
-          setTrialCount(trial);
+          });
+          
+          console.log('[WEEK-PLANNER] Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
+          setWeekPlan(transformedPlan);
+          
+          // Reload trial count
+          if (!isPremium) {
+            const trial = await getAutoPlanTrialCount();
+            setTrialCount(trial);
+          }
+        } else {
+          console.warn('[WEEK-PLANNER] ⚠️ Plan ist leer');
         }
       } else {
         console.warn('[WEEK-PLANNER] ⚠️ Kein Plan im Result:', result);
