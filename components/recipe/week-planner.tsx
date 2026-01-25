@@ -59,7 +59,7 @@ type WeekDay = {
 
 interface WeekPlannerProps {
   myRecipes: Array<{ recipe: Recipe; id: string; createdAt: Date }>;
-  workspaceId: string;
+  workspaceId?: string;
   isPremium?: boolean;
 }
 

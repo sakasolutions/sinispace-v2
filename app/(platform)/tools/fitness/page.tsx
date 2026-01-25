@@ -8,7 +8,6 @@ import { ToolHeader } from '@/components/tool-header';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
-import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 type FitnessPlan = {
   title: string;
@@ -263,11 +262,6 @@ export default function FitnessPage() {
               <input type="hidden" name="energy" value={energy} />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
-              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
-              <input type="hidden" name="workspaceId" value={workspaceId} />
-            </div>
 
             <SubmitButton />
           </form>
