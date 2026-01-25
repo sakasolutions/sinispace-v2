@@ -22,9 +22,11 @@ interface RecipeDetailViewProps {
   resultId: string;
   createdAt: Date;
   onBack: () => void;
+  fromWeekPlan?: boolean; // Neu: Kommt aus Wochenplan?
+  onSaveToCollection?: () => void; // Neu: Callback zum Speichern
 }
 
-export function RecipeDetailView({ recipe, resultId, createdAt, onBack }: RecipeDetailViewProps) {
+export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeekPlan = false, onSaveToCollection }: RecipeDetailViewProps) {
   // Original-Servings aus Recipe (normalerweise 2)
   const originalServings = 2;
   const [servings, setServings] = useState(originalServings);
@@ -216,17 +218,30 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack }: Recipe
   return (
     <div className="max-w-4xl mx-auto">
       {/* Breadcrumb Navigation */}
-      <div className="mb-4 flex items-center gap-2 text-sm text-zinc-400">
-        <button onClick={onBack} className="hover:text-white transition-colors">
-          Meine Rezepte
-        </button>
-        <span>/</span>
-        <span className="text-white">{recipe.recipeName}</span>
-        {isShoppingListOpen && (
-          <>
-            <span>/</span>
-            <span className="text-white">Einkaufsliste</span>
-          </>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-zinc-400">
+          <button onClick={onBack} className="hover:text-white transition-colors">
+            {fromWeekPlan ? 'Wochenplaner' : 'Meine Rezepte'}
+          </button>
+          <span>/</span>
+          <span className="text-white">{recipe.recipeName}</span>
+          {isShoppingListOpen && (
+            <>
+              <span>/</span>
+              <span className="text-white">Einkaufsliste</span>
+            </>
+          )}
+        </div>
+        
+        {/* Save-to-Collection Button (nur für Wochenplan-Rezepte) */}
+        {fromWeekPlan && onSaveToCollection && (
+          <button
+            onClick={onSaveToCollection}
+            className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <ChefHat className="w-4 h-4" />
+            In Meine Rezepte speichern
+          </button>
         )}
       </div>
 

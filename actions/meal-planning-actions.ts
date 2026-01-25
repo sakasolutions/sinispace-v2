@@ -170,22 +170,13 @@ export async function autoPlanWeek(weekStart: Date, workspaceId?: string) {
 
     // Rezepte sind bereits im richtigen Format (von generateWeekRecipes)
     // Jedes Rezept hat bereits einen Tag zugewiesen (monday, tuesday, etc.)
-    const parsedRecipes = recipes.map(r => ({
-      id: r.resultId,
-      name: r.recipe.recipeName || 'Rezept',
-      ingredients: r.recipe.ingredients || [],
-      stats: r.recipe.stats || {},
-      shoppingList: r.recipe.shoppingList || [],
-      day: r.recipe.day,
-      cuisine: r.recipe.cuisine,
-      proteinType: r.recipe.proteinType,
-    }));
+    // Die Rezepte enthalten bereits das vollständige Recipe-Objekt
 
     // Direktes Mapping: Jedes generierte Rezept hat bereits einen Tag zugewiesen
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
-    const plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
+    const plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe: any }> = {};
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
     // Mappe generierte Rezepte direkt zu Tagen
@@ -196,12 +187,13 @@ export async function autoPlanWeek(weekStart: Date, workspaceId?: string) {
       const dayName = days[i];
 
       // Finde Rezept für diesen Tag
-      const recipeForDay = parsedRecipes.find(r => r.day === dayName);
+      const recipeForDay = recipes.find(r => r.recipe.day === dayName);
       if (recipeForDay) {
         plan[dateKey] = {
-          recipeId: recipeForDay.id,
-          resultId: recipeForDay.id,
+          recipeId: recipeForDay.resultId,
+          resultId: recipeForDay.resultId,
           feedback: null,
+          recipe: recipeForDay.recipe, // Vollständiges Recipe-Objekt mitgeben
         };
       } else {
         console.warn(`[MEAL-PLANNING] ⚠️ Kein Rezept für ${dayName} gefunden`);
@@ -257,6 +249,19 @@ export async function getWeeklyPlan(weekStart: Date) {
   }
 
   try {
+    // Auto-Delete: Lösche Pläne älter als 7 Tage
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    await prisma.weeklyPlan.deleteMany({
+      where: {
+        userId: session.user.id,
+        weekStart: {
+          lt: sevenDaysAgo,
+        },
+      },
+    });
+
     const plan = await prisma.weeklyPlan.findUnique({
       where: {
         userId_weekStart: {

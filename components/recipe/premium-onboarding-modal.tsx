@@ -50,13 +50,15 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
         cookingLevel: cookingTime === 'schnell' ? 'anfänger' : cookingTime === 'normal' ? 'fortgeschritten' : 'profi',
         preferredCuisines,
         dislikedIngredients,
-        meatSelection, // Neu hinzugefügt
-        cookingTime, // Neu hinzugefügt
+        meatSelection,
+        cookingTime,
       });
+      // onComplete wird vom Parent aufgerufen, der dann Auto-Planning startet
       onComplete();
       onClose();
     } catch (error) {
       console.error('Error saving preferences:', error);
+      alert('Fehler beim Speichern der Präferenzen');
     } finally {
       setLoading(false);
     }

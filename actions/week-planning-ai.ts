@@ -61,7 +61,7 @@ export async function generateWeekRecipes(workspaceId?: string) {
       ? `Bevorzugte Küchen: ${preferences.preferredCuisines.join(', ')}`
       : 'Alle Küchen-Stile erlaubt';
 
-    const systemPrompt = `Du bist ein professioneller Meal-Planning-Experte. Erstelle 7 verschiedene, ausgewogene Rezepte für eine komplette Woche (Montag bis Sonntag).
+    const systemPrompt = `Du bist ein professioneller Meal-Planning-Experte und Muttersprachler Deutsch. Erstelle 7 verschiedene, ausgewogene Rezepte für eine komplette Woche (Montag bis Sonntag).
 
 WICHTIGE REGELN:
 1. Abwechslung: Verschiedene Küchen-Stile über die Woche verteilen
@@ -74,6 +74,13 @@ ${dislikedText ? `7. ${dislikedText}` : ''}
 8. Küchen: ${cuisinesText}
 9. Portionen: ${preferences.householdSize} Personen pro Rezept
 
+QUALITÄTS-ANFORDERUNGEN:
+- Verwende KONSISTENTE deutsche Einheiten: "g" (Gramm), "kg" (Kilogramm), "ml" (Milliliter), "l" (Liter), "TL" (Teelöffel), "EL" (Esslöffel), "Stk" (Stück)
+- KONSISTENTE Zutat-Benennung: Nutze IMMER die gleiche Form (z.B. "Tomaten" nicht "Tomate" und "Tomaten" gemischt)
+- Realistische Mengen: Für ${preferences.householdSize} ${preferences.householdSize === 1 ? 'Person' : 'Personen'} angemessene Portionsgrößen
+- Korrekte deutsche Rechtschreibung und Grammatik
+- Alle Mengenangaben müssen mathematisch korrekt für ${preferences.householdSize} Personen sein
+
 Antworte NUR mit einem gültigen JSON-Objekt in diesem Format:
 {
   "recipes": [
@@ -81,7 +88,7 @@ Antworte NUR mit einem gültigen JSON-Objekt in diesem Format:
       "day": "monday",
       "recipeName": "Name des Gerichts",
       "stats": { "time": "z.B. 25 Min", "calories": "z.B. 450 kcal", "difficulty": "Einfach/Mittel/Schwer" },
-      "ingredients": ["2 große Tomaten", "150g Feta-Käse"],
+      "ingredients": ["2 große Tomaten", "150g Feta-Käse", "2 EL Olivenöl"],
       "shoppingList": ["1 Packung Feta-Käse (ca. 150g)", "1 Bund Rucola (ca. 50g)"],
       "instructions": ["Schritt 1", "Schritt 2"],
       "chefTip": "Ein kurzer Profi-Tipp",
@@ -94,11 +101,12 @@ Antworte NUR mit einem gültigen JSON-Objekt in diesem Format:
 
 WICHTIG:
 - Jedes Rezept muss für genau ${preferences.householdSize} ${preferences.householdSize === 1 ? 'Person' : 'Personen'} sein
-- Alle Mengenangaben müssen passend für ${preferences.householdSize} Personen sein
+- Alle Mengenangaben müssen passend für ${preferences.householdSize} Personen sein (wenn für 2 Personen normalerweise "4 Eier", dann für ${preferences.householdSize} Personen entsprechend anpassen)
 - "proteinType" kann sein: "fleisch", "fisch", "vegetarisch", "vegan"
 - Verteile die proteinTypes ausgewogen (nicht 5x Fleisch)
 - Verschiedene Küchen-Stile verwenden
-- Realistische Kalorien-Angaben pro Portion`;
+- Realistische Kalorien-Angaben pro Portion
+- KONSISTENTE Einheiten und Zutat-Namen verwenden`;
 
     const userPrompt = `Erstelle 7 ausgewogene Rezepte für eine Woche:
 - Diät: ${dietText}
@@ -144,8 +152,9 @@ Stelle sicher, dass die Woche ausgewogen ist (nicht zu viel Fleisch, verschieden
       return { error: 'Ungültiges Format. Die KI sollte 7 Rezepte zurückgeben.' };
     }
 
-    // Speichere jedes Rezept in der Datenbank
-    const savedRecipes: Array<{ recipe: any; resultId: string }> = [];
+    // Speichere jedes Rezept TEMPORÄR (nur für Wochenplan, nicht in "Meine Rezepte")
+    // Verwende eine temporäre ID-Struktur, die nicht in der Result-Tabelle gespeichert wird
+    const savedRecipes: Array<{ recipe: any; resultId: string; isTemporary: boolean }> = [];
     
     for (const recipeData of weekData.recipes) {
       try {
@@ -155,7 +164,8 @@ Stelle sicher, dass die Woche ausgewogen ist (nicht zu viel Fleisch, verschieden
           continue;
         }
 
-        // Speichere Rezept
+        // TEMPORÄR: Speichere in Result-Tabelle mit Flag, dass es nur für Wochenplan ist
+        // Später können User es in "Meine Rezepte" verschieben
         const result = await saveResult(
           'recipe',
           'Gourmet-Planer',
@@ -163,10 +173,12 @@ Stelle sicher, dass die Woche ausgewogen ist (nicht zu viel Fleisch, verschieden
           workspaceId,
           recipeData.recipeName,
           JSON.stringify({ 
-            source: 'week-planning-ai',
+            source: 'week-planning-ai-temporary',
             day: recipeData.day,
             proteinType: recipeData.proteinType,
-            cuisine: recipeData.cuisine
+            cuisine: recipeData.cuisine,
+            isTemporary: true, // Flag für temporäre Rezepte
+            weekStart: new Date().toISOString().split('T')[0] // Aktuelle Woche
           })
         );
 
@@ -174,6 +186,7 @@ Stelle sicher, dass die Woche ausgewogen ist (nicht zu viel Fleisch, verschieden
           savedRecipes.push({
             recipe: recipeData,
             resultId: result.result.id,
+            isTemporary: true,
           });
         } else {
           console.error(`[WEEK-PLANNING-AI] ❌ Fehler beim Speichern: ${result.error}`);
@@ -191,7 +204,11 @@ Stelle sicher, dass die Woche ausgewogen ist (nicht zu viel Fleisch, verschieden
 
     return { 
       success: true, 
-      recipes: savedRecipes,
+      recipes: savedRecipes.map(r => ({
+        recipe: r.recipe,
+        resultId: r.resultId,
+        isTemporary: r.isTemporary,
+      })),
       count: savedRecipes.length 
     };
   } catch (error) {
