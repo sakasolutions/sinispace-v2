@@ -65,13 +65,16 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     async function loadData() {
       const premium = await getPremiumStatus();
       setIsPremium(premium);
+      console.log('[WEEK-PLANNER] Premium Status:', premium);
       
       if (!premium) {
         const trial = await getAutoPlanTrialCount();
         setTrialCount(trial);
+        console.log('[WEEK-PLANNER] Trial Count:', trial);
       }
       
       const prefs = await getMealPreferences();
+      console.log('[WEEK-PLANNER] Meal Preferences:', prefs);
       setHasPreferences(!!prefs);
     }
     loadData();
@@ -163,25 +166,36 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 
   // Auto-Planning
   const handleAutoPlan = async () => {
+    console.log('[WEEK-PLANNER] Auto-Plan gestartet');
+    console.log('[WEEK-PLANNER] isPremium:', isPremium, 'trialCount:', trialCount, 'hasPreferences:', hasPreferences);
+    
     if (!isPremium && trialCount.remaining === 0) {
+      console.log('[WEEK-PLANNER] Keine Trial-Versuche mehr, redirect zu Settings');
       router.push('/settings');
       return;
     }
 
     if (!hasPreferences) {
+      console.log('[WEEK-PLANNER] Keine Präferenzen, öffne Onboarding');
       setIsOnboardingOpen(true);
       return;
     }
 
     setIsAutoPlanning(true);
     try {
+      console.log('[WEEK-PLANNER] Rufe autoPlanWeek auf...');
       const result = await autoPlanWeek(currentWeek, workspaceId);
+      console.log('[WEEK-PLANNER] Auto-Plan Result:', result);
+      
       if (result.error === 'PREMIUM_REQUIRED') {
         router.push('/settings');
       } else if (result.error) {
         console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', result.error);
         alert(`Fehler: ${result.error}`);
       } else if (result.plan) {
+        console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(result.plan).length, 'Tage');
+        console.log('[WEEK-PLANNER] Verfügbare Rezepte:', myRecipes.length);
+        
         // Transformiere Plan-Format: Finde Rezepte aus myRecipes basierend auf resultId
         const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
         
@@ -193,18 +207,24 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
               resultId: planEntry.resultId,
               feedback: planEntry.feedback || null,
             };
+          } else {
+            console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für resultId: ${planEntry.resultId}`);
           }
         });
         
+        console.log('[WEEK-PLANNER] Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
         setWeekPlan(transformedPlan);
+        
         // Reload trial count
         if (!isPremium) {
           const trial = await getAutoPlanTrialCount();
           setTrialCount(trial);
         }
+      } else {
+        console.warn('[WEEK-PLANNER] ⚠️ Kein Plan im Result:', result);
       }
     } catch (error) {
-      console.error('Error auto-planning:', error);
+      console.error('[WEEK-PLANNER] ❌ Error auto-planning:', error);
       alert('Fehler bei der automatischen Planung');
     } finally {
       setIsAutoPlanning(false);
@@ -312,10 +332,15 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       {/* Smart Planning Button */}
       <div className="flex gap-2">
         <button
-          onClick={handleAutoPlan}
-          disabled={isAutoPlanning || (!canAutoPlan && !hasPreferences)}
+          onClick={() => {
+            console.log('[WEEK-PLANNER] Button geklickt - hasPreferences:', hasPreferences, 'canAutoPlan:', canAutoPlan);
+            handleAutoPlan();
+          }}
+          disabled={isAutoPlanning}
           className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-medium transition-colors ${
-            canAutoPlan
+            isAutoPlanning
+              ? 'bg-zinc-700 opacity-50 cursor-not-allowed'
+              : canAutoPlan || !hasPreferences
               ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700'
               : 'bg-zinc-700 opacity-50 cursor-not-allowed'
           }`}
@@ -472,9 +497,15 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       <PremiumOnboardingModal
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
-        onComplete={() => {
-          setHasPreferences(true);
-          handleAutoPlan();
+        onComplete={async () => {
+          console.log('[WEEK-PLANNER] Onboarding abgeschlossen, lade Präferenzen neu...');
+          const prefs = await getMealPreferences();
+          setHasPreferences(!!prefs);
+          setIsOnboardingOpen(false);
+          // Starte Auto-Planning nach kurzer Verzögerung
+          setTimeout(() => {
+            handleAutoPlan();
+          }, 100);
         }}
       />
     </div>
