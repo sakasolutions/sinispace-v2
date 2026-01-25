@@ -217,13 +217,13 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         console.error('[WEEK-PLANNER] ❌ Kein Result erhalten');
         alert('Fehler: Keine Antwort vom Server');
       } else if (isErrorResult(result)) {
-        // TypeScript weiß jetzt, dass result.error existiert
-        const errorMsg = result.error;
-        if (errorMsg === 'PREMIUM_REQUIRED') {
+        // Explizite Type Assertion für TypeScript
+        const errorResult = result as { error: string; message?: string };
+        if (errorResult.error === 'PREMIUM_REQUIRED') {
           router.push('/settings');
         } else {
-          console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', errorMsg);
-          alert(`Fehler: ${errorMsg}`);
+          console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', errorResult.error);
+          alert(`Fehler: ${errorResult.error}`);
         }
       } else if (result && 'plan' in result && result.plan) {
         console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(result.plan).length, 'Tage');
