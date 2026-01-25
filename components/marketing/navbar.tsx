@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -58,6 +59,7 @@ export function Navbar() {
 
           {/* Desktop Navigation - Rechts */}
           <div className="hidden items-center gap-4 md:flex">
+            <ThemeToggle />
             <Link
               href="/login"
               className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
@@ -89,8 +91,13 @@ export function Navbar() {
 
       {/* Mobile Menu Overlay - Beginnt direkt unter der 64px hohen Navbar */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 top-16 z-40 bg-white md:hidden">
+        <div className="fixed inset-0 top-16 z-40 bg-white dark:bg-zinc-950 md:hidden">
           <div className="flex flex-col px-4 py-8 space-y-6">
+            {/* Theme Toggle in Mobile Menu */}
+            <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
+              <span className="text-base font-medium text-zinc-900 dark:text-zinc-100">Theme</span>
+              <ThemeToggle />
+            </div>
             <Link
               href="#features"
               onClick={closeMobileMenu}

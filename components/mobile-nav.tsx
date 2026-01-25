@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutGrid, MessageSquare, Settings } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptic-feedback';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -31,8 +32,13 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden bg-zinc-950/80 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden bg-white/90 dark:bg-zinc-950/80 backdrop-blur-xl border-t border-zinc-200 dark:border-white/10 pb-[env(safe-area-inset-bottom)] transition-colors duration-200">
       <div className="flex justify-around items-center h-16">
+        {/* Theme Toggle in Mobile Nav */}
+        <div className="flex flex-col items-center justify-center gap-1 min-w-[60px]">
+          <ThemeToggle />
+          <span className="text-[10px] font-medium text-zinc-600 dark:text-zinc-500">Theme</span>
+        </div>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.active;

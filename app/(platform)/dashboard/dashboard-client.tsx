@@ -217,18 +217,18 @@ const toolIconMap: Record<string, React.ComponentType<{ className?: string }>> =
 };
 
 const colorMap: Record<string, { bg: string; border: string; hoverBorder: string; hoverShadow: string }> = {
-  blue: { bg: 'bg-blue-950/30', border: 'border-blue-500/10', hoverBorder: 'hover:border-blue-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(59,130,246,0.4)]' },
-  indigo: { bg: 'bg-indigo-950/30', border: 'border-indigo-500/10', hoverBorder: 'hover:border-indigo-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.4)]' },
-  rose: { bg: 'bg-rose-950/30', border: 'border-rose-500/10', hoverBorder: 'hover:border-rose-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(244,63,94,0.4)]' },
-  violet: { bg: 'bg-violet-950/30', border: 'border-violet-500/10', hoverBorder: 'hover:border-violet-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.4)]' },
-  green: { bg: 'bg-green-950/30', border: 'border-green-500/10', hoverBorder: 'hover:border-green-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(34,197,94,0.4)]' },
-  slate: { bg: 'bg-slate-950/30', border: 'border-slate-500/10', hoverBorder: 'hover:border-slate-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(100,116,139,0.4)]' },
-  emerald: { bg: 'bg-emerald-950/30', border: 'border-emerald-500/10', hoverBorder: 'hover:border-emerald-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(16,185,129,0.4)]' },
-  cyan: { bg: 'bg-cyan-950/30', border: 'border-cyan-500/10', hoverBorder: 'hover:border-cyan-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(6,182,212,0.4)]' },
-  amber: { bg: 'bg-amber-950/30', border: 'border-amber-500/10', hoverBorder: 'hover:border-amber-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(245,158,11,0.4)]' },
-  orange: { bg: 'bg-orange-950/30', border: 'border-orange-500/10', hoverBorder: 'hover:border-orange-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(249,115,22,0.4)]' },
-  pink: { bg: 'bg-pink-950/30', border: 'border-pink-500/10', hoverBorder: 'hover:border-pink-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(236,72,153,0.4)]' },
-  gray: { bg: 'bg-zinc-900/40', border: 'border-white/5', hoverBorder: 'hover:border-white/20', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(255,255,255,0.15)]' },
+  blue: { bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200 dark:border-blue-500/10', hoverBorder: 'hover:border-blue-300 dark:hover:border-blue-500/30', hoverShadow: 'hover:shadow-blue-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(59,130,246,0.4)]' },
+  indigo: { bg: 'bg-indigo-50 dark:bg-indigo-950/30', border: 'border-indigo-200 dark:border-indigo-500/10', hoverBorder: 'hover:border-indigo-300 dark:hover:border-indigo-500/30', hoverShadow: 'hover:shadow-indigo-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.4)]' },
+  rose: { bg: 'bg-rose-50 dark:bg-rose-950/30', border: 'border-rose-200 dark:border-rose-500/10', hoverBorder: 'hover:border-rose-300 dark:hover:border-rose-500/30', hoverShadow: 'hover:shadow-rose-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(244,63,94,0.4)]' },
+  violet: { bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-200 dark:border-violet-500/10', hoverBorder: 'hover:border-violet-300 dark:hover:border-violet-500/30', hoverShadow: 'hover:shadow-violet-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.4)]' },
+  green: { bg: 'bg-green-50 dark:bg-green-950/30', border: 'border-green-200 dark:border-green-500/10', hoverBorder: 'hover:border-green-300 dark:hover:border-green-500/30', hoverShadow: 'hover:shadow-green-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(34,197,94,0.4)]' },
+  slate: { bg: 'bg-slate-50 dark:bg-slate-950/30', border: 'border-slate-200 dark:border-slate-500/10', hoverBorder: 'hover:border-slate-300 dark:hover:border-slate-500/30', hoverShadow: 'hover:shadow-slate-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(100,116,139,0.4)]' },
+  emerald: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200 dark:border-emerald-500/10', hoverBorder: 'hover:border-emerald-300 dark:hover:border-emerald-500/30', hoverShadow: 'hover:shadow-emerald-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(16,185,129,0.4)]' },
+  cyan: { bg: 'bg-cyan-50 dark:bg-cyan-950/30', border: 'border-cyan-200 dark:border-cyan-500/10', hoverBorder: 'hover:border-cyan-300 dark:hover:border-cyan-500/30', hoverShadow: 'hover:shadow-cyan-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(6,182,212,0.4)]' },
+  amber: { bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200 dark:border-amber-500/10', hoverBorder: 'hover:border-amber-300 dark:hover:border-amber-500/30', hoverShadow: 'hover:shadow-amber-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(245,158,11,0.4)]' },
+  orange: { bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-500/10', hoverBorder: 'hover:border-orange-300 dark:hover:border-orange-500/30', hoverShadow: 'hover:shadow-orange-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(249,115,22,0.4)]' },
+  pink: { bg: 'bg-pink-50 dark:bg-pink-950/30', border: 'border-pink-200 dark:border-pink-500/10', hoverBorder: 'hover:border-pink-300 dark:hover:border-pink-500/30', hoverShadow: 'hover:shadow-pink-500/20 dark:hover:shadow-[0_25px_50px_-12px_rgba(236,72,153,0.4)]' },
+  gray: { bg: 'bg-zinc-100 dark:bg-zinc-900/40', border: 'border-zinc-200 dark:border-white/5', hoverBorder: 'hover:border-zinc-300 dark:hover:border-white/20', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_25px_50px_-12px_rgba(255,255,255,0.15)]' },
 };
 
 const glowColorMap: Record<string, string> = {
@@ -377,17 +377,17 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
   }, [selectedCategory, searchQuery]);
 
   const colorClasses: Record<string, { text: string; bg: string; bgHover: string; border: string; hoverBorder: string; hoverShadow: string }> = {
-    blue: { text: 'text-blue-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-blue-500/20', border: 'border-blue-500/20', hoverBorder: 'group-hover:border-blue-500/50', hoverShadow: 'group-hover:shadow-blue-500/20' },
-    indigo: { text: 'text-indigo-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-indigo-500/20', border: 'border-indigo-500/20', hoverBorder: 'group-hover:border-indigo-500/50', hoverShadow: 'group-hover:shadow-indigo-500/20' },
-    rose: { text: 'text-rose-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-rose-500/20', border: 'border-rose-500/20', hoverBorder: 'group-hover:border-rose-500/50', hoverShadow: 'group-hover:shadow-rose-500/20' },
-    violet: { text: 'text-violet-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-violet-500/20', border: 'border-violet-500/20', hoverBorder: 'group-hover:border-violet-500/50', hoverShadow: 'group-hover:shadow-violet-500/20' },
-    green: { text: 'text-green-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-green-500/20', border: 'border-green-500/20', hoverBorder: 'group-hover:border-green-500/50', hoverShadow: 'group-hover:shadow-green-500/20' },
-    slate: { text: 'text-slate-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-slate-500/20', border: 'border-slate-500/20', hoverBorder: 'group-hover:border-slate-500/50', hoverShadow: 'group-hover:shadow-slate-500/20' },
-    emerald: { text: 'text-emerald-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-emerald-500/20', border: 'border-emerald-500/20', hoverBorder: 'group-hover:border-emerald-500/50', hoverShadow: 'group-hover:shadow-emerald-500/20' },
-    cyan: { text: 'text-cyan-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-cyan-500/20', border: 'border-cyan-500/20', hoverBorder: 'group-hover:border-cyan-500/50', hoverShadow: 'group-hover:shadow-cyan-500/20' },
-    amber: { text: 'text-amber-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-amber-500/20', border: 'border-amber-500/20', hoverBorder: 'group-hover:border-amber-500/50', hoverShadow: 'group-hover:shadow-amber-500/20' },
-    orange: { text: 'text-orange-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-orange-500/20', border: 'border-orange-500/20', hoverBorder: 'group-hover:border-orange-500/50', hoverShadow: 'group-hover:shadow-orange-500/20' },
-    pink: { text: 'text-pink-400', bg: 'bg-zinc-800/50', bgHover: 'group-hover:bg-pink-500/20', border: 'border-pink-500/20', hoverBorder: 'group-hover:border-pink-500/50', hoverShadow: 'group-hover:shadow-pink-500/20' },
+    blue: { text: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20', border: 'border-blue-200 dark:border-blue-500/20', hoverBorder: 'group-hover:border-blue-300 dark:group-hover:border-blue-500/50', hoverShadow: 'group-hover:shadow-blue-500/20' },
+    indigo: { text: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20', border: 'border-indigo-200 dark:border-indigo-500/20', hoverBorder: 'group-hover:border-indigo-300 dark:group-hover:border-indigo-500/50', hoverShadow: 'group-hover:shadow-indigo-500/20' },
+    rose: { text: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-rose-100 dark:group-hover:bg-rose-500/20', border: 'border-rose-200 dark:border-rose-500/20', hoverBorder: 'group-hover:border-rose-300 dark:group-hover:border-rose-500/50', hoverShadow: 'group-hover:shadow-rose-500/20' },
+    violet: { text: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-violet-100 dark:group-hover:bg-violet-500/20', border: 'border-violet-200 dark:border-violet-500/20', hoverBorder: 'group-hover:border-violet-300 dark:group-hover:border-violet-500/50', hoverShadow: 'group-hover:shadow-violet-500/20' },
+    green: { text: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-green-100 dark:group-hover:bg-green-500/20', border: 'border-green-200 dark:border-green-500/20', hoverBorder: 'group-hover:border-green-300 dark:group-hover:border-green-500/50', hoverShadow: 'group-hover:shadow-green-500/20' },
+    slate: { text: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-slate-100 dark:group-hover:bg-slate-500/20', border: 'border-slate-200 dark:border-slate-500/20', hoverBorder: 'group-hover:border-slate-300 dark:group-hover:border-slate-500/50', hoverShadow: 'group-hover:shadow-slate-500/20' },
+    emerald: { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20', border: 'border-emerald-200 dark:border-emerald-500/20', hoverBorder: 'group-hover:border-emerald-300 dark:group-hover:border-emerald-500/50', hoverShadow: 'group-hover:shadow-emerald-500/20' },
+    cyan: { text: 'text-cyan-600 dark:text-cyan-400', bg: 'bg-cyan-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-cyan-100 dark:group-hover:bg-cyan-500/20', border: 'border-cyan-200 dark:border-cyan-500/20', hoverBorder: 'group-hover:border-cyan-300 dark:group-hover:border-cyan-500/50', hoverShadow: 'group-hover:shadow-cyan-500/20' },
+    amber: { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-amber-100 dark:group-hover:bg-amber-500/20', border: 'border-amber-200 dark:border-amber-500/20', hoverBorder: 'group-hover:border-amber-300 dark:group-hover:border-amber-500/50', hoverShadow: 'group-hover:shadow-amber-500/20' },
+    orange: { text: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20', border: 'border-orange-200 dark:border-orange-500/20', hoverBorder: 'group-hover:border-orange-300 dark:group-hover:border-orange-500/50', hoverShadow: 'group-hover:shadow-orange-500/20' },
+    pink: { text: 'text-pink-600 dark:text-pink-400', bg: 'bg-pink-50 dark:bg-zinc-800/50', bgHover: 'group-hover:bg-pink-100 dark:group-hover:bg-pink-500/20', border: 'border-pink-200 dark:border-pink-500/20', hoverBorder: 'group-hover:border-pink-300 dark:group-hover:border-pink-500/50', hoverShadow: 'group-hover:shadow-pink-500/20' },
   };
 
   return (
@@ -404,14 +404,14 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
     >
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 0 && (
-        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 z-50">
+        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-white/90 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200 dark:border-white/10 z-50 transition-colors duration-200">
           {pullDistance >= 60 ? (
             <div className="flex items-center gap-2 text-green-400">
               <div className="w-5 h-5 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
               <span className="text-sm font-medium">Loslassen zum Aktualisieren</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-zinc-400">
+            <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
               <span className="text-sm">Ziehen zum Aktualisieren</span>
             </div>
           )}
@@ -444,10 +444,10 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
       {recentResults.length > 0 && currentWorkspace && (
         <div className="mb-6 md:hidden">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-white">Letzte Ergebnisse</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Letzte Ergebnisse</h2>
             <Link
               href={`/workspace/${currentWorkspace.id}`}
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
+              className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
             >
               Alle anzeigen
             </Link>
@@ -468,25 +468,25 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
                   <Link
                     key={result.id}
                     href={`/workspace/${currentWorkspace.id}/result/${result.id}`}
-                    className="shrink-0 w-[200px] rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 hover:border-white/20 transition-colors"
+                    className="shrink-0 w-[200px] rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-gradient-to-b dark:from-zinc-800/30 dark:to-zinc-900/30 backdrop-blur-xl p-4 hover:border-zinc-300 dark:hover:border-white/20 transition-colors shadow-sm dark:shadow-none"
                   >
                     <div className="flex items-start gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center flex-shrink-0">
-                        <ToolIcon className="w-4 h-4 text-zinc-400" />
+                      <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800/50 flex items-center justify-center flex-shrink-0">
+                        <ToolIcon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-xs font-medium text-white truncate">{result.toolName}</h3>
+                        <h3 className="text-xs font-medium text-zinc-900 dark:text-white truncate">{result.toolName}</h3>
                         {result.title && (
-                          <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{result.title}</p>
+                          <p className="text-[10px] text-zinc-600 dark:text-zinc-500 mt-0.5 truncate">{result.title}</p>
                         )}
                       </div>
                     </div>
-                    <p className="text-xs text-zinc-400 line-clamp-2 mb-2">{preview}</p>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-2">{preview}</p>
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] text-zinc-600">
                         {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
                       </p>
-                      <ArrowRight className="w-3 h-3 text-zinc-500" />
+                      <ArrowRight className="w-3 h-3 text-zinc-600 dark:text-zinc-500" />
                     </div>
                   </Link>
                 );
@@ -499,13 +499,13 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
       {/* Search Bar mit Glass-Effekt */}
       <div className="mb-4 sm:mb-6">
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-blue-400 transition-colors z-10" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 dark:text-zinc-500 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors z-10" />
           <input
             type="text"
             placeholder="Suche nach Tools..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-zinc-500 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all shadow-lg backdrop-blur-md text-sm sm:text-base min-h-[56px] tracking-wide"
+            className="w-full bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-500 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all shadow-lg backdrop-blur-md text-sm sm:text-base min-h-[56px] tracking-wide"
           />
         </div>
       </div>
@@ -523,11 +523,11 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
                   className="shrink-0 flex flex-col items-center group"
                 >
                   <div
-                    className={`w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center shadow-lg transition-all group-active:scale-95 group-active:bg-white/10 group-active:border-white/20 ${quickColors.hoverBorder}`}
+                    className={`w-16 h-16 rounded-full bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 backdrop-blur-md flex items-center justify-center shadow-lg dark:shadow-lg transition-all group-active:scale-95 group-active:bg-zinc-200 dark:group-active:bg-white/10 group-active:border-zinc-300 dark:group-active:border-white/20 ${quickColors.hoverBorder}`}
                   >
                     <QuickIcon className={`w-6 h-6 ${quickColors.text}`} />
                   </div>
-                  <span className="text-[10px] text-zinc-400 text-center mt-1 truncate max-w-[64px] group-hover:text-zinc-300 transition-colors">
+                  <span className="text-[10px] text-zinc-600 dark:text-zinc-400 text-center mt-1 truncate max-w-[64px] group-hover:text-zinc-900 dark:group-hover:text-zinc-300 transition-colors">
                     {quickTool.title}
                   </span>
                 </Link>
@@ -546,7 +546,7 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
               className={`px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-[32px] sm:min-h-[36px] tracking-wide ${
                 selectedCategory === cat
                   ? 'bg-gradient-to-r from-teal-500/20 to-indigo-500/20 text-white border border-teal-500/30 shadow-lg shadow-teal-500/10'
-                  : 'bg-zinc-900/50 text-zinc-400 border border-white/5 hover:bg-zinc-800/50'
+                  : 'bg-zinc-100 dark:bg-zinc-900/50 text-zinc-700 dark:text-zinc-400 border border-zinc-200 dark:border-white/5 hover:bg-zinc-200 dark:hover:bg-zinc-800/50'
               }`}
             >
               {cat}
@@ -577,10 +577,10 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
 
             const cardContent = (
               <>
-                <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
+                <div className="absolute -inset-px bg-gradient-to-b from-white/20 dark:from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
 
                 <div className="flex items-start justify-between mb-4 relative z-10">
-                  <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-white/80 dark:bg-white/10 flex items-center justify-center shrink-0">
                     <div className={iconColors.text}>
                       <Icon className="w-5 h-5" />
                     </div>
@@ -588,20 +588,20 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
                   {tool.available ? (
                     <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 shrink-0" />
                   ) : tool.status === 'soon' ? (
-                    <span className="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full border border-zinc-600 bg-zinc-800/80 text-zinc-400 shrink-0">
+                    <span className="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-200 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-400 shrink-0">
                       In Kürze
                     </span>
                   ) : null}
                 </div>
 
                 <h3
-                  className="font-bold text-lg text-white mb-2 relative z-10 subpixel-antialiased"
+                  className="font-bold text-lg text-zinc-900 dark:text-white mb-2 relative z-10 subpixel-antialiased"
                   style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
                 >
                   {tool.title}
                 </h3>
 
-                <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3 relative z-10 flex-1 subpixel-antialiased">
+                <p className="text-xs text-zinc-700 dark:text-zinc-400 leading-relaxed line-clamp-3 relative z-10 flex-1 subpixel-antialiased">
                   {tool.description}
                 </p>
 
@@ -629,9 +629,9 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
         </div>
       ) : (
         <div className="text-center py-12">
-          <Search className="w-12 h-12 mx-auto mb-4 text-zinc-600 opacity-50" />
-          <p className="text-zinc-400 tracking-wide">Keine Tools gefunden.</p>
-          <p className="text-sm text-zinc-500 mt-1 tracking-wide">
+          <Search className="w-12 h-12 mx-auto mb-4 text-zinc-400 dark:text-zinc-600 opacity-50" />
+          <p className="text-zinc-600 dark:text-zinc-400 tracking-wide">Keine Tools gefunden.</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-500 mt-1 tracking-wide">
             Versuche eine andere Suche oder Kategorie.
           </p>
         </div>
