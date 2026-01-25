@@ -207,30 +207,43 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       setPlanningProgress(null);
       console.log('[WEEK-PLANNER] Auto-Plan Result:', result);
       
-      if ('error' in result) {
-        if (result.error === 'PREMIUM_REQUIRED') {
+      // Type Guard: Prüfe ob es ein Fehler ist
+      if (result && 'error' in result && result.error) {
+        const errorResult = result as { error: string; message?: string };
+        if (errorResult.error === 'PREMIUM_REQUIRED') {
           router.push('/settings');
         } else {
-          console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', result.error);
-          alert(`Fehler: ${result.error}`);
+          console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', errorResult.error);
+          alert(`Fehler: ${errorResult.error}`);
         }
-      } else if ('plan' in result && result.plan) {
+      } else if (result && 'plan' in result && result.plan) {
         console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(result.plan).length, 'Tage');
         console.log('[WEEK-PLANNER] Verfügbare Rezepte:', myRecipes.length);
         
-        // Transformiere Plan-Format: Finde Rezepte aus myRecipes basierend auf resultId
+        // DIREKT: Rezepte sind bereits im Plan enthalten (von generateWeekRecipes)
+        const planResult = result as { success: boolean; plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe: any }> };
         const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
         
-        Object.entries(result.plan).forEach(([dateKey, planEntry]) => {
-          const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
-          if (recipeResult) {
+        Object.entries(planResult.plan).forEach(([dateKey, planEntry]) => {
+          // Prüfe ob Rezept direkt im Plan-Entry enthalten ist
+          if ('recipe' in planEntry && planEntry.recipe) {
             transformedPlan[dateKey] = {
-              recipe: recipeResult.recipe,
+              recipe: planEntry.recipe as Recipe,
               resultId: planEntry.resultId,
               feedback: planEntry.feedback || null,
             };
           } else {
-            console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für resultId: ${planEntry.resultId}`);
+            // Fallback: Suche in myRecipes
+            const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
+            if (recipeResult) {
+              transformedPlan[dateKey] = {
+                recipe: recipeResult.recipe,
+                resultId: planEntry.resultId,
+                feedback: planEntry.feedback || null,
+              };
+            } else {
+              console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für resultId: ${planEntry.resultId}`);
+            }
           }
         });
         
