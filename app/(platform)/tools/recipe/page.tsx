@@ -15,6 +15,7 @@ import { WorkspaceSelect } from '@/components/ui/workspace-select';
 import { getWorkspaceResults, deleteResult, cleanupOldResults } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { RecipeDetailView } from '@/components/recipe/recipe-detail-view';
+import { WeekPlanner } from '@/components/recipe/week-planner';
 
 type Recipe = {
   recipeName: string;
@@ -127,7 +128,7 @@ export default function RecipePage() {
   // @ts-ignore
   const [state, formAction] = useActionState(generateRecipe, null);
   
-  const [activeTab, setActiveTab] = useState<'create' | 'my-recipes'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'my-recipes' | 'week-planner'>('create');
   const [ingredients, setIngredients] = useState('');
   const [shoppingMode, setShoppingMode] = useState<'strict' | 'shopping'>('strict');
   const [mealType, setMealType] = useState('Hauptgericht');
@@ -276,10 +277,10 @@ export default function RecipePage() {
       </div>
 
       {/* Tab-System */}
-      <div className="mb-6 flex gap-2 border-b border-white/10">
+      <div className="mb-6 flex gap-2 border-b border-white/10 overflow-x-auto scrollbar-hide">
         <button
           onClick={() => setActiveTab('create')}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
             activeTab === 'create'
               ? 'border-orange-500 text-orange-400'
               : 'border-transparent text-zinc-400 hover:text-zinc-300'
@@ -289,13 +290,23 @@ export default function RecipePage() {
         </button>
         <button
           onClick={() => setActiveTab('my-recipes')}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
             activeTab === 'my-recipes'
               ? 'border-orange-500 text-orange-400'
               : 'border-transparent text-zinc-400 hover:text-zinc-300'
           }`}
         >
           Meine Rezepte
+        </button>
+        <button
+          onClick={() => setActiveTab('week-planner')}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
+            activeTab === 'week-planner'
+              ? 'border-orange-500 text-orange-400'
+              : 'border-transparent text-zinc-400 hover:text-zinc-300'
+          }`}
+        >
+          Wochenplaner
         </button>
       </div>
 
@@ -702,6 +713,12 @@ export default function RecipePage() {
             </div>
           )}
         </div>
+      ) : (
+        /* Wochenplaner Tab */
+        <WeekPlanner
+          myRecipes={myRecipes}
+          workspaceId={workspaceId}
+        />
       )}
 
       {/* Shopping List Modal */}
