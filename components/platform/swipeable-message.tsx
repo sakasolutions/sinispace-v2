@@ -67,16 +67,22 @@ export function SwipeableMessage({
 
     // Nur horizontal swipen
     if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 10) {
-      e.preventDefault();
+      // Nur preventDefault wenn wirklich geswiped wird
+      if (e.cancelable) {
+        e.preventDefault();
+      }
       setIsSwiping(true);
       
-      const maxSwipe = 120;
-      const limitedDeltaX = Math.max(-maxSwipe, Math.min(maxSwipe, deltaX));
-      setSwipeOffset(limitedDeltaX);
+      // Performance: requestAnimationFrame für smooth updates
+      requestAnimationFrame(() => {
+        const maxSwipe = 120;
+        const limitedDeltaX = Math.max(-maxSwipe, Math.min(maxSwipe, deltaX));
+        setSwipeOffset(limitedDeltaX);
 
-      if (Math.abs(limitedDeltaX) >= COPY_THRESHOLD && Math.abs(swipeOffset) < COPY_THRESHOLD) {
-        triggerHaptic('light');
-      }
+        if (Math.abs(limitedDeltaX) >= COPY_THRESHOLD && Math.abs(swipeOffset) < COPY_THRESHOLD) {
+          triggerHaptic('light');
+        }
+      });
     }
   };
 
@@ -116,7 +122,7 @@ export function SwipeableMessage({
     };
 
     document.addEventListener('mousedown', handleClickOutside as EventListener);
-    document.addEventListener('touchstart', handleClickOutside as EventListener);
+    document.addEventListener('touchstart', handleClickOutside as EventListener, { passive: true });
     return () => {
       document.removeEventListener('mousedown', handleClickOutside as EventListener);
       document.removeEventListener('touchstart', handleClickOutside as EventListener);

@@ -543,15 +543,22 @@ export default function ChatDetailPage() {
             const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
 
             if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 10) {
-              e.preventDefault();
-              setSwipingMessageIndex(i);
-              const maxSwipe = 120;
-              const limitedDeltaX = Math.max(-maxSwipe, Math.min(maxSwipe, deltaX));
-              setSwipeOffset(limitedDeltaX);
-
-              if (Math.abs(limitedDeltaX) >= COPY_THRESHOLD && Math.abs(swipeOffset) < COPY_THRESHOLD) {
-                triggerHaptic('light');
+              // Nur preventDefault wenn Event cancelable ist
+              if (e.cancelable) {
+                e.preventDefault();
               }
+              setSwipingMessageIndex(i);
+              
+              // Performance: requestAnimationFrame für smooth updates
+              requestAnimationFrame(() => {
+                const maxSwipe = 120;
+                const limitedDeltaX = Math.max(-maxSwipe, Math.min(maxSwipe, deltaX));
+                setSwipeOffset(limitedDeltaX);
+
+                if (Math.abs(limitedDeltaX) >= COPY_THRESHOLD && Math.abs(swipeOffset) < COPY_THRESHOLD) {
+                  triggerHaptic('light');
+                }
+              });
             }
           };
 

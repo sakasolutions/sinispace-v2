@@ -62,16 +62,22 @@ export function SwipeableResult({ children, onCopy, copyText }: SwipeableResultP
 
     // Nur vertikal swipen (nach oben)
     if (deltaY > deltaX && deltaY > 10) {
-      e.preventDefault();
+      // Nur preventDefault wenn wirklich geswiped wird und Event cancelable ist
+      if (e.cancelable) {
+        e.preventDefault();
+      }
       setIsSwiping(true);
       
-      const maxSwipe = 150;
-      const limitedDeltaY = Math.min(maxSwipe, deltaY);
-      setSwipeOffset(limitedDeltaY);
+      // Performance: requestAnimationFrame für smooth updates
+      requestAnimationFrame(() => {
+        const maxSwipe = 150;
+        const limitedDeltaY = Math.min(maxSwipe, deltaY);
+        setSwipeOffset(limitedDeltaY);
 
-      if (limitedDeltaY >= FULLSCREEN_THRESHOLD && swipeOffset < FULLSCREEN_THRESHOLD) {
-        triggerHaptic('light');
-      }
+        if (limitedDeltaY >= FULLSCREEN_THRESHOLD && swipeOffset < FULLSCREEN_THRESHOLD) {
+          triggerHaptic('light');
+        }
+      });
     }
   };
 
