@@ -1,8 +1,18 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Plus, X, ShoppingCart, Calendar, Sparkles, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, ArrowRight } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
+import { PremiumOnboardingModal } from './premium-onboarding-modal';
+import { 
+  autoPlanWeek, 
+  getWeeklyPlan, 
+  saveDayFeedback, 
+  getAutoPlanTrialCount,
+  getPremiumStatus,
+  getMealPreferences
+} from '@/actions/meal-planning-actions';
+import { useRouter } from 'next/navigation';
 
 type Recipe = {
   recipeName: string;
@@ -20,25 +30,69 @@ type Recipe = {
 type WeekDay = {
   date: Date;
   dayName: string;
-  recipe: { recipe: Recipe; resultId: string } | null;
+  dateKey: string;
+  recipe: { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null } | null;
 };
 
 interface WeekPlannerProps {
   myRecipes: Array<{ recipe: Recipe; id: string; createdAt: Date }>;
   workspaceId: string;
+  isPremium?: boolean;
 }
 
-export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
-  const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [weekPlan, setWeekPlan] = useState<Record<string, { recipe: Recipe; resultId: string } | null>>({});
+export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremium }: WeekPlannerProps) {
+  const router = useRouter();
+  const [currentWeek, setCurrentWeek] = useState(() => {
+    const date = new Date();
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(date);
+    monday.setDate(diff);
+    return monday;
+  });
+  
+  const [weekPlan, setWeekPlan] = useState<Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }>>({});
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const [isPremium, setIsPremium] = useState(initialIsPremium || false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isAutoPlanning, setIsAutoPlanning] = useState(false);
+  const [trialCount, setTrialCount] = useState({ count: 0, remaining: 0 });
+  const [hasPreferences, setHasPreferences] = useState(false);
+
+  // Lade Premium-Status und Trial-Count
+  useEffect(() => {
+    async function loadData() {
+      const premium = await getPremiumStatus();
+      setIsPremium(premium);
+      
+      if (!premium) {
+        const trial = await getAutoPlanTrialCount();
+        setTrialCount(trial);
+      }
+      
+      const prefs = await getMealPreferences();
+      setHasPreferences(!!prefs);
+    }
+    loadData();
+  }, []);
+
+  // Lade gespeicherten Wochenplan
+  useEffect(() => {
+    async function loadPlan() {
+      const savedPlan = await getWeeklyPlan(currentWeek);
+      if (savedPlan && savedPlan.planData) {
+        setWeekPlan(savedPlan.planData);
+      }
+    }
+    loadPlan();
+  }, [currentWeek]);
 
   // Berechne Wochentage
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(currentWeek);
     const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Montag als Start
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
 
     const days: WeekDay[] = [];
@@ -48,10 +102,17 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
       const dateKey = date.toISOString().split('T')[0];
+      const planEntry = weekPlan[dateKey];
+      
       days.push({
         date,
         dayName: dayNames[i],
-        recipe: weekPlan[dateKey] || null,
+        dateKey,
+        recipe: planEntry ? {
+          recipe: planEntry.recipe,
+          resultId: planEntry.resultId,
+          feedback: planEntry.feedback || null,
+        } : null,
       });
     }
     
@@ -69,7 +130,7 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
   const addRecipeToDay = (dateKey: string, recipe: Recipe, resultId: string) => {
     setWeekPlan(prev => ({
       ...prev,
-      [dateKey]: { recipe, resultId },
+      [dateKey]: { recipe, resultId, feedback: null },
     }));
     setSelectedDay(null);
   };
@@ -83,14 +144,55 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
     });
   };
 
-  // Tag kopieren
-  const copyDayToDay = (fromDateKey: string, toDateKey: string) => {
-    const recipe = weekPlan[fromDateKey];
-    if (recipe) {
-      setWeekPlan(prev => ({
-        ...prev,
-        [toDateKey]: recipe,
-      }));
+  // Auto-Planning
+  const handleAutoPlan = async () => {
+    if (!isPremium && trialCount.remaining === 0) {
+      router.push('/settings');
+      return;
+    }
+
+    if (!hasPreferences) {
+      setIsOnboardingOpen(true);
+      return;
+    }
+
+    setIsAutoPlanning(true);
+    try {
+      const result = await autoPlanWeek(currentWeek, workspaceId);
+      if (result.error === 'PREMIUM_REQUIRED') {
+        router.push('/settings');
+      } else if (result.error) {
+        alert(result.error);
+      } else if (result.plan) {
+        setWeekPlan(result.plan);
+        // Reload trial count
+        if (!isPremium) {
+          const trial = await getAutoPlanTrialCount();
+          setTrialCount(trial);
+        }
+      }
+    } catch (error) {
+      console.error('Error auto-planning:', error);
+      alert('Fehler bei der automatischen Planung');
+    } finally {
+      setIsAutoPlanning(false);
+    }
+  };
+
+  // Feedback speichern
+  const handleFeedback = async (dateKey: string, feedback: 'positive' | 'negative') => {
+    const current = weekPlan[dateKey];
+    if (!current) return;
+
+    setWeekPlan(prev => ({
+      ...prev,
+      [dateKey]: { ...prev[dateKey]!, feedback },
+    }));
+
+    try {
+      await saveDayFeedback(currentWeek, dateKey, feedback);
+    } catch (error) {
+      console.error('Error saving feedback:', error);
     }
   };
 
@@ -100,13 +202,11 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
     
     weekDays.forEach(day => {
       if (day.recipe) {
-        // Verwende shoppingList falls vorhanden, sonst ingredients
         const ingredientsToUse = day.recipe.recipe.shoppingList && day.recipe.recipe.shoppingList.length > 0
           ? day.recipe.recipe.shoppingList
           : day.recipe.recipe.ingredients;
         
         ingredientsToUse.forEach(ingredient => {
-          // Parse Menge (z.B. "500g Hackfleisch" → 500, "g", "Hackfleisch")
           const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk|Stück|EL|TL)?\s*(.*)$/i);
           if (match) {
             const amount = parseFloat(match[1].replace(',', '.'));
@@ -120,7 +220,6 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
               allIngredients[key] = { amount, unit };
             }
           } else {
-            // Keine Menge gefunden, einfach zählen
             const key = ingredient.toLowerCase();
             if (allIngredients[key]) {
               allIngredients[key].amount += 1;
@@ -132,17 +231,14 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
       }
     });
 
-    // Konvertiere zu Array mit konsolidierten Mengen
     return Object.entries(allIngredients).map(([key, data]) => {
       const name = key.replace(/(g|kg|ml|l|stk|stück|el|tl)$/i, '').trim();
       const unit = data.unit;
       
-      // Formatierung: Bei großen Mengen kg statt g
       if (unit === 'g' && data.amount >= 1000) {
         return `${(data.amount / 1000).toFixed(1)}kg ${name}`;
       }
       
-      // Runde auf sinnvolle Werte
       const rounded = data.amount < 1 ? data.amount.toFixed(2) : Math.round(data.amount * 10) / 10;
       return `${rounded}${unit ? ' ' + unit : ''} ${name}`;
     });
@@ -152,6 +248,8 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
   };
+
+  const canAutoPlan = isPremium || trialCount.remaining > 0;
 
   return (
     <div className="space-y-6">
@@ -182,24 +280,54 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
       {/* Smart Planning Button */}
       <div className="flex gap-2">
         <button
-          onClick={() => {
-            // TODO: AI Auto-Planen
-            alert('Auto-Planen Feature kommt gleich!');
-          }}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-medium transition-colors"
+          onClick={handleAutoPlan}
+          disabled={isAutoPlanning || (!canAutoPlan && !hasPreferences)}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-medium transition-colors ${
+            canAutoPlan
+              ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700'
+              : 'bg-zinc-700 opacity-50 cursor-not-allowed'
+          }`}
         >
-          <Sparkles className="w-5 h-5" />
-          Woche auto-planen
+          {isAutoPlanning ? (
+            <>
+              <RefreshCw className="w-5 h-5 animate-spin" />
+              Plane Woche...
+            </>
+          ) : !canAutoPlan ? (
+            <>
+              <Lock className="w-5 h-5" />
+              Premium erforderlich
+            </>
+          ) : !hasPreferences ? (
+            <>
+              <Sparkles className="w-5 h-5" />
+              Präferenzen einrichten
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-5 h-5" />
+              Woche auto-planen {!isPremium && trialCount.remaining > 0 && `(${trialCount.remaining} übrig)`}
+            </>
+          )}
         </button>
       </div>
+
+      {/* Trial Info */}
+      {!isPremium && trialCount.remaining > 0 && (
+        <div className="rounded-lg border border-violet-500/30 bg-violet-500/10 p-3 text-sm text-violet-300">
+          🎁 Du hast noch {trialCount.remaining} kostenlose Auto-Planung{trialCount.remaining > 1 ? 'en' : ''}. 
+          <button onClick={() => router.push('/settings')} className="ml-2 underline hover:text-violet-200">
+            Upgrade für unbegrenzt
+          </button>
+        </div>
+      )}
 
       {/* 7-Tage Kalender-Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
         {weekDays.map((day) => {
-          const dateKey = day.date.toISOString().split('T')[0];
           return (
             <div
-              key={dateKey}
+              key={day.dateKey}
               className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 min-h-[200px]"
             >
               <div className="flex items-center justify-between mb-3">
@@ -209,7 +337,7 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
                 </div>
                 {day.recipe && (
                   <button
-                    onClick={() => removeRecipeFromDay(dateKey)}
+                    onClick={() => removeRecipeFromDay(day.dateKey)}
                     className="p-1 rounded-md hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
                     title="Rezept entfernen"
                   >
@@ -228,20 +356,40 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
                       <p className="text-xs text-zinc-400">⏱️ {day.recipe.recipe.stats.time}</p>
                     )}
                   </div>
-                  <button
-                    onClick={() => {
-                      // Tag kopieren
-                      const today = new Date().toISOString().split('T')[0];
-                      copyDayToDay(dateKey, today);
-                    }}
-                    className="w-full text-xs px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
-                  >
-                    Tag kopieren
-                  </button>
+                  
+                  {/* Feedback Buttons (Premium) */}
+                  {isPremium && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleFeedback(day.dateKey, 'positive')}
+                        className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                          day.recipe.feedback === 'positive'
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                        }`}
+                        title="Gefällt mir"
+                      >
+                        <ThumbsUp className="w-3 h-3 inline mr-1" />
+                        👍
+                      </button>
+                      <button
+                        onClick={() => handleFeedback(day.dateKey, 'negative')}
+                        className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                          day.recipe.feedback === 'negative'
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                        }`}
+                        title="Gefällt mir nicht"
+                      >
+                        <ThumbsDown className="w-3 h-3 inline mr-1" />
+                        👎
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <button
-                  onClick={() => setSelectedDay(dateKey)}
+                  onClick={() => setSelectedDay(day.dateKey)}
                   className="w-full h-full min-h-[120px] flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/20 hover:border-orange-500/30 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors"
                 >
                   <Plus className="w-6 h-6 text-zinc-500" />
@@ -287,6 +435,16 @@ export function WeekPlanner({ myRecipes, workspaceId }: WeekPlannerProps) {
           recipeName="Wocheneinkauf"
         />
       )}
+
+      {/* Premium Onboarding Modal */}
+      <PremiumOnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        onComplete={() => {
+          setHasPreferences(true);
+          handleAutoPlan();
+        }}
+      />
     </div>
   );
 }

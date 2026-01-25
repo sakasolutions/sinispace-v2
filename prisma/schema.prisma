@@ -37,6 +37,8 @@ model User {
   tokenUsages         TokenUsage[]
   workspaces          Workspace[]
   results             Result[]
+  mealPreferences     MealPreferences?
+  weeklyPlans         WeeklyPlan[]
 }
 
 model Account {
@@ -233,9 +235,10 @@ model Workspace {
   updatedAt  DateTime @updatedAt
 
   // Relationen
-  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  chats   Chat[]
-  results Result[]
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chats       Chat[]
+  results     Result[]
+  weeklyPlans WeeklyPlan[]
 
   @@index([userId, isArchived])
   @@index([userId, createdAt])
@@ -261,5 +264,49 @@ model Result {
   @@index([userId, createdAt])
   @@index([workspaceId, createdAt])
   @@index([toolId, createdAt])
+  @@index([createdAt])
+}
+
+// Meal Preferences: User-Präferenzen für Wochenplaner (Premium)
+model MealPreferences {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  dietType        String?  // z.B. 'vegetarisch', 'vegan', 'low-carb', 'high-protein', 'keine'
+  allergies       String?  // JSON-Array: ['Nüsse', 'Gluten', 'Laktose']
+  householdSize   Int      @default(2) // Anzahl Personen
+  budgetRange     String?  // 'low' (30€), 'medium' (50€), 'high' (80€)
+  mealTypes       String?  // JSON-Array: ['abendessen', 'lunch', 'frühstück']
+  mealPrep        Boolean  @default(false) // Meal-Prep gewünscht?
+  cookingLevel    String?  // 'anfänger' (15 Min), 'fortgeschritten' (30 Min), 'profi' (60+ Min)
+  preferredCuisines String? // JSON-Array: ['mediterran', 'asiatisch', 'deutsch']
+  dislikedIngredients String? // JSON-Array: ['Pilze', 'Oliven']
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Weekly Plan: Gespeicherte Wochenpläne mit Feedback
+model WeeklyPlan {
+  id              String   @id @default(cuid())
+  userId          String
+  workspaceId     String?
+  weekStart       DateTime // Montag der Woche
+  weekEnd         DateTime // Sonntag der Woche
+  planData        String   // JSON: { '2025-01-27': { recipeId, resultId, feedback: 'positive'|'negative'|null } }
+  budgetEstimate  Float?   // Geschätzte Kosten für die Woche
+  totalFeedback   Int      @default(0) // Anzahl positiver Feedbacks
+  autoPlanned     Boolean  @default(false) // Wurde automatisch geplant?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, weekStart])
+  @@index([userId, weekStart])
+  @@index([workspaceId, weekStart])
   @@index([createdAt])
 }
