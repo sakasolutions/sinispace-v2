@@ -179,7 +179,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       if (result.error === 'PREMIUM_REQUIRED') {
         router.push('/settings');
       } else if (result.error) {
-        alert(result.error);
+        console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', result.error);
+        alert(`Fehler: ${result.error}`);
       } else if (result.plan) {
         // Transformiere Plan-Format: Finde Rezepte aus myRecipes basierend auf resultId
         const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};

@@ -102,6 +102,17 @@ export async function autoPlanWeek(weekStart: Date, workspaceId?: string) {
   }
 
   try {
+    // Prüfe ob MealPreferences Tabelle existiert (Migration)
+    try {
+      await prisma.$queryRaw`SELECT 1 FROM "MealPreferences" LIMIT 1`;
+    } catch (tableError: any) {
+      if (tableError.code === '42P01' || tableError.message?.includes('does not exist')) {
+        console.error('[MEAL-PLANNING] ❌ MealPreferences Tabelle existiert nicht. Migration ausführen!');
+        return { error: 'Datenbank-Migration fehlt. Bitte kontaktiere den Support.' };
+      }
+      throw tableError;
+    }
+
     // Hole User-Präferenzen
     const preferences = await getMealPreferences();
 
@@ -209,31 +220,57 @@ recipeIndex bezieht sich auf die Position in der Rezepte-Liste (0-basiert).`;
     );
 
     // Parse AI-Response
-    const planData = JSON.parse(response.choices[0]?.message?.content?.trim() || '{}');
-    
+    const responseContent = response.choices[0]?.message?.content?.trim();
+    if (!responseContent) {
+      console.error('[MEAL-PLANNING] ❌ Keine Response von AI erhalten');
+      return { error: 'Keine Antwort von der KI erhalten. Bitte versuche es erneut.' };
+    }
+
+    let planData: any;
+    try {
+      // Entferne mögliche Markdown-Code-Blöcke
+      const cleanedContent = responseContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      planData = JSON.parse(cleanedContent);
+    } catch (parseError) {
+      console.error('[MEAL-PLANNING] ❌ JSON Parse Fehler:', parseError);
+      console.error('[MEAL-PLANNING] ❌ Response Content:', responseContent);
+      return { error: 'Ungültige Antwort von der KI. Bitte versuche es erneut.' };
+    }
+
     // Konvertiere zu unserem Format
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
     const plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const dateKeys: string[] = [];
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(weekStart);
       date.setDate(date.getDate() + i);
       const dateKey = date.toISOString().split('T')[0];
-      dateKeys.push(dateKey);
 
       const dayPlan = planData[days[i]];
-      if (dayPlan && parsedRecipes[dayPlan.recipeIndex]) {
-        const recipe = parsedRecipes[dayPlan.recipeIndex];
-        plan[dateKey] = {
-          recipeId: recipe.id,
-          resultId: recipe.id,
-          feedback: null,
-        };
+      if (dayPlan && typeof dayPlan.recipeIndex === 'number') {
+        const recipeIndex = dayPlan.recipeIndex;
+        if (recipeIndex >= 0 && recipeIndex < parsedRecipes.length) {
+          const recipe = parsedRecipes[recipeIndex];
+          plan[dateKey] = {
+            recipeId: recipe.id,
+            resultId: recipe.id,
+            feedback: null,
+          };
+        } else {
+          console.warn(`[MEAL-PLANNING] ⚠️ Ungültiger recipeIndex ${recipeIndex} für ${days[i]}. Verfügbare Rezepte: ${parsedRecipes.length}`);
+        }
+      } else {
+        console.warn(`[MEAL-PLANNING] ⚠️ Kein Plan für ${days[i]} gefunden`);
       }
+    }
+
+    // Prüfe ob mindestens ein Tag geplant wurde
+    if (Object.keys(plan).length === 0) {
+      console.error('[MEAL-PLANNING] ❌ Keine Rezepte konnten zugeordnet werden');
+      return { error: 'Die KI konnte keine Rezepte für die Woche zuordnen. Bitte versuche es erneut.' };
     }
 
     // Speichere Wochenplan
@@ -258,9 +295,15 @@ recipeIndex bezieht sich auf die Position in der Rezepte-Liste (0-basiert).`;
       },
     });
 
+    console.log(`[MEAL-PLANNING] ✅ Woche erfolgreich geplant: ${Object.keys(plan).length} Tage`);
     return { success: true, plan };
   } catch (error) {
-    console.error('Error auto-planning week:', error);
+    console.error('[MEAL-PLANNING] ❌ Fehler bei Auto-Planning:', error);
+    if (error instanceof Error) {
+      console.error('[MEAL-PLANNING] ❌ Error Message:', error.message);
+      console.error('[MEAL-PLANNING] ❌ Error Stack:', error.stack);
+      return { error: `Fehler bei der automatischen Planung: ${error.message}` };
+    }
     return { error: 'Fehler bei der automatischen Planung' };
   }
 }
