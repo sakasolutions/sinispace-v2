@@ -11,6 +11,7 @@ import { FeedbackButton } from '@/components/ui/feedback-button';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { toolInfoMap } from '@/lib/tool-info';
 import { BackButton } from '@/components/ui/back-button';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 function ActionButtons({ text, mode }: { text: string; mode: string }) {
   const [copied, setCopied] = useState(false);
@@ -112,6 +113,7 @@ export default function PolishPage() {
   // State für Formularfelder, damit sie nicht geleert werden
   const [text, setText] = useState('');
   const [mode, setMode] = useState('Professionell & Business');
+  const [workspaceId, setWorkspaceId] = useState<string>('');
 
   const polishModes = [
     'Grammatik & Rechtschreibung',
@@ -175,6 +177,12 @@ export default function PolishPage() {
                 placeholder="Modus auswählen..."
                 variant="modal"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
+              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+              <input type="hidden" name="workspaceId" value={workspaceId} />
             </div>
 
             <SubmitButton />

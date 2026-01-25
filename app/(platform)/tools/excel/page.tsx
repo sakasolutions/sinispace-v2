@@ -9,6 +9,7 @@ import { useFormStatus } from 'react-dom';
 import { ToolHeader } from '@/components/tool-header';
 import { Tooltip } from '@/components/ui/tooltip';
 import { FeedbackButton } from '@/components/ui/feedback-button';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 type ExcelMode = 'generator' | 'explainer' | 'script' | 'data' | null;
 type Software = 'excel-de' | 'excel-en' | 'sheets' | null;
@@ -154,6 +155,7 @@ export default function ExcelPage() {
   const [selectedMode, setSelectedMode] = useState<ExcelMode>(null);
   const [selectedSoftware, setSelectedSoftware] = useState<Software>(null);
   const [query, setQuery] = useState('');
+  const [workspaceId, setWorkspaceId] = useState<string>('');
 
   // Extrahiere Code-Block aus Ergebnis
   const extractCodeBlock = (text: string): { code: string; explanation: string } => {
@@ -372,6 +374,12 @@ export default function ExcelPage() {
                     />
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
+                  <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+                  <input type="hidden" name="workspaceId" value={workspaceId} />
+                </div>
 
                 <SubmitButton />
               </form>

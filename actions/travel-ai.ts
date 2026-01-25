@@ -3,6 +3,7 @@
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
+import { saveResult } from '@/actions/workspace-actions';
 
 const UPSELL_MESSAGE = `### 🔒 Premium Feature
 
@@ -38,6 +39,7 @@ export async function generateTravelPlan(prevState: any, formData: FormData) {
   const pace = Math.min(5, Math.max(1, Number(formData.get('pace') || 3)));
   const diet = (formData.get('diet') as string) || 'Alles';
   const extras = (formData.get('extras') as string) || '';
+  const workspaceId = formData.get('workspaceId') as string || undefined;
 
   const systemPrompt = `Du bist ein lokaler Insider. Erstelle einen Reiseplan für ${destination}.
 
@@ -133,6 +135,16 @@ ${plan.itinerary
 
     const userInput = `${days} Tage in ${destination} (${budget}, ${season}, Pace ${pace})${extras ? ` · Extras: ${extras}` : ''}`;
     await createHelperChat('travel', userInput, formattedPlan);
+
+    // Result in Workspace speichern
+    await saveResult(
+      'travel',
+      'Travel-Agent',
+      JSON.stringify(plan),
+      workspaceId,
+      plan.tripTitle,
+      JSON.stringify({ destination, days, season, budget, companions, pace, diet, extras })
+    );
 
     return { result: JSON.stringify(plan) };
   } catch (error: any) {

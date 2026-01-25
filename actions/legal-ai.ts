@@ -3,6 +3,7 @@
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
+import { saveResult } from '@/actions/workspace-actions';
 
 // --- HILFS-NACHRICHT FÜR FREE USER ---
 const UPSELL_MESSAGE = `### 🔒 Premium Feature
@@ -20,6 +21,7 @@ export async function generateLegal(prevState: any, formData: FormData) {
 
   const mode = formData.get('mode') as string;
   const details = formData.get('details') as string;
+  const workspaceId = formData.get('workspaceId') as string || undefined;
 
   if (!mode || mode.trim() === '') return { error: 'Bitte wähle einen Modus aus.' };
   if (!details || details.trim().length === 0) {
@@ -128,6 +130,16 @@ WICHTIG:
     };
     const userInput = `Modus: ${modeLabels[mode] || mode}, Details: ${details.substring(0, 100)}${details.length > 100 ? '...' : ''}`;
     await createHelperChat('legal', userInput, result);
+
+    // Result in Workspace speichern
+    await saveResult(
+      'legal',
+      'Rechtstexte & Formales',
+      result,
+      workspaceId,
+      `${modeLabels[mode] || mode}`,
+      JSON.stringify({ mode, detailsLength: details.length })
+    );
 
     return { result };
   } catch (error: any) {

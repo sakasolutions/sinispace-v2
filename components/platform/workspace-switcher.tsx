@@ -78,19 +78,31 @@ export function WorkspaceSwitcher() {
     const name = prompt('Workspace-Name:');
     if (!name || name.trim().length === 0) return;
 
+    console.log('[WORKSPACE] 🚀 Erstelle neuen Workspace:', name.trim());
+
     const formData = new FormData();
     formData.append('name', name.trim());
     formData.append('icon', 'Folder');
     formData.append('color', 'blue');
 
-    const result = await createWorkspace(formData);
-    if (result.success) {
-      await loadWorkspaces();
-      if (result.workspace) {
-        handleWorkspaceSelect(result.workspace);
+    try {
+      const result = await createWorkspace(formData);
+      console.log('[WORKSPACE] 📦 Result:', result);
+      
+      if (result.success) {
+        console.log('[WORKSPACE] ✅ Erfolgreich, lade Workspaces neu...');
+        await loadWorkspaces();
+        if (result.workspace) {
+          console.log('[WORKSPACE] 🔄 Wechsle zu neuem Workspace:', result.workspace.id);
+          handleWorkspaceSelect(result.workspace);
+        }
+      } else {
+        console.error('[WORKSPACE] ❌ Fehler:', result.error);
+        alert(result.error || 'Fehler beim Erstellen des Workspaces');
       }
-    } else {
-      alert(result.error || 'Fehler beim Erstellen des Workspaces');
+    } catch (error) {
+      console.error('[WORKSPACE] ❌ Unerwarteter Fehler:', error);
+      alert('Unerwarteter Fehler beim Erstellen des Workspaces. Bitte versuche es erneut.');
     }
   };
 

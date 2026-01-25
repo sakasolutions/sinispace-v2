@@ -3,6 +3,7 @@
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
+import { saveResult } from '@/actions/workspace-actions';
 
 // --- HILFS-NACHRICHT FÜR FREE USER ---
 const UPSELL_MESSAGE = `### 🔒 Premium Feature
@@ -23,6 +24,7 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   const servings = parseInt(formData.get('servings') as string) || 2;
   const filters = formData.getAll('filters') as string[];
   const shoppingMode = (formData.get('shoppingMode') as string) || 'strict';
+  const workspaceId = formData.get('workspaceId') as string || undefined;
 
   if (!ingredients || ingredients.trim().length === 0) {
     return { error: 'Bitte gib vorhandene Zutaten ein.' };
@@ -134,6 +136,16 @@ ${recipe.instructions.map((step: string, i: number) => `${i + 1}. ${step}`).join
     // Speichere in Chat (optional, für spätere Bearbeitung)
     const userInput = `Kategorie: ${mealType}, Personen: ${servings}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
     await createHelperChat('recipe', userInput, formattedRecipe);
+
+    // Result in Workspace speichern
+    await saveResult(
+      'recipe',
+      'Gourmet-Planer',
+      JSON.stringify(recipe),
+      workspaceId,
+      recipe.recipeName,
+      JSON.stringify({ mealType, servings, shoppingMode, filters })
+    );
 
     // Gib das Rezept als JSON-String zurück (Frontend parsed es)
     return { result: JSON.stringify(recipe) };

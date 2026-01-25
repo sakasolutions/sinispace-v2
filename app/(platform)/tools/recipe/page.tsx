@@ -11,6 +11,7 @@ import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 import { BackButton } from '@/components/ui/back-button';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 type Recipe = {
   recipeName: string;
@@ -128,6 +129,7 @@ export default function RecipePage() {
   const [mealType, setMealType] = useState('Hauptgericht');
   const [servings, setServings] = useState(2);
   const [filters, setFilters] = useState<string[]>([]);
+  const [workspaceId, setWorkspaceId] = useState<string>('');
 
   // Parse Recipe aus State
   let recipe: Recipe | null = null;
@@ -335,6 +337,12 @@ export default function RecipePage() {
               {filters.map((filter) => (
                 <input key={filter} type="hidden" name="filters" value={filter} />
               ))}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
+              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+              <input type="hidden" name="workspaceId" value={workspaceId} />
             </div>
 
             <SubmitButton />

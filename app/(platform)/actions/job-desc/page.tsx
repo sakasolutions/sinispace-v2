@@ -9,6 +9,7 @@ import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { BackButton } from '@/components/ui/back-button';
 import { FeedbackButton } from '@/components/ui/feedback-button';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 function ActionButtons({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -100,6 +101,7 @@ export default function JobDescriptionPage() {
   const [culture, setCulture] = useState('Modernes Startup');
   const [employmentType, setEmploymentType] = useState('Vollzeit');
   const [points, setPoints] = useState('');
+  const [workspaceId, setWorkspaceId] = useState<string>('');
 
   const cultures = [
     'Modernes Startup',
@@ -181,6 +183,12 @@ export default function JobDescriptionPage() {
                 className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-slate-500/50 focus:border-slate-500/50 resize-none transition-all min-h-[150px]"
                 rows={8}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
+              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+              <input type="hidden" name="workspaceId" value={workspaceId} />
             </div>
 
             <SubmitButton />

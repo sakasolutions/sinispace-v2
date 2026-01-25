@@ -55,11 +55,11 @@ ALTER TABLE "Result" ADD CONSTRAINT "Result_userId_fkey" FOREIGN KEY ("userId") 
 -- AddForeignKey
 ALTER TABLE "Result" ADD CONSTRAINT "Result_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "Chat" ADD CONSTRAINT "Chat_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddColumn to Chat (workspaceId)
+-- AddColumn to Chat (workspaceId) - MUSS VOR Foreign Key kommen!
 ALTER TABLE "Chat" ADD COLUMN IF NOT EXISTS "workspaceId" TEXT;
 
 -- CreateIndex for Chat workspaceId
 CREATE INDEX IF NOT EXISTS "Chat_workspaceId_idx" ON "Chat"("workspaceId");
+
+-- AddForeignKey für Chat - NACH der Spalte!
+ALTER TABLE "Chat" ADD CONSTRAINT "Chat_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE SET NULL ON UPDATE CASCADE;

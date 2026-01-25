@@ -3,6 +3,7 @@
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
+import { saveResult } from '@/actions/workspace-actions';
 
 // --- HILFS-NACHRICHT FÜR FREE USER ---
 const UPSELL_MESSAGE = `### 🔒 Premium Feature
@@ -21,6 +22,7 @@ export async function generateExcel(prevState: any, formData: FormData) {
   const mode = formData.get('mode') as string;
   const software = formData.get('software') as string;
   const query = formData.get('query') as string;
+  const workspaceId = formData.get('workspaceId') as string || undefined;
 
   if (!mode || mode.trim() === '') return { error: 'Bitte wähle einen Modus aus.' };
   if (!software || software.trim() === '') return { error: 'Bitte wähle eine Software aus.' };
@@ -125,6 +127,16 @@ WICHTIG:
     };
     const userInput = `Modus: ${modeLabels[mode] || mode}, Software: ${softwareLabels[software] || software}, Anfrage: ${query.substring(0, 100)}${query.length > 100 ? '...' : ''}`;
     await createHelperChat('excel', userInput, result);
+
+    // Result in Workspace speichern
+    await saveResult(
+      'excel',
+      'Excel-Coach',
+      result,
+      workspaceId,
+      `${modeLabels[mode] || mode} - ${query.substring(0, 50)}`,
+      JSON.stringify({ mode, software, queryLength: query.length })
+    );
 
     return { result };
   } catch (error: any) {

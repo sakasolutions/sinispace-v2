@@ -9,6 +9,7 @@ import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { BackButton } from '@/components/ui/back-button';
 import { FeedbackButton } from '@/components/ui/feedback-button';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 function ActionButtons({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -99,6 +100,7 @@ export default function ToughMessagePage() {
   const [recipient, setRecipient] = useState('');
   const [message, setMessage] = useState('');
   const [strategy, setStrategy] = useState('Empathisch & Weich');
+  const [workspaceId, setWorkspaceId] = useState<string>('');
 
   const strategies = [
     'Empathisch & Weich',
@@ -162,6 +164,12 @@ export default function ToughMessagePage() {
                 placeholder="Strategie auswählen..."
                 variant="modal"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
+              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+              <input type="hidden" name="workspaceId" value={workspaceId} />
             </div>
 
             <SubmitButton />

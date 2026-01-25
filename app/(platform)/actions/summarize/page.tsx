@@ -10,6 +10,7 @@ import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 import { BackButton } from '@/components/ui/back-button';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 function ActionButtons({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -114,6 +115,7 @@ export default function SummarizePage() {
   const [text, setText] = useState('');
   const [format, setFormat] = useState<'Stichpunkte' | 'Fließtext' | 'Action Items'>('Stichpunkte');
   const [length, setLength] = useState<'Kernaussage' | 'Standard' | 'Detailliert'>('Standard');
+  const [workspaceId, setWorkspaceId] = useState<string>('');
 
   // Berechne Statistiken
   const inputLength = text.length;
@@ -231,6 +233,12 @@ export default function SummarizePage() {
                 </button>
               </div>
               <input type="hidden" name="length" value={length} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
+              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+              <input type="hidden" name="workspaceId" value={workspaceId} />
             </div>
 
             <div>

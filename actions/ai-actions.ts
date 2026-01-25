@@ -303,9 +303,20 @@ export async function generateSummaryWithChat(prevState: any, formData: FormData
     const text = formData.get('text') as string || '';
     const format = formData.get('format') as string || 'Stichpunkte';
     const length = formData.get('length') as string || 'Standard';
+    const workspaceId = formData.get('workspaceId') as string || undefined;
     const userInput = `Format: ${format}, Länge: ${length}, Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
     
     await createHelperChat('summarize', userInput, result.result);
+    
+    // Result in Workspace speichern
+    await saveResult(
+      'summarize',
+      'Klartext',
+      result.result,
+      workspaceId,
+      `Zusammenfassung (${format}, ${length})`,
+      JSON.stringify({ format, length, textLength: text.length })
+    );
   }
   
   return result;
@@ -369,9 +380,20 @@ export async function generateTranslateWithChat(prevState: any, formData: FormDa
     const text = formData.get('text') as string || '';
     const targetLanguage = formData.get('targetLanguage') as string || 'Englisch (US)';
     const mode = formData.get('mode') as string || 'Business & Professionell';
+    const workspaceId = formData.get('workspaceId') as string || undefined;
     const userInput = `Ziel-Sprache: ${targetLanguage}, Modus: ${mode}, Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
     
     await createHelperChat('translate', userInput, result.result);
+    
+    // Result in Workspace speichern
+    await saveResult(
+      'translate',
+      'Kontext Übersetzer',
+      result.result,
+      workspaceId,
+      `Übersetzung nach ${targetLanguage}`,
+      JSON.stringify({ targetLanguage, mode, textLength: text.length })
+    );
   }
   
   return result;
@@ -431,9 +453,20 @@ export async function generatePolishWithChat(prevState: any, formData: FormData)
   if (result?.result && !result.error) {
     const text = formData.get('text') as string || '';
     const mode = formData.get('mode') as string || 'Professionell & Business';
+    const workspaceId = formData.get('workspaceId') as string || undefined;
     const userInput = `Modus: ${mode}, Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
     
     await createHelperChat('polish', userInput, result.result);
+    
+    // Result in Workspace speichern
+    await saveResult(
+      'polish',
+      'Text Aufpolierer',
+      result.result,
+      workspaceId,
+      `Aufpolierter Text (${mode})`,
+      JSON.stringify({ mode, textLength: text.length })
+    );
   }
   
   return result;
@@ -498,9 +531,20 @@ export async function generateToughMessageWithChat(prevState: any, formData: For
     const recipient = formData.get('recipient') as string || '';
     const message = formData.get('message') as string || '';
     const strategy = formData.get('strategy') as string || 'Empathisch & Weich';
+    const workspaceId = formData.get('workspaceId') as string || undefined;
     const userInput = `An: ${recipient}, Strategie: ${strategy}, Thema: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`;
     
     await createHelperChat('tough-msg', userInput, result.result);
+    
+    // Result in Workspace speichern
+    await saveResult(
+      'tough-msg',
+      'Schwierige Nachrichten',
+      result.result,
+      workspaceId,
+      `Nachricht an ${recipient}`,
+      JSON.stringify({ recipient, strategy, message: message.substring(0, 100) })
+    );
   }
   
   return result;
@@ -579,9 +623,20 @@ export async function generateLegalWithChat(prevState: any, formData: FormData) 
   if (result?.result && !result.error) {
     const mode = formData.get('mode') as string || 'Klausel formulieren';
     const content = formData.get('content') as string || '';
+    const workspaceId = formData.get('workspaceId') as string || undefined;
     const userInput = `Modus: ${mode}, Inhalt: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`;
     
     await createHelperChat('legal', userInput, result.result);
+    
+    // Result in Workspace speichern
+    await saveResult(
+      'legal',
+      'Rechtstexte & Formales',
+      result.result,
+      workspaceId,
+      `${mode}`,
+      JSON.stringify({ mode, contentLength: content.length })
+    );
   }
   
   return result;
@@ -665,9 +720,20 @@ export async function generateJobDescriptionWithChat(prevState: any, formData: F
     const culture = formData.get('culture') as string || 'Modernes Startup';
     const employmentType = formData.get('employmentType') as string || 'Vollzeit';
     const points = formData.get('points') as string || '';
+    const workspaceId = formData.get('workspaceId') as string || undefined;
     const userInput = `Titel: ${jobTitle}, Kultur: ${culture}, Art: ${employmentType}, Punkte: ${points.substring(0, 100)}${points.length > 100 ? '...' : ''}`;
     
     await createHelperChat('job-desc', userInput, result.result);
+    
+    // Result in Workspace speichern
+    await saveResult(
+      'job-desc',
+      'Stellenanzeigen Generator',
+      result.result,
+      workspaceId,
+      `Stellenanzeige: ${jobTitle}`,
+      JSON.stringify({ jobTitle, culture, employmentType })
+    );
   }
   
   return result;

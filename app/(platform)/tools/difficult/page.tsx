@@ -10,6 +10,7 @@ import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 import { BackButton } from '@/components/ui/back-button';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 type ChatOption = {
   tone: string;
@@ -135,6 +136,7 @@ export default function ChatCoachPage() {
   
   const [recipient, setRecipient] = useState('');
   const [situation, setSituation] = useState('');
+  const [workspaceId, setWorkspaceId] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<{ title: string; description: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -250,6 +252,12 @@ export default function ChatCoachPage() {
                 className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 resize-none transition-all min-h-[150px]"
                 rows={6}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
+              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+              <input type="hidden" name="workspaceId" value={workspaceId} />
             </div>
 
             <SubmitButton />

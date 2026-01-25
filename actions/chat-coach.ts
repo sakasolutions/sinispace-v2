@@ -3,6 +3,7 @@
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
+import { saveResult } from '@/actions/workspace-actions';
 
 // --- HILFS-NACHRICHT FÜR FREE USER ---
 const UPSELL_MESSAGE = `### 🔒 Premium Feature
@@ -29,6 +30,7 @@ export async function generateChatCoach(prevState: any, formData: FormData) {
 
   const situation = formData.get('situation') as string;
   const recipient = formData.get('recipient') as string;
+  const workspaceId = formData.get('workspaceId') as string || undefined;
 
   if (!situation || situation.trim().length === 0) {
     return { error: 'Bitte beschreibe die Situation.' };
@@ -109,6 +111,16 @@ Generiere 3 verschiedene Antwort-Optionen für diese Situation.`;
     // Speichere in Chat (optional, für spätere Bearbeitung)
     const userInput = `An: ${recipient}, Situation: ${situation.substring(0, 100)}${situation.length > 100 ? '...' : ''}`;
     await createHelperChat('chat-coach', userInput, formattedChat);
+
+    // Result in Workspace speichern
+    await saveResult(
+      'tough-msg',
+      'Chat-Coach',
+      JSON.stringify(result),
+      workspaceId,
+      `Nachricht an ${recipient}`,
+      JSON.stringify({ recipient, situation: situation.substring(0, 100) })
+    );
 
     // Gib das Ergebnis als JSON-String zurück (Frontend parsed es)
     return { result: JSON.stringify(result) };

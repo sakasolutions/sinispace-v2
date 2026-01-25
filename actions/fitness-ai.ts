@@ -3,6 +3,7 @@
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
+import { saveResult } from '@/actions/workspace-actions';
 
 // --- HILFS-NACHRICHT FÜR FREE USER ---
 const UPSELL_MESSAGE = `### 🔒 Premium Feature
@@ -31,6 +32,7 @@ export async function generateFitnessPlan(prevState: any, formData: FormData) {
   const focus = (formData.get('focus') as string) || 'Ganzkörper (Balance)';
   const constraints = (formData.getAll('constraints') as string[]) || [];
   const energy = (formData.get('energy') as string) || 'Normal';
+  const workspaceId = formData.get('workspaceId') as string || undefined;
 
   const equipmentText = equipment.length > 0 ? equipment.join(', ') : 'Keine Geräte';
   const constraintsText = constraints.length > 0 ? constraints.join(', ') : 'Keine';
@@ -119,6 +121,16 @@ ${plan.cooldown.map((c) => `- ${c}`).join('\n')}`;
 
     const userInput = `Ziel: ${goal}, Level: ${level}, Dauer: ${duration} Min, Equipment: ${equipmentText}`;
     await createHelperChat('fitness', userInput, formattedPlan);
+
+    // Result in Workspace speichern
+    await saveResult(
+      'fitness',
+      'Fit-Coach',
+      JSON.stringify(plan),
+      workspaceId,
+      plan.title,
+      JSON.stringify({ goal, level, duration, equipment, focus, constraints, energy })
+    );
 
     return { result: JSON.stringify(plan) };
   } catch (error: any) {

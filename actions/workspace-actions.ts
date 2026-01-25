@@ -7,19 +7,30 @@ import { isUserPremium } from '@/lib/subscription';
 // Default Workspace bei Registrierung erstellen
 export async function createDefaultWorkspace(userId: string) {
   try {
-    const defaultWorkspace = await prisma.workspace.create({
-      data: {
-        userId,
-        name: 'Allgemein',
-        icon: 'Folder',
-        color: 'blue',
-        isArchived: false,
-      },
-    });
-    return { success: true, workspace: defaultWorkspace };
-  } catch (error) {
-    console.error('Fehler beim Erstellen des Default-Workspaces:', error);
-    return { success: false, error: 'Fehler beim Erstellen des Workspaces' };
+    // Prüfe ob Workspace-Tabelle existiert (Graceful Degradation)
+    try {
+      const defaultWorkspace = await prisma.workspace.create({
+        data: {
+          userId,
+          name: 'Allgemein',
+          icon: 'Folder',
+          color: 'blue',
+          isArchived: false,
+        },
+      });
+      console.log('[WORKSPACE] ✅ Default Workspace erstellt:', defaultWorkspace.id);
+      return { success: true, workspace: defaultWorkspace };
+    } catch (prismaError: any) {
+      // Wenn Tabelle nicht existiert (P2021 = Table does not exist)
+      if (prismaError.code === 'P2021' || prismaError.message?.includes('does not exist')) {
+        console.warn('[WORKSPACE] ⚠️ Workspace-Tabelle existiert noch nicht. Migration muss ausgeführt werden.');
+        return { success: false, error: 'Workspace-Tabelle existiert noch nicht. Bitte Migration ausführen.' };
+      }
+      throw prismaError;
+    }
+  } catch (error: any) {
+    console.error('[WORKSPACE] ❌ Fehler beim Erstellen des Default-Workspaces:', error);
+    return { success: false, error: `Fehler: ${error?.message || 'Unbekannter Fehler'}` };
   }
 }
 
@@ -63,38 +74,61 @@ export async function createWorkspace(formData: FormData) {
   }
 
   try {
-    // Premium-Check: Free Users = 3 Workspaces max
-    const isPremium = await isUserPremium();
-    if (!isPremium) {
-      const workspaceCount = await prisma.workspace.count({
-        where: {
+    // Prüfe ob Workspace-Tabelle existiert (Graceful Degradation)
+    try {
+      // Premium-Check: Free Users = 3 Workspaces max
+      const isPremium = await isUserPremium();
+      if (!isPremium) {
+        const workspaceCount = await prisma.workspace.count({
+          where: {
+            userId: session.user.id,
+            isArchived: false,
+          },
+        });
+
+        if (workspaceCount >= 3) {
+          return {
+            success: false,
+            error: 'Free-User-Limit erreicht. Upgrade auf Premium für unbegrenzte Workspaces.',
+          };
+        }
+      }
+
+      const workspace = await prisma.workspace.create({
+        data: {
           userId: session.user.id,
+          name,
+          icon,
+          color,
           isArchived: false,
         },
       });
 
-      if (workspaceCount >= 3) {
+      console.log('[WORKSPACE] ✅ Workspace erstellt:', workspace.id, workspace.name);
+      return { success: true, workspace };
+    } catch (prismaError: any) {
+      // Wenn Tabelle nicht existiert (P2021 = Table does not exist)
+      if (prismaError.code === 'P2021' || prismaError.message?.includes('does not exist')) {
+        console.error('[WORKSPACE] ❌ Workspace-Tabelle existiert nicht. Migration erforderlich.');
         return {
           success: false,
-          error: 'Free-User-Limit erreicht. Upgrade auf Premium für unbegrenzte Workspaces.',
+          error: 'Workspace-System noch nicht aktiviert. Bitte Migration ausführen: npx prisma migrate deploy',
         };
       }
+      // Andere Prisma-Fehler
+      console.error('[WORKSPACE] ❌ Prisma-Fehler:', prismaError);
+      if (prismaError.code === 'P2002') {
+        return { success: false, error: 'Workspace mit diesem Namen existiert bereits.' };
+      }
+      if (prismaError.code === 'P2025') {
+        return { success: false, error: 'User nicht gefunden.' };
+      }
+      throw prismaError;
     }
-
-    const workspace = await prisma.workspace.create({
-      data: {
-        userId: session.user.id,
-        name,
-        icon,
-        color,
-        isArchived: false,
-      },
-    });
-
-    return { success: true, workspace };
-  } catch (error) {
-    console.error('Fehler beim Erstellen des Workspaces:', error);
-    return { success: false, error: 'Fehler beim Erstellen des Workspaces' };
+  } catch (error: any) {
+    console.error('[WORKSPACE] ❌ Unerwarteter Fehler beim Erstellen des Workspaces:', error);
+    const errorMessage = error?.message || 'Fehler beim Erstellen des Workspaces';
+    return { success: false, error: `Fehler: ${errorMessage}` };
   }
 }
 

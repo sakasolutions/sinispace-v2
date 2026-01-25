@@ -8,6 +8,7 @@ import { ToolHeader } from '@/components/tool-header';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 type FitnessPlan = {
   title: string;
@@ -51,6 +52,7 @@ export default function FitnessPage() {
   const [focus, setFocus] = useState('Ganzkörper (Balance)');
   const [constraints, setConstraints] = useState<string[]>([]);
   const [energy, setEnergy] = useState('Normal');
+  const [workspaceId, setWorkspaceId] = useState<string>('');
 
   const goalOptions = [
     { id: 'muscle', label: 'Muskeln', value: 'Muskelaufbau' },
@@ -259,6 +261,12 @@ export default function FitnessPage() {
                 ))}
               </div>
               <input type="hidden" name="energy" value={energy} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
+              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+              <input type="hidden" name="workspaceId" value={workspaceId} />
             </div>
 
             <SubmitButton />

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { ToolHeader } from '@/components/tool-header';
 import { FeedbackButton } from '@/components/ui/feedback-button';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 type LegalMode = 'cancellation' | 'reminder' | 'contract' | 'dispute' | null;
 
@@ -140,6 +141,7 @@ export default function LegalPage() {
   const [amount, setAmount] = useState('');
   const [dueSince, setDueSince] = useState('');
   const [details, setDetails] = useState('');
+  const [workspaceId, setWorkspaceId] = useState<string>('');
 
   // Baue details-String basierend auf Modus
   const buildDetails = (): string => {
@@ -371,6 +373,12 @@ export default function LegalPage() {
                     />
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
+                  <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+                  <input type="hidden" name="workspaceId" value={workspaceId} />
+                </div>
 
                 <SubmitButton />
               </form>
