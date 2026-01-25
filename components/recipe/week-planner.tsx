@@ -85,7 +85,10 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         // Transformiere Plan-Format: Finde Rezepte aus myRecipes basierend auf resultId
         const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
         
-        Object.entries(savedPlan.planData).forEach(([dateKey, planEntry]) => {
+        type PlanEntry = { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null };
+        const planData = savedPlan.planData as Record<string, PlanEntry>;
+        
+        Object.entries(planData).forEach(([dateKey, planEntry]) => {
           const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
           if (recipeResult) {
             transformedPlan[dateKey] = {
