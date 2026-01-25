@@ -11,7 +11,6 @@ import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 import { BackButton } from '@/components/ui/back-button';
-import { WorkspaceSelect } from '@/components/ui/workspace-select';
 import { getWorkspaceResults, deleteResult, cleanupOldResults } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { RecipeDetailView } from '@/components/recipe/recipe-detail-view';
@@ -134,7 +133,6 @@ export default function RecipePage() {
   const [mealType, setMealType] = useState('Hauptgericht');
   const [servings, setServings] = useState(2);
   const [filters, setFilters] = useState<string[]>([]);
-  const [workspaceId, setWorkspaceId] = useState<string>('');
   const [myRecipes, setMyRecipes] = useState<any[]>([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
@@ -181,19 +179,19 @@ export default function RecipePage() {
 
   // Lade "Meine Rezepte" wenn Tab gewechselt wird (auch für Wochenplaner)
   useEffect(() => {
-    if ((activeTab === 'my-recipes' || activeTab === 'week-planner') && workspaceId) {
+    if (activeTab === 'my-recipes' || activeTab === 'week-planner') {
       loadMyRecipes();
     }
-  }, [activeTab, workspaceId]);
+  }, [activeTab]);
 
   const loadMyRecipes = async () => {
-    if (!workspaceId) return;
     setIsLoadingRecipes(true);
     try {
       // Auto-Cleanup: Alte Results (30 Tage) löschen
       await cleanupOldResults();
       
-      const result = await getWorkspaceResults(workspaceId, 50);
+      // Lade alle Recipe-Results (ohne Workspace-Filter)
+      const result = await getWorkspaceResults(undefined, 50);
       if (result.success && result.results) {
         // Filtere nur Recipe-Results
         const recipeResults = result.results
@@ -449,12 +447,6 @@ export default function RecipePage() {
               ))}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
-              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
-              <input type="hidden" name="workspaceId" value={workspaceId} />
-            </div>
-
             <SubmitButton />
           </form>
           
@@ -604,12 +596,7 @@ export default function RecipePage() {
         ) : (
           /* Meine Rezepte Tab */
           <div className="space-y-4">
-            {!workspaceId ? (
-              <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
-                <p className="text-zinc-400 mb-4">Bitte wähle einen Workspace aus, um deine Rezepte zu sehen.</p>
-                <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
-              </div>
-            ) : isLoadingRecipes ? (
+            {isLoadingRecipes ? (
               <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
                 <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-400 mb-2" />
                 <p className="text-zinc-400">Lade Rezepte...</p>
@@ -716,13 +703,13 @@ export default function RecipePage() {
             )}
           </div>
         )
-      ) : activeTab === 'week-planner' ? (
-        /* Wochenplaner Tab */
-        <WeekPlanner
-          myRecipes={myRecipes}
-          workspaceId={workspaceId}
-        />
-      ) : null}
+            ) : activeTab === 'week-planner' ? (
+              /* Wochenplaner Tab */
+              <WeekPlanner
+                myRecipes={myRecipes}
+                workspaceId={undefined}
+              />
+            ) : null}
 
       {/* Shopping List Modal */}
       {recipe && recipe.shoppingList && recipe.shoppingList.length > 0 && (

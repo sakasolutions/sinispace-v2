@@ -8,7 +8,6 @@ import { FeedbackButton } from '@/components/ui/feedback-button';
 import { useFormStatus } from 'react-dom';
 import { generateTravelPlan } from '@/actions/travel-ai';
 import { CustomSelect } from '@/components/ui/custom-select';
-import { WorkspaceSelect } from '@/components/ui/workspace-select';
 
 type ItineraryDay = {
   day: number;
@@ -61,7 +60,6 @@ export default function TravelPage() {
   const [diet, setDiet] = useState('Alles');
   const [extras, setExtras] = useState('');
   const [openDay, setOpenDay] = useState(1);
-  const [workspaceId, setWorkspaceId] = useState<string>('');
   const resultRef = useRef<HTMLDivElement>(null);
 
   const budgetOptions = [
@@ -260,11 +258,6 @@ export default function TravelPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Workspace</label>
-              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
-              <input type="hidden" name="workspaceId" value={workspaceId} />
-            </div>
 
             <SubmitButton />
           </form>

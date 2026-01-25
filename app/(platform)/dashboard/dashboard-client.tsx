@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { DashboardGreetingClient } from '@/components/platform/dashboard-greeting-client';
 import { triggerHaptic } from '@/lib/haptic-feedback';
-import { WorkspaceSwitcherModal } from '@/components/platform/workspace-switcher-modal';
 import { getWorkspaceResults } from '@/actions/workspace-actions';
 import {
   Mail,
@@ -245,13 +244,6 @@ const glowColorMap: Record<string, string> = {
   pink: 'bg-pink-500',
 };
 
-type Workspace = {
-  id: string;
-  name: string;
-  icon: string | null;
-  color: string | null;
-};
-
 type Result = {
   id: string;
   toolId: string;
@@ -261,42 +253,23 @@ type Result = {
   createdAt: Date;
 };
 
-interface DashboardClientProps {
-  workspaces?: Workspace[];
-  currentWorkspaceId?: string | null;
-}
-
-export default function DashboardClient({ workspaces = [], currentWorkspaceId }: DashboardClientProps) {
+export default function DashboardClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<(typeof categoryTabs)[number]>('Alle');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
-  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
-  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(
-    workspaces.find(w => w.id === currentWorkspaceId) || workspaces[0] || null
-  );
   const [recentResults, setRecentResults] = useState<Result[]>([]);
   const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Lade aktuellen Workspace aus localStorage und Results
+  // Lade Recent Results (ohne Workspace-Filter)
   useEffect(() => {
-    const saved = localStorage.getItem('currentWorkspaceId');
-    if (saved && workspaces.length > 0) {
-      const found = workspaces.find(w => w.id === saved);
-      if (found) {
-        setCurrentWorkspace(found);
-        loadRecentResults(found.id);
-      }
-    } else if (workspaces.length > 0 && currentWorkspace) {
-      loadRecentResults(currentWorkspace.id);
-    }
-  }, [workspaces]);
+    loadRecentResults();
+  }, []);
 
-  // Lade Recent Results für aktuellen Workspace
-  const loadRecentResults = async (workspaceId: string) => {
+  const loadRecentResults = async () => {
     try {
-      const result = await getWorkspaceResults(workspaceId, 6);
+      const result = await getWorkspaceResults(undefined, 6);
       if (result.success && result.results) {
         setRecentResults(result.results);
       }
@@ -304,13 +277,6 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
       console.error('Fehler beim Laden der Results:', error);
     }
   };
-
-  // Lade Results neu wenn Workspace wechselt
-  useEffect(() => {
-    if (currentWorkspace) {
-      loadRecentResults(currentWorkspace.id);
-    }
-  }, [currentWorkspace]);
 
   // Pull-to-Refresh Handler
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -419,38 +385,13 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
       )}
 
       {/* Header mit Background Glow */}
-      <DashboardGreetingClient 
-        currentWorkspace={currentWorkspace}
-        onWorkspaceClick={() => setIsWorkspaceModalOpen(true)}
-      />
-
-      {/* Workspace Switcher Modal */}
-      <WorkspaceSwitcherModal
-        isOpen={isWorkspaceModalOpen}
-        onClose={() => setIsWorkspaceModalOpen(false)}
-        currentWorkspaceId={currentWorkspace?.id || null}
-        onWorkspaceSelect={async (workspaceId) => {
-          const found = workspaces.find(w => w.id === workspaceId);
-          if (found) {
-            setCurrentWorkspace(found);
-            localStorage.setItem('currentWorkspaceId', workspaceId);
-            // Lade Results für neuen Workspace
-            await loadRecentResults(workspaceId);
-          }
-        }}
-      />
+      <DashboardGreetingClient />
 
       {/* Recent Results Section (nur Desktop, auf Mobile ausgeblendet) */}
-      {recentResults.length > 0 && currentWorkspace && (
+      {recentResults.length > 0 && (
         <div className="mb-6 hidden md:block">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-white">Letzte Ergebnisse</h2>
-            <Link
-              href={`/workspace/${currentWorkspace.id}`}
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              Alle anzeigen
-            </Link>
           </div>
           <div className="overflow-x-auto scrollbar-hide pb-2">
             <div className="flex gap-3 min-w-max">
@@ -465,9 +406,8 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
                 }
 
                 return (
-                  <Link
+                  <div
                     key={result.id}
-                    href={`/workspace/${currentWorkspace.id}/result/${result.id}`}
                     className="shrink-0 w-[200px] rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 hover:border-white/20 transition-colors"
                   >
                     <div className="flex items-start gap-3 mb-2">
@@ -488,7 +428,7 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
                       </p>
                       <ArrowRight className="w-3 h-3 text-zinc-500" />
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>

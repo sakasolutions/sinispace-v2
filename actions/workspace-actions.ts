@@ -323,8 +323,8 @@ export async function getResultById(resultId: string) {
   }
 }
 
-// Recent Results eines Workspaces abrufen
-export async function getWorkspaceResults(workspaceId: string, limit: number = 6) {
+// Recent Results abrufen (ohne Workspace-Filter)
+export async function getWorkspaceResults(workspaceId?: string, limit: number = 6) {
   const session = await auth();
   if (!session?.user?.id) {
     return { success: false, error: 'Nicht autorisiert' };
@@ -333,8 +333,9 @@ export async function getWorkspaceResults(workspaceId: string, limit: number = 6
   try {
     const results = await prisma.result.findMany({
       where: {
-        workspaceId,
         userId: session.user.id,
+        // workspaceId ist jetzt optional - wenn nicht angegeben, alle Results
+        ...(workspaceId && { workspaceId }),
       },
       orderBy: {
         createdAt: 'desc',
