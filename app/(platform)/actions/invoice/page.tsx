@@ -2,12 +2,14 @@
 
 import { useState, useCallback } from 'react';
 import { polishInvoiceText, generateInvoiceTexts } from '@/actions/ai-actions';
-import { Sparkles, Plus, Download, Wand2, Loader2, FileText, Mail } from 'lucide-react';
+import { Sparkles, Plus, Download, Wand2, Loader2, FileText, Mail, Save } from 'lucide-react';
 import Link from 'next/link';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { Page, Text, View, StyleSheet, Document, pdf, BlobProvider } from '@react-pdf/renderer';
 import { ToolHeader } from '@/components/tool-header';
 import { FeedbackButton } from '@/components/ui/feedback-button';
+import { WorkspaceSelect } from '@/components/ui/workspace-select';
+import { saveResult } from '@/actions/workspace-actions';
 
 // Types
 type InvoiceItem = {
@@ -287,6 +289,8 @@ export default function InvoicePage() {
 
   const [polishingItemId, setPolishingItemId] = useState<string | null>(null);
   const [polishingAll, setPolishingAll] = useState(false);
+  const [workspaceId, setWorkspaceId] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const addItem = () => {
     setData({
@@ -360,6 +364,80 @@ export default function InvoicePage() {
     } catch (error) {
       console.error('Fehler beim PDF-Export:', error);
       alert('Fehler beim Erstellen des PDFs');
+    }
+  };
+
+  const handleSaveToWorkspace = async () => {
+    if (!workspaceId) {
+      alert('Bitte wähle einen Workspace aus');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Erstelle eine Text-Repräsentation des Invoices
+      const invoiceText = `
+${data.type === 'invoice' ? 'RECHNUNG' : 'ANGEBOT'}
+
+${data.type === 'invoice' ? 'Rechnungsnummer' : 'Angebotsnummer'}: ${data.invoiceNumber || '-'}
+Datum: ${new Date(data.date).toLocaleDateString('de-DE')}
+
+Absender:
+${data.senderCompany || data.senderName}
+${data.senderStreet}
+${data.senderZip} ${data.senderCity}
+
+Empfänger:
+${data.clientCompany || data.clientName}
+${data.clientStreet}
+${data.clientZip} ${data.clientCity}
+
+${data.introText ? `\n${data.introText}\n` : ''}
+
+Positionen:
+${data.items.map((item, i) => 
+  `${i + 1}. ${item.quantity} ${item.unit} - ${item.description} - ${item.priceOne.toFixed(2)} € (Gesamt: ${(item.quantity * item.priceOne).toFixed(2)} €)`
+).join('\n')}
+
+Netto: ${netto.toFixed(2)} €
+MwSt. (${data.taxRate}%): ${tax.toFixed(2)} €
+Gesamt: ${brutto.toFixed(2)} €
+
+${data.outroText ? `\n${data.outroText}` : ''}
+      `.trim();
+
+      const title = `${data.type === 'invoice' ? 'Rechnung' : 'Angebot'} ${data.invoiceNumber || new Date(data.date).toLocaleDateString('de-DE')} - ${data.clientCompany || data.clientName || 'Kunde'}`;
+
+      const metadata = JSON.stringify({
+        type: data.type,
+        invoiceNumber: data.invoiceNumber,
+        date: data.date.toISOString(),
+        client: data.clientCompany || data.clientName,
+        netto: netto,
+        tax: tax,
+        brutto: brutto,
+        itemsCount: data.items.length,
+      });
+
+      const result = await saveResult(
+        'invoice',
+        'Angebot & Rechnung',
+        invoiceText,
+        workspaceId,
+        title,
+        metadata
+      );
+
+      if (result.success) {
+        alert('Rechnung/Angebot wurde im Workspace gespeichert!');
+      } else {
+        alert('Fehler beim Speichern: ' + (result.error || 'Unbekannter Fehler'));
+      }
+    } catch (error) {
+      console.error('Fehler beim Speichern:', error);
+      alert('Fehler beim Speichern im Workspace');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -505,6 +583,10 @@ export default function InvoicePage() {
             <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
               <h2 className="text-lg font-semibold mb-4">Details</h2>
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-1">Workspace</label>
+                  <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+                </div>
                 <div>
                   <label className="block text-sm text-zinc-400 mb-1">Typ</label>
                   <CustomSelect
@@ -795,6 +877,25 @@ export default function InvoicePage() {
             >
               <Download className="w-5 h-5" />
               PDF Herunterladen
+            </button>
+
+            {/* Workspace speichern */}
+            <button
+              onClick={handleSaveToWorkspace}
+              disabled={isSaving || !workspaceId}
+              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Speichere...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Im Workspace speichern
+                </>
+              )}
             </button>
             
             {/* Smart Chain: Passende E-Mail schreiben */}
