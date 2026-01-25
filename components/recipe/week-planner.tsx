@@ -91,6 +91,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   const [isPremium, setIsPremium] = useState(initialIsPremium || false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isAutoPlanning, setIsAutoPlanning] = useState(false);
+  const [isLoadingPlan, setIsLoadingPlan] = useState(false);
+  const [skipNextLoad, setSkipNextLoad] = useState(false);
   const [planningProgress, setPlanningProgress] = useState<{ current: number; total: number } | null>(null);
   const [trialCount, setTrialCount] = useState({ count: 0, remaining: 0 });
   const [hasPreferences, setHasPreferences] = useState(false);
@@ -120,13 +122,20 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 
   // Lade gespeicherten Wochenplan (useCallback für stabile Referenz)
   const loadPlan = useCallback(async () => {
+    if (isAutoPlanning) {
+      console.log('[WEEK-PLANNER] ⏸️ Lade übersprungen - Auto-Planning läuft');
+      return;
+    }
+
+    setIsLoadingPlan(true);
     const weekStartStr = currentWeek.toISOString().split('T')[0];
     console.log('[WEEK-PLANNER] 🔄 Lade Wochenplan für:', weekStartStr);
     
-    const savedPlan = await getWeeklyPlan(currentWeek);
-    console.log('[WEEK-PLANNER] 📦 Geladener Plan:', savedPlan ? 'gefunden' : 'nicht gefunden');
-    
-    if (savedPlan && savedPlan.planData) {
+    try {
+      const savedPlan = await getWeeklyPlan(currentWeek);
+      console.log('[WEEK-PLANNER] 📦 Geladener Plan:', savedPlan ? 'gefunden' : 'nicht gefunden');
+      
+      if (savedPlan && savedPlan.planData) {
       // Transformiere Plan-Format: Verwende Rezepte direkt aus Plan oder suche in myRecipes
       const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
       
@@ -171,28 +180,46 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         }
       });
       
-      console.log('[WEEK-PLANNER] ✅ Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
-      setWeekPlan(transformedPlan);
-    } else {
-      console.log('[WEEK-PLANNER] ℹ️ Kein Plan gefunden, setze leeren Plan');
-      setWeekPlan({});
+        console.log('[WEEK-PLANNER] ✅ Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
+        setWeekPlan(transformedPlan);
+      } else {
+        console.log('[WEEK-PLANNER] ℹ️ Kein Plan gefunden, setze leeren Plan');
+        setWeekPlan({});
+      }
+    } catch (error) {
+      console.error('[WEEK-PLANNER] ❌ Fehler beim Laden:', error);
+    } finally {
+      setIsLoadingPlan(false);
     }
-  }, [currentWeek, myRecipes]);
+  }, [currentWeek, myRecipes, isAutoPlanning]);
 
   useEffect(() => {
-    loadPlan();
-  }, [currentWeek, myRecipes]);
+    // Überspringe Laden wenn Flag gesetzt ist (z.B. nach Auto-Planning)
+    if (skipNextLoad) {
+      console.log('[WEEK-PLANNER] ⏸️ Lade übersprungen - skipNextLoad Flag');
+      setSkipNextLoad(false);
+      return;
+    }
+    
+    // Nur laden wenn nicht gerade Auto-Planning läuft
+    if (!isAutoPlanning && !isLoadingPlan) {
+      loadPlan();
+    }
+  }, [currentWeek, myRecipes, isAutoPlanning, isLoadingPlan, skipNextLoad, loadPlan]);
 
   // Lade Plan auch wenn Component fokussiert wird (Tab-Wechsel)
   useEffect(() => {
     const handleFocus = () => {
-      console.log('[WEEK-PLANNER] 🔄 Tab fokussiert, lade Plan neu...');
-      loadPlan();
+      // Nur laden wenn nicht gerade Auto-Planning läuft
+      if (!isAutoPlanning && !isLoadingPlan) {
+        console.log('[WEEK-PLANNER] 🔄 Tab fokussiert, lade Plan neu...');
+        loadPlan();
+      }
     };
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [currentWeek, myRecipes]);
+  }, [isAutoPlanning, isLoadingPlan, loadPlan]);
 
   // Berechne Wochentage
   const weekDays = useMemo(() => {
@@ -333,7 +360,10 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           }
           });
           
-          console.log('[WEEK-PLANNER] Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
+          console.log('[WEEK-PLANNER] ✅ Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
+          
+          // Setze Flag, damit loadPlan nicht sofort den Plan überschreibt
+          setSkipNextLoad(true);
           setWeekPlan(transformedPlan);
           
           // Reload trial count
@@ -341,6 +371,14 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
             const trial = await getAutoPlanTrialCount();
             setTrialCount(trial);
           }
+          
+          // WICHTIG: Plan wurde bereits in DB gespeichert von autoPlanWeek
+          // Lade Plan nach kurzer Verzögerung neu, um sicherzustellen dass alles synchron ist
+          setTimeout(async () => {
+            console.log('[WEEK-PLANNER] 🔄 Lade Plan nach Auto-Planning neu...');
+            setSkipNextLoad(false);
+            await loadPlan();
+          }, 2000);
         } else {
           console.warn('[WEEK-PLANNER] ⚠️ Plan ist leer');
         }
