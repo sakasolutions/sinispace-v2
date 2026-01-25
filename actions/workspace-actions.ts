@@ -301,6 +301,28 @@ export async function saveResult(
   }
 }
 
+// Einzelnes Result nach ID abrufen
+export async function getResultById(resultId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  try {
+    const result = await prisma.result.findFirst({
+      where: {
+        id: resultId,
+        userId: session.user.id,
+      },
+    });
+
+    return result;
+  } catch (error) {
+    console.error('[WORKSPACE] Error fetching result by ID:', error);
+    return null;
+  }
+}
+
 // Recent Results eines Workspaces abrufen
 export async function getWorkspaceResults(workspaceId: string, limit: number = 6) {
   const session = await auth();

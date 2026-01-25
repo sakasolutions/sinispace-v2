@@ -130,6 +130,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     setIsLoadingPlan(true);
     const weekStartStr = currentWeek.toISOString().split('T')[0];
     console.log('[WEEK-PLANNER] 🔄 Lade Wochenplan für:', weekStartStr);
+    console.log('[WEEK-PLANNER] 📊 myRecipes beim Laden:', myRecipes.length, 'Rezepte');
     
     try {
       const savedPlan = await getWeeklyPlan(currentWeek);
@@ -147,17 +148,25 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       };
       const planData = savedPlan.planData as Record<string, PlanEntry>;
       console.log('[WEEK-PLANNER] 📋 Plan-Daten:', Object.keys(planData).length, 'Tage');
-      console.log('[WEEK-PLANNER] 📋 Plan-Daten Details:', JSON.stringify(planData, null, 2));
+      console.log('[WEEK-PLANNER] 📋 Plan-Daten Details (erste 500 Zeichen):', JSON.stringify(planData).substring(0, 500));
+      
+      // Prüfe ob planData ein Objekt ist
+      if (!planData || typeof planData !== 'object') {
+        console.error('[WEEK-PLANNER] ❌ planData ist kein Objekt:', typeof planData, planData);
+        setWeekPlan({});
+        return;
+      }
       
       Object.entries(planData).forEach(([dateKey, planEntry]) => {
         console.log(`[WEEK-PLANNER] 🔍 Verarbeite ${dateKey}:`, {
           hasRecipe: !!planEntry.recipe,
           resultId: planEntry.resultId,
-          feedback: planEntry.feedback
+          feedback: planEntry.feedback,
+          planEntryKeys: Object.keys(planEntry)
         });
         
         // Prüfe ob Rezept direkt im PlanEntry enthalten ist (temporäre Rezepte)
-        if (planEntry.recipe) {
+        if (planEntry.recipe && typeof planEntry.recipe === 'object' && planEntry.recipe.recipeName) {
           console.log(`[WEEK-PLANNER] ✅ Rezept direkt im Plan für ${dateKey}:`, planEntry.recipe.recipeName);
           transformedPlan[dateKey] = {
             recipe: planEntry.recipe as Recipe,
@@ -166,9 +175,10 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           };
         } else {
           // Fallback: Suche in myRecipes
+          console.log(`[WEEK-PLANNER] 🔍 Suche Rezept in myRecipes (${myRecipes.length} Rezepte) für resultId: ${planEntry.resultId}`);
           const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
           if (recipeResult) {
-            console.log(`[WEEK-PLANNER] ✅ Rezept in myRecipes gefunden für ${dateKey}`);
+            console.log(`[WEEK-PLANNER] ✅ Rezept in myRecipes gefunden für ${dateKey}:`, recipeResult.recipe.recipeName);
             transformedPlan[dateKey] = {
               recipe: recipeResult.recipe,
               resultId: planEntry.resultId,
@@ -176,6 +186,31 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
             };
           } else {
             console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für ${dateKey}, resultId: ${planEntry.resultId}, myRecipes: ${myRecipes.length}`);
+            console.warn(`[WEEK-PLANNER] ⚠️ Verfügbare resultIds in myRecipes:`, myRecipes.map(r => r.id));
+            console.warn(`[WEEK-PLANNER] ⚠️ PlanEntry vollständig:`, JSON.stringify(planEntry, null, 2));
+            
+            // Versuche Rezept direkt aus der DB zu laden über Server Action
+            try {
+              const { getResultById } = await import('@/actions/workspace-actions');
+              const resultData = await getResultById(planEntry.resultId);
+              if (resultData && resultData.content) {
+                try {
+                  const recipeContent = JSON.parse(resultData.content);
+                  console.log(`[WEEK-PLANNER] ✅ Rezept aus DB geladen für ${dateKey}:`, recipeContent.recipeName);
+                  transformedPlan[dateKey] = {
+                    recipe: recipeContent as Recipe,
+                    resultId: planEntry.resultId,
+                    feedback: planEntry.feedback || null,
+                  };
+                } catch (parseError) {
+                  console.error(`[WEEK-PLANNER] ❌ Fehler beim Parsen des Rezepts:`, parseError);
+                }
+              } else {
+                console.error(`[WEEK-PLANNER] ❌ Rezept nicht in DB gefunden für resultId: ${planEntry.resultId}`);
+              }
+            } catch (error) {
+              console.error(`[WEEK-PLANNER] ❌ Fehler beim Laden aus DB:`, error);
+            }
           }
         }
       });
@@ -201,11 +236,15 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       return;
     }
     
-    // Nur laden wenn nicht gerade Auto-Planning läuft
-    if (!isAutoPlanning && !isLoadingPlan) {
+    // Nur laden wenn nicht gerade Auto-Planning läuft UND wenn weekPlan leer ist
+    // Wenn weekPlan bereits Daten hat, nicht überschreiben (verhindert Flackern)
+    if (!isAutoPlanning && !isLoadingPlan && Object.keys(weekPlan).length === 0) {
+      console.log('[WEEK-PLANNER] 🔄 Lade Plan (weekPlan ist leer)');
       loadPlan();
+    } else if (!isAutoPlanning && !isLoadingPlan && Object.keys(weekPlan).length > 0) {
+      console.log('[WEEK-PLANNER] ⏸️ Lade übersprungen - weekPlan hat bereits Daten');
     }
-  }, [currentWeek, myRecipes, isAutoPlanning, isLoadingPlan, skipNextLoad, loadPlan]);
+  }, [currentWeek, myRecipes, isAutoPlanning, isLoadingPlan, skipNextLoad, loadPlan, weekPlan]);
 
   // Lade Plan auch wenn Component fokussiert wird (Tab-Wechsel)
   useEffect(() => {
@@ -373,12 +412,12 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           }
           
           // WICHTIG: Plan wurde bereits in DB gespeichert von autoPlanWeek
-          // Lade Plan nach kurzer Verzögerung neu, um sicherzustellen dass alles synchron ist
-          setTimeout(async () => {
-            console.log('[WEEK-PLANNER] 🔄 Lade Plan nach Auto-Planning neu...');
+          // Setze skipNextLoad zurück, damit Plan beim nächsten Tab-Wechsel geladen wird
+          // ABER: Überschreibe nicht den gerade gesetzten Plan
+          setTimeout(() => {
+            console.log('[WEEK-PLANNER] ✅ Plan gesetzt, skipNextLoad wird zurückgesetzt');
             setSkipNextLoad(false);
-            await loadPlan();
-          }, 2000);
+          }, 3000);
         } else {
           console.warn('[WEEK-PLANNER] ⚠️ Plan ist leer');
         }
