@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { DashboardGreetingClient } from '@/components/platform/dashboard-greeting-client';
 import { triggerHaptic } from '@/lib/haptic-feedback';
+import { WorkspaceSwitcherModal } from '@/components/platform/workspace-switcher-modal';
+import { getWorkspaceResults } from '@/actions/workspace-actions';
 import {
   Mail,
   Languages,
@@ -22,6 +24,7 @@ import {
   Share2,
   ArrowUpRight,
   Search,
+  ArrowRight,
 } from 'lucide-react';
 
 type Tool = {
@@ -198,6 +201,21 @@ const quickAccessTools = [
   { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'violet', href: '/actions/legal' },
 ];
 
+const toolIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  email: Mail,
+  invoice: FileText,
+  legal: Scale,
+  excel: Table2,
+  recipe: ChefHat,
+  fitness: Dumbbell,
+  travel: Plane,
+  polish: Sparkles,
+  translate: Languages,
+  'tough-msg': MessageCircleHeart,
+  'job-desc': FileText,
+  summarize: FileText,
+};
+
 const colorMap: Record<string, { bg: string; border: string; hoverBorder: string; hoverShadow: string }> = {
   blue: { bg: 'bg-blue-950/30', border: 'border-blue-500/10', hoverBorder: 'hover:border-blue-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(59,130,246,0.4)]' },
   indigo: { bg: 'bg-indigo-950/30', border: 'border-indigo-500/10', hoverBorder: 'hover:border-indigo-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.4)]' },
@@ -227,13 +245,72 @@ const glowColorMap: Record<string, string> = {
   pink: 'bg-pink-500',
 };
 
-export default function DashboardClient() {
+type Workspace = {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+};
+
+type Result = {
+  id: string;
+  toolId: string;
+  toolName: string;
+  title: string | null;
+  content: string;
+  createdAt: Date;
+};
+
+interface DashboardClientProps {
+  workspaces?: Workspace[];
+  currentWorkspaceId?: string | null;
+}
+
+export default function DashboardClient({ workspaces = [], currentWorkspaceId }: DashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<(typeof categoryTabs)[number]>('Alle');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
+  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(
+    workspaces.find(w => w.id === currentWorkspaceId) || workspaces[0] || null
+  );
+  const [recentResults, setRecentResults] = useState<Result[]>([]);
   const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Lade aktuellen Workspace aus localStorage und Results
+  useEffect(() => {
+    const saved = localStorage.getItem('currentWorkspaceId');
+    if (saved && workspaces.length > 0) {
+      const found = workspaces.find(w => w.id === saved);
+      if (found) {
+        setCurrentWorkspace(found);
+        loadRecentResults(found.id);
+      }
+    } else if (workspaces.length > 0 && currentWorkspace) {
+      loadRecentResults(currentWorkspace.id);
+    }
+  }, [workspaces]);
+
+  // Lade Recent Results für aktuellen Workspace
+  const loadRecentResults = async (workspaceId: string) => {
+    try {
+      const result = await getWorkspaceResults(workspaceId, 6);
+      if (result.success && result.results) {
+        setRecentResults(result.results);
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Results:', error);
+    }
+  };
+
+  // Lade Results neu wenn Workspace wechselt
+  useEffect(() => {
+    if (currentWorkspace) {
+      loadRecentResults(currentWorkspace.id);
+    }
+  }, [currentWorkspace]);
 
   // Pull-to-Refresh Handler
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -342,7 +419,82 @@ export default function DashboardClient() {
       )}
 
       {/* Header mit Background Glow */}
-      <DashboardGreetingClient />
+      <DashboardGreetingClient 
+        currentWorkspace={currentWorkspace}
+        onWorkspaceClick={() => setIsWorkspaceModalOpen(true)}
+      />
+
+      {/* Workspace Switcher Modal */}
+      <WorkspaceSwitcherModal
+        isOpen={isWorkspaceModalOpen}
+        onClose={() => setIsWorkspaceModalOpen(false)}
+        currentWorkspaceId={currentWorkspace?.id || null}
+        onWorkspaceSelect={async (workspaceId) => {
+          const found = workspaces.find(w => w.id === workspaceId);
+          if (found) {
+            setCurrentWorkspace(found);
+            localStorage.setItem('currentWorkspaceId', workspaceId);
+            // Lade Results für neuen Workspace
+            await loadRecentResults(workspaceId);
+          }
+        }}
+      />
+
+      {/* Recent Results Section (nur Mobile, nur wenn Results vorhanden) */}
+      {recentResults.length > 0 && currentWorkspace && (
+        <div className="mb-6 md:hidden">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-white">Letzte Ergebnisse</h2>
+            <Link
+              href={`/workspace/${currentWorkspace.id}`}
+              className="text-sm text-zinc-400 hover:text-white transition-colors"
+            >
+              Alle anzeigen
+            </Link>
+          </div>
+          <div className="overflow-x-auto scrollbar-hide pb-2">
+            <div className="flex gap-3 min-w-max">
+              {recentResults.slice(0, 6).map((result) => {
+                const ToolIcon = toolIconMap[result.toolId] || FileText;
+                let preview = '';
+                try {
+                  const parsed = JSON.parse(result.content);
+                  preview = parsed.title || parsed.tripTitle || parsed.recipeName || result.title || 'Ergebnis';
+                } catch {
+                  preview = result.title || result.content.substring(0, 30) + '...';
+                }
+
+                return (
+                  <Link
+                    key={result.id}
+                    href={`/workspace/${currentWorkspace.id}/result/${result.id}`}
+                    className="shrink-0 w-[200px] rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 hover:border-white/20 transition-colors"
+                  >
+                    <div className="flex items-start gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center flex-shrink-0">
+                        <ToolIcon className="w-4 h-4 text-zinc-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-xs font-medium text-white truncate">{result.toolName}</h3>
+                        {result.title && (
+                          <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{result.title}</p>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-xs text-zinc-400 line-clamp-2 mb-2">{preview}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] text-zinc-600">
+                        {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}
+                      </p>
+                      <ArrowRight className="w-3 h-3 text-zinc-500" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search Bar mit Glass-Effekt */}
       <div className="mb-4 sm:mb-6">

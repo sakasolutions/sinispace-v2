@@ -60,9 +60,33 @@ export async function getChats() {
     });
 
     // Chats abrufen - NUR für den aktuellen User
+    // WICHTIG: Filtere Helper-Chats (Tool-Results) heraus - SiniChat zeigt nur echte Konversationen
+    const helperChatTitles = [
+      'E-Mail generiert',
+      'Excel Formel generiert',
+      'Text zusammengefasst',
+      'Text übersetzt',
+      'Text aufpoliert',
+      'Schwierige Nachricht formuliert',
+      'Rechtstext erstellt',
+      'Stellenanzeige erstellt',
+      'Rezept generiert',
+      'Chat-Antworten generiert',
+      'Trainingsplan erstellt',
+      'Reiseplan erstellt',
+    ];
+
     const chats = await prisma.chat.findMany({
       where: {
         userId: session.user.id, // WICHTIG: User-Bindung
+        // Filtere Helper-Chats heraus (Titel beginnt mit einem der Helper-Titel)
+        NOT: {
+          OR: helperChatTitles.map(title => ({
+            title: {
+              startsWith: title,
+            },
+          })),
+        },
       },
       orderBy: {
         updatedAt: 'desc', // Neueste zuerst

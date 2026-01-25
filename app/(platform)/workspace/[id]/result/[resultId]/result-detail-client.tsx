@@ -47,6 +47,7 @@ interface ResultDetailClientProps {
 
 export function ResultDetailClient({ workspace, result }: ResultDetailClientProps) {
   const router = useRouter();
+  const [isExpanded, setIsExpanded] = useState(false);
   const ToolIcon = toolIconMap[result.toolId] || FileText;
 
   // Parse Content je nach Tool-Typ
@@ -369,14 +370,54 @@ export function ResultDetailClient({ workspace, result }: ResultDetailClientProp
           <span className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
             Ergebnis
           </span>
-          <CopyButton 
-            text={isJSON ? JSON.stringify(displayContent, null, 2) : result.content} 
-            size="sm" 
-          />
+          <div className="flex items-center gap-2">
+            <CopyButton 
+              text={isJSON ? JSON.stringify(displayContent, null, 2) : result.content} 
+              size="sm" 
+            />
+            {/* Weiter bearbeiten Button für Smart Chain Workflows */}
+            <Link
+              href={`/chat?resultId=${result.id}`}
+              className="px-3 py-1.5 rounded-md bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30 text-xs font-medium transition-colors"
+            >
+              Weiter bearbeiten
+            </Link>
+          </div>
         </div>
 
         <div className="min-h-[200px]">
-          {renderContent()}
+          {!isExpanded ? (
+            <div>
+              <div className="line-clamp-3 text-white text-sm">
+                {isJSON ? (
+                  <pre className="whitespace-pre-wrap break-words font-mono">
+                    {JSON.stringify(displayContent, null, 2).split('\n').slice(0, 3).join('\n')}
+                    {JSON.stringify(displayContent, null, 2).split('\n').length > 3 && '...'}
+                  </pre>
+                ) : (
+                  <div className="prose prose-sm max-w-none text-white prose-invert">
+                    <MarkdownRenderer content={result.content.split('\n').slice(0, 3).join('\n') + (result.content.split('\n').length > 3 ? '\n...' : '')} />
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setIsExpanded(true)}
+                className="mt-3 text-sm text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+              >
+                Vollständig anzeigen <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <div>
+              {renderContent()}
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="mt-4 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Weniger anzeigen ↑
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
