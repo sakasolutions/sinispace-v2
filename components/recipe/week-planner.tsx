@@ -137,62 +137,62 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       console.log('[WEEK-PLANNER] 📦 Geladener Plan:', savedPlan ? 'gefunden' : 'nicht gefunden');
       
       if (savedPlan && savedPlan.planData) {
-      // Transformiere Plan-Format: Verwende Rezepte direkt aus Plan oder suche in myRecipes
-      const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
-      
-      type PlanEntry = { 
-        recipeId: string; 
-        resultId: string; 
-        feedback: 'positive' | 'negative' | null;
-        recipe?: any; // Temporäre Rezepte haben recipe direkt im PlanEntry
-      };
-      const planData = savedPlan.planData as Record<string, PlanEntry>;
-      console.log('[WEEK-PLANNER] 📋 Plan-Daten:', Object.keys(planData).length, 'Tage');
-      console.log('[WEEK-PLANNER] 📋 Plan-Daten Details (erste 500 Zeichen):', JSON.stringify(planData).substring(0, 500));
-      
-      // Prüfe ob planData ein Objekt ist
-      if (!planData || typeof planData !== 'object') {
-        console.error('[WEEK-PLANNER] ❌ planData ist kein Objekt:', typeof planData, planData);
-        setWeekPlan({});
-        return;
-      }
-      
-      // Verwende for...of statt forEach für async/await Support
-      for (const [dateKey, planEntry] of Object.entries(planData)) {
-        console.log(`[WEEK-PLANNER] 🔍 Verarbeite ${dateKey}:`, {
-          hasRecipe: !!planEntry.recipe,
-          resultId: planEntry.resultId,
-          feedback: planEntry.feedback,
-          planEntryKeys: Object.keys(planEntry)
-        });
+        // Transformiere Plan-Format: Verwende Rezepte direkt aus Plan oder suche in myRecipes
+        const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
         
-        // Prüfe ob Rezept direkt im PlanEntry enthalten ist (temporäre Rezepte)
-        if (planEntry.recipe && typeof planEntry.recipe === 'object' && planEntry.recipe.recipeName) {
-          console.log(`[WEEK-PLANNER] ✅ Rezept direkt im Plan für ${dateKey}:`, planEntry.recipe.recipeName);
-          transformedPlan[dateKey] = {
-            recipe: planEntry.recipe as Recipe,
+        type PlanEntry = { 
+          recipeId: string; 
+          resultId: string; 
+          feedback: 'positive' | 'negative' | null;
+          recipe?: any; // Temporäre Rezepte haben recipe direkt im PlanEntry
+        };
+        const planData = savedPlan.planData as Record<string, PlanEntry>;
+        console.log('[WEEK-PLANNER] 📋 Plan-Daten:', Object.keys(planData).length, 'Tage');
+        console.log('[WEEK-PLANNER] 📋 Plan-Daten Details (erste 500 Zeichen):', JSON.stringify(planData).substring(0, 500));
+        
+        // Prüfe ob planData ein Objekt ist
+        if (!planData || typeof planData !== 'object') {
+          console.error('[WEEK-PLANNER] ❌ planData ist kein Objekt:', typeof planData, planData);
+          setWeekPlan({});
+          return;
+        }
+        
+        // Verwende for...of statt forEach für async/await Support
+        for (const [dateKey, planEntry] of Object.entries(planData)) {
+          console.log(`[WEEK-PLANNER] 🔍 Verarbeite ${dateKey}:`, {
+            hasRecipe: !!planEntry.recipe,
             resultId: planEntry.resultId,
-            feedback: planEntry.feedback || null,
-          };
-        } else {
-          // Fallback: Suche in myRecipes
-          console.log(`[WEEK-PLANNER] 🔍 Suche Rezept in myRecipes (${myRecipes.length} Rezepte) für resultId: ${planEntry.resultId}`);
-          const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
-          if (recipeResult) {
-            console.log(`[WEEK-PLANNER] ✅ Rezept in myRecipes gefunden für ${dateKey}:`, recipeResult.recipe.recipeName);
+            feedback: planEntry.feedback,
+            planEntryKeys: Object.keys(planEntry)
+          });
+          
+          // Prüfe ob Rezept direkt im PlanEntry enthalten ist (temporäre Rezepte)
+          if (planEntry.recipe && typeof planEntry.recipe === 'object' && planEntry.recipe.recipeName) {
+            console.log(`[WEEK-PLANNER] ✅ Rezept direkt im Plan für ${dateKey}:`, planEntry.recipe.recipeName);
             transformedPlan[dateKey] = {
-              recipe: recipeResult.recipe,
+              recipe: planEntry.recipe as Recipe,
               resultId: planEntry.resultId,
               feedback: planEntry.feedback || null,
             };
           } else {
-            // Rezept nicht gefunden - überspringe diesen Tag
-            // TODO: Später wieder hinzufügen mit getResultById Fallback
-            console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für ${dateKey}, resultId: ${planEntry.resultId}`);
+            // Fallback: Suche in myRecipes
+            console.log(`[WEEK-PLANNER] 🔍 Suche Rezept in myRecipes (${myRecipes.length} Rezepte) für resultId: ${planEntry.resultId}`);
+            const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
+            if (recipeResult) {
+              console.log(`[WEEK-PLANNER] ✅ Rezept in myRecipes gefunden für ${dateKey}:`, recipeResult.recipe.recipeName);
+              transformedPlan[dateKey] = {
+                recipe: recipeResult.recipe,
+                resultId: planEntry.resultId,
+                feedback: planEntry.feedback || null,
+              };
+            } else {
+              // Rezept nicht gefunden - überspringe diesen Tag
+              // TODO: Später wieder hinzufügen mit getResultById Fallback
+              console.warn(`[WEEK-PLANNER] ⚠️ Rezept nicht gefunden für ${dateKey}, resultId: ${planEntry.resultId}`);
+            }
           }
         }
-      }
-      
+        
         console.log('[WEEK-PLANNER] ✅ Transformierter Plan:', Object.keys(transformedPlan).length, 'Tage');
         setWeekPlan(transformedPlan);
       } else {
