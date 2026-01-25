@@ -453,22 +453,25 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                         <ThumbsUp className="w-3 h-3 inline mr-1" />
                         👍
                       </button>
-                      {day.recipe && (
-                        <button
-                          onClick={() => {
-                            setAlternativeModal({
-                              day: day.dayName,
-                              dateKey: day.dateKey,
-                              recipe: day.recipe.recipe,
-                            });
-                          }}
-                          className="flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-red-400"
-                          title="Gefällt mir nicht - Alternative generieren"
-                        >
-                          <ThumbsDown className="w-3 h-3 inline mr-1" />
-                          😕 Alternative
-                        </button>
-                      )}
+                      {day.recipe && (() => {
+                        const currentRecipe = day.recipe.recipe;
+                        return (
+                          <button
+                            onClick={() => {
+                              setAlternativeModal({
+                                day: day.dayName,
+                                dateKey: day.dateKey,
+                                recipe: currentRecipe,
+                              });
+                            }}
+                            className="flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-red-400"
+                            title="Gefällt mir nicht - Alternative generieren"
+                          >
+                            <ThumbsDown className="w-3 h-3 inline mr-1" />
+                            😕 Alternative
+                          </button>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
