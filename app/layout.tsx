@@ -42,7 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de" className="bg-zinc-950 text-zinc-50 overscroll-y-none">
-      <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} min-h-[100dvh] antialiased relative overscroll-y-none bg-zinc-950 text-zinc-50`} style={{ WebkitTapHighlightColor: 'transparent' }}>
+      <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} min-h-[100dvh] bg-zinc-950 text-zinc-50 antialiased relative overscroll-y-none`} style={{ WebkitTapHighlightColor: 'transparent' }}>
         {/* Cinematic Background Stack - Theme-aware */}
         
         {/* Layer 3: Top Light (Ambient Glow) - Tiefe von oben */}

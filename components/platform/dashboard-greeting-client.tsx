@@ -87,7 +87,7 @@ export function DashboardGreetingClient({ currentWorkspace, onWorkspaceClick }: 
       <div className="relative">
         <div className="flex items-center justify-between gap-4 mb-2">
           <h1
-            className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white tracking-tight"
+            className="text-3xl sm:text-4xl font-bold text-white tracking-tight"
             style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
           >
             {greeting}{displayName ? `, ${displayName}` : ''} 👋
@@ -99,20 +99,20 @@ export function DashboardGreetingClient({ currentWorkspace, onWorkspaceClick }: 
           <div className="md:hidden mt-3">
             <button
               onClick={onWorkspaceClick}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-white/10 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
             >
               {IconComponent && (
                 <div className={`w-5 h-5 rounded-md flex items-center justify-center ${colors.bg}`}>
                   <IconComponent className={`w-3 h-3 ${colors.text}`} />
                 </div>
               )}
-              <span className="text-sm text-zinc-700 dark:text-zinc-300 font-medium">{currentWorkspace.name}</span>
-              <ChevronDown className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+              <span className="text-sm text-zinc-300 font-medium">{currentWorkspace.name}</span>
+              <ChevronDown className="w-4 h-4 text-zinc-400" />
             </button>
           </div>
         )}
         
-        <p className="text-sm sm:text-base md:text-lg text-zinc-600 dark:text-zinc-400 mt-2 sm:mt-3 tracking-wide">
+        <p className="text-sm sm:text-base md:text-lg text-zinc-400 mt-2 sm:mt-3 tracking-wide">
           Dein Business läuft. Was optimieren wir jetzt?
         </p>
       </div>

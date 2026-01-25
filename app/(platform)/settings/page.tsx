@@ -40,29 +40,29 @@ export default async function SettingsPage({
 
       {/* STATUS MELDUNGEN */}
       {params.success && (
-        <div className="mb-6 rounded-xl border border-green-500/30 bg-green-50 dark:bg-green-500/10 backdrop-blur-xl p-4 text-green-700 dark:text-green-400 shadow-lg dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-colors duration-200">
+        <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 backdrop-blur-xl p-4 text-green-400 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
           <strong>Erfolg!</strong> Dein Account wird in Kürze freigeschaltet.
         </div>
       )}
       {params.canceled && (
-        <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/10 backdrop-blur-xl p-4 text-yellow-700 dark:text-yellow-400 shadow-lg dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-colors duration-200">
+        <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 backdrop-blur-xl p-4 text-yellow-400 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
           Der Kaufvorgang wurde abgebrochen.
         </div>
       )}
 
       {/* NEU: ACCOUNT INFO (Damit du weißt, wer du bist) */}
-      <div className="mb-4 sm:mb-6 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-gradient-to-b dark:from-zinc-800/30 dark:to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-lg dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-colors duration-200">
-         <h2 className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-white mb-3 sm:mb-4">Mein Profil</h2>
+      <div className="mb-4 sm:mb-6 rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+         <h2 className="text-sm sm:text-base font-semibold text-white mb-3 sm:mb-4">Mein Profil</h2>
          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-zinc-100 dark:bg-zinc-800/50 flex items-center justify-center text-lg sm:text-xl border border-zinc-200 dark:border-white/10 shrink-0">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-zinc-800/50 flex items-center justify-center text-lg sm:text-xl border border-white/10 shrink-0">
                👤
             </div>
             <div className="min-w-0 flex-1">
-               <p className="text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-400">Nutzernamen:</p>
-               <p className="text-zinc-900 dark:text-white text-sm sm:text-base font-semibold truncate">{user?.name || userEmail}</p>
-               <p className="text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-400 mt-1">E-Mail:</p>
-               <p className="text-zinc-900 dark:text-white font-mono text-xs sm:text-sm truncate">{userEmail}</p>
-               <p className="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-500 mt-0.5 sm:mt-1 truncate">ID: {userId}</p>
+               <p className="text-xs sm:text-sm font-medium text-zinc-400">Nutzernamen:</p>
+               <p className="text-white text-sm sm:text-base font-semibold truncate">{user?.name || userEmail}</p>
+               <p className="text-xs sm:text-sm font-medium text-zinc-400 mt-1">E-Mail:</p>
+               <p className="text-white font-mono text-xs sm:text-sm truncate">{userEmail}</p>
+               <p className="text-[10px] sm:text-xs text-zinc-500 mt-0.5 sm:mt-1 truncate">ID: {userId}</p>
             </div>
          </div>
       </div>
@@ -71,17 +71,17 @@ export default async function SettingsPage({
       <ChangeName />
 
       {/* SUBSCRIPTION STATUS CARD */}
-      <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-gradient-to-b dark:from-zinc-800/30 dark:to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-lg dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-colors duration-200">
-        <h2 className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-white">Mein Tarif</h2>
+      <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <h2 className="text-sm sm:text-base font-semibold text-white">Mein Tarif</h2>
         
         <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
-            <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">Aktueller Status:</p>
-            <p className={`text-base sm:text-lg font-bold ${isPro ? 'text-green-600 dark:text-green-400' : 'text-zinc-900 dark:text-white'}`}>
+            <p className="text-xs sm:text-sm text-zinc-400">Aktueller Status:</p>
+            <p className={`text-base sm:text-lg font-bold ${isPro ? 'text-green-400' : 'text-white'}`}>
               {isPro ? 'Premium Aktiv' : 'Kostenloser Account'}
             </p>
             {isPro && user?.subscriptionEnd && (
-              <p className="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+              <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">
                 Läuft automatisch ab am: {user.subscriptionEnd.toLocaleDateString()}
               </p>
             )}
@@ -111,9 +111,9 @@ export default async function SettingsPage({
       )}
 
       {/* LOGOUT */}
-      <div className="mt-4 sm:mt-6 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-gradient-to-b dark:from-zinc-800/30 dark:to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-lg dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-colors duration-200">
-        <h2 className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-white mb-3 sm:mb-4">Abmelden</h2>
-        <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+      <div className="mt-4 sm:mt-6 rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <h2 className="text-sm sm:text-base font-semibold text-white mb-3 sm:mb-4">Abmelden</h2>
+        <p className="text-xs sm:text-sm text-zinc-400 mb-4">
           Melde dich von deinem Account ab. Deine aktive Session wird beendet.
         </p>
         <form action={signOutAction}>
