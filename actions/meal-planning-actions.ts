@@ -121,20 +121,26 @@ export async function autoPlanWeek(weekStart: Date, workspaceId?: string) {
     }
 
     // Parse Rezepte
-    const parsedRecipes = recipes.map(r => {
-      try {
-        const recipe = JSON.parse(r.content);
-        return {
-          id: r.id,
-          name: recipe.recipeName || 'Rezept',
-          ingredients: recipe.ingredients || [],
-          stats: recipe.stats || {},
-          shoppingList: recipe.shoppingList || [],
-        };
-      } catch {
-        return null;
-      }
-    }).filter(Boolean);
+    const parsedRecipes = recipes
+      .map(r => {
+        try {
+          const recipe = JSON.parse(r.content);
+          return {
+            id: r.id,
+            name: recipe.recipeName || 'Rezept',
+            ingredients: recipe.ingredients || [],
+            stats: recipe.stats || {},
+            shoppingList: recipe.shoppingList || [],
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null);
+
+    if (parsedRecipes.length === 0) {
+      return { error: 'Keine gültigen Rezepte gefunden. Erstelle zuerst einige Rezepte!' };
+    }
 
     // AI-Prompt für Wochenplanung
     const preferencesText = preferences ? `
