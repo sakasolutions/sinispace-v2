@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, ArrowRight } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { PremiumOnboardingModal } from './premium-onboarding-modal';
+import { AlternativeRecipesModal } from './alternative-recipes-modal';
 import { 
   autoPlanWeek, 
   getWeeklyPlan, 
@@ -12,6 +13,7 @@ import {
   getPremiumStatus,
   getMealPreferences
 } from '@/actions/meal-planning-actions';
+import { saveResult } from '@/actions/workspace-actions';
 import { useRouter } from 'next/navigation';
 
 type Recipe = {
@@ -63,8 +65,10 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   const [isPremium, setIsPremium] = useState(initialIsPremium || false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isAutoPlanning, setIsAutoPlanning] = useState(false);
+  const [planningProgress, setPlanningProgress] = useState<{ current: number; total: number } | null>(null);
   const [trialCount, setTrialCount] = useState({ count: 0, remaining: 0 });
   const [hasPreferences, setHasPreferences] = useState(false);
+  const [alternativeModal, setAlternativeModal] = useState<{ day: string; dateKey: string; recipe: any } | null>(null);
 
   // Lade Premium-Status und Trial-Count
   useEffect(() => {
@@ -188,9 +192,17 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     }
 
     setIsAutoPlanning(true);
+    setPlanningProgress({ current: 0, total: 7 });
     try {
       console.log('[WEEK-PLANNER] Rufe autoPlanWeek auf...');
+      // Simuliere Progress (wird von Server-Seite aktualisiert)
+      const progressInterval = setInterval(() => {
+        setPlanningProgress(prev => prev ? { ...prev, current: Math.min(prev.current + 1, prev.total) } : null);
+      }, 2000);
+      
       const result = await autoPlanWeek(currentWeek, workspaceId);
+      clearInterval(progressInterval);
+      setPlanningProgress(null);
       console.log('[WEEK-PLANNER] Auto-Plan Result:', result);
       
       if (result.error === 'PREMIUM_REQUIRED') {
@@ -354,7 +366,11 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           {isAutoPlanning ? (
             <>
               <RefreshCw className="w-5 h-5 animate-spin" />
-              Plane Woche...
+              {planningProgress ? (
+                <span>Generiere Rezepte... {planningProgress.current}/{planningProgress.total}</span>
+              ) : (
+                <span>Plane Woche...</span>
+              )}
             </>
           ) : !canAutoPlan ? (
             <>
@@ -436,16 +452,18 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                         👍
                       </button>
                       <button
-                        onClick={() => handleFeedback(day.dateKey, 'negative')}
-                        className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                          day.recipe.feedback === 'negative'
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                        }`}
-                        title="Gefällt mir nicht"
+                        onClick={() => {
+                          setAlternativeModal({
+                            day: day.dayName,
+                            dateKey: day.dateKey,
+                            recipe: day.recipe.recipe,
+                          });
+                        }}
+                        className="flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-red-400"
+                        title="Gefällt mir nicht - Alternative generieren"
                       >
                         <ThumbsDown className="w-3 h-3 inline mr-1" />
-                        👎
+                        😕 Alternative
                       </button>
                     </div>
                   )}
@@ -514,6 +532,43 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           }, 100);
         }}
       />
+
+      {/* Alternative Recipes Modal */}
+      {alternativeModal && (
+        <AlternativeRecipesModal
+          isOpen={!!alternativeModal}
+          onClose={() => setAlternativeModal(null)}
+          onSelect={async (recipe, resultId) => {
+            // Speichere neues Rezept
+            if (!resultId) {
+              const saved = await saveResult(
+                'recipe',
+                'Gourmet-Planer',
+                JSON.stringify(recipe),
+                workspaceId,
+                recipe.recipeName,
+                JSON.stringify({ source: 'week-planning-alternative', day: alternativeModal.day })
+              );
+              resultId = saved.id;
+            }
+
+            // Ersetze Rezept im Plan
+            setWeekPlan(prev => ({
+              ...prev,
+              [alternativeModal.dateKey]: {
+                recipe,
+                resultId,
+                feedback: null,
+              },
+            }));
+
+            setAlternativeModal(null);
+          }}
+          currentRecipe={alternativeModal.recipe}
+          day={alternativeModal.day}
+          workspaceId={workspaceId}
+        />
+      )}
     </div>
   );
 }

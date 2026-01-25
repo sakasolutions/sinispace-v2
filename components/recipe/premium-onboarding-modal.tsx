@@ -17,19 +17,21 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
   const [loading, setLoading] = useState(false);
 
   // Präferenzen State
-  const [dietType, setDietType] = useState<string>('');
+  const [dietType, setDietType] = useState<string>('alles');
+  const [meatSelection, setMeatSelection] = useState<string[]>([]); // Neu: Fleisch-Auswahl
   const [allergies, setAllergies] = useState<string[]>([]);
   const [householdSize, setHouseholdSize] = useState(2);
   const [budgetRange, setBudgetRange] = useState<string>('medium');
   const [mealTypes, setMealTypes] = useState<string[]>(['abendessen']);
   const [mealPrep, setMealPrep] = useState(false);
-  const [cookingLevel, setCookingLevel] = useState<string>('fortgeschritten');
+  const [cookingTime, setCookingTime] = useState<string>('normal'); // Neu: Kochzeit-Präferenz
   const [preferredCuisines, setPreferredCuisines] = useState<string[]>([]);
   const [dislikedIngredients, setDislikedIngredients] = useState<string[]>([]);
 
   const commonAllergies = ['Nüsse', 'Gluten', 'Laktose', 'Eier', 'Fisch', 'Soja'];
   const commonCuisines = ['Mediterran', 'Asiatisch', 'Deutsch', 'Italienisch', 'Mexikanisch', 'Indisch'];
   const commonDisliked = ['Pilze', 'Oliven', 'Kapern', 'Anchovis', 'Rosenkohl'];
+  const meatOptions = ['Hähnchen', 'Rind', 'Schwein', 'Fisch', 'Lamm', 'Pute'];
 
   const toggleArray = (arr: string[], item: string) => {
     return arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
@@ -45,9 +47,11 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
         budgetRange,
         mealTypes,
         mealPrep,
-        cookingLevel,
+        cookingLevel: cookingTime === 'schnell' ? 'anfänger' : cookingTime === 'normal' ? 'fortgeschritten' : 'profi',
         preferredCuisines,
         dislikedIngredients,
+        meatSelection, // Neu hinzugefügt
+        cookingTime, // Neu hinzugefügt
       });
       onComplete();
       onClose();
@@ -95,10 +99,16 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
                     <label className="block text-sm font-medium text-zinc-300 mb-2">Diät-Typ</label>
                     <select
                       value={dietType}
-                      onChange={(e) => setDietType(e.target.value)}
+                      onChange={(e) => {
+                        setDietType(e.target.value);
+                        // Wenn vegetarisch/vegan, leere Fleisch-Auswahl
+                        if (e.target.value === 'vegetarisch' || e.target.value === 'vegan') {
+                          setMeatSelection([]);
+                        }
+                      }}
                       className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
                     >
-                      <option value="">Keine Einschränkung</option>
+                      <option value="alles">Alles</option>
                       <option value="vegetarisch">Vegetarisch</option>
                       <option value="vegan">Vegan</option>
                       <option value="low-carb">Low-Carb</option>
@@ -106,6 +116,29 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
                       <option value="keto">Keto</option>
                     </select>
                   </div>
+
+                  {dietType !== 'vegetarisch' && dietType !== 'vegan' && (
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-300 mb-2">Fleisch-Auswahl</label>
+                      <p className="text-xs text-zinc-500 mb-2">Welche Fleischsorten magst du?</p>
+                      <div className="flex flex-wrap gap-2">
+                        {meatOptions.map((meat) => (
+                          <button
+                            key={meat}
+                            onClick={() => setMeatSelection(toggleArray(meatSelection, meat))}
+                            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                              meatSelection.includes(meat)
+                                ? 'bg-violet-600 text-white'
+                                : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                            }`}
+                          >
+                            {meatSelection.includes(meat) && <Check className="w-3 h-3 inline mr-1" />}
+                            {meat}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-zinc-300 mb-2">Allergien</label>
@@ -234,24 +267,24 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-zinc-300 mb-2">Koch-Level</label>
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">Kochzeit-Präferenz</label>
                     <div className="grid grid-cols-3 gap-2">
                       {[
-                        { value: 'anfänger', label: 'Anfänger', desc: '15-30 Min' },
-                        { value: 'fortgeschritten', label: 'Fortgeschritten', desc: '30-60 Min' },
-                        { value: 'profi', label: 'Profi', desc: '60+ Min' },
-                      ].map((level) => (
+                        { value: 'schnell', label: 'Schnell', desc: '<30 Min' },
+                        { value: 'normal', label: 'Normal', desc: '30-60 Min' },
+                        { value: 'aufwendig', label: 'Aufwendig', desc: '>60 Min' },
+                      ].map((time) => (
                         <button
-                          key={level.value}
-                          onClick={() => setCookingLevel(level.value)}
+                          key={time.value}
+                          onClick={() => setCookingTime(time.value)}
                           className={`px-4 py-3 rounded-lg text-sm transition-colors ${
-                            cookingLevel === level.value
+                            cookingTime === time.value
                               ? 'bg-violet-600 text-white'
                               : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
                           }`}
                         >
-                          <div className="font-medium">{level.label}</div>
-                          <div className="text-xs opacity-75">{level.desc}</div>
+                          <div className="font-medium">{time.label}</div>
+                          <div className="text-xs opacity-75">{time.desc}</div>
                         </button>
                       ))}
                     </div>

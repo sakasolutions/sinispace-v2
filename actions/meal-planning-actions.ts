@@ -4,6 +4,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { isUserPremium } from '@/lib/subscription';
 import { createChatCompletion } from '@/lib/openai-wrapper';
+import { generateWeekRecipes } from './week-planning-ai';
 
 // Meal Preferences speichern/aktualisieren
 export async function saveMealPreferences(preferences: {
@@ -16,6 +17,8 @@ export async function saveMealPreferences(preferences: {
   cookingLevel?: string;
   preferredCuisines?: string[];
   dislikedIngredients?: string[];
+  meatSelection?: string[]; // Neu
+  cookingTime?: string; // Neu
 }) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -27,6 +30,13 @@ export async function saveMealPreferences(preferences: {
     const mealTypesJson = preferences.mealTypes ? JSON.stringify(preferences.mealTypes) : null;
     const preferredCuisinesJson = preferences.preferredCuisines ? JSON.stringify(preferences.preferredCuisines) : null;
     const dislikedIngredientsJson = preferences.dislikedIngredients ? JSON.stringify(preferences.dislikedIngredients) : null;
+    // Speichere meatSelection und cookingTime in preferredCuisines als erweitertes JSON (temporär, bis Schema erweitert)
+    const extendedCuisines = {
+      cuisines: preferences.preferredCuisines || [],
+      meatSelection: preferences.meatSelection || [],
+      cookingTime: preferences.cookingTime || null,
+    };
+    const extendedCuisinesJson = JSON.stringify(extendedCuisines);
 
     await prisma.mealPreferences.upsert({
       where: { userId: session.user.id },
@@ -39,7 +49,7 @@ export async function saveMealPreferences(preferences: {
         mealTypes: mealTypesJson,
         mealPrep: preferences.mealPrep || false,
         cookingLevel: preferences.cookingLevel || null,
-        preferredCuisines: preferredCuisinesJson,
+        preferredCuisines: extendedCuisinesJson,
         dislikedIngredients: dislikedIngredientsJson,
       },
       update: {
@@ -50,7 +60,7 @@ export async function saveMealPreferences(preferences: {
         mealTypes: mealTypesJson,
         mealPrep: preferences.mealPrep || false,
         cookingLevel: preferences.cookingLevel || null,
-        preferredCuisines: preferredCuisinesJson,
+        preferredCuisines: extendedCuisinesJson,
         dislikedIngredients: dislikedIngredientsJson,
       },
     });
@@ -76,12 +86,36 @@ export async function getMealPreferences() {
 
     if (!prefs) return null;
 
+    // Parse extended cuisines (kann altes Format oder neues Format sein)
+    let parsedCuisines: any = [];
+    let meatSelection: string[] = [];
+    let cookingTime: string | null = null;
+    
+    if (prefs.preferredCuisines) {
+      try {
+        const parsed = JSON.parse(prefs.preferredCuisines);
+        if (parsed.cuisines) {
+          // Neues erweitertes Format
+          parsedCuisines = parsed.cuisines;
+          meatSelection = parsed.meatSelection || [];
+          cookingTime = parsed.cookingTime || null;
+        } else {
+          // Altes Format (nur Array)
+          parsedCuisines = parsed;
+        }
+      } catch {
+        parsedCuisines = [];
+      }
+    }
+    
     return {
       ...prefs,
       allergies: prefs.allergies ? JSON.parse(prefs.allergies) : [],
       mealTypes: prefs.mealTypes ? JSON.parse(prefs.mealTypes) : [],
-      preferredCuisines: prefs.preferredCuisines ? JSON.parse(prefs.preferredCuisines) : [],
+      preferredCuisines: parsedCuisines,
       dislikedIngredients: prefs.dislikedIngredients ? JSON.parse(prefs.dislikedIngredients) : [],
+      meatSelection,
+      cookingTime,
     };
   } catch (error) {
     console.error('Error fetching meal preferences:', error);
@@ -115,155 +149,62 @@ export async function autoPlanWeek(weekStart: Date, workspaceId?: string) {
 
     // Hole User-Präferenzen
     const preferences = await getMealPreferences();
-
-    // Hole verfügbare Rezepte
-    const recipes = await prisma.result.findMany({
-      where: {
-        userId: session.user.id,
-        toolId: 'recipe',
-        workspaceId: workspaceId || undefined,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 50, // Maximal 50 Rezepte für Planung
-    });
-
-    if (recipes.length === 0) {
-      return { error: 'Keine Rezepte gefunden. Erstelle zuerst einige Rezepte!' };
+    if (!preferences) {
+      return { error: 'Keine Präferenzen gefunden. Bitte richte zuerst deine Präferenzen ein.' };
     }
 
-    // Parse Rezepte
-    const parsedRecipes = recipes
-      .map(r => {
-        try {
-          const recipe = JSON.parse(r.content);
-          return {
-            id: r.id,
-            name: recipe.recipeName || 'Rezept',
-            ingredients: recipe.ingredients || [],
-            stats: recipe.stats || {},
-            shoppingList: recipe.shoppingList || [],
-          };
-        } catch {
-          return null;
-        }
-      })
-      .filter((r): r is NonNullable<typeof r> => r !== null);
-
-    if (parsedRecipes.length === 0) {
-      return { error: 'Keine gültigen Rezepte gefunden. Erstelle zuerst einige Rezepte!' };
+    console.log('[MEAL-PLANNING] 🎨 Generiere 7 neue Rezepte mit AI...');
+    
+    // NEU: Generiere 7 neue Rezepte mit AI
+    const generationResult = await generateWeekRecipes(workspaceId);
+    if (generationResult.error) {
+      return generationResult;
     }
 
-    // AI-Prompt für Wochenplanung
-    const preferencesText = preferences ? `
-Präferenzen:
-- Diät: ${preferences.dietType || 'keine'}
-- Allergien: ${preferences.allergies?.join(', ') || 'keine'}
-- Haushaltsgröße: ${preferences.householdSize} Personen
-- Budget: ${preferences.budgetRange || 'medium'}
-- Meal-Types: ${preferences.mealTypes?.join(', ') || 'abendessen'}
-- Meal-Prep: ${preferences.mealPrep ? 'ja' : 'nein'}
-- Koch-Level: ${preferences.cookingLevel || 'fortgeschritten'}
-- Bevorzugte Küchen: ${preferences.preferredCuisines?.join(', ') || 'alle'}
-- Nicht gemochte Zutaten: ${preferences.dislikedIngredients?.join(', ') || 'keine'}
-` : 'Keine Präferenzen gesetzt.';
-
-    const recipesText = parsedRecipes.map((r, i) => 
-      `${i + 1}. ${r.name} (${r.stats.time || 'N/A'}, ${r.stats.calories || 'N/A'})`
-    ).join('\n');
-
-    const prompt = `Du bist ein intelligenter Meal-Planning-Assistent. Plane eine ausgewogene Woche basierend auf den User-Präferenzen und verfügbaren Rezepten.
-
-${preferencesText}
-
-Verfügbare Rezepte:
-${recipesText}
-
-WICHTIGE REGELN:
-1. Abwechslung: Maximal 1x gleiche Proteinquelle pro Woche (z.B. nicht 3x Hühnchen)
-2. Nährwert-Balance: Abwechslung zwischen leichten und sättigenden Gerichten
-3. Budget-Optimierung: Kombiniere teure Rezepte mit günstigen Beilagen
-4. Seasonal-Intelligence: Berücksichtige die Jahreszeit (aktuell: ${new Date().toLocaleDateString('de-DE', { month: 'long' })})
-5. Meal-Prep: ${preferences?.mealPrep ? 'Plane größere Portionen für Sonntag/Montag, die für mehrere Tage reichen' : 'Normale Portionen'}
-6. Koch-Level: ${preferences?.cookingLevel === 'anfänger' ? 'Nur einfache Rezepte (15-30 Min)' : preferences?.cookingLevel === 'profi' ? 'Komplexe Rezepte erlaubt' : 'Mittlere Komplexität'}
-7. Diät & Allergien: Respektiere alle Einschränkungen strikt
-
-Antworte NUR mit einem JSON-Objekt im folgenden Format (kein zusätzlicher Text):
-{
-  "monday": { "recipeIndex": 0, "reason": "Warum dieses Rezept?" },
-  "tuesday": { "recipeIndex": 1, "reason": "Warum dieses Rezept?" },
-  "wednesday": { "recipeIndex": 2, "reason": "Warum dieses Rezept?" },
-  "thursday": { "recipeIndex": 3, "reason": "Warum dieses Rezept?" },
-  "friday": { "recipeIndex": 4, "reason": "Warum dieses Rezept?" },
-  "saturday": { "recipeIndex": 5, "reason": "Warum dieses Rezept?" },
-  "sunday": { "recipeIndex": 6, "reason": "Warum dieses Rezept?" }
-}
-
-recipeIndex bezieht sich auf die Position in der Rezepte-Liste (0-basiert).`;
-
-    const response = await createChatCompletion(
-      {
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'Du bist ein Meal-Planning-Experte. Antworte NUR mit gültigem JSON, kein zusätzlicher Text.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-      },
-      'recipe',
-      'Wochenplaner Auto-Planning'
-    );
-
-    // Parse AI-Response
-    const responseContent = response.choices[0]?.message?.content?.trim();
-    if (!responseContent) {
-      console.error('[MEAL-PLANNING] ❌ Keine Response von AI erhalten');
-      return { error: 'Keine Antwort von der KI erhalten. Bitte versuche es erneut.' };
+    if (!generationResult.recipes || generationResult.recipes.length === 0) {
+      return { error: 'Keine Rezepte konnten generiert werden.' };
     }
 
-    let planData: any;
-    try {
-      // Entferne mögliche Markdown-Code-Blöcke
-      const cleanedContent = responseContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      planData = JSON.parse(cleanedContent);
-    } catch (parseError) {
-      console.error('[MEAL-PLANNING] ❌ JSON Parse Fehler:', parseError);
-      console.error('[MEAL-PLANNING] ❌ Response Content:', responseContent);
-      return { error: 'Ungültige Antwort von der KI. Bitte versuche es erneut.' };
-    }
+    const recipes = generationResult.recipes;
+    console.log(`[MEAL-PLANNING] ✅ ${recipes.length} neue Rezepte generiert`);
 
-    // Konvertiere zu unserem Format
+    // Rezepte sind bereits im richtigen Format (von generateWeekRecipes)
+    // Jedes Rezept hat bereits einen Tag zugewiesen (monday, tuesday, etc.)
+    const parsedRecipes = recipes.map(r => ({
+      id: r.resultId,
+      name: r.recipe.recipeName || 'Rezept',
+      ingredients: r.recipe.ingredients || [],
+      stats: r.recipe.stats || {},
+      shoppingList: r.recipe.shoppingList || [],
+      day: r.recipe.day,
+      cuisine: r.recipe.cuisine,
+      proteinType: r.recipe.proteinType,
+    }));
+
+    // Direktes Mapping: Jedes generierte Rezept hat bereits einen Tag zugewiesen
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
     const plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
+    // Mappe generierte Rezepte direkt zu Tagen
     for (let i = 0; i < 7; i++) {
       const date = new Date(weekStart);
       date.setDate(date.getDate() + i);
       const dateKey = date.toISOString().split('T')[0];
+      const dayName = days[i];
 
-      const dayPlan = planData[days[i]];
-      if (dayPlan && typeof dayPlan.recipeIndex === 'number') {
-        const recipeIndex = dayPlan.recipeIndex;
-        if (recipeIndex >= 0 && recipeIndex < parsedRecipes.length) {
-          const recipe = parsedRecipes[recipeIndex];
-          plan[dateKey] = {
-            recipeId: recipe.id,
-            resultId: recipe.id,
-            feedback: null,
-          };
-        } else {
-          console.warn(`[MEAL-PLANNING] ⚠️ Ungültiger recipeIndex ${recipeIndex} für ${days[i]}. Verfügbare Rezepte: ${parsedRecipes.length}`);
-        }
+      // Finde Rezept für diesen Tag
+      const recipeForDay = parsedRecipes.find(r => r.day === dayName);
+      if (recipeForDay) {
+        plan[dateKey] = {
+          recipeId: recipeForDay.id,
+          resultId: recipeForDay.id,
+          feedback: null,
+        };
       } else {
-        console.warn(`[MEAL-PLANNING] ⚠️ Kein Plan für ${days[i]} gefunden`);
+        console.warn(`[MEAL-PLANNING] ⚠️ Kein Rezept für ${dayName} gefunden`);
       }
     }
 
