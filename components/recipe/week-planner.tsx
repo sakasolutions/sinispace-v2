@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, ArrowRight } from 'lucide-react';
 
-// Type Guard Helper
+// Type Guard Helper (nicht mehr benötigt, aber für zukünftige Verwendung behalten)
 function isErrorResult(result: any): result is { error: string; message?: string } {
   return result && typeof result === 'object' && 'error' in result && !('success' in result);
 }
@@ -212,12 +212,15 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       setPlanningProgress(null);
       console.log('[WEEK-PLANNER] Auto-Plan Result:', result);
       
-      // Type Guard: Prüfe ob es ein Fehler ist
+      // Explizite Type-Checks mit Type Assertions
       if (!result) {
         console.error('[WEEK-PLANNER] ❌ Kein Result erhalten');
         alert('Fehler: Keine Antwort vom Server');
-      } else if (isErrorResult(result)) {
-        // Explizite Type Assertion für TypeScript
+        return;
+      }
+
+      // Prüfe ob es ein Fehler ist
+      if ('error' in result) {
         const errorResult = result as { error: string; message?: string };
         if (errorResult.error === 'PREMIUM_REQUIRED') {
           router.push('/settings');
@@ -225,12 +228,16 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', errorResult.error);
           alert(`Fehler: ${errorResult.error}`);
         }
-      } else if (result && 'plan' in result && result.plan) {
-        console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(result.plan).length, 'Tage');
+        return;
+      }
+
+      // Prüfe ob es ein erfolgreicher Plan ist
+      if ('plan' in result && result.plan) {
+        const planResult = result as { success: boolean; plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe: any }> };
+        console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(planResult.plan).length, 'Tage');
         console.log('[WEEK-PLANNER] Verfügbare Rezepte:', myRecipes.length);
         
         // DIREKT: Rezepte sind bereits im Plan enthalten (von generateWeekRecipes)
-        const planResult = result as { success: boolean; plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe: any }> };
         const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
         
         Object.entries(planResult.plan).forEach(([dateKey, planEntry]) => {
