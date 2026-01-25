@@ -352,7 +352,7 @@ export default function DashboardClient() {
       <DashboardGreetingClient />
 
       {/* Search Bar mit Glass-Effekt */}
-      <div className="mb-4 sm:mb-6 sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-md pb-4 -mx-3 px-3 md:static md:bg-transparent md:backdrop-blur-none md:pb-0 md:mx-0 md:px-0">
+      <div className="mb-4 sm:mb-6">
         <div className="relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 md:w-5 md:h-5 text-zinc-500 group-focus-within:text-blue-400 transition-colors z-10" />
           <input
