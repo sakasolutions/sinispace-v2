@@ -82,11 +82,25 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     async function loadPlan() {
       const savedPlan = await getWeeklyPlan(currentWeek);
       if (savedPlan && savedPlan.planData) {
-        setWeekPlan(savedPlan.planData);
+        // Transformiere Plan-Format: Finde Rezepte aus myRecipes basierend auf resultId
+        const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
+        
+        Object.entries(savedPlan.planData).forEach(([dateKey, planEntry]) => {
+          const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
+          if (recipeResult) {
+            transformedPlan[dateKey] = {
+              recipe: recipeResult.recipe,
+              resultId: planEntry.resultId,
+              feedback: planEntry.feedback || null,
+            };
+          }
+        });
+        
+        setWeekPlan(transformedPlan);
       }
     }
     loadPlan();
-  }, [currentWeek]);
+  }, [currentWeek, myRecipes]);
 
   // Berechne Wochentage
   const weekDays = useMemo(() => {
@@ -164,7 +178,21 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       } else if (result.error) {
         alert(result.error);
       } else if (result.plan) {
-        setWeekPlan(result.plan);
+        // Transformiere Plan-Format: Finde Rezepte aus myRecipes basierend auf resultId
+        const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
+        
+        Object.entries(result.plan).forEach(([dateKey, planEntry]) => {
+          const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
+          if (recipeResult) {
+            transformedPlan[dateKey] = {
+              recipe: recipeResult.recipe,
+              resultId: planEntry.resultId,
+              feedback: planEntry.feedback || null,
+            };
+          }
+        });
+        
+        setWeekPlan(transformedPlan);
         // Reload trial count
         if (!isPremium) {
           const trial = await getAutoPlanTrialCount();
