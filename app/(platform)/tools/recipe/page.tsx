@@ -592,134 +592,137 @@ export default function RecipePage() {
         </div>
       </div>
       </>
-      ) : selectedRecipe ? (
-        /* Rezept-Detail-View */
-        <RecipeDetailView
-          recipe={selectedRecipe.recipe}
-          resultId={selectedRecipe.resultId}
-          createdAt={selectedRecipe.createdAt}
-          onBack={() => setSelectedRecipe(null)}
-        />
-      ) : (
-        /* Meine Rezepte Tab */
-        <div className="space-y-4">
-          {!workspaceId ? (
-            <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
-              <p className="text-zinc-400 mb-4">Bitte wähle einen Workspace aus, um deine Rezepte zu sehen.</p>
-              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
-            </div>
-          ) : isLoadingRecipes ? (
-            <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
-              <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-400 mb-2" />
-              <p className="text-zinc-400">Lade Rezepte...</p>
-            </div>
-          ) : myRecipes.length === 0 ? (
-            <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
-              <ChefHat className="w-12 h-12 mx-auto text-zinc-600 mb-4" />
-              <p className="text-zinc-400">Noch keine Rezepte gespeichert.</p>
-              <p className="text-sm text-zinc-500 mt-2">Erstelle dein erstes Rezept im Tab "Neues Rezept"!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myRecipes.map((result) => {
-                const r = result.recipe as Recipe;
-                return (
-                  <div
-                    key={result.id}
-                    className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-5 hover:border-orange-500/30 transition-colors cursor-pointer"
-                    onClick={() => setSelectedRecipe({
-                      recipe: r,
-                      resultId: result.id,
-                      createdAt: new Date(result.createdAt)
-                    })}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-semibold text-white line-clamp-2">{r.recipeName || 'Rezept'}</h3>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => {
-                            // TODO: Rezept editieren
-                            alert('Edit-Feature kommt gleich!');
-                          }}
-                          className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
-                          title="Rezept anpassen"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteRecipe(result.id);
-                          }}
-                          className="p-1.5 rounded-md hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
-                          title="Löschen"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+      ) : activeTab === 'my-recipes' ? (
+        selectedRecipe ? (
+          /* Rezept-Detail-View */
+          <RecipeDetailView
+            recipe={selectedRecipe.recipe}
+            resultId={selectedRecipe.resultId}
+            createdAt={selectedRecipe.createdAt}
+            onBack={() => setSelectedRecipe(null)}
+          />
+        ) : (
+          /* Meine Rezepte Tab */
+          <div className="space-y-4">
+            {!workspaceId ? (
+              <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
+                <p className="text-zinc-400 mb-4">Bitte wähle einen Workspace aus, um deine Rezepte zu sehen.</p>
+                <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+              </div>
+            ) : isLoadingRecipes ? (
+              <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-400 mb-2" />
+                <p className="text-zinc-400">Lade Rezepte...</p>
+              </div>
+            ) : myRecipes.length === 0 ? (
+              <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
+                <ChefHat className="w-12 h-12 mx-auto text-zinc-600 mb-4" />
+                <p className="text-zinc-400">Noch keine Rezepte gespeichert.</p>
+                <p className="text-sm text-zinc-500 mt-2">Erstelle dein erstes Rezept im Tab "Neues Rezept"!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {myRecipes.map((result) => {
+                  const r = result.recipe as Recipe;
+                  return (
+                    <div
+                      key={result.id}
+                      className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-5 hover:border-orange-500/30 transition-colors cursor-pointer"
+                      onClick={() => setSelectedRecipe({
+                        recipe: r,
+                        resultId: result.id,
+                        createdAt: new Date(result.createdAt)
+                      })}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-white line-clamp-2">{r.recipeName || 'Rezept'}</h3>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // TODO: Rezept editieren
+                              alert('Edit-Feature kommt gleich!');
+                            }}
+                            className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                            title="Rezept anpassen"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteRecipe(result.id);
+                            }}
+                            className="p-1.5 rounded-md hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
+                            title="Löschen"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    
-                    {r.stats && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {r.stats.time && (
-                          <span className="px-2 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs">
-                            ⏱️ {r.stats.time}
-                          </span>
-                        )}
-                        {r.stats.calories && (
-                          <span className="px-2 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs">
-                            🔥 {r.stats.calories}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    <p className="text-xs text-zinc-500 mb-4">
-                      {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                    </p>
-
-                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => setSelectedRecipe({
-                          recipe: r,
-                          resultId: result.id,
-                          createdAt: new Date(result.createdAt)
-                        })}
-                        className="flex-1 px-3 py-2 rounded-md bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 text-sm font-medium transition-colors"
-                      >
-                        Rezept öffnen
-                      </button>
-                      {r.shoppingList && r.shoppingList.length > 0 && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedRecipe({
-                              recipe: r,
-                              resultId: result.id,
-                              createdAt: new Date(result.createdAt)
-                            });
-                            // Shopping List wird in Detail-View geöffnet
-                          }}
-                          className="flex-1 px-3 py-2 rounded-md bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-300 text-sm font-medium transition-colors flex items-center justify-center gap-1"
-                        >
-                          <ShoppingCart className="w-4 h-4" />
-                          Einkaufen
-                        </button>
+                      
+                      {r.stats && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {r.stats.time && (
+                            <span className="px-2 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs">
+                              ⏱️ {r.stats.time}
+                            </span>
+                          )}
+                          {r.stats.calories && (
+                            <span className="px-2 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs">
+                              🔥 {r.stats.calories}
+                            </span>
+                          )}
+                        </div>
                       )}
+
+                      <p className="text-xs text-zinc-500 mb-4">
+                        {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </p>
+
+                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setSelectedRecipe({
+                            recipe: r,
+                            resultId: result.id,
+                            createdAt: new Date(result.createdAt)
+                          })}
+                          className="flex-1 px-3 py-2 rounded-md bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 text-sm font-medium transition-colors"
+                        >
+                          Rezept öffnen
+                        </button>
+                        {r.shoppingList && r.shoppingList.length > 0 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRecipe({
+                                recipe: r,
+                                resultId: result.id,
+                                createdAt: new Date(result.createdAt)
+                              });
+                              // Shopping List wird in Detail-View geöffnet
+                            }}
+                            className="flex-1 px-3 py-2 rounded-md bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-300 text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                          >
+                            <ShoppingCart className="w-4 h-4" />
+                            Einkaufen
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      ) : (
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )
+      ) : activeTab === 'week-planner' ? (
         /* Wochenplaner Tab */
         <WeekPlanner
           myRecipes={myRecipes}
           workspaceId={workspaceId}
         />
-      )}
+      ) : null}
 
       {/* Shopping List Modal */}
       {recipe && recipe.shoppingList && recipe.shoppingList.length > 0 && (
