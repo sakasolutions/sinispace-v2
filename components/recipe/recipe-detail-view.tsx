@@ -72,6 +72,14 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack }: Recipe
     );
   }, [recipe.ingredients, servings, originalServings]);
 
+  // Einkaufsliste auch an Portionen anpassen
+  const adjustedShoppingList = useMemo(() => {
+    if (!recipe.shoppingList || recipe.shoppingList.length === 0) return [];
+    return recipe.shoppingList.map(ing => 
+      adjustIngredientForServings(ing, originalServings, servings)
+    );
+  }, [recipe.shoppingList, servings, originalServings]);
+
   // Kalorien pro Portion anpassen
   const adjustedCalories = useMemo(() => {
     if (!recipe.stats?.calories) return null;
@@ -85,12 +93,12 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack }: Recipe
     return recipe.stats.calories;
   }, [recipe.stats?.calories, servings, originalServings]);
 
-  // Smart "Was fehlt mir?" - Priorität: Hauptzutaten > Gewürze
+  // Smart "Was fehlt mir?" - Priorität: Hauptzutaten > Gewürze (mit angepassten Mengen)
   const prioritizedMissingIngredients = useMemo(() => {
-    if (!recipe.shoppingList || recipe.shoppingList.length === 0) return [];
+    if (!adjustedShoppingList || adjustedShoppingList.length === 0) return [];
     
-    // Kategorisiere Zutaten nach Priorität
-    const mainIngredients = recipe.shoppingList.filter(ing => {
+    // Kategorisiere Zutaten nach Priorität (mit angepassten Mengen)
+    const mainIngredients = adjustedShoppingList.filter(ing => {
       const lower = ing.toLowerCase();
       return lower.includes('fleisch') || lower.includes('hack') || lower.includes('huhn') || 
              lower.includes('fisch') || lower.includes('reis') || lower.includes('nudeln') ||
@@ -98,17 +106,17 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack }: Recipe
              lower.includes('paprika') || lower.includes('käse') || lower.includes('milch');
     });
     
-    const spices = recipe.shoppingList.filter(ing => {
+    const spices = adjustedShoppingList.filter(ing => {
       const lower = ing.toLowerCase();
       return lower.includes('salz') || lower.includes('pfeffer') || lower.includes('gewürz') ||
              lower.includes('paprika') || lower.includes('kümmel') || lower.includes('oregano');
     });
     
     // Priorität: Hauptzutaten zuerst, dann Rest
-    return [...mainIngredients, ...recipe.shoppingList.filter(ing => 
+    return [...mainIngredients, ...adjustedShoppingList.filter(ing => 
       !mainIngredients.includes(ing) && !spices.includes(ing)
     ), ...spices];
-  }, [recipe.shoppingList]);
+  }, [adjustedShoppingList]);
 
   // Parse Kochzeit für Timer
   const parseTime = (timeStr: string) => {
