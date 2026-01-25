@@ -87,7 +87,7 @@ export function DashboardGreetingClient({ currentWorkspace, onWorkspaceClick }: 
       <div className="relative">
         <div className="flex items-center justify-between gap-4 mb-2">
           <h1
-            className="text-3xl sm:text-4xl font-bold text-white tracking-tight"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight"
             style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
           >
             {greeting}{displayName ? `, ${displayName}` : ''} 👋
@@ -112,7 +112,7 @@ export function DashboardGreetingClient({ currentWorkspace, onWorkspaceClick }: 
           </div>
         )}
         
-        <p className="text-sm sm:text-base md:text-lg text-zinc-400 mt-2 sm:mt-3 tracking-wide">
+        <p className="text-sm md:text-base lg:text-lg text-zinc-400 mt-2 sm:mt-3 tracking-wide leading-relaxed">
           Dein Business läuft. Was optimieren wir jetzt?
         </p>
       </div>

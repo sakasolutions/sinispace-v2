@@ -217,18 +217,18 @@ const toolIconMap: Record<string, React.ComponentType<{ className?: string }>> =
 };
 
 const colorMap: Record<string, { bg: string; border: string; hoverBorder: string; hoverShadow: string }> = {
-  blue: { bg: 'bg-blue-950/30', border: 'border-blue-500/10', hoverBorder: 'hover:border-blue-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(59,130,246,0.4)]' },
-  indigo: { bg: 'bg-indigo-950/30', border: 'border-indigo-500/10', hoverBorder: 'hover:border-indigo-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.4)]' },
-  rose: { bg: 'bg-rose-950/30', border: 'border-rose-500/10', hoverBorder: 'hover:border-rose-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(244,63,94,0.4)]' },
-  violet: { bg: 'bg-violet-950/30', border: 'border-violet-500/10', hoverBorder: 'hover:border-violet-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.4)]' },
-  green: { bg: 'bg-green-950/30', border: 'border-green-500/10', hoverBorder: 'hover:border-green-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(34,197,94,0.4)]' },
-  slate: { bg: 'bg-slate-950/30', border: 'border-slate-500/10', hoverBorder: 'hover:border-slate-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(100,116,139,0.4)]' },
-  emerald: { bg: 'bg-emerald-950/30', border: 'border-emerald-500/10', hoverBorder: 'hover:border-emerald-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(16,185,129,0.4)]' },
-  cyan: { bg: 'bg-cyan-950/30', border: 'border-cyan-500/10', hoverBorder: 'hover:border-cyan-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(6,182,212,0.4)]' },
-  amber: { bg: 'bg-amber-950/30', border: 'border-amber-500/10', hoverBorder: 'hover:border-amber-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(245,158,11,0.4)]' },
-  orange: { bg: 'bg-orange-950/30', border: 'border-orange-500/10', hoverBorder: 'hover:border-orange-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(249,115,22,0.4)]' },
-  pink: { bg: 'bg-pink-950/30', border: 'border-pink-500/10', hoverBorder: 'hover:border-pink-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(236,72,153,0.4)]' },
-  gray: { bg: 'bg-zinc-900/40', border: 'border-white/5', hoverBorder: 'hover:border-white/20', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(255,255,255,0.15)]' },
+  blue: { bg: 'bg-blue-950/30', border: 'border-zinc-700/50 md:border-blue-500/10', hoverBorder: 'hover:border-blue-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(59,130,246,0.4)]' },
+  indigo: { bg: 'bg-indigo-950/30', border: 'border-zinc-700/50 md:border-indigo-500/10', hoverBorder: 'hover:border-indigo-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.4)]' },
+  rose: { bg: 'bg-rose-950/30', border: 'border-zinc-700/50 md:border-rose-500/10', hoverBorder: 'hover:border-rose-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(244,63,94,0.4)]' },
+  violet: { bg: 'bg-violet-950/30', border: 'border-zinc-700/50 md:border-violet-500/10', hoverBorder: 'hover:border-violet-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(139,92,246,0.4)]' },
+  green: { bg: 'bg-green-950/30', border: 'border-zinc-700/50 md:border-green-500/10', hoverBorder: 'hover:border-green-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(34,197,94,0.4)]' },
+  slate: { bg: 'bg-slate-950/30', border: 'border-zinc-700/50 md:border-slate-500/10', hoverBorder: 'hover:border-slate-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(100,116,139,0.4)]' },
+  emerald: { bg: 'bg-emerald-950/30', border: 'border-zinc-700/50 md:border-emerald-500/10', hoverBorder: 'hover:border-emerald-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(16,185,129,0.4)]' },
+  cyan: { bg: 'bg-cyan-950/30', border: 'border-zinc-700/50 md:border-cyan-500/10', hoverBorder: 'hover:border-cyan-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(6,182,212,0.4)]' },
+  amber: { bg: 'bg-amber-950/30', border: 'border-zinc-700/50 md:border-amber-500/10', hoverBorder: 'hover:border-amber-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(245,158,11,0.4)]' },
+  orange: { bg: 'bg-orange-950/30', border: 'border-zinc-700/50 md:border-orange-500/10', hoverBorder: 'hover:border-orange-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(249,115,22,0.4)]' },
+  pink: { bg: 'bg-pink-950/30', border: 'border-zinc-700/50 md:border-pink-500/10', hoverBorder: 'hover:border-pink-500/30', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(236,72,153,0.4)]' },
+  gray: { bg: 'bg-zinc-900/40', border: 'border-zinc-700/50 md:border-white/5', hoverBorder: 'hover:border-white/20', hoverShadow: 'hover:shadow-[0_25px_50px_-12px_rgba(255,255,255,0.15)]' },
 };
 
 const glowColorMap: Record<string, string> = {
@@ -440,9 +440,9 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
         }}
       />
 
-      {/* Recent Results Section (nur Mobile, nur wenn Results vorhanden) */}
+      {/* Recent Results Section (nur Desktop, auf Mobile ausgeblendet) */}
       {recentResults.length > 0 && currentWorkspace && (
-        <div className="mb-6 md:hidden">
+        <div className="mb-6 hidden md:block">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-white">Letzte Ergebnisse</h2>
             <Link
@@ -497,53 +497,51 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
       )}
 
       {/* Search Bar mit Glass-Effekt */}
-      <div className="mb-4 sm:mb-6">
+      <div className="mb-4 sm:mb-6 sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-md pb-4 -mx-3 px-3 md:static md:bg-transparent md:backdrop-blur-none md:pb-0 md:mx-0 md:px-0">
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-blue-400 transition-colors z-10" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 md:w-5 md:h-5 text-zinc-500 group-focus-within:text-blue-400 transition-colors z-10" />
           <input
             type="text"
             placeholder="Suche nach Tools..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-zinc-500 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all shadow-lg backdrop-blur-md text-sm sm:text-base min-h-[56px] tracking-wide"
+            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-zinc-500 rounded-2xl py-4 md:py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all shadow-lg backdrop-blur-md text-base md:text-sm min-h-[56px] md:min-h-[56px] tracking-wide"
           />
         </div>
       </div>
 
       <div className="mb-4 md:hidden">
-        <div className="overflow-x-auto scrollbar-hide pb-2">
-          <div className="flex gap-3 min-w-max">
-            {quickAccessTools.map((quickTool) => {
-              const QuickIcon = quickTool.icon;
-              const quickColors = colorClasses[quickTool.color] || colorClasses.blue;
-              return (
-                <Link
-                  key={quickTool.id}
-                  href={quickTool.href}
-                  className="shrink-0 flex flex-col items-center group"
+        <div className="grid grid-cols-4 gap-3">
+          {quickAccessTools.map((quickTool) => {
+            const QuickIcon = quickTool.icon;
+            const quickColors = colorClasses[quickTool.color] || colorClasses.blue;
+            return (
+              <Link
+                key={quickTool.id}
+                href={quickTool.href}
+                className="flex flex-col items-center group p-3"
+              >
+                <div
+                  className={`w-12 h-12 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center shadow-lg transition-all group-active:scale-95 group-active:bg-white/10 group-active:border-white/20 ${quickColors.hoverBorder}`}
                 >
-                  <div
-                    className={`w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center shadow-lg transition-all group-active:scale-95 group-active:bg-white/10 group-active:border-white/20 ${quickColors.hoverBorder}`}
-                  >
-                    <QuickIcon className={`w-6 h-6 ${quickColors.text}`} />
-                  </div>
-                  <span className="text-[10px] text-zinc-400 text-center mt-1 truncate max-w-[64px] group-hover:text-zinc-300 transition-colors">
-                    {quickTool.title}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
+                  <QuickIcon className={`w-6 h-6 ${quickColors.text}`} />
+                </div>
+                <span className="text-[9px] text-zinc-400 text-center mt-1.5 truncate w-full group-hover:text-zinc-300 transition-colors leading-tight">
+                  {quickTool.title}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
       <div className="mb-4 sm:mb-6 overflow-x-auto">
-        <div className="flex gap-2 pb-2 min-w-max">
+        <div className="flex gap-3 md:gap-2 pb-2 min-w-max">
           {categoryTabs.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-[32px] sm:min-h-[36px] tracking-wide ${
+              className={`px-4 py-2 md:px-3 md:py-1 sm:px-4 sm:py-2 rounded-full text-sm md:text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-[40px] md:min-h-[32px] sm:min-h-[36px] tracking-wide ${
                 selectedCategory === cat
                   ? 'bg-gradient-to-r from-teal-500/20 to-indigo-500/20 text-white border border-teal-500/30 shadow-lg shadow-teal-500/10'
                   : 'bg-zinc-900/50 text-zinc-400 border border-white/5 hover:bg-zinc-800/50'
@@ -556,7 +554,7 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
       </div>
 
       {filteredTools.length > 0 ? (
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-4">
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             const iconColors = colorClasses[tool.color] || colorClasses.blue;
@@ -564,10 +562,10 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
             const glowClass = glowColorMap[tool.color] || 'bg-zinc-500';
 
             const cardClassName = cn(
-              'group relative flex flex-col h-full min-h-[180px] p-5 rounded-2xl border overflow-hidden',
+              'group relative flex flex-col h-full min-h-[180px] p-6 md:p-5 rounded-2xl border overflow-hidden',
               'transform-gpu will-change-transform [backface-visibility:hidden] translate-z-0',
               'backdrop-blur-sm shadow-md transition-[transform,box-shadow] duration-300 ease-out',
-              'hover:-translate-y-2 hover:shadow-2xl',
+              'hover:-translate-y-2 hover:shadow-2xl md:hover:-translate-y-2',
               cardColors.bg,
               cardColors.border,
               cardColors.hoverBorder,
@@ -579,10 +577,10 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
               <>
                 <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
 
-                <div className="flex items-start justify-between mb-4 relative z-10">
-                  <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                <div className="flex items-start justify-between mb-4 md:mb-4 relative z-10">
+                  <div className="w-12 h-12 md:w-10 md:h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
                     <div className={iconColors.text}>
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-6 h-6 md:w-5 md:h-5" />
                     </div>
                   </div>
                   {tool.available ? (
@@ -595,13 +593,13 @@ export default function DashboardClient({ workspaces = [], currentWorkspaceId }:
                 </div>
 
                 <h3
-                  className="font-bold text-lg text-white mb-2 relative z-10 subpixel-antialiased"
+                  className="font-bold text-xl md:text-lg text-white mb-2 md:mb-2 relative z-10 subpixel-antialiased leading-tight"
                   style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
                 >
                   {tool.title}
                 </h3>
 
-                <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3 relative z-10 flex-1 subpixel-antialiased">
+                <p className="text-sm md:text-xs text-zinc-400 leading-relaxed line-clamp-3 relative z-10 flex-1 subpixel-antialiased">
                   {tool.description}
                 </p>
 
