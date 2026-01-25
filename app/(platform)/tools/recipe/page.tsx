@@ -2,8 +2,8 @@
 
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
-import { useState } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Users, Minus, Plus, Share2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -12,6 +12,8 @@ import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 import { BackButton } from '@/components/ui/back-button';
 import { WorkspaceSelect } from '@/components/ui/workspace-select';
+import { getWorkspaceResults } from '@/actions/workspace-actions';
+import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 
 type Recipe = {
   recipeName: string;
@@ -124,12 +126,16 @@ export default function RecipePage() {
   // @ts-ignore
   const [state, formAction] = useActionState(generateRecipe, null);
   
+  const [activeTab, setActiveTab] = useState<'create' | 'my-recipes'>('create');
   const [ingredients, setIngredients] = useState('');
   const [shoppingMode, setShoppingMode] = useState<'strict' | 'shopping'>('strict');
   const [mealType, setMealType] = useState('Hauptgericht');
   const [servings, setServings] = useState(2);
   const [filters, setFilters] = useState<string[]>([]);
   const [workspaceId, setWorkspaceId] = useState<string>('');
+  const [myRecipes, setMyRecipes] = useState<any[]>([]);
+  const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
+  const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
 
   // Parse Recipe aus State
   let recipe: Recipe | null = null;
@@ -170,6 +176,43 @@ export default function RecipePage() {
     }
   }
 
+  // Lade "Meine Rezepte" wenn Tab gewechselt wird
+  useEffect(() => {
+    if (activeTab === 'my-recipes' && workspaceId) {
+      loadMyRecipes();
+    }
+  }, [activeTab, workspaceId]);
+
+  const loadMyRecipes = async () => {
+    if (!workspaceId) return;
+    setIsLoadingRecipes(true);
+    try {
+      const result = await getWorkspaceResults(workspaceId, 50);
+      if (result.success && result.results) {
+        // Filtere nur Recipe-Results
+        const recipeResults = result.results
+          .filter(r => r.toolId === 'recipe')
+          .map(r => {
+            try {
+              const content = JSON.parse(r.content);
+              return {
+                ...r,
+                recipe: content,
+              };
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean);
+        setMyRecipes(recipeResults);
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Rezepte:', error);
+    } finally {
+      setIsLoadingRecipes(false);
+    }
+  };
+
   const toggleFilter = (filter: string) => {
     setFilters(prev => 
       prev.includes(filter) 
@@ -202,10 +245,38 @@ export default function RecipePage() {
         <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
           Dein Smart-Chef für den Kühlschrank.
         </p>
-        <div className="mt-3 p-3 rounded-md bg-orange-500/10 border border-orange-500/20 text-sm text-orange-300">
-          💡 <strong>Tipp:</strong> Gib einfach ein, was im Kühlschrank ist. Die KI erstellt daraus ein perfektes Rezept mit Nährwerten.
-        </div>
       </div>
+
+      {/* Tab-System */}
+      <div className="mb-6 flex gap-2 border-b border-white/10">
+        <button
+          onClick={() => setActiveTab('create')}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === 'create'
+              ? 'border-orange-500 text-orange-400'
+              : 'border-transparent text-zinc-400 hover:text-zinc-300'
+          }`}
+        >
+          Neues Rezept
+        </button>
+        <button
+          onClick={() => setActiveTab('my-recipes')}
+          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === 'my-recipes'
+              ? 'border-orange-500 text-orange-400'
+              : 'border-transparent text-zinc-400 hover:text-zinc-300'
+          }`}
+        >
+          Meine Rezepte
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'create' ? (
+        <>
+          <div className="mt-3 p-3 rounded-md bg-orange-500/10 border border-orange-500/20 text-sm text-orange-300 mb-6">
+            💡 <strong>Tipp:</strong> Gib einfach ein, was im Kühlschrank ist. Die KI erstellt daraus ein perfektes Rezept mit Nährwerten.
+          </div>
 
       {/* MOBILE FIRST: flex-col auf Mobile, md:grid auf Desktop */}
       <div className="flex flex-col md:grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
@@ -448,6 +519,19 @@ export default function RecipePage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Einkaufsliste Button */}
+                  {recipe.shoppingList && recipe.shoppingList.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-white/10">
+                      <button
+                        onClick={() => setIsShoppingListOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 rounded-lg text-orange-300 font-medium transition-colors"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                        Dir fehlen Zutaten? → Einkaufsliste erstellen
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               {/* FEEDBACK BUTTON */}
@@ -468,6 +552,123 @@ export default function RecipePage() {
           )}
         </div>
       </div>
+      </>
+      ) : (
+        /* Meine Rezepte Tab */
+        <div className="space-y-4">
+          {!workspaceId ? (
+            <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
+              <p className="text-zinc-400 mb-4">Bitte wähle einen Workspace aus, um deine Rezepte zu sehen.</p>
+              <WorkspaceSelect value={workspaceId} onChange={setWorkspaceId} />
+            </div>
+          ) : isLoadingRecipes ? (
+            <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-400 mb-2" />
+              <p className="text-zinc-400">Lade Rezepte...</p>
+            </div>
+          ) : myRecipes.length === 0 ? (
+            <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 text-center">
+              <ChefHat className="w-12 h-12 mx-auto text-zinc-600 mb-4" />
+              <p className="text-zinc-400">Noch keine Rezepte gespeichert.</p>
+              <p className="text-sm text-zinc-500 mt-2">Erstelle dein erstes Rezept im Tab "Neues Rezept"!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {myRecipes.map((result) => {
+                const r = result.recipe as Recipe;
+                return (
+                  <div
+                    key={result.id}
+                    className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-5 hover:border-orange-500/30 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-white line-clamp-2">{r.recipeName || 'Rezept'}</h3>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => {
+                            // TODO: Rezept editieren
+                            alert('Edit-Feature kommt gleich!');
+                          }}
+                          className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                          title="Rezept anpassen"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            // TODO: Rezept löschen
+                            if (confirm('Rezept wirklich löschen?')) {
+                              alert('Delete-Feature kommt gleich!');
+                            }
+                          }}
+                          className="p-1.5 rounded-md hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
+                          title="Löschen"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {r.stats && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {r.stats.time && (
+                          <span className="px-2 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs">
+                            ⏱️ {r.stats.time}
+                          </span>
+                        )}
+                        {r.stats.calories && (
+                          <span className="px-2 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs">
+                            🔥 {r.stats.calories}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <p className="text-xs text-zinc-500 mb-4">
+                      {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    </p>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          // TODO: Nochmal kochen - Rezept anzeigen
+                          setActiveTab('create');
+                          // TODO: Rezept-Daten in Form übernehmen
+                        }}
+                        className="flex-1 px-3 py-2 rounded-md bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 text-sm font-medium transition-colors"
+                      >
+                        Nochmal kochen
+                      </button>
+                      {r.shoppingList && r.shoppingList.length > 0 && (
+                        <button
+                          onClick={() => {
+                            // TODO: Einkaufsliste erstellen
+                            alert('Einkaufsliste-Feature kommt gleich!');
+                          }}
+                          className="flex-1 px-3 py-2 rounded-md bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-300 text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          Einkaufen
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Shopping List Modal */}
+      {recipe && recipe.shoppingList && recipe.shoppingList.length > 0 && (
+        <ShoppingListModal
+          isOpen={isShoppingListOpen}
+          onClose={() => setIsShoppingListOpen(false)}
+          ingredients={recipe.shoppingList}
+          recipeName={recipe.recipeName}
+        />
+      )}
     </div>
   );
 }
