@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, ArrowRight } from 'lucide-react';
+import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 // Type Guard Helper (nicht mehr benötigt, aber für zukünftige Verwendung behalten)
 function isErrorResult(result: any): result is { error: string; message?: string } {
@@ -15,6 +15,7 @@ import {
   autoPlanWeek, 
   getWeeklyPlan, 
   saveDayFeedback, 
+  saveWeeklyPlan,
   getAutoPlanTrialCount,
   getPremiumStatus,
   getMealPreferences
@@ -95,6 +96,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   const [hasPreferences, setHasPreferences] = useState(false);
   const [alternativeModal, setAlternativeModal] = useState<{ day: string; dateKey: string; recipe: any } | null>(null);
   const [selectedRecipeDetail, setSelectedRecipeDetail] = useState<{ recipe: Recipe; resultId: string; dateKey: string; day: string } | null>(null);
+  const [isSavingPlan, setIsSavingPlan] = useState(false);
 
   // Lade Premium-Status und Trial-Count
   useEffect(() => {
@@ -320,6 +322,41 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     }
   };
 
+  // Wochenplan explizit speichern
+  const handleSavePlan = async () => {
+    if (Object.keys(weekPlan).length === 0) {
+      alert('Kein Wochenplan zum Speichern vorhanden');
+      return;
+    }
+
+    setIsSavingPlan(true);
+    try {
+      // Transformiere weekPlan zurück in das Format für die DB
+      const planDataForDB: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe?: any }> = {};
+      
+      Object.entries(weekPlan).forEach(([dateKey, planEntry]) => {
+        planDataForDB[dateKey] = {
+          recipeId: planEntry.resultId,
+          resultId: planEntry.resultId,
+          feedback: planEntry.feedback,
+          recipe: planEntry.recipe, // Behalte Rezept für temporäre Rezepte
+        };
+      });
+
+      const result = await saveWeeklyPlan(currentWeek, planDataForDB, workspaceId);
+      if (result.error) {
+        alert(`Fehler beim Speichern: ${result.error}`);
+      } else {
+        alert('✅ Wochenplan erfolgreich gespeichert!');
+      }
+    } catch (error) {
+      console.error('[WEEK-PLANNER] ❌ Error saving plan:', error);
+      alert('Fehler beim Speichern des Wochenplans');
+    } finally {
+      setIsSavingPlan(false);
+    }
+  };
+
   // Feedback speichern
   const handleFeedback = async (dateKey: string, feedback: 'positive' | 'negative') => {
     const current = weekPlan[dateKey];
@@ -385,11 +422,23 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           : day.recipe.recipe.ingredients;
         
         ingredientsToUse.forEach(ingredient => {
-          const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk|Stück|EL|TL)?\s*(.*)$/i);
+          // Verbesserte Regex: Erkenne auch "Glas", "Bund", "Packung" etc.
+          const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk|Stück|EL|TL|Glas|glas|Bund|bund|Packung|packung)?\s*(.*)$/i);
           if (match) {
             const amount = parseFloat(match[1].replace(',', '.'));
-            const unit = match[2] || '';
+            let unit = match[2] || '';
             const name = match[3].trim() || ingredient;
+            
+            // Normalisiere Einheiten: "Glas" statt "G", "Bund" statt "B"
+            if (unit.toLowerCase() === 'g' && name.toLowerCase().startsWith('las')) {
+              unit = 'Glas';
+            } else if (unit.toLowerCase() === 'g' && name.toLowerCase().startsWith('urke')) {
+              unit = '';
+            } else if (unit) {
+              // Capitalize erste Buchstabe für bessere Lesbarkeit
+              unit = unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
+            }
+            
             const key = `${name.toLowerCase()}${unit.toLowerCase()}`;
             
             if (allIngredients[key]) {
@@ -519,6 +568,32 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
             </>
           )}
         </button>
+        
+        {/* Wochenplan speichern Button */}
+        {Object.keys(weekPlan).length > 0 && (
+          <button
+            onClick={handleSavePlan}
+            disabled={isSavingPlan}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-medium transition-colors ${
+              isSavingPlan
+                ? 'bg-zinc-700 opacity-50 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+            title="Wochenplan explizit speichern"
+          >
+            {isSavingPlan ? (
+              <>
+                <RefreshCw className="w-5 h-5 animate-spin" />
+                Speichere...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                Plan speichern
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Trial Info */}

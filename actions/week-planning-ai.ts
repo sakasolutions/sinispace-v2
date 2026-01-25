@@ -75,10 +75,11 @@ ${dislikedText ? `7. ${dislikedText}` : ''}
 9. Portionen: ${preferences.householdSize} Personen pro Rezept
 
 QUALITÄTS-ANFORDERUNGEN:
-- Verwende KONSISTENTE deutsche Einheiten: "g" (Gramm), "kg" (Kilogramm), "ml" (Milliliter), "l" (Liter), "TL" (Teelöffel), "EL" (Esslöffel), "Stk" (Stück)
+- Verwende KONSISTENTE deutsche Einheiten: "g" (Gramm), "kg" (Kilogramm), "ml" (Milliliter), "l" (Liter), "TL" (Teelöffel), "EL" (Esslöffel), "Stk" (Stück), "Glas" (Glas), "Bund" (Bund), "Packung" (Packung)
 - KONSISTENTE Zutat-Benennung: Nutze IMMER die gleiche Form (z.B. "Tomaten" nicht "Tomate" und "Tomaten" gemischt)
 - Realistische Mengen: Für ${preferences.householdSize} ${preferences.householdSize === 1 ? 'Person' : 'Personen'} angemessene Portionsgrößen
-- Korrekte deutsche Rechtschreibung und Grammatik
+- Korrekte deutsche Rechtschreibung und Grammatik: "Glas" nicht "G", "Gurke" nicht "urke", "Basilikum" nicht "basilikum"
+- Einkaufsliste-Format: Verwende vollständige Wörter für Einheiten (z.B. "1 Glas Basilikumpesto" nicht "1 G las basilikumpesto", "1 Gurke" nicht "1 G urke")
 - Alle Mengenangaben müssen mathematisch korrekt für ${preferences.householdSize} Personen sein
 
 Antworte NUR mit einem gültigen JSON-Objekt in diesem Format:

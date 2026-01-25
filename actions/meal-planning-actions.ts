@@ -314,18 +314,61 @@ export async function saveDayFeedback(weekStart: Date, dateKey: string, feedback
       (day: any) => day.feedback === 'positive'
     ).length;
 
+    // WICHTIG: Speichere den gesamten Plan mit aktualisiertem Feedback
     await prisma.weeklyPlan.update({
       where: { id: plan.id },
       data: {
         planData: JSON.stringify(planData),
         totalFeedback,
+        updatedAt: new Date(), // Aktualisiere Timestamp
       },
     });
 
+    console.log(`[MEAL-PLANNING] ✅ Feedback für ${dateKey} gespeichert, Plan aktualisiert`);
     return { success: true };
   } catch (error) {
     console.error('Error saving day feedback:', error);
     return { error: 'Fehler beim Speichern des Feedbacks' };
+  }
+}
+
+// Wochenplan explizit speichern
+export async function saveWeeklyPlan(weekStart: Date, planData: Record<string, any>, workspaceId?: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: 'Nicht angemeldet' };
+  }
+
+  try {
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+
+    await prisma.weeklyPlan.upsert({
+      where: {
+        userId_weekStart: {
+          userId: session.user.id,
+          weekStart: weekStart,
+        },
+      },
+      create: {
+        userId: session.user.id,
+        workspaceId: workspaceId || null,
+        weekStart: weekStart,
+        weekEnd: weekEnd,
+        planData: JSON.stringify(planData),
+        autoPlanned: false,
+      },
+      update: {
+        planData: JSON.stringify(planData),
+        updatedAt: new Date(),
+      },
+    });
+
+    console.log('[MEAL-PLANNING] ✅ Wochenplan explizit gespeichert');
+    return { success: true };
+  } catch (error) {
+    console.error('[MEAL-PLANNING] ❌ Fehler beim Speichern des Wochenplans:', error);
+    return { error: 'Fehler beim Speichern des Wochenplans' };
   }
 }
 
