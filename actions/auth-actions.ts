@@ -8,6 +8,7 @@ import { sendPasswordResetEmail, sendPasswordChangedEmail } from '@/lib/email';
 import crypto from 'crypto';
 import { sanitizeName, sanitizeEmail } from '@/lib/sanitize';
 import { checkRateLimit, recordLoginAttempt } from '@/lib/rate-limit';
+import { createDefaultWorkspace } from './workspace-actions';
 
 // User registrieren
 export async function registerUser(formData: FormData) {
@@ -79,6 +80,10 @@ export async function registerUser(formData: FormData) {
     });
 
     console.log(`[REGISTER] ✅ User erfolgreich erstellt: ${newUser.id}`);
+    
+    // Default Workspace erstellen
+    await createDefaultWorkspace(newUser.id);
+    console.log(`[REGISTER] ✅ Default Workspace erstellt für: ${newUser.id}`);
     
     // Erfolgreichen Versuch loggen
     await recordLoginAttempt(email, true);

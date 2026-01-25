@@ -4,6 +4,7 @@ import { createChatCompletion, openai } from '@/lib/openai-wrapper';
 import { auth } from '@/auth';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
+import { saveResult } from '@/actions/workspace-actions';
 
 // --- HILFS-NACHRICHT FÜR FREE USER ---
 // Das hier sieht der User statt einer Fehlermeldung
@@ -251,6 +252,7 @@ export async function generateEmailWithChat(prevState: any, formData: FormData) 
     const formality = formData.get('formality') as string || 'Sie';
     const language = formData.get('language') as string || 'Deutsch';
     const topic = formData.get('topic') as string || '';
+    const workspaceId = formData.get('workspaceId') as string || undefined;
     
     let userInput = `Ton: ${tone}, Sprache: ${language}, Inhalt: ${topic}`;
     if (language === 'Deutsch' && formality) userInput = `${userInput}, Anrede: ${formality}`;
@@ -259,6 +261,16 @@ export async function generateEmailWithChat(prevState: any, formData: FormData) 
     if (recipient) userInput = `${userInput}, Kontext: ${recipient}`;
     
     await createHelperChat('email', userInput, result.result);
+    
+    // Result in Workspace speichern
+    await saveResult(
+      'email',
+      'E-Mail Verfasser',
+      result.result,
+      workspaceId,
+      topic.substring(0, 100),
+      JSON.stringify({ tone, language, formality, recipient })
+    );
   }
   
   return result;

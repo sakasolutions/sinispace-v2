@@ -35,6 +35,8 @@ model User {
   featureUsages       FeatureUsage[]
   feedbacks           Feedback[]
   tokenUsages         TokenUsage[]
+  workspaces          Workspace[]
+  results             Result[]
 }
 
 model Account {
@@ -66,14 +68,16 @@ model Session {
 }
 
 model Chat {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String?  // Optional: Workspace-Zuordnung
+  title       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relationen
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
   messages  Message[]
   documents Document[]
 }
@@ -213,6 +217,49 @@ model TokenUsage {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@index([toolId, createdAt])
+  @@index([createdAt])
+}
+
+// Workspace: Organisation von Tool-Ergebnissen und Workflows
+model Workspace {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  icon       String?  // Icon-Name (z.B. 'Briefcase', 'Plane')
+  color      String?  // Farbe (z.B. 'blue', 'green')
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relationen
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chats   Chat[]
+  results Result[]
+
+  @@index([userId, isArchived])
+  @@index([userId, createdAt])
+}
+
+// Result: Tool-Ergebnisse (z.B. generierte E-Mails, Rezepte, etc.)
+model Result {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String?  // Optional: Workspace-Zuordnung
+  toolId      String   // z.B. 'email', 'recipe', 'fitness'
+  toolName    String   // z.B. 'E-Mail Verfasser', 'Gourmet-Planer'
+  title       String?  // Optional: Titel des Ergebnisses
+  content     String   // JSON oder Text des Ergebnisses
+  metadata    String?  // JSON-String für zusätzliche Daten
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationen
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([workspaceId, createdAt])
   @@index([toolId, createdAt])
   @@index([createdAt])
 }

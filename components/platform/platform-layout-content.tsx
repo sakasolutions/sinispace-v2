@@ -10,6 +10,7 @@ import { HeroBackground } from '@/components/ui/hero-background';
 import { MobileNav } from '@/components/mobile-nav';
 import { AnalyticsTracker } from '@/components/platform/analytics-tracker';
 import { triggerHaptic } from '@/lib/haptic-feedback';
+import { WorkspaceSwitcher } from './workspace-switcher';
 
 interface PlatformLayoutContentProps {
   children: React.ReactNode;
@@ -115,6 +116,9 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
               />
             </div>
           </Link>
+        </div>
+        <div className="p-4 border-b border-white/5">
+          <WorkspaceSwitcher />
         </div>
         <nav className="flex flex-col gap-1 p-4">
           <NavItem href="/dashboard" label="Übersicht" pathname={pathname} />
