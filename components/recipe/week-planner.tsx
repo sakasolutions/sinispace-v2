@@ -205,12 +205,14 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       setPlanningProgress(null);
       console.log('[WEEK-PLANNER] Auto-Plan Result:', result);
       
-      if (result.error === 'PREMIUM_REQUIRED') {
-        router.push('/settings');
-      } else if (result.error) {
-        console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', result.error);
-        alert(`Fehler: ${result.error}`);
-      } else if (result.plan) {
+      if ('error' in result) {
+        if (result.error === 'PREMIUM_REQUIRED') {
+          router.push('/settings');
+        } else {
+          console.error('[WEEK-PLANNER] ❌ Auto-Planning Fehler:', result.error);
+          alert(`Fehler: ${result.error}`);
+        }
+      } else if ('plan' in result && result.plan) {
         console.log('[WEEK-PLANNER] Plan erhalten:', Object.keys(result.plan).length, 'Tage');
         console.log('[WEEK-PLANNER] Verfügbare Rezepte:', myRecipes.length);
         
