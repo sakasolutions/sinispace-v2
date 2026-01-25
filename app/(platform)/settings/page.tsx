@@ -6,7 +6,6 @@ import { DeleteAccount } from '@/components/platform/delete-account';
 import { ChangePassword } from '@/components/platform/change-password';
 import { ChangeName } from '@/components/platform/change-name';
 import { UsageDashboard } from '@/components/platform/usage-dashboard';
-import { ThemeToggle } from '@/components/theme-toggle';
 
 export default async function SettingsPage({
   searchParams,
@@ -36,13 +35,8 @@ export default async function SettingsPage({
 
   return (
     <div className="max-w-2xl w-full pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white">Einstellungen</h1>
-          <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400">Verwalte deinen Account und Zugriff.</p>
-        </div>
-        <ThemeToggle />
-      </div>
+      <h1 className="text-xl sm:text-2xl font-bold text-white">Einstellungen</h1>
+      <p className="text-sm sm:text-base text-zinc-400 mb-6 sm:mb-8">Verwalte deinen Account und Zugriff.</p>
 
       {/* STATUS MELDUNGEN */}
       {params.success && (

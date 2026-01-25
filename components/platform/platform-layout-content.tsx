@@ -11,7 +11,6 @@ import { MobileNav } from '@/components/mobile-nav';
 import { AnalyticsTracker } from '@/components/platform/analytics-tracker';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { WorkspaceSwitcher } from './workspace-switcher';
-import { ThemeToggle } from '@/components/theme-toggle';
 
 interface PlatformLayoutContentProps {
   children: React.ReactNode;
@@ -99,13 +98,13 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
 
   // Sonst: Normales Layout mit Sidebar und Header
   return (
-    <div className="flex h-[100dvh] bg-white dark:bg-zinc-950 overflow-hidden relative transition-colors duration-200">
+    <div className="flex h-[100dvh] bg-zinc-950 overflow-hidden relative">
       {/* Hero Background (Grid + Glows) */}
       <HeroBackground showGlows={true} />
       
       {/* SIDEBAR (Desktop) */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-zinc-200 dark:border-white/5 bg-white/80 dark:bg-zinc-950/50 backdrop-blur-xl md:block z-10 transition-colors duration-200">
-        <div className="flex h-16 items-center justify-between border-b border-zinc-200 dark:border-white/5 px-6">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-white/5 bg-zinc-950/50 backdrop-blur-xl md:block z-10">
+        <div className="flex h-16 items-center border-b border-white/5 px-6">
           <Link href="/dashboard" className="flex items-center">
             <div className="relative h-10 w-10 rounded-xl overflow-hidden">
               <Image 
@@ -117,15 +116,14 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
               />
             </div>
           </Link>
-          <ThemeToggle />
         </div>
-        <div className="p-4 border-b border-zinc-200 dark:border-white/5">
+        <div className="p-4 border-b border-white/5">
           <WorkspaceSwitcher />
         </div>
         <nav className="flex flex-col gap-1 p-4">
           <NavItem href="/dashboard" label="Übersicht" pathname={pathname} />
           <NavItem href="/chat" label="SiniChat" pathname={pathname} />
-          <div className="my-4 h-px bg-zinc-200 dark:bg-white/5" />
+          <div className="my-4 h-px bg-white/5" />
           <NavItem href="/settings" label="Einstellungen" pathname={pathname} />
         </nav>
         
@@ -133,7 +131,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
           <form action={signOutAction}>
             <button 
               type="submit"
-              className="w-full rounded-md border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-zinc-900/50 px-4 py-2 text-sm text-zinc-700 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors"
+              className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-white transition-colors"
             >
               Abmelden
             </button>
@@ -180,8 +178,8 @@ function NavItem({ href, label, pathname }: { href: string; label: string; pathn
       onClick={() => triggerHaptic('light')}
       className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
         isActive
-          ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white'
-          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white'
+          ? 'bg-zinc-900 text-white'
+          : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
       }`}
     >
       {label}
