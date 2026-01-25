@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { CopyButton } from '@/components/ui/copy-button';
-import { Mail, FileText, Scale, Table2, ChefHat, Dumbbell, Plane, Sparkles, Languages, MessageCircleHeart, ArrowLeft } from 'lucide-react';
+import { Mail, FileText, Scale, Table2, ChefHat, Dumbbell, Plane, Sparkles, Languages, MessageCircleHeart, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { useRouter } from 'next/navigation';
