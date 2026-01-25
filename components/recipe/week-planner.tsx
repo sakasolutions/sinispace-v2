@@ -20,7 +20,7 @@ import {
   getPremiumStatus,
   getMealPreferences
 } from '@/actions/meal-planning-actions';
-import { saveResult } from '@/actions/workspace-actions';
+import { saveResult, getResultById } from '@/actions/workspace-actions';
 import { saveRecipeToCollection } from '@/actions/recipe-collection-actions';
 import { useRouter } from 'next/navigation';
 
@@ -191,8 +191,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
             console.warn(`[WEEK-PLANNER] ⚠️ PlanEntry vollständig:`, JSON.stringify(planEntry, null, 2));
             
             // Versuche Rezept direkt aus der DB zu laden über Server Action
+            // Hinweis: getResultById wird am Anfang der Datei importiert
             try {
-              const { getResultById } = await import('@/actions/workspace-actions');
               const resultData = await getResultById(planEntry.resultId);
               if (resultData && resultData.content) {
                 try {
