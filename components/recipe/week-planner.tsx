@@ -556,7 +556,13 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                 recipe.recipeName,
                 JSON.stringify({ source: 'week-planning-alternative', day: alternativeModal.day })
               );
-              resultId = saved.id;
+              if (saved.success && saved.result) {
+                resultId = saved.result.id;
+              } else {
+                console.error('[WEEK-PLANNER] ❌ Fehler beim Speichern des alternativen Rezepts:', saved.error);
+                alert('Fehler beim Speichern des Rezepts. Bitte versuche es erneut.');
+                return;
+              }
             }
 
             // Ersetze Rezept im Plan
