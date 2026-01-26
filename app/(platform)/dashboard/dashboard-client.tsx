@@ -35,11 +35,11 @@ type Tool = {
   available: boolean;
   status?: 'soon';
   size?: 'large' | 'medium' | 'small';
-  priority?: 'high' | 'medium' | 'low'; // NEW: Priority für Layout
+  priority?: 'high' | 'medium' | 'low';
 };
 
 const allTools: Tool[] = [
-  // HIGH PRIORITY - Large Cards (Recipe, Invoice)
+  // HIGH PRIORITY - Large Cards
   {
     id: 'recipe',
     title: 'Gourmet-Planer',
@@ -76,8 +76,6 @@ const allTools: Tool[] = [
     size: 'large',
     priority: 'high',
   },
-
-  // MEDIUM PRIORITY - Medium Cards
   {
     id: 'excel',
     title: 'Excel-Coach',
@@ -150,8 +148,6 @@ const allTools: Tool[] = [
     size: 'medium',
     priority: 'medium',
   },
-
-  // LOW PRIORITY - Small/Compact Cards
   {
     id: 'translate',
     title: 'Sprachbrücke',
@@ -213,7 +209,6 @@ const categoryFilterMap: Record<string, string[]> = {
   'Tech & Life': ['dev', 'lifestyle', 'social'],
 };
 
-// Beliebte Tools für Schnellzugriff (Mobile)
 const quickAccessTools = [
   { id: 'email', title: 'Email-Profi', icon: Mail, color: 'blue', href: '/actions/email' },
   { id: 'chat', title: 'Chat', icon: MessageSquare, color: 'indigo', href: '/chat' },
@@ -222,98 +217,106 @@ const quickAccessTools = [
   { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'violet', href: '/actions/legal' },
 ];
 
-// BRAND COLORS: Pink-Orange Gradient aus Logo
-const brandGradient = 'from-orange-500 via-pink-500 to-rose-500';
-const brandGradientHover = 'from-orange-400 via-pink-400 to-rose-400';
-
-// Tool Colors mit Brand-Integration
+// CLEAN DESIGN: Light theme colors mit Logo-Gradient Accents
 const toolColors: Record<string, {
   bg: string;
   border: string;
   text: string;
   iconBg: string;
   hoverBorder: string;
-  hoverGradient?: string; // NEW: Brand gradient für hover
+  hoverBg: string;
+  gradient?: string;
 }> = {
   emerald: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-emerald-500/10',
-    text: 'text-emerald-400',
-    iconBg: 'bg-emerald-500/10',
-    hoverBorder: 'hover:border-emerald-500/30',
+    bg: 'bg-white',
+    border: 'border-emerald-100',
+    text: 'text-emerald-600',
+    iconBg: 'bg-emerald-50',
+    hoverBorder: 'hover:border-emerald-300',
+    hoverBg: 'hover:bg-emerald-50',
   },
   blue: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-blue-500/10',
-    text: 'text-blue-400',
-    iconBg: 'bg-blue-500/10',
-    hoverBorder: 'hover:border-blue-500/30',
+    bg: 'bg-white',
+    border: 'border-blue-100',
+    text: 'text-blue-600',
+    iconBg: 'bg-blue-50',
+    hoverBorder: 'hover:border-blue-300',
+    hoverBg: 'hover:bg-blue-50',
   },
   green: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-green-500/10',
-    text: 'text-green-400',
-    iconBg: 'bg-green-500/10',
-    hoverBorder: 'hover:border-green-500/30',
+    bg: 'bg-white',
+    border: 'border-green-100',
+    text: 'text-green-600',
+    iconBg: 'bg-green-50',
+    hoverBorder: 'hover:border-green-300',
+    hoverBg: 'hover:bg-green-50',
   },
   violet: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-violet-500/10',
-    text: 'text-violet-400',
-    iconBg: 'bg-violet-500/10',
-    hoverBorder: 'hover:border-violet-500/30',
+    bg: 'bg-white',
+    border: 'border-violet-100',
+    text: 'text-violet-600',
+    iconBg: 'bg-violet-50',
+    hoverBorder: 'hover:border-violet-300',
+    hoverBg: 'hover:bg-violet-50',
   },
   indigo: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-indigo-500/10',
-    text: 'text-indigo-400',
-    iconBg: 'bg-indigo-500/10',
-    hoverBorder: 'hover:border-indigo-500/30',
+    bg: 'bg-white',
+    border: 'border-indigo-100',
+    text: 'text-indigo-600',
+    iconBg: 'bg-indigo-50',
+    hoverBorder: 'hover:border-indigo-300',
+    hoverBg: 'hover:bg-indigo-50',
   },
   amber: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-amber-500/10',
-    text: 'text-amber-400',
-    iconBg: 'bg-amber-500/10',
-    hoverBorder: 'hover:border-amber-500/30',
+    bg: 'bg-white',
+    border: 'border-amber-100',
+    text: 'text-amber-600',
+    iconBg: 'bg-amber-50',
+    hoverBorder: 'hover:border-amber-300',
+    hoverBg: 'hover:bg-amber-50',
   },
   cyan: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-cyan-500/10',
-    text: 'text-cyan-400',
-    iconBg: 'bg-cyan-500/10',
-    hoverBorder: 'hover:border-cyan-500/30',
+    bg: 'bg-white',
+    border: 'border-cyan-100',
+    text: 'text-cyan-600',
+    iconBg: 'bg-cyan-50',
+    hoverBorder: 'hover:border-cyan-300',
+    hoverBg: 'hover:bg-cyan-50',
   },
   orange: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-orange-500/10',
-    text: 'text-orange-400',
-    iconBg: 'bg-orange-500/10',
-    hoverBorder: 'hover:border-orange-500/30',
-    hoverGradient: brandGradient, // BRAND: Logo-Farben
+    bg: 'bg-white',
+    border: 'border-orange-100',
+    text: 'text-orange-600',
+    iconBg: 'bg-gradient-to-br from-orange-50 to-pink-50',
+    hoverBorder: 'hover:border-orange-300',
+    hoverBg: 'hover:bg-gradient-to-br hover:from-orange-50 hover:to-pink-50',
+    gradient: 'from-orange-500 to-pink-500',
   },
   rose: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-rose-500/10',
-    text: 'text-rose-400',
-    iconBg: 'bg-rose-500/10',
-    hoverBorder: 'hover:border-rose-500/30',
-    hoverGradient: brandGradient, // BRAND: Logo-Farben
+    bg: 'bg-white',
+    border: 'border-rose-100',
+    text: 'text-rose-600',
+    iconBg: 'bg-gradient-to-br from-pink-50 to-rose-50',
+    hoverBorder: 'hover:border-rose-300',
+    hoverBg: 'hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50',
+    gradient: 'from-pink-500 to-rose-500',
   },
   slate: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-white/5',
-    text: 'text-zinc-400',
-    iconBg: 'bg-white/5',
-    hoverBorder: 'hover:border-white/20',
+    bg: 'bg-white',
+    border: 'border-gray-100',
+    text: 'text-gray-600',
+    iconBg: 'bg-gray-50',
+    hoverBorder: 'hover:border-gray-300',
+    hoverBg: 'hover:bg-gray-50',
   },
   pink: {
-    bg: 'bg-zinc-900/40',
-    border: 'border-pink-500/10',
-    text: 'text-pink-400',
-    iconBg: 'bg-pink-500/10',
-    hoverBorder: 'hover:border-pink-500/30',
-    hoverGradient: brandGradient, // BRAND: Logo-Farben
+    bg: 'bg-white',
+    border: 'border-pink-100',
+    text: 'text-pink-600',
+    iconBg: 'bg-gradient-to-br from-pink-50 to-orange-50',
+    hoverBorder: 'hover:border-pink-300',
+    hoverBg: 'hover:bg-gradient-to-br hover:from-pink-50 hover:to-orange-50',
+    gradient: 'from-pink-500 to-orange-500',
   },
 };
 
@@ -324,7 +327,6 @@ export default function DashboardClient() {
   const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Pull-to-Refresh Handler
   const handleTouchStart = (e: React.TouchEvent) => {
     if (containerRef.current && containerRef.current.scrollTop === 0) {
       const touch = e.touches[0];
@@ -394,7 +396,7 @@ export default function DashboardClient() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full relative bg-zinc-950"
+      className="min-h-screen w-full relative bg-gray-50"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -403,28 +405,28 @@ export default function DashboardClient() {
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
       }}
     >
-      {/* BRAND: Subtle gradient background - Logo-Farben */}
+      {/* CLEAN: Subtle gradient background - Logo colors */}
       <div className="fixed inset-0 pointer-events-none -z-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-500/5 via-transparent to-pink-500/5" />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-50/30 via-transparent to-pink-50/30" />
       </div>
 
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 0 && (
-        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-zinc-950/95 backdrop-blur-xl border-b border-white/5 z-50">
+        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50">
           {pullDistance >= 60 ? (
-            <div className="flex items-center gap-2 text-orange-400">
-              <div className="w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm font-light">Loslassen zum Aktualisieren</span>
+            <div className="flex items-center gap-2 text-orange-500">
+              <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium text-gray-700">Loslassen zum Aktualisieren</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-zinc-500">
-              <span className="text-sm font-light">Ziehen zum Aktualisieren</span>
+            <div className="flex items-center gap-2 text-gray-500">
+              <span className="text-sm font-medium">Ziehen zum Aktualisieren</span>
             </div>
           )}
         </div>
       )}
 
-      {/* Main Container - Mobile First mit großzügigem Whitespace */}
+      {/* Main Container - Clean, Spacious */}
       <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-32 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:pt-8">
         
         {/* Header Section */}
@@ -432,21 +434,21 @@ export default function DashboardClient() {
           <DashboardGreetingClient />
         </div>
 
-        {/* Search Bar - Brand Colors Integration */}
+        {/* Search Bar - Clean Design */}
         <div className="mb-8 md:mb-12">
           <div className="relative group max-w-2xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-orange-400 transition-colors duration-300 z-10" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors duration-300 z-10" />
             <input
               type="text"
               placeholder="Suche nach Tools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-900/50 border border-white/5 text-white placeholder:text-zinc-600 rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-orange-500/30 focus:ring-1 focus:ring-orange-500/20 transition-all duration-300 text-base font-light tracking-wide backdrop-blur-sm"
+              className="w-full bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all duration-300 text-base font-medium tracking-wide shadow-sm hover:shadow-md"
             />
           </div>
         </div>
 
-        {/* Mobile Quick Access - Brand Gradient Touches */}
+        {/* Mobile Quick Access */}
         <div className="mb-10 md:hidden">
           <div className="flex gap-3 justify-center">
             {quickAccessTools.slice(0, 4).map((quickTool) => {
@@ -461,11 +463,11 @@ export default function DashboardClient() {
                 >
                   <div className={cn(
                     'w-14 h-14 rounded-xl border flex items-center justify-center',
-                    'transition-all duration-300 group-active:scale-90',
+                    'transition-all duration-300 group-active:scale-90 shadow-sm',
                     colors.bg,
                     colors.border,
                     colors.hoverBorder,
-                    'group-hover:shadow-lg'
+                    'group-hover:shadow-md'
                   )}>
                     <QuickIcon className={cn('w-6 h-6', colors.text)} />
                   </div>
@@ -475,7 +477,7 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        {/* Category Tabs - Brand Gradient für Active */}
+        {/* Category Tabs - Clean with Logo Gradient */}
         <div className="mb-10 md:mb-14 overflow-x-auto">
           <div className="flex gap-3 pb-2 min-w-max">
             {categoryTabs.map((cat) => (
@@ -486,10 +488,10 @@ export default function DashboardClient() {
                   triggerHaptic('light');
                 }}
                 className={cn(
-                  'px-5 py-2.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 whitespace-nowrap',
+                  'px-5 py-2.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 whitespace-nowrap shadow-sm',
                   selectedCategory === cat
-                    ? 'bg-gradient-to-r from-orange-500/20 via-pink-500/20 to-rose-500/20 text-white border border-orange-500/30 shadow-lg shadow-orange-500/10'
-                    : 'bg-zinc-900/50 text-zinc-500 border border-white/5 hover:text-zinc-400 hover:border-white/10'
+                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border-0 shadow-md'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:text-gray-900 hover:border-gray-300'
                 )}
               >
                 {cat}
@@ -498,11 +500,9 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        {/* STAGGERED LAYOUT - Mobile First, Fluid & Organic */}
+        {/* CLEAN LAYOUT - Floating Cards mit Proper Shadows */}
         {filteredTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
-            {/* Mobile: Vertical Stack mit verschiedenen Größen */}
-            {/* Desktop: Staggered Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {filteredTools.map((tool, index) => {
                 const Icon = tool.icon;
@@ -511,19 +511,22 @@ export default function DashboardClient() {
                 const isLarge = size === 'large';
                 const isSmall = size === 'small';
 
-                // Staggered positioning - verschiedene Start-Positionen
+                // Staggered positioning
                 const staggeredClass = index % 3 === 1 ? 'md:mt-8 lg:mt-12' : index % 3 === 2 ? 'md:mt-4 lg:mt-6' : '';
 
                 const cardClassName = cn(
                   'group relative rounded-2xl border overflow-hidden',
-                  'transition-all duration-500 ease-out',
-                  'hover:-translate-y-1 hover:shadow-2xl',
+                  'transition-all duration-300 ease-out',
+                  'hover:-translate-y-1 hover:shadow-xl',
                   colors.bg,
                   colors.border,
                   colors.hoverBorder,
-                  tool.available ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed',
+                  colors.hoverBg,
+                  tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                   staggeredClass,
-                  // Size-based padding & min-height
+                  // Proper shadows - E-Wallet style
+                  'shadow-md',
+                  // Size-based padding
                   isLarge ? 'p-8 md:p-10 min-h-[280px] md:min-h-[320px]' : 
                   isSmall ? 'p-5 md:p-6 min-h-[180px]' : 
                   'p-6 md:p-8 min-h-[220px] md:min-h-[260px]'
@@ -531,68 +534,60 @@ export default function DashboardClient() {
 
                 const content = (
                   <>
-                    {/* BRAND: Gradient overlay on hover */}
-                    {colors.hoverGradient && (
+                    {/* Logo Gradient Accent für bestimmte Tools */}
+                    {colors.gradient && (
                       <div className={cn(
-                        'absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-500',
-                        colors.hoverGradient
+                        'absolute top-0 right-0 w-24 h-24 bg-gradient-to-br opacity-5 group-hover:opacity-10 transition-opacity duration-300',
+                        `bg-gradient-to-br ${colors.gradient}`
                       )} />
                     )}
 
-                    {/* Subtle glow effect - Brand colors */}
-                    <div className={cn(
-                      'absolute -bottom-16 -right-16 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500',
-                      colors.hoverGradient ? `bg-gradient-to-br ${colors.hoverGradient}` : colors.iconBg.replace('bg-', 'bg-').replace('/10', '')
-                    )} />
-
-                    {/* Icon Container - Brand gradient für hover */}
+                    {/* Icon Container */}
                     <div className="mb-5 md:mb-6">
                       <div className={cn(
-                        'inline-flex items-center justify-center rounded-xl border transition-all duration-500',
+                        'inline-flex items-center justify-center rounded-xl border transition-all duration-300',
                         colors.iconBg,
                         colors.border,
                         isLarge ? 'w-14 h-14 md:w-16 md:h-16' : isSmall ? 'w-12 h-12' : 'w-13 h-13 md:w-14 md:h-14',
-                        'group-hover:scale-110 group-hover:rotate-3',
-                        colors.hoverGradient && 'group-hover:bg-gradient-to-br group-hover:border-orange-500/30',
-                        colors.hoverGradient && `group-hover:${colors.hoverGradient}`
+                        'group-hover:scale-110 group-hover:shadow-md',
+                        colors.gradient && 'group-hover:border-orange-300'
                       )}>
                         <Icon className={cn(
                           colors.text,
-                          isLarge ? 'w-7 h-7 md:w-8 md:h-8' : isSmall ? 'w-6 h-6' : 'w-6 h-6 md:w-7 md:h-7',
-                          'transition-transform duration-500 group-hover:scale-110'
+                          isLarge ? 'w-7 h-7 md:w-8 md:h-8' : isSmall ? 'w-6 h-6' : 'w-6 h-6 md:w-7 md:h-7'
                         )} />
                       </div>
                     </div>
 
-                    {/* Title */}
+                    {/* Title - Dark gray für readability */}
                     <h3 className={cn(
-                      'font-bold text-white mb-2 md:mb-3',
+                      'font-bold text-gray-900 mb-2 md:mb-3',
                       'tracking-tight leading-tight',
                       isLarge ? 'text-2xl md:text-3xl' : isSmall ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'
                     )} style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
                       {tool.title}
                     </h3>
 
-                    {/* Description - Ultra-thin */}
+                    {/* Description - Light gray */}
                     <p className={cn(
-                      'text-zinc-500 leading-relaxed font-light tracking-wide',
+                      'text-gray-600 leading-relaxed font-normal tracking-wide',
                       isLarge ? 'text-sm md:text-base' : isSmall ? 'text-xs md:text-sm' : 'text-sm',
-                      'group-hover:text-zinc-400 transition-colors duration-500'
+                      'group-hover:text-gray-700 transition-colors duration-300'
                     )}>
                       {tool.description}
                     </p>
 
-                    {/* Arrow indicator - Brand gradient */}
+                    {/* Arrow indicator - Logo gradient */}
                     {tool.available && (
                       <div className="absolute top-5 right-5 md:top-6 md:right-6">
                         <div className={cn(
                           'w-8 h-8 rounded-lg flex items-center justify-center',
-                          'bg-white/5 border border-white/10',
-                          'group-hover:bg-gradient-to-br group-hover:border-orange-500/30 transition-all duration-500',
-                          colors.hoverGradient && `group-hover:${colors.hoverGradient}`
+                          'bg-gray-50 border border-gray-200',
+                          'group-hover:bg-gradient-to-br group-hover:border-orange-300 transition-all duration-300',
+                          colors.gradient && `group-hover:bg-gradient-to-br group-hover:${colors.gradient}`
                         )}>
                           <ArrowUpRight className={cn(
-                            'w-4 h-4 text-white/30 group-hover:text-white transition-all duration-500',
+                            'w-4 h-4 text-gray-400 group-hover:text-white transition-all duration-300',
                             'group-hover:translate-x-0.5 group-hover:-translate-y-0.5'
                           )} />
                         </div>
@@ -602,7 +597,7 @@ export default function DashboardClient() {
                     {/* Status badge */}
                     {!tool.available && tool.status === 'soon' && (
                       <div className="absolute top-5 right-5 md:top-6 md:right-6">
-                        <span className="text-[10px] uppercase tracking-widest font-light px-2.5 py-1 rounded-full border border-white/5 bg-white/2 text-zinc-500">
+                        <span className="text-[10px] uppercase tracking-widest font-medium px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50 text-gray-500">
                           In Kürze
                         </span>
                       </div>
@@ -624,9 +619,9 @@ export default function DashboardClient() {
           </div>
         ) : (
           <div className="text-center py-24">
-            <Search className="w-16 h-16 mx-auto mb-6 text-zinc-700" />
-            <p className="text-zinc-500 text-lg font-light tracking-wide mb-2">Keine Tools gefunden.</p>
-            <p className="text-zinc-600 text-sm font-light">
+            <Search className="w-16 h-16 mx-auto mb-6 text-gray-300" />
+            <p className="text-gray-600 text-lg font-medium tracking-wide mb-2">Keine Tools gefunden.</p>
+            <p className="text-gray-500 text-sm font-normal">
               Versuche eine andere Suche oder Kategorie.
             </p>
           </div>
