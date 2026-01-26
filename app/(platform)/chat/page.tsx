@@ -530,8 +530,8 @@ export default function ChatPage() {
       </div>
 
       {/* NACHRICHTEN BEREICH - Modern KI-Assistant Design (Gemini/Claude Style) */}
-      {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten */}
-      <div className="flex-1 overflow-y-auto scroll-smooth pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-32">
+      {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Floating Bar */}
+      <div className="flex-1 overflow-y-auto scroll-smooth pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
         {/* Central Container: Begrenzte Breite, zentriert */}
         <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
           {messages.length === 0 && (
@@ -619,100 +619,117 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* INPUT BEREICH - Fixed für Mobile, damit Tastatur nicht darüber liegt */}
+      {/* INPUT BEREICH - Floating Bar Design */}
       {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
-      <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:relative md:bottom-0 left-0 right-0 shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-40 md:pb-4 lg:pb-5">
-        {/* Dokumente Liste */}
-        {documents.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center gap-1.5 rounded-md bg-zinc-800/50 border border-white/10 px-2 py-1 text-xs"
-              >
-                <span className="text-zinc-400">📄</span>
-                <span className="text-zinc-300 max-w-[150px] truncate" title={doc.fileName}>
-                  {formatFileName(doc.fileName, 20)}
-                </span>
-                <span className="text-zinc-500">({formatFileSize(doc.fileSize)})</span>
-                <button
-                  onClick={() => handleDeleteDocument(doc.id)}
-                  className="ml-1 text-zinc-500 hover:text-red-400 transition-colors"
-                  title="Löschen"
+      {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
+      <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 right-0 z-40 flex justify-center px-4 md:px-6">
+        <div className="w-full max-w-3xl">
+          {/* Dokumente Liste - Über der Floating Bar */}
+          {documents.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2 justify-center md:justify-start">
+              {documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center gap-1.5 rounded-lg bg-zinc-800/80 dark:bg-zinc-800/80 backdrop-blur-sm border border-white/10 px-2.5 py-1.5 text-xs shadow-md"
                 >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="relative flex items-end gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-1.5 sm:p-2 md:p-2.5 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/50 transition-all">
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={handleFileUpload}
-            disabled={isUploading}
-            className="hidden"
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
-          />
-          <div className="relative mb-0.5 sm:mb-1 shrink-0">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="rounded-lg bg-zinc-800 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all"
-              title="Datei hochladen"
-            >
-            {isUploading ? (
-              <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-            )}
-            </button>
-            <div className="absolute -top-1 -right-1">
-              <Tooltip 
-                content={
-                  <div className="space-y-1">
-                    <p className="font-semibold mb-1">Unterstützte Dateitypen:</p>
-                    <p>📄 Dokumente: PDF, Word, Excel, PowerPoint, TXT, Markdown</p>
-                    <p>💻 Code: JS, TS, Python, Java, C++, PHP, Ruby, Go, etc.</p>
-                    <p>🖼️ Bilder: JPG, PNG, GIF, WebP, SVG</p>
-                    <p>📊 Daten: CSV, JSON, XML</p>
-                  </div>
-                }
-                variant="info"
-                position="top"
-                iconOnly
-              />
+                  <span className="text-zinc-400">📄</span>
+                  <span className="text-zinc-300 dark:text-zinc-300 max-w-[150px] truncate" title={doc.fileName}>
+                    {formatFileName(doc.fileName, 20)}
+                  </span>
+                  <span className="text-zinc-500">({formatFileSize(doc.fileSize)})</span>
+                  <button
+                    onClick={() => handleDeleteDocument(doc.id)}
+                    className="ml-1 text-zinc-500 hover:text-red-400 transition-colors"
+                    title="Löschen"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
-          </div>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Schreib eine Nachricht..."
-            className="flex-1 bg-transparent px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-base md:text-sm focus:outline-none min-w-0 text-white placeholder:text-zinc-500"
-            autoFocus
-          />
-          <button
-            type="submit"
-            disabled={isLoading || (!input.trim() && documents.length === 0)}
-            className="mb-0.5 sm:mb-1 mr-0.5 sm:mr-1 rounded-lg bg-zinc-900 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
-            aria-label="Nachricht senden"
+          )}
+
+          {/* Floating Bar - Schwebende Pille/Box */}
+          <form 
+            onSubmit={handleSubmit} 
+            className="relative flex items-center gap-2 rounded-2xl bg-white/90 dark:bg-zinc-800/90 backdrop-blur-xl border border-zinc-200/50 dark:border-white/10 p-2 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/50 focus-within:shadow-2xl transition-all"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-          </button>
-        </form>
-        <p className="mt-1.5 sm:mt-2 text-center text-[9px] sm:text-[10px] md:text-xs text-zinc-500">
-          KI kann Fehler machen. Überprüfe wichtige Informationen.
-        </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileUpload}
+              disabled={isUploading}
+              className="hidden"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
+            />
+            {/* Upload Button */}
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="rounded-xl bg-zinc-100 dark:bg-zinc-700/50 p-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-50 transition-all"
+                title="Datei hochladen"
+              >
+                {isUploading ? (
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                )}
+              </button>
+              <div className="absolute -top-1 -right-1">
+                <Tooltip 
+                  content={
+                    <div className="space-y-1">
+                      <p className="font-semibold mb-1">Unterstützte Dateitypen:</p>
+                      <p>📄 Dokumente: PDF, Word, Excel, PowerPoint, TXT, Markdown</p>
+                      <p>💻 Code: JS, TS, Python, Java, C++, PHP, Ruby, Go, etc.</p>
+                      <p>🖼️ Bilder: JPG, PNG, GIF, WebP, SVG</p>
+                      <p>📊 Daten: CSV, JSON, XML</p>
+                    </div>
+                  }
+                  variant="info"
+                  position="top"
+                  iconOnly
+                />
+              </div>
+            </div>
+            
+            {/* Input Field - Kein eigener Rahmen */}
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Schreib eine Nachricht..."
+              className="flex-1 bg-transparent px-3 md:px-4 py-2 text-base md:text-sm focus:outline-none border-none min-w-0 text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-400"
+              autoFocus
+            />
+            
+            {/* Send Button - Mit Akzentfarbe */}
+            <button
+              type="submit"
+              disabled={isLoading || (!input.trim() && documents.length === 0)}
+              className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 p-2.5 text-white hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 shadow-md hover:shadow-lg"
+              aria-label="Nachricht senden"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m22 2-7 20-4-9-9-4Z"/>
+                <path d="M22 2 11 13"/>
+              </svg>
+            </button>
+          </form>
+          
+          {/* Disclaimer Text */}
+          <p className="mt-2 text-center text-[10px] md:text-xs text-zinc-500 dark:text-zinc-400">
+            KI kann Fehler machen. Überprüfe wichtige Informationen.
+          </p>
+        </div>
       </div>
     </div>
     </>
