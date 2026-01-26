@@ -988,106 +988,24 @@ export default function ChatDetailPage() {
             </div>
           </div>
 
-          {/* INPUT BEREICH - Premium Floating Bar */}
-          {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
-          {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
-            <div className="w-full max-w-3xl">
-              {/* Dokumente Liste - Premium Style */}
-              {documents.length > 0 && (
-                <div className="mb-2 flex flex-wrap gap-2 justify-center md:justify-start">
-                  {documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center gap-1.5 rounded-lg bg-gray-50 border border-gray-200/50 px-2.5 py-1.5 text-xs"
-                    >
-                      <span className="text-gray-500">📄</span>
-                      <span className="text-gray-700 max-w-[150px] truncate" title={doc.fileName}>
-                        {formatFileName(doc.fileName, 20)}
-                      </span>
-                      <span className="text-gray-500">({formatFileSize(doc.fileSize)})</span>
-                      <button
-                        onClick={() => handleDeleteDocument(doc.id)}
-                        className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
-                        title="Löschen"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Disclaimer Text */}
-              <div className="mb-3 text-center">
-                <p className="text-[10px] md:text-xs text-gray-500">KI kann Fehler machen. Überprüfe wichtige Informationen.</p>
-              </div>
-
-              {/* Input Container - Brand New Design */}
-              <form 
-                onSubmit={handleSubmit}
-                className="flex items-center gap-3"
-              >
+          {/* NEUER CHAT INPUT - KOMPLETT NEU */}
+          <div className="fixed bottom-20 left-4 right-4 z-50">
+            <div className="max-w-4xl mx-auto">
+              <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 bg-white rounded-2xl shadow-lg border border-gray-200">
                 <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileUpload}
-                  disabled={!chatId || isUploading}
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Nachricht eingeben..."
+                  className="flex-1 px-4 py-3 text-base bg-transparent border-0 outline-none resize-none placeholder-gray-500"
                 />
-                
-                {/* Upload Button - Left Side */}
-                {chatId && (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center"
-                    title="Datei hochladen"
-                  >
-                    {isUploading ? (
-                      <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="17 8 12 3 7 8"></polyline>
-                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                      </svg>
-                    )}
-                  </button>
-                )}
-                
-                {/* Input Field - Brand New Design */}
-                <div className="relative flex-1 min-w-0 isolate z-0">
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Schreib eine Nachricht..."
-                    className="w-full h-14 py-0 px-6 pr-16 text-base leading-normal text-gray-900 placeholder:text-gray-500 bg-white border-2 border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all resize-none"
-                    style={{
-                      minHeight: '56px', // Touch-friendly on mobile
-                    }}
-                    autoFocus
-                  />
-                  
-                  {/* Send Button - Absolute inside Input Field */}
-                  <button
-                    type="submit"
-                    disabled={isLoading || (!input.trim() && documents.length === 0)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105 active:scale-95 backdrop-blur-none"
-                    aria-label="Nachricht senden"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m22 2-7 20-4-9-9-4Z"/>
-                      <path d="M22 2 11 13"/>
-                    </svg>
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  disabled={!input.trim() || isLoading}
+                  className="w-12 h-12 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl flex items-center justify-center text-white disabled:opacity-50"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
               </form>
             </div>
           </div>
