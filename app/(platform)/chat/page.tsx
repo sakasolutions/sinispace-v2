@@ -553,8 +553,12 @@ export default function ChatPage() {
 
       {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) - KEIN SCROLL HIER! */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-white h-full">
-        {/* FIXED HEADER - Außerhalb Scroll-Container, Consistent Height */}
-        <div className={`fixed top-0 ${isSidebarCollapsed ? 'md:left-[calc(16rem+3rem)]' : 'md:left-[calc(16rem+20rem)]'} left-0 right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 h-16 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm flex items-center transition-all duration-300`}>
+        {/* FIXED HEADER - Außerhalb Scroll-Container, Consistent Height, dynamisch basierend auf Sidebar */}
+        <div className={`fixed top-0 left-0 right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 h-16 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm flex items-center transition-all duration-300 ${
+          isSidebarCollapsed 
+            ? 'md:left-[calc(16rem+3rem)]' 
+            : 'md:left-[calc(16rem+20rem)]'
+        }`}>
           <div className="flex items-center gap-3 sm:gap-4 w-full max-w-4xl mx-auto">
             {/* Mobile Menu Button */}
             <button
@@ -667,8 +671,12 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* CHAT INPUT - Fixed, zentriert, elegant positioniert (Desktop) */}
-        <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 left-0 ${isSidebarCollapsed ? 'md:left-[calc(16rem+3rem)]' : 'md:left-[calc(16rem+20rem)]'} right-0 z-40 pb-4 md:pb-0 transition-all duration-300`}>
+        {/* CHAT INPUT - Fixed, zentriert, dynamisch basierend auf Sidebar-State */}
+        <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 pb-4 md:pb-0 transition-all duration-300 ${
+          isSidebarCollapsed 
+            ? 'left-4 md:left-[calc(16rem+3rem)] right-4' // Full width mit Padding wenn collapsed
+            : 'left-4 md:left-[calc(16rem+20rem)] right-4' // Sidebar-offset wenn open
+        }`}>
           <div className="max-w-4xl mx-auto px-4 md:px-6">
             <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-lg focus-within:border-orange-500 focus-within:shadow-xl transition-all">
               <input
@@ -712,9 +720,13 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Dokumente Liste (wenn vorhanden) */}
+        {/* Dokumente Liste (wenn vorhanden) - dynamisch basierend auf Sidebar */}
         {documents.length > 0 && (
-          <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+8rem)] md:bottom-28 left-0 ${isSidebarCollapsed ? 'md:left-[calc(16rem+3rem)]' : 'md:left-[calc(16rem+20rem)]'} right-0 z-30 flex justify-center px-4 md:px-6 transition-all duration-300`}>
+          <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+8rem)] md:bottom-28 left-4 right-4 z-30 flex justify-center px-4 md:px-6 transition-all duration-300 ${
+            isSidebarCollapsed 
+              ? 'md:left-[calc(16rem+3rem)]' 
+              : 'md:left-[calc(16rem+20rem)]'
+          }`}>
             <div className="w-full max-w-3xl bg-white border border-gray-200/50 rounded-xl shadow-lg p-3 space-y-2">
               <div className="text-xs font-medium text-gray-700 mb-2">Hochgeladene Dateien:</div>
               <div className="flex flex-wrap gap-2">

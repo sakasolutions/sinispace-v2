@@ -747,8 +747,12 @@ export default function ChatDetailPage() {
 
         {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) - KEIN SCROLL HIER! */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-white h-full">
-          {/* FIXED HEADER - Außerhalb Scroll-Container, Consistent Height */}
-          <div className={`fixed top-0 ${isSidebarCollapsed ? 'md:left-[calc(16rem+3rem)]' : 'md:left-[calc(16rem+20rem)]'} left-0 right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 h-16 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm flex items-center transition-all duration-300`}>
+          {/* FIXED HEADER - Außerhalb Scroll-Container, Consistent Height, dynamisch basierend auf Sidebar */}
+          <div className={`fixed top-0 left-0 right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 h-16 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm flex items-center transition-all duration-300 ${
+            isSidebarCollapsed 
+              ? 'md:left-[calc(16rem+3rem)]' 
+              : 'md:left-[calc(16rem+20rem)]'
+          }`}>
             <div className="flex items-center gap-3 sm:gap-4 w-full max-w-4xl mx-auto">
               {/* Mobile Menu Button */}
               <button
@@ -779,7 +783,12 @@ export default function ChatDetailPage() {
 
           {/* NACHRICHTEN BEREICH - EINZIGER SCROLLBARER CONTAINER */}
           {/* Central Layout: Optimale reading-width, centered, mit minimalem Padding unten für Input */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth !bg-white pt-16 md:pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-20" style={{ minHeight: 0, height: '100%' } as React.CSSProperties}>
+          {/* Dynamisch basierend auf Sidebar-State für korrekte Positionierung */}
+          <div className={`flex-1 overflow-y-auto overflow-x-hidden scroll-smooth !bg-white pt-16 md:pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-20 transition-all duration-300 ${
+            isSidebarCollapsed 
+              ? 'md:ml-0' 
+              : 'md:ml-0'
+          }`} style={{ minHeight: 0, height: '100%' } as React.CSSProperties}>
             {/* Central Container: Optimale reading-width (65ch), zentriert */}
             <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-4 md:py-6" style={{ maxWidth: '65ch' } as React.CSSProperties}>
               {messages.length === 0 && (
@@ -1029,8 +1038,12 @@ export default function ChatDetailPage() {
             </div>
           </div>
 
-          {/* CHAT INPUT - Fixed, zentriert, elegant positioniert (Desktop) */}
-          <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 left-0 ${isSidebarCollapsed ? 'md:left-[calc(16rem+3rem)]' : 'md:left-[calc(16rem+20rem)]'} right-0 z-40 pb-4 md:pb-0 transition-all duration-300`}>
+          {/* CHAT INPUT - Fixed, zentriert, dynamisch basierend auf Sidebar-State */}
+          <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 pb-4 md:pb-0 transition-all duration-300 ${
+            isSidebarCollapsed 
+              ? 'left-4 md:left-[calc(16rem+3rem)] right-4' // Full width mit Padding wenn collapsed
+              : 'left-4 md:left-[calc(16rem+20rem)] right-4' // Sidebar-offset wenn open
+          }`}>
             <div className="max-w-4xl mx-auto px-4 md:px-6">
               <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-lg focus-within:border-orange-500 focus-within:shadow-xl transition-all">
                 <input
