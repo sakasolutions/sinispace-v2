@@ -97,15 +97,21 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
 
   // Sonst: Normales Layout mit Sidebar und Header
   return (
-    <div className="flex h-[100dvh] bg-zinc-950 overflow-hidden relative">
+    <div className="flex h-[100dvh] bg-gradient-to-br from-gray-50 via-white to-orange-50/30 overflow-hidden relative">
+      {/* Background Enhancement: Subtle mesh texture */}
+      <div className="fixed inset-0 pointer-events-none -z-10 opacity-[0.03]">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
+      </div>
       {/* Hero Background (Grid + Glows) */}
       <HeroBackground showGlows={true} />
       
-      {/* SIDEBAR (Desktop) */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-white/5 bg-zinc-950/50 backdrop-blur-xl md:block z-10">
-        <div className="flex h-16 items-center border-b border-white/5 px-6">
-          <Link href="/dashboard" className="flex items-center">
-            <div className="relative h-10 w-10 rounded-xl overflow-hidden">
+      {/* SIDEBAR (Desktop) - Glassmorphism Modern Redesign */}
+      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-white/10 bg-white/80 backdrop-blur-xl md:block z-10 shadow-xl">
+        <div className="flex h-16 items-center border-b border-gray-200/50 px-6">
+          <Link href="/dashboard" className="flex items-center group">
+            <div className="relative h-10 w-10 rounded-xl overflow-hidden ring-2 ring-transparent group-hover:ring-orange-200 transition-all duration-300">
               <Image 
                 src="/assets/logos/logo.webp" 
                 alt="Sinispace" 
@@ -119,7 +125,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         <nav className="flex flex-col gap-1 p-4 pt-6">
           <NavItem href="/dashboard" label="Übersicht" pathname={pathname} />
           <NavItem href="/chat" label="SiniChat" pathname={pathname} />
-          <div className="my-4 h-px bg-white/5" />
+          <div className="my-4 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
           <NavItem href="/settings" label="Einstellungen" pathname={pathname} />
         </nav>
         
@@ -127,7 +133,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
           <form action={signOutAction}>
             <button 
               type="submit"
-              className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-white transition-colors"
+              className="w-full rounded-lg border border-gray-200 bg-white/50 backdrop-blur-sm px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 hover:border-orange-200 hover:text-gray-900 transition-all duration-300 shadow-sm hover:shadow-md"
             >
               Abmelden
             </button>
@@ -165,17 +171,17 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
   );
 }
 
-// Hilfskomponente für Desktop Links
+// Hilfskomponente für Desktop Links - Logo Gradient Integration
 function NavItem({ href, label, pathname }: { href: string; label: string; pathname: string | null }) {
   const isActive = pathname === href;
   return (
     <Link
       href={href}
       onClick={() => triggerHaptic('light')}
-      className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+      className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
         isActive
-          ? 'bg-zinc-900 text-white'
-          : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
+          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md shadow-orange-500/20'
+          : 'text-gray-600 hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 hover:text-gray-900'
       }`}
     >
       {label}
