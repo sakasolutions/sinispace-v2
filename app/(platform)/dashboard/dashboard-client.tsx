@@ -564,10 +564,10 @@ export default function DashboardClient() {
         {/* SMART USAGE-BASED CARD HIERARCHY */}
         {sortedAndFilteredTools.length > 0 ? (
           <div className="space-y-4 md:space-y-6 lg:space-y-8">
-            {/* HERO CARDS: Top 4 Most Used Tools - 2x2 Large Grid */}
+            {/* HERO CARDS: Top 4 Most Used Tools - Mobile: Full Width, Desktop: 2x2 Large Grid */}
             {heroTools.length > 0 && (
               <div 
-                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-4"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-4"
                 style={{
                   gridAutoRows: 'minmax(auto, auto)',
                 }}
@@ -647,17 +647,17 @@ export default function DashboardClient() {
                         </div>
                       </div>
 
-                      {/* Title & Description */}
+                      {/* Title & Description - Mobile: Full Details, Desktop: Full Details */}
                       <div className="relative z-10">
                         <h3 className={cn(
                           'font-bold text-gray-900 mb-1 md:mb-2',
-                          'text-base md:text-xl lg:text-2xl',
+                          'text-lg md:text-xl lg:text-2xl',
                           'leading-tight line-clamp-2'
                         )}>
                           {tool.title}
                         </h3>
                         <p className={cn(
-                          'text-gray-600 text-xs md:text-sm lg:text-base',
+                          'text-gray-600 text-sm md:text-sm lg:text-base',
                           'leading-snug line-clamp-2'
                         )}>
                           {tool.description}
@@ -709,7 +709,7 @@ export default function DashboardClient() {
               </div>
             )}
 
-            {/* SECONDARY CARDS: Rest of Tools - Smaller Grid */}
+            {/* SECONDARY CARDS: Rest of Tools - Mobile: 2-Column Compact, Desktop: Smaller Grid */}
             {secondaryTools.length > 0 && (
               <div 
                 className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-4"
@@ -755,10 +755,10 @@ export default function DashboardClient() {
                     'shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.02)]',
                     'hover:shadow-[0_1px_3px_rgba(0,0,0,0.05),0_2px_6px_rgba(0,0,0,0.03)]',
                     colors.gradient && 'hover:shadow-[0_1px_3px_rgba(249,115,22,0.06),0_2px_6px_rgba(244,114,182,0.04)]',
-                    // Secondary Cards: Smaller heights
-                    isLarge ? 'p-4 md:p-6 lg:p-8 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
-                    isSmall ? 'p-3 md:p-4 lg:p-5 h-[140px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
-                    'p-4 md:p-5 lg:p-6 h-[140px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
+                    // MOBILE: Compact height for 2-column layout, Desktop: Full heights
+                    isLarge ? 'p-3 md:p-6 lg:p-8 h-[100px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
+                    isSmall ? 'p-2.5 md:p-4 lg:p-5 h-[90px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
+                    'p-3 md:p-5 lg:p-6 h-[100px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
                   );
 
                   const content = (
@@ -776,74 +776,77 @@ export default function DashboardClient() {
                         </div>
                       )}
 
-                    {/* BENTO BOX: Icon Container - MOBILE: Kompakter, Desktop: Full Size */}
-                    <div className="mb-2 md:mb-4 lg:mb-6">
+                    {/* MOBILE: Compact Layout - Icon & Title Centered, Description Hidden/1 Line */}
+                    {/* DESKTOP: Full Layout - Icon, Title, Description */}
+                    <div className="flex flex-col items-center justify-center h-full md:items-start md:justify-start">
+                      {/* Icon Container - Mobile: Centered, Desktop: Left */}
                       <div className={cn(
-                        'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
-                        'ease-out', // Smooth easing
-                        // NO scale on hover - icons stay in place
-                        colors.iconBg,
-                        colors.border,
-                        // MOBILE: Kleinere Icons für kompakte Cards
-                        isLarge ? 'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18' : 
-                        isSmall ? 'w-9 h-9 md:w-13 md:h-13' : 
-                        'w-10 h-10 md:w-14 lg:w-16 md:h-14 lg:h-16',
-                        // PREMIUM: Advanced Shadow Stacks für icon
-                        'shadow-[0_1px_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.02)]',
-                        'group-hover:shadow-[0_2px_2px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)]',
-                        colors.gradient && 'group-hover:shadow-[0_2px_2px_rgba(249,115,22,0.1),0_4px_8px_rgba(244,114,182,0.08),0_8px_16px_rgba(249,115,22,0.1)]',
-                        colors.gradient && 'group-hover:border-orange-300',
-                        // PREMIUM: Glassmorphism Layer für Icon Container
-                        'backdrop-blur-sm group-hover:backdrop-blur-md'
+                        'mb-2 md:mb-4 lg:mb-6',
+                        'flex md:inline-flex items-center justify-center'
                       )}>
-                        <Icon className={cn(
-                          colors.text,
-                          'transition-opacity duration-200 ease-out group-hover:opacity-90',
-                          // MOBILE: Kleinere Icons
-                          isLarge ? 'w-5 h-5 md:w-8 lg:w-9 md:h-8 lg:h-9' : 
-                          isSmall ? 'w-4 h-4 md:w-6 md:h-6' : 
-                          'w-5 h-5 md:w-7 lg:w-8 md:h-7 lg:h-8'
-                        )} />
+                        <div className={cn(
+                          'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
+                          'ease-out',
+                          colors.iconBg,
+                          colors.border,
+                          // MOBILE: Smaller icons for compact 2-column layout
+                          isLarge ? 'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18' : 
+                          isSmall ? 'w-8 h-8 md:w-13 md:h-13' : 
+                          'w-9 h-9 md:w-14 lg:w-16 md:h-14 lg:h-16',
+                          'shadow-[0_1px_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.02)]',
+                          'group-hover:shadow-[0_2px_2px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)]',
+                          colors.gradient && 'group-hover:shadow-[0_2px_2px_rgba(249,115,22,0.1),0_4px_8px_rgba(244,114,182,0.08),0_8px_16px_rgba(249,115,22,0.1)]',
+                          colors.gradient && 'group-hover:border-orange-300',
+                          'backdrop-blur-sm group-hover:backdrop-blur-md'
+                        )}>
+                          <Icon className={cn(
+                            colors.text,
+                            'transition-opacity duration-200 ease-out group-hover:opacity-90',
+                            isLarge ? 'w-5 h-5 md:w-8 lg:w-9 md:h-8 lg:h-9' : 
+                            isSmall ? 'w-4 h-4 md:w-6 md:h-6' : 
+                            'w-4 h-4 md:w-7 lg:w-8 md:h-7 lg:h-8'
+                          )} />
+                        </div>
                       </div>
+
+                      {/* Title - Mobile: Centered, Compact, Desktop: Left, Full */}
+                      <h3 className={cn(
+                        'font-bold text-gray-900 text-center md:text-left',
+                        'mb-0 md:mb-1 lg:mb-3',
+                        'tracking-tight',
+                        'leading-tight',
+                        // MOBILE: Smaller, centered text
+                        isLarge ? 'text-sm md:text-2xl lg:text-3xl' : 
+                        isSmall ? 'text-xs md:text-lg lg:text-xl' : 
+                        'text-xs md:text-xl lg:text-2xl',
+                        'line-clamp-2'
+                      )} style={{ 
+                        fontFamily: 'var(--font-plus-jakarta-sans), sans-serif',
+                        fontWeight: 700,
+                        letterSpacing: '-0.02em',
+                        lineHeight: '1.2'
+                      }}>
+                        {tool.title}
+                      </h3>
+
+                      {/* Description - Mobile: Hidden or 1 Line with Ellipsis, Desktop: Full */}
+                      <p className={cn(
+                        'text-gray-600 font-normal text-center md:text-left',
+                        'hidden md:block', // MOBILE: Hidden completely
+                        // Desktop sizes
+                        isLarge ? 'md:text-sm lg:text-base' : 
+                        isSmall ? 'md:text-xs lg:text-sm' : 
+                        'md:text-sm lg:text-base',
+                        'group-hover:text-gray-700 transition-colors duration-300',
+                        'md:line-clamp-none'
+                      )} style={{
+                        fontWeight: 400,
+                        letterSpacing: '0.01em',
+                        lineHeight: '1.3'
+                      }}>
+                        {tool.description}
+                      </p>
                     </div>
-
-                    {/* Title - MOBILE: Kompakter, Desktop: Full Size */}
-                    <h3 className={cn(
-                      'font-bold text-gray-900 mb-1 md:mb-3 lg:mb-4',
-                      'tracking-tight',
-                      // MOBILE: Tighter line-height für kompakteren Look
-                      'leading-tight md:leading-tight',
-                      isLarge ? 'text-base md:text-2xl lg:text-3xl' : 
-                      isSmall ? 'text-sm md:text-lg lg:text-xl' : 
-                      'text-sm md:text-xl lg:text-2xl'
-                    )} style={{ 
-                      fontFamily: 'var(--font-plus-jakarta-sans), sans-serif',
-                      fontWeight: 700,
-                      letterSpacing: '-0.02em',
-                      // MOBILE: Tighter line-height
-                      lineHeight: '1.2'
-                    }}>
-                      {tool.title}
-                    </h3>
-
-                    {/* Description - MOBILE: Kompakter, Tighter Line-Height */}
-                    <p className={cn(
-                      'text-gray-600 font-normal',
-                      // MOBILE: Kleinere Font-Sizes, Tighter Line-Height
-                      isLarge ? 'text-[10px] leading-tight md:text-sm lg:text-base md:leading-relaxed' : 
-                      isSmall ? 'text-[9px] leading-tight md:text-xs lg:text-sm md:leading-relaxed' : 
-                      'text-[10px] leading-tight md:text-sm lg:text-base md:leading-relaxed',
-                      'group-hover:text-gray-700 transition-colors duration-300',
-                      // MOBILE: Line-clamp für kompakte Cards
-                      'line-clamp-2 md:line-clamp-none'
-                    )} style={{
-                      fontWeight: 400,
-                      letterSpacing: '0.01em',
-                      // MOBILE: Tighter line-height
-                      lineHeight: '1.3'
-                    }}>
-                      {tool.description}
-                    </p>
 
                     {/* PREMIUM: Arrow Indicator - MOBILE: Hidden, Desktop: Visible */}
                     {tool.available && (
