@@ -219,7 +219,7 @@ const quickAccessTools = [
   { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'violet', href: '/actions/legal' },
 ];
 
-// CLEAN DESIGN: Light theme colors mit Logo-Gradient Accents
+// PREMIUM FLOATING DESIGN: Permanent Floating Cards mit vollumfänglichem farbigen Rahmen
 const toolColors: Record<string, {
   bg: string;
   border: string;
@@ -228,109 +228,109 @@ const toolColors: Record<string, {
   hoverBorder: string;
   hoverBg: string;
   gradient?: string;
-  accentBorder: string; // Farbiger Akzent-Streifen am oberen Rand
+  accentColor: string; // Vollumfänglicher farbiger Rahmen (1px solid)
 }> = {
   emerald: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-emerald-300',
     text: 'text-emerald-600',
     iconBg: 'bg-emerald-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-emerald-400',
     hoverBg: 'hover:bg-emerald-50',
-    accentBorder: 'border-t-emerald-500',
+    accentColor: 'emerald',
   },
   blue: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-blue-300',
     text: 'text-blue-600',
     iconBg: 'bg-blue-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-blue-400',
     hoverBg: 'hover:bg-blue-50',
-    accentBorder: 'border-t-blue-500',
+    accentColor: 'blue',
   },
   green: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-green-300',
     text: 'text-green-600',
     iconBg: 'bg-green-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-green-400',
     hoverBg: 'hover:bg-green-50',
-    accentBorder: 'border-t-green-500',
+    accentColor: 'green',
   },
   violet: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-violet-300',
     text: 'text-violet-600',
     iconBg: 'bg-violet-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-violet-400',
     hoverBg: 'hover:bg-violet-50',
-    accentBorder: 'border-t-violet-500',
+    accentColor: 'violet',
   },
   indigo: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-indigo-300',
     text: 'text-indigo-600',
     iconBg: 'bg-indigo-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-indigo-400',
     hoverBg: 'hover:bg-indigo-50',
-    accentBorder: 'border-t-indigo-500',
+    accentColor: 'indigo',
   },
   amber: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-amber-300',
     text: 'text-amber-600',
     iconBg: 'bg-amber-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-amber-400',
     hoverBg: 'hover:bg-amber-50',
-    accentBorder: 'border-t-amber-500',
+    accentColor: 'amber',
   },
   cyan: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-cyan-300',
     text: 'text-cyan-600',
     iconBg: 'bg-cyan-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-cyan-400',
     hoverBg: 'hover:bg-cyan-50',
-    accentBorder: 'border-t-cyan-500',
+    accentColor: 'cyan',
   },
   orange: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-orange-300',
     text: 'text-orange-600',
     iconBg: 'bg-gradient-to-br from-orange-50 to-pink-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-orange-400',
     hoverBg: 'hover:bg-gradient-to-br hover:from-orange-50 hover:to-pink-50',
     gradient: 'from-orange-500 to-pink-500',
-    accentBorder: 'border-t-orange-500',
+    accentColor: 'orange',
   },
   rose: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-rose-300',
     text: 'text-rose-600',
     iconBg: 'bg-gradient-to-br from-pink-50 to-rose-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-rose-400',
     hoverBg: 'hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50',
     gradient: 'from-pink-500 to-rose-500',
-    accentBorder: 'border-t-rose-500',
+    accentColor: 'rose',
   },
   slate: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-gray-300',
     text: 'text-gray-600',
     iconBg: 'bg-gray-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-gray-400',
     hoverBg: 'hover:bg-gray-50',
-    accentBorder: 'border-t-gray-500',
+    accentColor: 'gray',
   },
   pink: {
     bg: 'bg-white',
-    border: 'border-gray-100',
+    border: 'border-pink-300',
     text: 'text-pink-600',
     iconBg: 'bg-gradient-to-br from-pink-50 to-orange-50',
-    hoverBorder: 'hover:border-gray-200',
+    hoverBorder: 'hover:border-pink-400',
     hoverBg: 'hover:bg-gradient-to-br hover:from-pink-50 hover:to-orange-50',
     gradient: 'from-pink-500 to-orange-500',
-    accentBorder: 'border-t-pink-500',
+    accentColor: 'pink',
   },
 };
 
@@ -605,26 +605,26 @@ export default function DashboardClient() {
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
-                    // MODERN HOVER: Smooth transition for transform and shadow
+                    // PERMANENT FLOATING: Smooth transition for transform and shadow
                     'transition-all duration-300 ease',
-                    // MODERN HOVER: Leichtes Anheben auf Desktop (nur md+)
+                    // PERMANENT FLOATING: Dauerhaftes Anheben im Ruhezustand
+                    '-translate-y-1',
+                    // PERMANENT FLOATING: Verstärktes Anheben beim Hover
                     'md:hover:-translate-y-2',
                     colors.bg,
-                    // Neutral border (hellgrau)
-                    'border-gray-100',
+                    // PERMANENT FLOATING: Dünner vollumfänglicher Rahmen in Akzentfarbe (1px)
+                    colors.border,
+                    'border',
                     colors.hoverBorder,
                     colors.hoverBg,
-                    // PREMIUM DEPTH: Farbiger Akzent-Streifen am oberen Rand (3px)
-                    colors.accentBorder,
-                    'border-t-[3px]',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // PREMIUM DEPTH: Subtiler permanenter Schatten im Ruhezustand
-                    'shadow-[0_2px_8px_rgba(0,0,0,0.05)]',
-                    // MODERN HOVER: Verstärkter, weicher Schatten auf Desktop
-                    'md:hover:shadow-[0_10px_20px_rgba(0,0,0,0.1),0_4px_8px_rgba(0,0,0,0.06)]',
-                    colors.gradient && 'md:hover:shadow-[0_10px_20px_rgba(249,115,22,0.12),0_4px_8px_rgba(244,114,182,0.08)]',
+                    // PERMANENT FLOATING: Deutlicher, weicher mittlerer Schatten im Ruhezustand
+                    'shadow-[0_8px_16px_rgba(0,0,0,0.08)]',
+                    // PERMANENT FLOATING: Größerer, weicherer Schatten beim Hover
+                    'md:hover:shadow-[0_12px_24px_rgba(0,0,0,0.12)]',
+                    colors.gradient && 'md:hover:shadow-[0_12px_24px_rgba(249,115,22,0.15),0_8px_16px_rgba(244,114,182,0.1)]',
                     // PREMIUM DEPTH: Mehr inneres Padding für mehr Weißraum
                     'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
@@ -763,26 +763,26 @@ export default function DashboardClient() {
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
-                    // MODERN HOVER: Smooth transition for transform and shadow
+                    // PERMANENT FLOATING: Smooth transition for transform and shadow
                     'transition-all duration-300 ease',
-                    // MODERN HOVER: Leichtes Anheben auf Desktop (nur md+)
+                    // PERMANENT FLOATING: Dauerhaftes Anheben im Ruhezustand
+                    '-translate-y-1',
+                    // PERMANENT FLOATING: Verstärktes Anheben beim Hover
                     'md:hover:-translate-y-2',
                     colors.bg,
-                    // Neutral border (hellgrau)
-                    'border-gray-100',
+                    // PERMANENT FLOATING: Dünner vollumfänglicher Rahmen in Akzentfarbe (1px)
+                    colors.border,
+                    'border',
                     colors.hoverBorder,
                     colors.hoverBg,
-                    // PREMIUM DEPTH: Farbiger Akzent-Streifen am oberen Rand (3px)
-                    colors.accentBorder,
-                    'border-t-[3px]',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // PREMIUM DEPTH: Subtiler permanenter Schatten im Ruhezustand
-                    'shadow-[0_2px_8px_rgba(0,0,0,0.05)]',
-                    // MODERN HOVER: Verstärkter, weicher Schatten auf Desktop
-                    'md:hover:shadow-[0_10px_20px_rgba(0,0,0,0.1),0_4px_8px_rgba(0,0,0,0.06)]',
-                    colors.gradient && 'md:hover:shadow-[0_10px_20px_rgba(249,115,22,0.12),0_4px_8px_rgba(244,114,182,0.08)]',
+                    // PERMANENT FLOATING: Deutlicher, weicher mittlerer Schatten im Ruhezustand
+                    'shadow-[0_8px_16px_rgba(0,0,0,0.08)]',
+                    // PERMANENT FLOATING: Größerer, weicherer Schatten beim Hover
+                    'md:hover:shadow-[0_12px_24px_rgba(0,0,0,0.12)]',
+                    colors.gradient && 'md:hover:shadow-[0_12px_24px_rgba(249,115,22,0.15),0_8px_16px_rgba(244,114,182,0.1)]',
                     // PREMIUM DEPTH: Mehr inneres Padding für mehr Weißraum
                     isLarge ? 'p-4 md:p-7 lg:p-10 h-[100px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
                     isSmall ? 'p-3 md:p-5 lg:p-7 h-[90px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
