@@ -25,12 +25,12 @@ export function ChatLayoutWrapper({ children, userEmail, isPro }: ChatLayoutWrap
   }, [pathname]);
 
   return (
-    <div className="flex h-[100dvh] flex-col md:flex-row bg-zinc-950 overflow-hidden relative">
+    <div className="flex h-[100dvh] flex-col md:flex-row bg-white overflow-hidden relative">
       {/* Hero Background (Grid + Glows) */}
       <HeroBackground showGlows={true} />
       
       {/* 1. MOBILE HEADER (Nur sichtbar auf Handy, fixed oben) */}
-      <div className="md:hidden flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl z-30 shrink-0 h-14 fixed top-0 left-0 right-0">
+      <div className="md:hidden flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 bg-white/80 backdrop-blur-xl z-30 shrink-0 h-14 fixed top-0 left-0 right-0">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Logo (Mobile) */}
           <Link 
@@ -51,7 +51,7 @@ export function ChatLayoutWrapper({ children, userEmail, isPro }: ChatLayoutWrap
         </div>
         <button 
           onClick={() => setIsSidebarOpen(true)}
-          className="p-1.5 sm:p-2 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-colors"
+          className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-md text-gray-600 hover:text-gray-900 transition-colors"
           aria-label="Chats öffnen"
         >
           <Menu className="w-5 h-5" />
@@ -59,9 +59,9 @@ export function ChatLayoutWrapper({ children, userEmail, isPro }: ChatLayoutWrap
       </div>
 
       {/* 2. DESKTOP SIDEBAR (Immer sichtbar, in einer Spalte links) */}
-      <aside className="hidden md:flex md:flex-col md:w-64 md:shrink-0 md:border-r md:border-white/5 md:bg-zinc-950/50 md:backdrop-blur-xl md:relative md:h-full">
+      <aside className="hidden md:flex md:flex-col md:w-64 md:shrink-0 md:border-r md:border-gray-200 md:bg-white/80 md:backdrop-blur-xl md:relative md:h-full">
         {/* Desktop: Logo oben */}
-        <div className="flex h-16 items-center border-b border-white/5 px-4 sm:px-6 shrink-0">
+        <div className="flex h-16 items-center border-b border-gray-200 px-4 sm:px-6 shrink-0">
           <Link 
             href="/dashboard" 
             className="flex items-center gap-3 group"
