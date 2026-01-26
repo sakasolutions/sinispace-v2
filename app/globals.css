@@ -152,6 +152,31 @@
     animation: fade-in-up 700ms ease-out both;
   }
 
+  /* Fade-in Animation (nur opacity, kein transform) */
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  /* FLOATING ANIMATION: Sanfte Auf-und-Ab-Bewegung für Hero Cards */
+  @keyframes card-float {
+    0%, 100% {
+      transform: translateY(-4px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .animate-card-float {
+    animation: card-float 4s ease-in-out infinite;
+    will-change: transform;
+  }
+
   /* Smooth gradient rendering for category tabs */
   .gradient-tab-smooth {
     position: relative;

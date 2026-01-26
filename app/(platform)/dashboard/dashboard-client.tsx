@@ -595,10 +595,10 @@ export default function DashboardClient() {
                   const desktopRowSpan = 'lg:row-span-2';
                   const colorWeight = colors.gradient ? 'high' : 'medium';
 
-                  // Smooth entrance animation
+                  // Smooth entrance animation (nur opacity, transform wird von card-float übernommen)
                   const animationDelay = `${index * 0.1}s`;
                   const animationStyle = {
-                    animation: `fade-in-up 0.6s ease-out ${animationDelay} both`,
+                    animation: `fade-in 0.6s ease-out ${animationDelay} both`,
                     opacity: 0,
                   };
 
@@ -608,12 +608,14 @@ export default function DashboardClient() {
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
-                    // PERMANENT FLOATING: Smooth transition for transform and shadow
-                    'transition-all duration-300 ease',
-                    // FLOATING ANIMATION: Sanfte Auf-und-Ab-Bewegung
+                    // FLOATING ANIMATION: Sanfte Auf-und-Ab-Bewegung (immer aktiv)
                     'animate-card-float',
+                    // Performance: GPU-Beschleunigung für Animation
+                    'will-change-transform',
+                    // PERMANENT FLOATING: Smooth transition nur für shadow (transform wird von Animation übernommen)
+                    'transition-shadow duration-300 ease',
                     // PERMANENT FLOATING: Verstärktes Anheben beim Hover (pausiert Animation)
-                    'md:hover:-translate-y-2 md:hover:animate-none',
+                    'md:hover:animate-none md:hover:-translate-y-2',
                     colors.bg,
                     // PERMANENT FLOATING: Dünner vollumfänglicher Rahmen in Akzentfarbe (1px)
                     colors.border,
