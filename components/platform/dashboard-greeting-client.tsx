@@ -44,22 +44,24 @@ export function DashboardGreetingClient() {
       <div className="absolute bg-pink-100/50 blur-[80px] w-[250px] h-[250px] rounded-full -top-16 -right-16 -z-10 pointer-events-none" />
       
       <div className="relative z-10">
-        {/* Premium Typography - Font-weight 700, improved letter-spacing */}
+        {/* MOBILE: Kompakte Typography, Desktop: Full Size */}
         <h1
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 tracking-tight leading-tight mb-4 md:mb-6"
+          className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 tracking-tight leading-tight mb-2 md:mb-4 lg:mb-6"
           style={{ 
             fontFamily: 'var(--font-plus-jakarta-sans), sans-serif', 
             fontWeight: 700,
-            letterSpacing: '-0.025em'
+            letterSpacing: '-0.025em',
+            lineHeight: '1.1'
           }}
         >
           {greeting}{displayName ? `, ${displayName}` : ''}
         </h1>
         
-        {/* Description - Font-weight 400, improved letter-spacing */}
-        <p className="text-base md:text-lg lg:text-xl text-gray-600 font-normal tracking-wide leading-relaxed max-w-2xl" style={{
+        {/* MOBILE: Kompakte Description, Tighter Line-Height */}
+        <p className="text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 font-normal tracking-wide leading-tight md:leading-relaxed max-w-2xl" style={{
           fontWeight: 400,
-          letterSpacing: '0.01em'
+          letterSpacing: '0.01em',
+          lineHeight: '1.3'
         }}>
           Dein Business läuft. Was optimieren wir jetzt?
         </p>

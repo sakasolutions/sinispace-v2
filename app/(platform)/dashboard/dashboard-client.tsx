@@ -422,16 +422,16 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Main Container - Clean, Spacious */}
-      <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-32 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:pt-8">
+      {/* Main Container - MOBILE: Kompakt, Desktop: Spacious */}
+      <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32 pt-[max(1rem,env(safe-area-inset-top))] md:pt-8">
         
-        {/* Header Section */}
-        <div className="mb-12 md:mb-16 lg:mb-20">
+        {/* Header Section - MOBILE: Kompakt */}
+        <div className="mb-6 md:mb-12 lg:mb-16">
           <DashboardGreetingClient />
         </div>
 
-        {/* PREMIUM: Search Bar - Advanced Material Layers */}
-        <div className="mb-8 md:mb-12">
+        {/* PREMIUM: Search Bar - Advanced Material Layers - MOBILE: Kompakt */}
+        <div className="mb-4 md:mb-8 lg:mb-12">
           <div className="relative group max-w-2xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-all duration-500 z-10 group-focus-within:scale-110" />
             <input
@@ -475,8 +475,8 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        {/* PREMIUM: Category Tabs - Physics-Based Feedback */}
-        <div className="mb-10 md:mb-14 overflow-x-auto">
+        {/* PREMIUM: Category Tabs - Physics-Based Feedback - MOBILE: Kompakt */}
+        <div className="mb-4 md:mb-10 lg:mb-14 overflow-x-auto">
           <div className="flex gap-3 pb-2 min-w-max">
             {categoryTabs.map((cat, index) => (
               <button
@@ -506,9 +506,9 @@ export default function DashboardClient() {
 
         {/* PREMIUM LAYOUT - Floating Cards mit Depth & Polish */}
         {filteredTools.length > 0 ? (
-          <div className="space-y-8 md:space-y-12">
-            {/* Golden Ratio Spacing: 1.618 ratio zwischen cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12">
+          <div className="space-y-4 md:space-y-8 lg:space-y-12">
+            {/* MOBILE: 2x2 Grid für kompakte Cards, Desktop: Golden Ratio Spacing */}
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8 lg:gap-12">
               {filteredTools.map((tool, index) => {
                 const Icon = tool.icon;
                 const colors = toolColors[tool.color] || toolColors.blue;
@@ -516,7 +516,7 @@ export default function DashboardClient() {
                 const isLarge = size === 'large';
                 const isSmall = size === 'small';
 
-                // Staggered positioning
+                // Staggered positioning - MOBILE: None (2x2 grid), Desktop: Staggered
                 const staggeredClass = index % 3 === 1 ? 'md:mt-8 lg:mt-12' : index % 3 === 2 ? 'md:mt-4 lg:mt-6' : '';
 
                 // PREMIUM: Staggered Entrance Animation
@@ -527,7 +527,7 @@ export default function DashboardClient() {
                 };
 
                 const cardClassName = cn(
-                  'group relative rounded-2xl border overflow-hidden',
+                  'group relative rounded-xl md:rounded-2xl border overflow-hidden',
                   // PREMIUM: Material Physics - Natural Easing Curves
                   'transition-all duration-500',
                   'ease-[cubic-bezier(0.16,1,0.3,1)]', // Natural, smooth easing
@@ -538,18 +538,18 @@ export default function DashboardClient() {
                   colors.hoverBorder,
                   colors.hoverBg,
                   tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
+                  // MOBILE: Remove staggered on mobile (2x2 grid), Desktop: Keep staggered
                   staggeredClass,
                   // PREMIUM: Advanced Shadow Stacks - Multiple Layers mit different blur/spread
-                  // Base: Ambient (soft, wide), Penumbra (medium), Contact (sharp, close)
                   'shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.03)]',
                   // Hover: Enhanced shadows mit realistic lift
                   'hover:shadow-[0_2px_2px_rgba(0,0,0,0.03),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06),0_16px_32px_rgba(0,0,0,0.08)]',
                   // PREMIUM: Colored shadows in brand colors (pink/orange tints)
                   colors.gradient && 'hover:shadow-[0_2px_2px_rgba(0,0,0,0.03),0_4px_8px_rgba(249,115,22,0.08),0_8px_16px_rgba(244,114,182,0.1),0_16px_32px_rgba(249,115,22,0.12)]',
-                  // Size-based padding - Golden ratio spacing
-                  isLarge ? 'p-10 md:p-12 min-h-[300px] md:min-h-[360px]' : 
-                  isSmall ? 'p-6 md:p-7 min-h-[200px]' : 
-                  'p-8 md:p-10 min-h-[240px] md:min-h-[280px]'
+                  // MOBILE: Kompakte Card-Höhen (max-height: 140px), Desktop: Golden ratio spacing
+                  isLarge ? 'p-4 md:p-10 lg:p-12 h-[140px] md:min-h-[300px] lg:min-h-[360px]' : 
+                  isSmall ? 'p-3 md:p-6 lg:p-7 h-[140px] md:min-h-[200px]' : 
+                  'p-4 md:p-8 lg:p-10 h-[140px] md:min-h-[240px] lg:min-h-[280px]'
                 );
 
                 const content = (
@@ -609,15 +609,18 @@ export default function DashboardClient() {
                       </>
                     )}
 
-                    {/* PREMIUM: Icon Container - Material Physics mit Glassmorphism */}
-                    <div className="mb-6 md:mb-8">
+                    {/* PREMIUM: Icon Container - MOBILE: Kompakter, Desktop: Full Size */}
+                    <div className="mb-2 md:mb-6 lg:mb-8">
                       <div className={cn(
-                        'inline-flex items-center justify-center rounded-xl border transition-all duration-500',
+                        'inline-flex items-center justify-center rounded-lg md:rounded-xl border transition-all duration-500',
                         'ease-[cubic-bezier(0.34,1.56,0.64,1)]', // Bouncy, natural easing
                         'group-hover:scale-105 group-active:scale-95', // FIXED: Reduced scale
                         colors.iconBg,
                         colors.border,
-                        isLarge ? 'w-16 h-16 md:w-18 md:h-18' : isSmall ? 'w-13 h-13' : 'w-14 h-14 md:w-16 md:h-16',
+                        // MOBILE: Kleinere Icons für kompakte Cards
+                        isLarge ? 'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18' : 
+                        isSmall ? 'w-9 h-9 md:w-13 md:h-13' : 
+                        'w-10 h-10 md:w-14 lg:w-16 md:h-14 lg:h-16',
                         // PREMIUM: Advanced Shadow Stacks für icon
                         'shadow-[0_1px_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.02)]',
                         'group-hover:shadow-[0_2px_2px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)]',
@@ -629,42 +632,57 @@ export default function DashboardClient() {
                         <Icon className={cn(
                           colors.text,
                           'transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-105',
-                          isLarge ? 'w-8 h-8 md:w-9 md:h-9' : isSmall ? 'w-6 h-6' : 'w-7 h-7 md:w-8 md:h-8'
+                          // MOBILE: Kleinere Icons
+                          isLarge ? 'w-5 h-5 md:w-8 lg:w-9 md:h-8 lg:h-9' : 
+                          isSmall ? 'w-4 h-4 md:w-6 md:h-6' : 
+                          'w-5 h-5 md:w-7 lg:w-8 md:h-7 lg:h-8'
                         )} />
                       </div>
                     </div>
 
-                    {/* Title - Typography Upgrade: Font-weight 700 */}
+                    {/* Title - MOBILE: Kompakter, Desktop: Full Size */}
                     <h3 className={cn(
-                      'font-bold text-gray-900 mb-3 md:mb-4',
-                      'tracking-tight leading-tight',
-                      isLarge ? 'text-2xl md:text-3xl' : isSmall ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'
+                      'font-bold text-gray-900 mb-1 md:mb-3 lg:mb-4',
+                      'tracking-tight',
+                      // MOBILE: Tighter line-height für kompakteren Look
+                      'leading-tight md:leading-tight',
+                      isLarge ? 'text-base md:text-2xl lg:text-3xl' : 
+                      isSmall ? 'text-sm md:text-lg lg:text-xl' : 
+                      'text-sm md:text-xl lg:text-2xl'
                     )} style={{ 
                       fontFamily: 'var(--font-plus-jakarta-sans), sans-serif',
                       fontWeight: 700,
-                      letterSpacing: '-0.02em'
+                      letterSpacing: '-0.02em',
+                      // MOBILE: Tighter line-height
+                      lineHeight: '1.2'
                     }}>
                       {tool.title}
                     </h3>
 
-                    {/* Description - Typography Upgrade: Font-weight 400, improved letter-spacing */}
+                    {/* Description - MOBILE: Kompakter, Tighter Line-Height */}
                     <p className={cn(
-                      'text-gray-600 leading-relaxed font-normal',
-                      isLarge ? 'text-sm md:text-base' : isSmall ? 'text-xs md:text-sm' : 'text-sm',
-                      'group-hover:text-gray-700 transition-colors duration-300'
+                      'text-gray-600 font-normal',
+                      // MOBILE: Kleinere Font-Sizes, Tighter Line-Height
+                      isLarge ? 'text-[10px] leading-tight md:text-sm lg:text-base md:leading-relaxed' : 
+                      isSmall ? 'text-[9px] leading-tight md:text-xs lg:text-sm md:leading-relaxed' : 
+                      'text-[10px] leading-tight md:text-sm lg:text-base md:leading-relaxed',
+                      'group-hover:text-gray-700 transition-colors duration-300',
+                      // MOBILE: Line-clamp für kompakte Cards
+                      'line-clamp-2 md:line-clamp-none'
                     )} style={{
                       fontWeight: 400,
                       letterSpacing: '0.01em',
-                      lineHeight: '1.6'
+                      // MOBILE: Tighter line-height
+                      lineHeight: '1.3'
                     }}>
                       {tool.description}
                     </p>
 
-                    {/* PREMIUM: Arrow Indicator - Material Physics mit Glassmorphism */}
+                    {/* PREMIUM: Arrow Indicator - MOBILE: Hidden, Desktop: Visible */}
                     {tool.available && (
-                      <div className="absolute top-6 right-6 md:top-8 md:right-8">
+                      <div className="absolute top-3 right-3 md:top-6 lg:top-8 md:right-6 lg:right-8">
                         <div className={cn(
-                          'w-9 h-9 rounded-lg flex items-center justify-center',
+                          'w-7 h-7 md:w-9 md:h-9 rounded-lg flex items-center justify-center',
                           'bg-white/90 backdrop-blur-md border border-gray-200/80',
                           'group-hover:bg-gradient-to-br group-hover:border-orange-300 transition-all duration-500',
                           'ease-[cubic-bezier(0.34,1.56,0.64,1)]',
@@ -678,7 +696,7 @@ export default function DashboardClient() {
                           'group-hover:glass-edge-brand'
                         )}>
                           <ArrowUpRight className={cn(
-                            'w-4 h-4 text-gray-400 group-hover:text-white transition-all duration-500',
+                            'w-3 h-3 md:w-4 md:h-4 text-gray-400 group-hover:text-white transition-all duration-500',
                             'ease-[cubic-bezier(0.34,1.56,0.64,1)]',
                             'group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-105'
                           )} />
