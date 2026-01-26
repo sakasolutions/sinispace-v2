@@ -12,7 +12,7 @@ import { CopyButton } from '@/components/ui/copy-button';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { triggerHaptic } from '@/lib/haptic-feedback';
-import { Copy, RefreshCw, X } from 'lucide-react';
+import { Copy, RefreshCw, X, Menu, Upload, Send } from 'lucide-react';
 import { getChats, deleteChat, updateChatTitle } from '@/actions/chat-actions';
 import { Pencil, Trash2, Check } from 'lucide-react';
 import Link from 'next/link';
@@ -131,6 +131,9 @@ export default function ChatDetailPage() {
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
+  
+  // Mobile Chat-Liste State
+  const [isChatListOpen, setIsChatListOpen] = useState(false);
   
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -543,18 +546,34 @@ export default function ChatDetailPage() {
         />
       )}
       {/* Chat Layout: Einfaches Flex-Layout */}
-      <div className="h-full flex w-full overflow-hidden bg-white">
-        {/* LINKS: Chat-Liste (w-80, fixe Spalte) */}
-        <aside className="w-80 shrink-0 bg-white border-r border-gray-100 flex flex-col overflow-hidden">
+      <div data-no-padding className="h-full flex w-full overflow-hidden bg-white">
+        {/* LINKS: Chat-Liste (Desktop: w-80, Mobile: Drawer) */}
+        <aside className={`
+          fixed md:static inset-y-0 left-0 z-40
+          w-80 shrink-0 bg-white border-r border-gray-100 
+          flex flex-col overflow-hidden
+          transform transition-transform duration-300 ease-in-out
+          ${isChatListOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 shrink-0">
             <h2 className="text-sm font-bold text-gray-900">Chats</h2>
-            <Link
-              href="/chat"
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              Neu
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/chat"
+                onClick={() => setIsChatListOpen(false)}
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                Neu
+              </Link>
+              <button
+                onClick={() => setIsChatListOpen(false)}
+                className="md:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Chat-Liste schließen"
+              >
+                <X className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
           </div>
 
           {/* Chat List */}
@@ -626,6 +645,7 @@ export default function ChatDetailPage() {
                     >
                       <Link
                         href={`/chat/${chat.id}`}
+                        onClick={() => setIsChatListOpen(false)}
                         className="block p-3 pr-10"
                       >
                         <div className={`font-medium text-xs truncate mb-0.5 ${
@@ -679,11 +699,28 @@ export default function ChatDetailPage() {
           </div>
         </aside>
 
+        {/* Mobile Overlay */}
+        {isChatListOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-30 md:hidden"
+            onClick={() => setIsChatListOpen(false)}
+          />
+        )}
+
         {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* STICKY HEADER - Glassmorphism */}
-          <div className="sticky top-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+          <div className="sticky top-0 z-20 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
             <div className="flex items-center gap-3 sm:gap-4">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsChatListOpen(true)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Chat-Liste öffnen"
+              >
+                <Menu className="w-5 h-5 text-gray-700" />
+              </button>
+              
               <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-xl shadow-md border border-gray-200/50 bg-white shrink-0">
                 <Image 
                   src="/assets/logos/logo.webp" 
@@ -954,7 +991,7 @@ export default function ChatDetailPage() {
           {/* INPUT BEREICH - Floating Bar Design */}
           {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
           {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-80 right-0 z-40 flex justify-center px-4 md:px-6">
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
             <div className="w-full max-w-3xl">
               {/* Dokumente Liste - Dashboard Style */}
               {documents.length > 0 && (
