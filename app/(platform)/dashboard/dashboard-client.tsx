@@ -593,7 +593,10 @@ export default function DashboardClient() {
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
-                    'transition-all duration-300 ease-out', // Smooth transitions for reordering
+                    // MODERN HOVER: Smooth transition for transform and shadow
+                    'transition-all duration-300 ease',
+                    // MODERN HOVER: Leichtes Anheben auf Desktop (nur md+)
+                    'md:hover:-translate-y-2',
                     colors.bg,
                     colors.border,
                     colors.hoverBorder,
@@ -602,9 +605,11 @@ export default function DashboardClient() {
                     desktopColSpan,
                     desktopRowSpan,
                     colorWeight === 'high' && 'border-2',
+                    // Base shadow
                     'shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.02)]',
-                    'hover:shadow-[0_1px_3px_rgba(0,0,0,0.05),0_2px_6px_rgba(0,0,0,0.03)]',
-                    colors.gradient && 'hover:shadow-[0_1px_3px_rgba(249,115,22,0.06),0_2px_6px_rgba(244,114,182,0.04)]',
+                    // MODERN HOVER: Verstärkter, weicher Schatten auf Desktop
+                    'md:hover:shadow-[0_10px_20px_rgba(0,0,0,0.1),0_4px_8px_rgba(0,0,0,0.06)]',
+                    colors.gradient && 'md:hover:shadow-[0_10px_20px_rgba(249,115,22,0.12),0_4px_8px_rgba(244,114,182,0.08)]',
                     // Hero Cards: Larger padding and height
                     'p-4 md:p-6 lg:p-8 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
@@ -743,7 +748,10 @@ export default function DashboardClient() {
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
-                    'transition-all duration-300 ease-out', // Smooth transitions for reordering
+                    // MODERN HOVER: Smooth transition for transform and shadow
+                    'transition-all duration-300 ease',
+                    // MODERN HOVER: Leichtes Anheben auf Desktop (nur md+)
+                    'md:hover:-translate-y-2',
                     colors.bg,
                     colors.border,
                     colors.hoverBorder,
@@ -752,9 +760,11 @@ export default function DashboardClient() {
                     desktopColSpan,
                     desktopRowSpan,
                     colorWeight === 'high' && 'border-2',
+                    // Base shadow
                     'shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.02)]',
-                    'hover:shadow-[0_1px_3px_rgba(0,0,0,0.05),0_2px_6px_rgba(0,0,0,0.03)]',
-                    colors.gradient && 'hover:shadow-[0_1px_3px_rgba(249,115,22,0.06),0_2px_6px_rgba(244,114,182,0.04)]',
+                    // MODERN HOVER: Verstärkter, weicher Schatten auf Desktop
+                    'md:hover:shadow-[0_10px_20px_rgba(0,0,0,0.1),0_4px_8px_rgba(0,0,0,0.06)]',
+                    colors.gradient && 'md:hover:shadow-[0_10px_20px_rgba(249,115,22,0.12),0_4px_8px_rgba(244,114,182,0.08)]',
                     // MOBILE: Compact height for 2-column layout, Desktop: Full heights
                     isLarge ? 'p-3 md:p-6 lg:p-8 h-[100px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
                     isSmall ? 'p-2.5 md:p-4 lg:p-5 h-[90px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
