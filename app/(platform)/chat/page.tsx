@@ -129,7 +129,8 @@ export default function ChatPage() {
 
   const scrollToBottom = () => {
     if (shouldAutoScroll.current && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      // Scroll mit block: "end" für bessere Positionierung direkt über Input
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
     }
   };
 
@@ -139,11 +140,15 @@ export default function ChatPage() {
       isInitialLoad.current = false;
       return;
     }
-    // Nur scrollen wenn neue Messages hinzugefügt wurden (nicht beim Load)
-    if (messages.length > 0 && !isLoading) {
-      scrollToBottom();
+    // Scrollen wenn neue Messages hinzugefügt wurden ODER wenn Loading fertig ist
+    if (messages.length > 0) {
+      // Kleine Verzögerung für besseres Rendering
+      const timer = setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [messages.length, isLoading]); // Nur auf Längen-Änderung und Loading-State reagieren
+  }, [messages.length, isLoading]); // Auf Längen-Änderung und Loading-State reagieren
 
   // Chat-Liste laden
   const loadChats = async () => {
@@ -579,7 +584,7 @@ export default function ChatPage() {
         </div>
 
         {/* NACHRICHTEN BEREICH - EINZIGER SCROLLBARER CONTAINER */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth !bg-white pt-16 md:pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-24" style={{ minHeight: 0, height: '100%' } as React.CSSProperties}>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth !bg-white pt-16 md:pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-20" style={{ minHeight: 0, height: '100%' } as React.CSSProperties}>
           <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-4 md:py-6" style={{ maxWidth: '65ch' } as React.CSSProperties}>
             {messages.length === 0 && (
               <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
@@ -658,7 +663,7 @@ export default function ChatPage() {
               </div>
             )}
 
-            <div ref={messagesEndRef} className="h-1" />
+            <div ref={messagesEndRef} className="h-4" />
           </div>
         </div>
 
