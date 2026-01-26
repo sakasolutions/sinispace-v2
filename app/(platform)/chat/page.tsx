@@ -580,8 +580,8 @@ export default function ChatPage() {
                     <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <CopyButton text={msg.content} variant="icon" size="md" />
                     </div>
-                    {/* Perfektes Markdown-Rendering - Dashboard Style (heller Text auf weiß) */}
-                    <div className="prose prose-sm md:prose-base max-w-none">
+                    {/* Tailwind Typography: Blogartikel-ähnliches Formatting */}
+                    <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none">
                       <MarkdownRenderer content={msg.content} />
                     </div>
                   </div>
