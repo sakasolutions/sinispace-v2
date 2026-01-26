@@ -562,8 +562,8 @@ export default function ChatPage() {
         </div>
 
         {/* NACHRICHTEN BEREICH - EINZIGER SCROLLBARER CONTAINER */}
-        <div className="flex-1 overflow-y-auto scroll-smooth !bg-white pt-[calc(5rem+env(safe-area-inset-top))] md:pt-20 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-24">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth !bg-white pt-[calc(4rem+env(safe-area-inset-top))] md:pt-20 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-24" style={{ minHeight: 0, height: '100%' } as React.CSSProperties}>
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-4 md:py-6">
             {messages.length === 0 && (
               <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
                 <span className="text-5xl sm:text-6xl mb-4">💬</span>
