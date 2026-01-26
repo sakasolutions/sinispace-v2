@@ -111,7 +111,8 @@
   .overflow-auto {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
+    overscroll-behavior-x: none;
   }
   
   /* NATIVE APP: Erlaube Text-Selektion nur in Content-Bereichen */
