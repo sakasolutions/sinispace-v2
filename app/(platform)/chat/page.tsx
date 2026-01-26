@@ -4,16 +4,12 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { chatWithAI } from '@/actions/ai-actions';
-import { createChat, saveMessage } from '@/actions/chat-actions';
+import { createChat, saveMessage, getChats, deleteChat, updateChatTitle } from '@/actions/chat-actions';
 import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
-// KEIN Sidebar Import mehr nötig!
-// KEINE Icons (Menu, X) mehr nötig!
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { SuggestedActions } from '@/components/suggested-actions';
 import { CopyButton } from '@/components/ui/copy-button';
-import { Tooltip } from '@/components/ui/tooltip';
-import { getChats, deleteChat, updateChatTitle } from '@/actions/chat-actions';
-import { Pencil, Trash2, X, Check } from 'lucide-react';
+import { Pencil, Trash2, X, Check, Menu, Upload, Send } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -30,7 +26,6 @@ type Document = {
   createdAt: Date;
   openaiFileId: string;
 };
-
 
 // Custom Confirm Modal
 function ConfirmModal({ 
@@ -78,7 +73,7 @@ function ConfirmModal({
   );
 }
 
-// Custom Alert/Toast
+// Custom Toast
 function Toast({ message, type = 'info', onClose }: { message: string; type?: 'info' | 'error' | 'success'; onClose: () => void }) {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -98,6 +93,7 @@ function Toast({ message, type = 'info', onClose }: { message: string; type?: 'i
 
 export default function ChatPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -122,7 +118,9 @@ export default function ChatPage() {
   const [editingTitle, setEditingTitle] = useState('');
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
   
-  const pathname = usePathname();
+  // Mobile Chat-Liste State
+  const [isChatListOpen, setIsChatListOpen] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -186,30 +184,21 @@ export default function ChatPage() {
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
   };
 
-  // WICHTIG: Dokumente werden NICHT automatisch beim Chat-Laden geladen
-  // Dokumente werden nur beim Upload geladen (in handleFileUpload)
-  // Gesendete Dateien sind bereits Teil der Nachrichten und sollten nicht nochmal gesendet werden
-
   // File Upload Handler
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    console.log('📤 Upload gestartet:', file.name, file.size, 'bytes', file.type);
     setIsUploading(true);
     try {
       let chatIdToUse = currentChatId;
 
-      // Falls noch kein Chat existiert, erstelle einen
       if (!chatIdToUse) {
-        console.log('💬 Erstelle neuen Chat für Datei...');
         const chatResult = await createChat(`Datei hochgeladen: ${file.name}`);
         if (chatResult.success && chatResult.chatId) {
           chatIdToUse = chatResult.chatId;
           setCurrentChatId(chatIdToUse);
-          console.log('✅ Chat erstellt:', chatIdToUse);
         } else {
-          console.error('❌ Fehler beim Erstellen des Chats:', chatResult);
           setToast({ message: 'Fehler beim Erstellen des Chats', type: 'error' });
           setIsUploading(false);
           if (fileInputRef.current) {
@@ -217,26 +206,19 @@ export default function ChatPage() {
           }
           return;
         }
-      } else {
-        console.log('💬 Verwende existierenden Chat:', chatIdToUse);
       }
 
       const formData = new FormData();
       formData.append('file', file);
       formData.append('chatId', chatIdToUse);
 
-      console.log('📡 Sende Upload-Request zu /api/documents/upload...');
       const response = await fetch('/api/documents/upload', {
         method: 'POST',
         body: formData,
       });
 
-      console.log('📨 Upload-Response Status:', response.status, response.statusText);
-      
-      // Prüfe ob Response OK ist
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Upload Response nicht OK:', response.status, errorText);
         let errorMessage = 'Fehler beim Hochladen';
         try {
           const errorJson = JSON.parse(errorText);
@@ -249,59 +231,34 @@ export default function ChatPage() {
       }
 
       const result = await response.json();
-      console.log('📨 Upload-Response Body:', result);
 
       if (result.success) {
-        console.log('✅ Upload erfolgreich, füge neues Dokument zum State hinzu...');
-        // WICHTIG: Nur das neue Dokument zum State hinzufügen, nicht alle Dokumente neu laden
-        // Gesendete Dokumente sollen nicht mehr im State sein
         if (result.document) {
           setDocuments(prev => {
-            // Prüfe ob Dokument bereits im State ist (sollte nicht passieren, aber sicherheitshalber)
             const exists = prev.some(doc => doc.id === result.document.id);
             if (exists) {
               return prev;
             }
-            // Neues Dokument hinzufügen
             return [...prev, {
               id: result.document.id,
               fileName: result.document.fileName,
               fileSize: result.document.fileSize,
               mimeType: result.document.mimeType,
-              openaiFileId: result.document.openaiFileId, // Wichtig für AI-Call
+              openaiFileId: result.document.openaiFileId,
               createdAt: new Date(result.document.createdAt || Date.now()),
             }];
           });
         }
         
-        // WICHTIG: Redirect NACH erfolgreichem Upload
         if (!currentChatId) {
-          console.log('🔄 Redirect zu /chat/' + chatIdToUse);
           router.push(`/chat/${chatIdToUse}`);
         }
       } else {
-        console.error('❌ Upload fehlgeschlagen:', result.error);
         setToast({ message: result.error || 'Fehler beim Hochladen', type: 'error' });
       }
     } catch (error: any) {
-      console.error('❌ Upload error:', error);
-      console.error('❌ Upload error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      });
-      
-      // Bessere Fehlermeldungen für verschiedene Fehlertypen
-      let errorMessage = 'Fehler beim Hochladen der Datei';
-      if (error.message?.includes('network') || error.message?.includes('fetch')) {
-        errorMessage = 'Netzwerkfehler. Bitte prüfe deine Internetverbindung.';
-      } else if (error.message?.includes('timeout')) {
-        errorMessage = 'Upload-Timeout. Die Datei könnte zu groß sein.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setToast({ message: errorMessage, type: 'error' });
+      console.error('Upload error:', error);
+      setToast({ message: error.message || 'Fehler beim Hochladen', type: 'error' });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -310,242 +267,72 @@ export default function ChatPage() {
     }
   }
 
-  // Dokument löschen
-  async function handleDeleteDocument(documentId: string) {
-    setConfirmModal({
-      isOpen: true,
-      title: 'Dokument löschen',
-      message: 'Möchtest du dieses Dokument wirklich löschen?',
-      onConfirm: async () => {
-        const result = await deleteDocument(documentId);
-        if (result.success) {
-          // WICHTIG: Nur das gelöschte Dokument aus dem State entfernen, nicht alle Dokumente neu laden
-          setDocuments(prev => prev.filter(doc => doc.id !== documentId));
-          setToast({ message: 'Dokument gelöscht', type: 'success' });
-        } else {
-          setToast({ message: result.error || 'Fehler beim Löschen', type: 'error' });
-        }
-      },
-    });
-  }
+  async function sendMessage(messageContent?: string) {
+    const content = messageContent || input.trim();
+    if (!content && documents.length === 0) return;
 
-  // Dateigröße formatieren
-  function formatFileSize(bytes: number): string {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  }
-
-  // Dateinamen kürzen wenn zu lang
-  function formatFileName(fileName: string, maxLength: number = 20): string {
-    if (fileName.length <= maxLength) return fileName;
-    
-    // Trenne Name und Extension
-    const lastDotIndex = fileName.lastIndexOf('.');
-    if (lastDotIndex === -1) {
-      // Keine Extension
-      return fileName.substring(0, maxLength - 3) + '...';
-    }
-    
-    const name = fileName.substring(0, lastDotIndex);
-    const ext = fileName.substring(lastDotIndex);
-    const maxNameLength = maxLength - ext.length - 3; // 3 für "..."
-    
-    if (name.length <= maxNameLength) return fileName;
-    return name.substring(0, maxNameLength) + '...' + ext;
-  }
-
-  // Hilfsfunktion zum Senden einer Nachricht programmatisch (für SuggestedActions)
-  async function sendMessage(messageContent: string) {
-    if (isLoading) return;
-
-    const userMessage: Message = { role: 'user', content: messageContent };
-    const newHistory = [...messages, userMessage];
-    
+    setIsLoading(true);
+    const newHistory: Message[] = [...messages, { role: 'user', content }];
     setMessages(newHistory);
     setInput('');
-    setIsLoading(true);
 
     let chatIdToUse = currentChatId;
 
     if (!chatIdToUse) {
-      const chatTitle = messageContent.substring(0, 50) || 'Neuer Chat';
-      console.log('💬 Erstelle neuen Chat:', chatTitle);
-      const chatResult = await createChat(chatTitle);
+      const chatResult = await createChat(content);
       if (chatResult.success && chatResult.chatId) {
         chatIdToUse = chatResult.chatId;
         setCurrentChatId(chatIdToUse);
-        console.log('✅ Chat erstellt:', chatIdToUse);
         
-        await saveMessage(chatIdToUse, 'user', messageContent);
+        await saveMessage(chatIdToUse, 'user', content);
         
-        const response = await chatWithAI(newHistory);
-        console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error });
-        
-        if (response.result) {
-          const assistantMessage: Message = { role: 'assistant', content: response.result };
-          setMessages([...newHistory, assistantMessage]);
-          await saveMessage(chatIdToUse, 'assistant', response.result);
-        } else {
-          console.error('❌ Keine Antwort von AI:', response.error);
-          setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
-        }
-        
-        setIsLoading(false);
-        router.push(`/chat/${chatIdToUse}`);
-        return;
-      } else {
-        console.error('❌ Fehler beim Erstellen des Chats:', chatResult);
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    if (chatIdToUse) {
-      await saveMessage(chatIdToUse, 'user', messageContent);
-    }
-
-    const response = await chatWithAI(newHistory);
-    console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error });
-
-    if (response.result) {
-      const assistantMessage: Message = { role: 'assistant', content: response.result };
-      setMessages([...newHistory, assistantMessage]);
-      
-      if (chatIdToUse) {
-        await saveMessage(chatIdToUse, 'assistant', response.result);
-      }
-    } else {
-      console.error('❌ Keine Antwort von AI:', response.error);
-      setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
-    }
-    
-    setIsLoading(false);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // Erlaube Submit wenn Text ODER Dokumente vorhanden sind
-    if ((!input.trim() && documents.length === 0) || isLoading) {
-      console.log('⏸️ Submit verhindert:', { hasInput: !!input.trim(), documentsCount: documents.length, isLoading });
-      return;
-    }
-
-    console.log('📨 Submit gestartet:', { 
-      inputLength: input.trim().length, 
-      documentsCount: documents.length,
-      documents: documents.map(d => ({ id: d.id, fileName: d.fileName, openaiFileId: d.openaiFileId })),
-      currentChatId 
-    });
-
-    // Nachricht mit Dateinamen erstellen, wenn Dateien angehängt sind
-    let messageContent = input.trim();
-    if (documents.length > 0) {
-      // Format: "📎 Datei: dateiname.html" oder bei mehreren "📎 Dateien: datei1.html, datei2.html"
-      const fileNames = documents.map(d => formatFileName(d.fileName)).join(', ');
-      const fileLabel = documents.length === 1 ? '📎 Datei:' : '📎 Dateien:';
-      if (messageContent) {
-        messageContent += `\n\n${fileLabel} ${fileNames}`;
-      } else {
-        messageContent = `${fileLabel} ${fileNames}`;
-      }
-    } else if (!messageContent) {
-      messageContent = 'Siehe angehängte Datei(en).';
-    }
-
-    const userMessage: Message = { role: 'user', content: messageContent };
-    const newHistory = [...messages, userMessage];
-    
-    setMessages(newHistory);
-    const originalMessageContent = input.trim();
-    setInput('');
-    setIsLoading(true);
-
-    let chatIdToUse = currentChatId;
-
-      // Wenn noch kein Chat existiert, erstelle einen neuen
-      if (!chatIdToUse) {
-        const chatTitle = originalMessageContent || (documents.length > 0 ? `Datei: ${documents[documents.length - 1].fileName}` : 'Neuer Chat');
-      console.log('💬 Erstelle neuen Chat:', chatTitle);
-      const chatResult = await createChat(chatTitle);
-      if (chatResult.success && chatResult.chatId) {
-        chatIdToUse = chatResult.chatId;
-        setCurrentChatId(chatIdToUse);
-        console.log('✅ Chat erstellt:', chatIdToUse);
-        
-        // ✅ User-Nachricht speichern (mit Dateinamen, wenn vorhanden)
-        await saveMessage(chatIdToUse, 'user', messageContent);
-        
-        // ✅ KI-Response holen BEVOR Redirect (mit hochgeladenen Dokumenten)
-        // WICHTIG: Bilder haben möglicherweise null openaiFileId - das ist ok, Vision API nutzt Base64
-        // Filtere null-Werte heraus, da chatWithAI nur string[] erwartet
         const docFileIds = documents.length > 0 
           ? documents.map(doc => doc.openaiFileId).filter((id): id is string => id !== null)
           : undefined;
         const docMimeTypes = documents.length > 0 ? documents.map(doc => doc.mimeType) : undefined;
-        console.log('🤖 Rufe chatWithAI auf mit', docFileIds?.length || 0, 'Datei(en):', docFileIds);
         
-        // ✅ Dokumente aus der Liste entfernen NACH dem AI-Call (sie sind ja schon gesendet)
         setDocuments([]);
         
         const response = await chatWithAI(newHistory, docFileIds, docMimeTypes);
-        console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error, error: response.error });
-        
+
         if (response.result) {
           const assistantMessage: Message = { role: 'assistant', content: response.result };
           setMessages([...newHistory, assistantMessage]);
-          
-          // ✅ Assistant-Nachricht speichern
           await saveMessage(chatIdToUse, 'assistant', response.result);
         } else {
-          console.error('❌ Keine Antwort von AI:', response.error);
           setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
         }
         
         setIsLoading(false);
-        
-        // ✅ Redirect zu /chat/[id] damit der Chat in der Sidebar als aktiv erscheint
-        console.log('🔄 Redirect zu /chat/' + chatIdToUse);
         router.push(`/chat/${chatIdToUse}`);
         return;
       } else {
-        // Fehler beim Erstellen
-        console.error('❌ Fehler beim Erstellen des Chats:', chatResult);
         setIsLoading(false);
         return;
       }
     }
 
-    // User-Nachricht speichern (wenn Chat bereits existiert, mit Dateinamen, wenn vorhanden)
     if (chatIdToUse) {
-      await saveMessage(chatIdToUse, 'user', messageContent);
+      await saveMessage(chatIdToUse, 'user', content);
     }
 
-    // KI-Response holen (mit hochgeladenen Dokumenten)
-    // WICHTIG: Bilder haben möglicherweise null openaiFileId - das ist ok, Vision API nutzt Base64
-    // Filtere null-Werte heraus, da chatWithAI nur string[] erwartet
     const docFileIds = documents.length > 0 
       ? documents.map(doc => doc.openaiFileId).filter((id): id is string => id !== null)
       : undefined;
     const docMimeTypes = documents.length > 0 ? documents.map(doc => doc.mimeType) : undefined;
-    console.log('🤖 Rufe chatWithAI auf (existierender Chat) mit', docFileIds?.length || 0, 'Datei(en):', docFileIds);
     
-    // ✅ Dokumente aus der Liste entfernen NACH dem AI-Call (sie sind ja schon gesendet)
     setDocuments([]);
     
     const response = await chatWithAI(newHistory, docFileIds, docMimeTypes);
-    console.log('🤖 chatWithAI Response:', { hasResult: !!response.result, hasError: !!response.error, error: response.error });
 
     if (response.result) {
       const assistantMessage: Message = { role: 'assistant', content: response.result };
       setMessages([...newHistory, assistantMessage]);
       
-      // Assistant-Nachricht speichern
       if (chatIdToUse) {
         await saveMessage(chatIdToUse, 'assistant', response.result);
       }
     } else {
-      console.error('❌ Keine Antwort von AI:', response.error);
       setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
     }
     
@@ -553,9 +340,7 @@ export default function ChatPage() {
   }
 
   return (
-    // WICHTIG: Nur noch ein einfacher Container, der den Platz vom Layout füllt.
-    // Keine Sidebar-Komponente mehr hier drin!
-    <>
+    <div data-no-padding className="h-full flex w-full overflow-hidden bg-white">
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
@@ -570,370 +355,344 @@ export default function ChatPage() {
           onClose={() => setToast(null)}
         />
       )}
-      {/* Chat Layout: Einfaches Flex-Layout */}
-      <div className="h-full flex w-full overflow-hidden bg-white">
-        {/* LINKS: Chat-Liste (w-80, fixe Spalte) */}
-        <aside className="w-80 shrink-0 bg-white border-r border-gray-100 flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <h2 className="text-sm font-bold text-gray-900">Chats</h2>
+
+      {/* LINKS: Chat-Liste (Desktop: w-80, Mobile: Drawer) */}
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-40
+        w-80 shrink-0 bg-white border-r border-gray-100 
+        flex flex-col overflow-hidden
+        transform transition-transform duration-300 ease-in-out
+        ${isChatListOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 shrink-0">
+          <h2 className="text-sm font-bold text-gray-900">Chats</h2>
+          <div className="flex items-center gap-2">
             <Link
               href="/chat"
+              onClick={() => setIsChatListOpen(false)}
               className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
             >
               Neu
             </Link>
+            <button
+              onClick={() => setIsChatListOpen(false)}
+              className="md:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Chat-Liste schließen"
+            >
+              <X className="w-4 h-4 text-gray-600" />
+            </button>
           </div>
+        </div>
 
-          {/* Chat List */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            {isLoadingChats ? (
-              <div className="p-4 text-center text-gray-500 text-xs">Lade Chats...</div>
-            ) : chats.length === 0 ? (
-              <div className="p-4 text-center text-gray-500 text-xs">
-                <p className="mb-2">Noch keine Chats</p>
-                <Link
-                  href="/chat"
-                  className="text-gray-900 font-medium hover:text-orange-500 transition-colors"
-                >
-                  Ersten Chat starten
-                </Link>
-              </div>
-            ) : (
-              <div className="p-2 space-y-1">
-                {chats.map((chat) => {
-                  const isActive = pathname === `/chat/${chat.id}`;
-                  
-                  if (editingChatId === chat.id) {
-                    return (
-                      <div key={chat.id} className="p-3">
-                        <input
-                          type="text"
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleSaveEdit(chat.id);
-                            } else if (e.key === 'Escape') {
-                              setEditingChatId(null);
-                              setEditingTitle('');
-                            }
-                          }}
-                          className="w-full px-2 py-1 text-xs font-medium border border-gray-200 bg-white rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 mb-1 text-gray-900 placeholder:text-gray-400"
-                          autoFocus
-                        />
-                        <div className="flex items-center gap-2 mt-1">
-                          <button
-                            onClick={() => handleSaveEdit(chat.id)}
-                            className="p-1 rounded hover:bg-gray-100 transition-colors"
-                            aria-label="Speichern"
-                          >
-                            <Check className="w-3.5 h-3.5 text-green-600" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingChatId(null);
-                              setEditingTitle('');
-                            }}
-                            className="p-1 rounded hover:bg-gray-100 transition-colors"
-                            aria-label="Abbrechen"
-                          >
-                            <X className="w-3.5 h-3.5 text-gray-400" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  }
-
+        {/* Chat List */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {isLoadingChats ? (
+            <div className="p-4 text-center text-gray-500 text-xs">Lade Chats...</div>
+          ) : chats.length === 0 ? (
+            <div className="p-4 text-center text-gray-500 text-xs">
+              <p className="mb-2">Noch keine Chats</p>
+              <Link
+                href="/chat"
+                onClick={() => setIsChatListOpen(false)}
+                className="text-gray-900 font-medium hover:text-orange-500 transition-colors"
+              >
+                Ersten Chat starten
+              </Link>
+            </div>
+          ) : (
+            <div className="p-2 space-y-1">
+              {chats.map((chat) => {
+                const isActive = pathname === `/chat/${chat.id}`;
+                
+                if (editingChatId === chat.id) {
                   return (
-                    <div
-                      key={chat.id}
-                      className={`group relative rounded-lg transition-colors ${
-                        isActive ? 'bg-gradient-to-r from-orange-50 to-pink-50' : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <Link
-                        href={`/chat/${chat.id}`}
-                        className="block p-3 pr-10"
-                      >
-                        <div className={`font-medium text-xs truncate mb-0.5 ${
-                          isActive 
-                            ? 'bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent font-bold' 
-                            : 'text-gray-700'
-                        }`}>
-                          {chat.title}
-                        </div>
-                        <div className="text-[10px] text-gray-500">{formatDate(chat.updatedAt)}</div>
-                      </Link>
-
-                      {/* Action Buttons (Desktop Hover) */}
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <div key={chat.id} className="p-3">
+                      <input
+                        type="text"
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSaveEdit(chat.id);
+                          } else if (e.key === 'Escape') {
+                            setEditingChatId(null);
+                            setEditingTitle('');
+                          }
+                        }}
+                        className="w-full px-2 py-1 text-xs font-medium border border-gray-200 bg-white rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 mb-1 text-gray-900 placeholder:text-gray-400"
+                        autoFocus
+                      />
+                      <div className="flex items-center gap-2 mt-1">
                         <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleEdit(chat);
-                          }}
-                          className="p-1.5 rounded hover:bg-gray-100 transition-colors"
-                          aria-label="Chat umbenennen"
-                          title="Umbenennen"
+                          onClick={() => handleSaveEdit(chat.id)}
+                          className="p-1 rounded hover:bg-gray-100 transition-colors"
+                          aria-label="Speichern"
                         >
-                          <Pencil className="w-3.5 h-3.5 text-gray-400 hover:text-gray-700" />
+                          <Check className="w-3.5 h-3.5 text-green-600" />
                         </button>
                         <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setConfirmModal({
-                              isOpen: true,
-                              title: 'Chat löschen',
-                              message: 'Möchtest du diesen Chat wirklich endgültig löschen?',
-                              onConfirm: () => handleDelete(chat.id),
-                            });
+                          onClick={() => {
+                            setEditingChatId(null);
+                            setEditingTitle('');
                           }}
-                          disabled={deletingChatId === chat.id}
-                          className="p-1.5 rounded hover:bg-red-50 transition-colors disabled:opacity-50"
-                          aria-label="Chat löschen"
-                          title="Löschen"
+                          className="p-1 rounded hover:bg-gray-100 transition-colors"
+                          aria-label="Abbrechen"
                         >
-                          <Trash2 className={`w-3.5 h-3.5 ${deletingChatId === chat.id ? 'text-gray-400' : 'text-red-500'}`} />
+                          <X className="w-3.5 h-3.5 text-gray-400" />
                         </button>
                       </div>
                     </div>
                   );
-                })}
-              </div>
-            )}
-          </div>
-        </aside>
+                }
 
-        {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* STICKY HEADER - Glassmorphism */}
-          <div className="sticky top-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-xl shadow-md border border-gray-200/50 bg-white shrink-0">
-                <Image 
-                  src="/assets/logos/logo.webp" 
-                  alt="Sinispace Logo" 
-                  fill 
-                  className="object-contain p-2" 
-                  priority 
-                />
-              </div>
-              <div>
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                  SiniChat
-                </h1>
-                <p className="text-xs sm:text-sm md:text-base text-gray-600">Frag mich alles – mit Code, Tabellen und Struktur.</p>
-              </div>
-            </div>
-          </div>
+                return (
+                  <div
+                    key={chat.id}
+                    className={`group relative rounded-lg transition-colors ${
+                      isActive ? 'bg-gradient-to-r from-orange-50 to-pink-50' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <Link
+                      href={`/chat/${chat.id}`}
+                      onClick={() => setIsChatListOpen(false)}
+                      className="block p-3 pr-10"
+                    >
+                      <div className={`font-medium text-xs truncate mb-0.5 ${
+                        isActive 
+                          ? 'bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent font-bold' 
+                          : 'text-gray-700'
+                      }`}>
+                        {chat.title}
+                      </div>
+                      <div className="text-[10px] text-gray-500">{formatDate(chat.updatedAt)}</div>
+                    </Link>
 
-          {/* NACHRICHTEN BEREICH - Dashboard Style Design */}
-          {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Floating Bar */}
-          <div className="flex-1 overflow-y-auto scroll-smooth bg-white md:bg-gray-50 pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
-            {/* Central Container: Begrenzte Breite, zentriert (wie Dokument) */}
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
-          {messages.length === 0 && (
-            <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
-              <span className="text-5xl sm:text-6xl mb-4">💬</span>
-              <p className="text-lg font-medium text-gray-600">Ich bin bereit.</p>
+                    {/* Action Buttons (Desktop Hover) */}
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 md:group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleEdit(chat);
+                        }}
+                        className="p-1.5 rounded hover:bg-gray-100 transition-colors"
+                        aria-label="Chat umbenennen"
+                        title="Umbenennen"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-gray-400 hover:text-gray-700" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setConfirmModal({
+                            isOpen: true,
+                            title: 'Chat löschen',
+                            message: 'Möchtest du diesen Chat wirklich endgültig löschen?',
+                            onConfirm: () => handleDelete(chat.id),
+                          });
+                        }}
+                        disabled={deletingChatId === chat.id}
+                        className="p-1.5 rounded hover:bg-red-50 transition-colors disabled:opacity-50"
+                        aria-label="Chat löschen"
+                        title="Löschen"
+                      >
+                        <Trash2 className={`w-3.5 h-3.5 ${deletingChatId === chat.id ? 'text-gray-400' : 'text-red-500'}`} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
+        </div>
+      </aside>
 
-          {messages.map((msg, i) => (
-            <div key={i} className="w-full">
-              {msg.role === 'user' ? (
-                /* USER MESSAGE: Dashboard Style Card, rechtsbündig */
-                <div className="flex w-full justify-end items-start gap-3">
-                  {/* User Message Card - Dashboard Style */}
-                  <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[90%] rounded-xl px-4 md:px-5 py-3 md:py-4 shadow-sm border border-gray-200/50 bg-white">
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      <CopyButton text={msg.content} variant="icon" size="md" />
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <p className="flex-1 whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed text-gray-900">{msg.content}</p>
-                      {/* User Avatar innerhalb der Card - Dashboard Gradient */}
-                      <div className="h-7 w-7 shrink-0 select-none items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 text-[10px] font-semibold text-white flex shadow-sm">
-                        DU
+      {/* Mobile Overlay */}
+      {isChatListOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsChatListOpen(false)}
+        />
+      )}
+
+      {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        {/* STICKY HEADER */}
+        <div className="sticky top-0 z-20 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsChatListOpen(true)}
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Chat-Liste öffnen"
+            >
+              <Menu className="w-5 h-5 text-gray-700" />
+            </button>
+            
+            <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-xl shadow-md border border-gray-200/50 bg-white shrink-0">
+              <Image 
+                src="/assets/logos/logo.webp" 
+                alt="Sinispace Logo" 
+                fill 
+                className="object-contain p-2" 
+                priority 
+              />
+            </div>
+            <div>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                SiniChat
+              </h1>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* NACHRICHTEN BEREICH */}
+        <div className="flex-1 overflow-y-auto scroll-smooth bg-white md:bg-gray-50 pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
+            {messages.length === 0 && (
+              <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
+                <span className="text-5xl sm:text-6xl mb-4">💬</span>
+                <p className="text-lg font-medium text-gray-600">Ich bin bereit.</p>
+              </div>
+            )}
+
+            {messages.map((msg, i) => (
+              <div key={i} className="w-full">
+                {msg.role === 'user' ? (
+                  <div className="flex w-full justify-end items-start gap-3">
+                    <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[90%] rounded-xl px-4 md:px-5 py-3 md:py-4 shadow-sm border border-gray-200/50 bg-white">
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <CopyButton text={msg.content} variant="icon" size="md" />
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <p className="flex-1 whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed text-gray-900">{msg.content}</p>
+                        <div className="h-7 w-7 shrink-0 select-none items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 text-[10px] font-semibold text-white flex shadow-sm">
+                          DU
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                /* AI MESSAGE: Dashboard Style, linksbündig, volle Breite */
-                <div className="flex w-full justify-start items-start gap-3">
-                  {/* SiniChat Logo/Avatar links oben - Dashboard Style */}
-                  <div className="h-8 w-8 shrink-0 select-none items-center justify-center rounded-xl shadow-md border border-gray-200/50 bg-white overflow-hidden mt-0.5">
-                    <Image 
-                      src="/assets/logos/logo.webp" 
-                      alt="Sinispace Logo" 
-                      width={32}
-                      height={32}
-                      className="object-contain p-1.5" 
+                ) : (
+                  <div className="flex w-full justify-start items-start gap-3">
+                    <div className="h-8 w-8 shrink-0 select-none items-center justify-center rounded-xl shadow-md border border-gray-200/50 bg-white overflow-hidden mt-0.5">
+                      <Image 
+                        src="/assets/logos/logo.webp" 
+                        alt="Sinispace Logo" 
+                        width={32}
+                        height={32}
+                        className="object-contain p-1.5" 
+                      />
+                    </div>
+                    <div className="flex-1 group relative">
+                      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <CopyButton text={msg.content} variant="icon" size="md" />
+                      </div>
+                      <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none">
+                        <MarkdownRenderer content={msg.content} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
+                  <div className="ml-11 mt-4">
+                    <SuggestedActions 
+                      content={msg.content} 
+                      onActionClick={(prompt) => sendMessage(prompt)}
                     />
                   </div>
-                  {/* AI Text Block - Dashboard Style (kein Hintergrund, Text auf weiß) */}
-                  <div className="flex-1 group relative">
-                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      <CopyButton text={msg.content} variant="icon" size="md" />
-                    </div>
-                    {/* Tailwind Typography: Blogartikel-ähnliches Formatting */}
-                    <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none">
-                      <MarkdownRenderer content={msg.content} />
-                    </div>
-                  </div>
-                </div>
-              )}
-              {/* Suggested Actions - Nur bei der letzten AI-Nachricht */}
-              {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
-                <div className="ml-11 mt-4">
-                  <SuggestedActions 
-                    content={msg.content} 
-                    onActionClick={(prompt) => sendMessage(prompt)}
+                )}
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="flex items-center gap-2 text-gray-500">
+                <div className="h-8 w-8 shrink-0 rounded-xl shadow-md border border-gray-200/50 bg-white overflow-hidden flex items-center justify-center">
+                  <Image 
+                    src="/assets/logos/logo.webp" 
+                    alt="Sinispace Logo" 
+                    width={32}
+                    height={32}
+                    className="object-contain p-1.5" 
                   />
                 </div>
-              )}
-            </div>
-          ))}
-          
-          {isLoading && (
-            <div className="flex w-full gap-4 justify-start">
-               <div className="h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-md border border-gray-200/50 bg-white overflow-hidden flex">
-                 <Image 
-                   src="/assets/logos/logo.webp" 
-                   alt="Sinispace Logo" 
-                   width={32}
-                   height={32}
-                   className="object-contain p-1.5" 
-                 />
-               </div>
-               <div className="flex items-center space-x-1.5 rounded-xl bg-white border border-gray-200/50 px-4 py-3 shadow-sm">
-                 <div className="h-2 w-2 animate-bounce rounded-full bg-orange-500 [animation-delay:-0.3s]"></div>
-                 <div className="h-2 w-2 animate-bounce rounded-full bg-pink-500 [animation-delay:-0.15s]"></div>
-                 <div className="h-2 w-2 animate-bounce rounded-full bg-orange-500"></div>
-               </div>
-            </div>
-          )}
-              <div ref={messagesEndRef} className="h-1" />
-            </div>
-          </div>
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-pink-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            )}
 
-          {/* INPUT BEREICH - Floating Bar Design */}
-          {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
-          {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-80 right-0 z-40 flex justify-center px-4 md:px-6">
-            <div className="w-full max-w-3xl">
-          {/* Dokumente Liste - Dashboard Style */}
-          {documents.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-2 justify-center md:justify-start">
+            <div ref={messagesEndRef} className="h-1" />
+          </div>
+        </div>
+
+        {/* INPUT BEREICH - Floating Bar */}
+        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
+          <div className="w-full max-w-3xl bg-white border border-gray-200/50 rounded-2xl shadow-xl flex items-center gap-2 p-2 md:p-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleFileUpload}
+              accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Datei hochladen"
+            >
+              <Upload className={`w-5 h-5 text-gray-600 ${isUploading ? 'animate-pulse' : ''}`} />
+            </button>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder="Schreib eine Nachricht..."
+              className="flex-1 border-none outline-none text-sm md:text-base text-gray-900 placeholder:text-gray-400 bg-transparent"
+            />
+            <button
+              onClick={() => sendMessage()}
+              disabled={isLoading || (!input.trim() && documents.length === 0)}
+              className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Nachricht senden"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Dokumente Liste (wenn vorhanden) */}
+        {documents.length > 0 && (
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+12rem)] md:bottom-32 left-0 md:left-[calc(16rem+20rem)] right-0 z-30 flex justify-center px-4 md:px-6">
+            <div className="w-full max-w-3xl bg-white border border-gray-200/50 rounded-xl shadow-lg p-3 space-y-2">
+              <div className="text-xs font-medium text-gray-700 mb-2">Hochgeladene Dateien:</div>
               {documents.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex items-center gap-1.5 rounded-lg bg-white border border-gray-200/50 px-2.5 py-1.5 text-xs shadow-sm"
-                >
-                  <span className="text-gray-500">📄</span>
-                  <span className="text-gray-700 max-w-[150px] truncate" title={doc.fileName}>
-                    {formatFileName(doc.fileName, 20)}
-                  </span>
-                  <span className="text-gray-500">({formatFileSize(doc.fileSize)})</span>
+                <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                  <span className="text-xs text-gray-700 truncate flex-1">{doc.fileName}</span>
                   <button
-                    onClick={() => handleDeleteDocument(doc.id)}
-                    className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
-                    title="Löschen"
+                    onClick={() => setDocuments(prev => prev.filter(d => d.id !== doc.id))}
+                    className="ml-2 p-1 rounded hover:bg-gray-200 transition-colors"
+                    aria-label="Datei entfernen"
                   >
-                    ×
+                    <X className="w-4 h-4 text-gray-500" />
                   </button>
                 </div>
               ))}
             </div>
-          )}
-
-          {/* Floating Bar - Dashboard Style */}
-          <form 
-            onSubmit={handleSubmit} 
-            className="relative flex items-center gap-2 rounded-2xl bg-white border border-gray-200/50 p-2 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:shadow-2xl transition-all"
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              onChange={handleFileUpload}
-              disabled={isUploading}
-              className="hidden"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
-            />
-            {/* Upload Button - Dashboard Style */}
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="rounded-lg bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 disabled:opacity-50 transition-all"
-                title="Datei hochladen"
-              >
-                {isUploading ? (
-                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                  </svg>
-                )}
-              </button>
-              <div className="absolute -top-1 -right-1">
-                <Tooltip 
-                  content={
-                    <div className="space-y-1">
-                      <p className="font-semibold mb-1">Unterstützte Dateitypen:</p>
-                      <p>📄 Dokumente: PDF, Word, Excel, PowerPoint, TXT, Markdown</p>
-                      <p>💻 Code: JS, TS, Python, Java, C++, PHP, Ruby, Go, etc.</p>
-                      <p>🖼️ Bilder: JPG, PNG, GIF, WebP, SVG</p>
-                      <p>📊 Daten: CSV, JSON, XML</p>
-                    </div>
-                  }
-                  variant="info"
-                  position="top"
-                  iconOnly
-                />
-              </div>
-            </div>
-            
-            {/* Input Field - Dashboard Style (kein eigener Rahmen) */}
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Schreib eine Nachricht..."
-              className="flex-1 bg-transparent px-3 md:px-4 py-2 text-base md:text-sm focus:outline-none border-none min-w-0 text-gray-900 placeholder:text-gray-400"
-              autoFocus
-            />
-            
-            {/* Send Button - Dashboard Gradient */}
-            <button
-              type="submit"
-              disabled={isLoading || (!input.trim() && documents.length === 0)}
-              className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 p-2.5 text-white hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 shadow-md hover:shadow-lg"
-              aria-label="Nachricht senden"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m22 2-7 20-4-9-9-4Z"/>
-                <path d="M22 2 11 13"/>
-              </svg>
-            </button>
-          </form>
-          
-              {/* Disclaimer Text - Dashboard Style */}
-              <p className="mt-2 text-center text-[10px] md:text-xs text-gray-500">
-                KI kann Fehler machen. Überprüfe wichtige Informationen.
-              </p>
-            </div>
           </div>
-        </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }
