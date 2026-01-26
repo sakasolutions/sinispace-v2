@@ -6,6 +6,31 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: [
+    // Desktop Hover-Klassen für Cards (damit Tailwind sie erkennt)
+    'md:group-hover:border-orange-500',
+    'md:group-hover:bg-orange-50',
+    'md:group-hover:border-emerald-500',
+    'md:group-hover:bg-emerald-50',
+    'md:group-hover:border-blue-500',
+    'md:group-hover:bg-blue-50',
+    'md:group-hover:border-green-500',
+    'md:group-hover:bg-green-50',
+    'md:group-hover:border-violet-500',
+    'md:group-hover:bg-violet-50',
+    'md:group-hover:border-indigo-500',
+    'md:group-hover:bg-indigo-50',
+    'md:group-hover:border-amber-500',
+    'md:group-hover:bg-amber-50',
+    'md:group-hover:border-cyan-500',
+    'md:group-hover:bg-cyan-50',
+    'md:group-hover:border-rose-500',
+    'md:group-hover:bg-rose-50',
+    'md:group-hover:border-pink-500',
+    'md:group-hover:bg-pink-50',
+    'md:group-hover:border-gray-500',
+    'md:group-hover:bg-gray-50',
+  ],
   theme: {
     extend: {
       backgroundImage: {
