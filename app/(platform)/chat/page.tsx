@@ -122,14 +122,26 @@ export default function ChatPage() {
   const [isChatListOpen, setIsChatListOpen] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isInitialLoad = useRef(true);
+  const shouldAutoScroll = useRef(true);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (shouldAutoScroll.current && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    // Verhindere Auto-Scroll beim initialen Load
+    if (isInitialLoad.current) {
+      isInitialLoad.current = false;
+      return;
+    }
+    // Nur scrollen wenn neue Messages hinzugefügt wurden (nicht beim Load)
+    if (messages.length > 0 && !isLoading) {
+      scrollToBottom();
+    }
+  }, [messages.length, isLoading]); // Nur auf Längen-Änderung und Loading-State reagieren
 
   // Chat-Liste laden
   const loadChats = async () => {
@@ -519,9 +531,9 @@ export default function ChatPage() {
 
       {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-white">
-        {/* STICKY HEADER */}
-        <div className="sticky top-0 z-20 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-          <div className="flex items-center gap-3 sm:gap-4">
+        {/* FIXED HEADER - Außerhalb Scroll-Container */}
+        <div className="fixed top-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm">
+          <div className="flex items-center gap-3 sm:gap-4 max-w-3xl mx-auto">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsChatListOpen(true)}
@@ -549,8 +561,8 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* NACHRICHTEN BEREICH */}
-        <div className="flex-1 overflow-y-auto scroll-smooth !bg-white pb-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:pb-20">
+        {/* NACHRICHTEN BEREICH - EINZIGER SCROLLBARER CONTAINER */}
+        <div className="flex-1 overflow-y-auto scroll-smooth !bg-white pt-[calc(5rem+env(safe-area-inset-top))] md:pt-20 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-24">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8">
             {messages.length === 0 && (
               <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
@@ -633,8 +645,8 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* CHAT INPUT - Visible & Professional Design */}
-        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-40">
+        {/* CHAT INPUT - Fixed mit proper spacing */}
+        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 pb-4 md:pb-4">
           <div className="max-w-3xl mx-auto px-4 md:px-6">
             <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-sm focus-within:border-orange-500 focus-within:shadow-md transition-all">
               <input

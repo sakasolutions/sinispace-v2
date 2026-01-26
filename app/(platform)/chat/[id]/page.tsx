@@ -137,9 +137,13 @@ export default function ChatDetailPage() {
   
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isInitialLoad = useRef(true);
+  const shouldAutoScroll = useRef(true);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (shouldAutoScroll.current && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   // Chat beim Laden aus DB holen
@@ -147,6 +151,7 @@ export default function ChatDetailPage() {
     async function loadChat() {
       if (!chatId) return;
       
+      isInitialLoad.current = true; // Reset für neuen Chat
       const chat = await getChat(chatId);
       if (chat) {
         setMessages(chat.messages);
@@ -154,6 +159,10 @@ export default function ChatDetailPage() {
         // Dokumente werden nur beim Upload geladen, nicht beim Chat-Laden
         // Gesendete Dateien sind bereits Teil der Nachrichten
         setDocuments([]);
+        // Nach dem Laden: Initial Load Flag zurücksetzen
+        setTimeout(() => {
+          isInitialLoad.current = false;
+        }, 100);
       } else {
         // Chat nicht gefunden, zurück zur Chat-Liste
         router.push('/chat');
@@ -164,8 +173,15 @@ export default function ChatDetailPage() {
   }, [chatId, router]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    // Verhindere Auto-Scroll beim initialen Load
+    if (isInitialLoad.current) {
+      return;
+    }
+    // Nur scrollen wenn neue Messages hinzugefügt wurden (nicht beim Load)
+    if (messages.length > 0 && !isLoading) {
+      scrollToBottom();
+    }
+  }, [messages.length, isLoading]); // Nur auf Längen-Änderung und Loading-State reagieren
 
   // Chat-Liste laden
   const loadChats = async () => {
@@ -709,9 +725,9 @@ export default function ChatDetailPage() {
 
         {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-white">
-          {/* STICKY HEADER - Glassmorphism */}
-          <div className="sticky top-0 z-20 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-            <div className="flex items-center gap-3 sm:gap-4">
+          {/* FIXED HEADER - Außerhalb Scroll-Container */}
+          <div className="fixed top-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm">
+            <div className="flex items-center gap-3 sm:gap-4 max-w-3xl mx-auto">
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsChatListOpen(true)}
@@ -739,9 +755,9 @@ export default function ChatDetailPage() {
             </div>
           </div>
 
-          {/* NACHRICHTEN BEREICH - Dashboard Style Design */}
-          {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Floating Bar */}
-          <div className="flex-1 overflow-y-auto scroll-smooth !bg-white pb-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:pb-20">
+          {/* NACHRICHTEN BEREICH - EINZIGER SCROLLBARER CONTAINER */}
+          {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Input */}
+          <div className="flex-1 overflow-y-auto scroll-smooth !bg-white pt-[calc(5rem+env(safe-area-inset-top))] md:pt-20 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-24">
             {/* Central Container: Begrenzte Breite, zentriert (wie Dokument) */}
             <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8">
               {messages.length === 0 && (
@@ -991,8 +1007,8 @@ export default function ChatDetailPage() {
             </div>
           </div>
 
-          {/* CHAT INPUT - Visible & Professional Design */}
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-40">
+          {/* CHAT INPUT - Fixed mit proper spacing */}
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 pb-4 md:pb-4">
             <div className="max-w-3xl mx-auto px-4 md:px-6">
               <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-sm focus-within:border-orange-500 focus-within:shadow-md transition-all">
                 <input
