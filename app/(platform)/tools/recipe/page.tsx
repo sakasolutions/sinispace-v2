@@ -328,24 +328,24 @@ export default function RecipePage() {
 
             <section className="pb-8 border-b border-gray-100">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Anzahl Personen</h3>
-              <div className="flex items-center gap-3">
+              <div className="inline-flex items-center rounded-full bg-white border border-gray-200 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setServings(Math.max(1, servings - 1))}
                   disabled={servings <= 1}
-                  className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-600 hover:border-orange-300 hover:bg-orange-50/50 hover:text-orange-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center font-semibold"
+                  className="flex items-center justify-center w-14 h-14 text-gray-600 hover:bg-gray-50 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-600 transition-all"
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-6 h-6" />
                 </button>
-                <span className="text-base font-bold text-gray-900 min-w-[100px] text-center">
+                <span className="text-2xl font-bold text-gray-900 min-w-[140px] text-center py-3 px-4">
                   {servings} {servings === 1 ? 'Person' : 'Personen'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setServings(servings + 1)}
-                  className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-600 hover:border-orange-300 hover:bg-orange-50/50 hover:text-orange-600 transition-all flex items-center justify-center font-semibold"
+                  className="flex items-center justify-center w-14 h-14 text-gray-600 hover:bg-gray-50 hover:text-orange-500 transition-all"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-6 h-6" />
                 </button>
               </div>
               <input type="hidden" name="servings" value={servings} />
@@ -359,7 +359,7 @@ export default function RecipePage() {
                 value={ingredients}
                 onChange={(e) => setIngredients(e.target.value)}
                 placeholder="z.B. Eier, Tomaten, Reis..."
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 resize-none transition-all min-h-[160px]"
+                className="w-full rounded-2xl border border-gray-200 bg-white px-5 py-4 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 resize-none transition-all min-h-[200px]"
                 rows={6}
               />
             </section>
