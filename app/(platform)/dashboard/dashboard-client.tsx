@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { getToolUsageStats, trackToolUsage } from '@/actions/tool-usage-actions';
 
-// PERFORMANCE: Lazy Loading für Greeting-Komponente (nicht blockierend)
-const DashboardGreetingClient = lazy(() => import('@/components/platform/dashboard-greeting-client').then(mod => ({ default: mod.DashboardGreetingClient })));
 import {
   Mail,
   Languages,
@@ -213,14 +211,6 @@ const categoryFilterMap: Record<string, string[]> = {
   'Tech & Life': ['dev', 'lifestyle', 'social'],
 };
 
-const quickAccessTools = [
-  { id: 'email', title: 'Email-Profi', icon: Mail, color: 'blue', href: '/actions/email' },
-  { id: 'chat', title: 'Chat', icon: MessageSquare, color: 'indigo', href: '/chat' },
-  { id: 'excel', title: 'Excel-Coach', icon: Table2, color: 'green', href: '/tools/excel' },
-  { id: 'summarize', title: 'Klartext', icon: FileInput, color: 'amber', href: '/actions/summarize' },
-  { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'violet', href: '/actions/legal' },
-];
-
 // PREMIUM HIGH-FIDELITY: Helper-Funktion für Akzentfarben (RGB-Werte)
 const getAccentColorRGB = (accentColor: string): { r: number; g: number; b: number } => {
   const colorMap: Record<string, { r: number; g: number; b: number }> = {
@@ -403,7 +393,6 @@ const toolColors: Record<string, {
 };
 
 export default function DashboardClient() {
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<(typeof categoryTabs)[number]>('Alle');
   const [pullDistance, setPullDistance] = useState(0);
   const [usageStats, setUsageStats] = useState<Record<string, { count7d: number; count30d: number; isTrending: boolean }>>({});
@@ -492,13 +481,6 @@ export default function DashboardClient() {
       filtered = filtered.filter((t) => allowed.includes(t.category));
     }
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (t) => t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)
-      );
-    }
-
     // Sort by usage: Top 4 most used tools first
     const sorted = [...filtered].sort((a, b) => {
       const aStats = usageStats[a.id];
@@ -530,7 +512,7 @@ export default function DashboardClient() {
     });
 
     return sorted;
-  }, [selectedCategory, searchQuery, usageStats]);
+  }, [selectedCategory, usageStats]);
 
   // Split into Hero Cards (Top 4) and Secondary Cards
   const heroTools = sortedAndFilteredTools.slice(0, 4);
@@ -567,65 +549,13 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Main Container - MOBILE: Kompakt, Desktop: Spacious */}
-      <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32 pt-[max(1rem,env(safe-area-inset-top))] md:pt-8">
+      {/* Main Container - minimalistisch, Cards above the fold */}
+      <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32 pt-[max(1rem,env(safe-area-inset-top))] md:pt-6">
         
-        {/* Header Section - MOBILE: Kompakt */}
-        <div className="mb-6 md:mb-12 lg:mb-16">
-          <Suspense fallback={<div className="h-16 md:h-24" />}>
-            <DashboardGreetingClient />
-          </Suspense>
-        </div>
-
-        {/* PREMIUM: Search Bar - Advanced Material Layers - MOBILE: Kompakt */}
-        <div className="mb-4 md:mb-8 lg:mb-12">
-          <div className="relative group max-w-2xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-all duration-500 z-10 group-focus-within:scale-110" />
-            <input
-              type="text"
-              placeholder="Suche nach Tools..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/90 backdrop-blur-md border border-gray-200/80 text-gray-900 placeholder:text-gray-400 rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] text-base font-medium tracking-wide shadow-stack-base hover:shadow-stack-hover focus:shadow-brand-orange"
-            />
-            {/* PREMIUM: Subtle Glow on Focus */}
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-pink-500/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none -z-10 blur-xl" />
-          </div>
-        </div>
-
-        {/* Mobile Quick Access */}
-        <div className="mb-10 md:hidden">
-          <div className="flex gap-3 justify-center">
-            {quickAccessTools.slice(0, 4).map((quickTool) => {
-              const QuickIcon = quickTool.icon;
-              const colors = toolColors[quickTool.color] || toolColors.blue;
-              return (
-                <Link
-                  key={quickTool.id}
-                  href={quickTool.href}
-                  className="flex flex-col items-center group"
-                  onClick={() => triggerHaptic('light')}
-                >
-                  <div className={cn(
-                    'w-14 h-14 rounded-xl border flex items-center justify-center',
-                    'transition-all duration-300 group-active:scale-90 shadow-sm',
-                    colors.bg,
-                    colors.border,
-                    colors.hoverBorder,
-                    'group-hover:shadow-md'
-                  )}>
-                    <QuickIcon className={cn('w-6 h-6', colors.text)} />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* PREMIUM: Category Tabs - Physics-Based Feedback - MOBILE: Kompakt */}
-        <div className="mb-4 md:mb-10 lg:mb-14 overflow-x-auto">
-          <div className="flex gap-3 pb-2 min-w-max">
-            {categoryTabs.map((cat, index) => (
+        {/* Action Header: Tabs links, Status-Badge rechts */}
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+          <div className="flex overflow-x-auto scrollbar-hide min-w-0 rounded-full bg-white border border-gray-200 shadow-sm p-1">
+            {categoryTabs.map((cat) => (
               <button
                 key={cat}
                 onClick={() => {
@@ -633,29 +563,19 @@ export default function DashboardClient() {
                   triggerHaptic('light');
                 }}
                 className={cn(
-                  'px-5 py-2.5 rounded-full text-sm font-medium tracking-wide transition-all duration-500 whitespace-nowrap',
-                  'ease-[cubic-bezier(0.16,1,0.3,1)]',
-                  'active:scale-95',
-                  'relative',
-                  'will-change-transform', // Better rendering performance
+                  'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200',
+                  'active:scale-[0.98]',
                   selectedCategory === cat
-                    ? 'text-white border-0 shadow-brand-orange scale-105 gradient-tab-smooth'
-                    : 'bg-white/90 backdrop-blur-sm text-gray-600 border border-gray-200/80 hover:text-gray-900 hover:border-gray-300 hover:scale-102 shadow-stack-base hover:shadow-brand-orange'
+                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 )}
-                style={{
-                  animation: `fade-in-up 0.4s ease-out ${index * 0.1}s both`,
-                  opacity: 0,
-                  // Smooth rendering
-                  WebkitFontSmoothing: 'antialiased',
-                  MozOsxFontSmoothing: 'grayscale',
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                  transform: 'translateZ(0)', // Force GPU acceleration for smooth rendering
-                }}
               >
                 {cat}
               </button>
             ))}
+          </div>
+          <div className="shrink-0 text-gray-500 bg-gray-50 rounded-full px-3 py-1.5 text-sm">
+            ✨ Premium
           </div>
         </div>
 
