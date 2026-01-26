@@ -708,13 +708,7 @@ export default function DashboardClient() {
                       key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
-                      style={premiumCardStyle}
-                      onMouseEnter={(e) => {
-                        Object.assign(e.currentTarget.style, premiumCardStyleHover);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.boxShadow = ambientShadow;
-                      }}
+                      style={cardStyle}
                       onClick={async () => {
                         triggerHaptic('light');
                         // Track tool usage
@@ -922,13 +916,7 @@ export default function DashboardClient() {
                       key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
-                      style={premiumCardStyle}
-                      onMouseEnter={(e) => {
-                        Object.assign(e.currentTarget.style, premiumCardStyleHover);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.boxShadow = ambientShadow;
-                      }}
+                      style={cardStyle}
                       onClick={async () => {
                         triggerHaptic('light');
                         // Track tool usage
