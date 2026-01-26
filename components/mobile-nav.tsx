@@ -36,13 +36,13 @@ export function MobileNav() {
       paddingBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
       marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
     }}>
-      {/* FLOATING ISLAND: Modern, ausgewogene Navbar mit Margin links/rechts */}
+      {/* FLOATING ISLAND: Glassmorphism / Frosted Glass Look */}
       <div className="mx-auto max-w-md px-4">
         <div 
-          className="bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-2xl shadow-lg"
+          className="bg-white/80 backdrop-blur-lg border-t border-white/50 rounded-2xl shadow-2xl"
           style={{
-            // Premium Depth: Soft, high-quality shadow
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)',
+            // Glassmorphism: Verstärkter Schatten für Schwebe-Effekt
+            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08), 0 -2px 10px rgba(0, 0, 0, 0.04)',
           }}
         >
           {/* SVG Gradient Definition (einmalig für alle Icons) */}
@@ -81,9 +81,9 @@ export function MobileNav() {
                         strokeWidth={2.5}
                       />
                     ) : (
-                      // INAKTIV: Neutrales Mittelgrau
+                      // INAKTIV: Dunkles Grau für besseren Kontrast
                       <Icon 
-                        className="w-5 h-5 text-gray-400 transition-all duration-300 group-hover:text-gray-500"
+                        className="w-5 h-5 text-gray-600 transition-all duration-300 group-hover:text-gray-700"
                         strokeWidth={2}
                       />
                     )}
@@ -94,7 +94,7 @@ export function MobileNav() {
                     'text-[11px] font-medium transition-all duration-300',
                     isActive 
                       ? 'bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent font-semibold'
-                      : 'text-gray-400 group-hover:text-gray-500'
+                      : 'text-gray-600 group-hover:text-gray-700'
                   )}>
                     {item.label}
                   </span>
