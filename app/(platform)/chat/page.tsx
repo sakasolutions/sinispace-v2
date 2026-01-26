@@ -518,7 +518,7 @@ export default function ChatPage() {
       )}
 
       {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-white">
         {/* STICKY HEADER */}
         <div className="sticky top-0 z-20 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
           <div className="flex items-center gap-3 sm:gap-4">
@@ -550,7 +550,7 @@ export default function ChatPage() {
         </div>
 
         {/* NACHRICHTEN BEREICH */}
-        <div className="flex-1 overflow-y-auto scroll-smooth bg-white pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
+        <div className="flex-1 overflow-y-auto scroll-smooth !bg-white pb-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:pb-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
             {messages.length === 0 && (
               <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
