@@ -60,53 +60,44 @@ export async function getToolUsageStats() {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Get usage counts for last 7 days
-    const recentUsage = await prisma.featureUsage.groupBy({
-      by: ['feature'],
-      where: {
-        userId,
-        createdAt: { gte: sevenDaysAgo },
-        category: 'tool_click',
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    // Get usage counts for last 30 days (for trending calculation)
-    const monthlyUsage = await prisma.featureUsage.groupBy({
-      by: ['feature'],
+    // PERFORMANCE: Eine optimierte Query statt zwei separate groupBy
+    // Hole alle relevanten Daten in einem Query
+    const allUsage = await prisma.featureUsage.findMany({
       where: {
         userId,
         createdAt: { gte: thirtyDaysAgo },
         category: 'tool_click',
       },
-      _count: {
-        id: true,
+      select: {
+        feature: true,
+        createdAt: true,
       },
+    });
+
+    // Aggregiere im Memory (viel schneller als zwei DB-Queries)
+    const recentUsageMap = new Map<string, number>();
+    const monthlyUsageMap = new Map<string, number>();
+
+    allUsage.forEach((item) => {
+      const feature = item.feature;
+      monthlyUsageMap.set(feature, (monthlyUsageMap.get(feature) || 0) + 1);
+      if (item.createdAt >= sevenDaysAgo) {
+        recentUsageMap.set(feature, (recentUsageMap.get(feature) || 0) + 1);
+      }
     });
 
     // Convert to map for easy lookup
     const stats: Record<string, { count7d: number; count30d: number; isTrending: boolean }> = {};
     
-    recentUsage.forEach((item) => {
-      stats[item.feature] = {
-        count7d: item._count.id,
-        count30d: 0,
+    // Kombiniere beide Maps
+    const allFeatures = new Set([...recentUsageMap.keys(), ...monthlyUsageMap.keys()]);
+    
+    allFeatures.forEach((feature) => {
+      stats[feature] = {
+        count7d: recentUsageMap.get(feature) || 0,
+        count30d: monthlyUsageMap.get(feature) || 0,
         isTrending: false,
       };
-    });
-
-    monthlyUsage.forEach((item) => {
-      if (!stats[item.feature]) {
-        stats[item.feature] = {
-          count7d: 0,
-          count30d: item._count.id,
-          isTrending: false,
-        };
-      } else {
-        stats[item.feature].count30d = item._count.id;
-      }
     });
 
     // Calculate trending: if 7-day usage is > 50% of 30-day average, it's trending

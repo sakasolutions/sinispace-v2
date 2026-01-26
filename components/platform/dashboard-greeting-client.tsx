@@ -20,28 +20,34 @@ function getTimeBasedGreeting(): string {
 export function DashboardGreetingClient() {
   const [displayName, setDisplayName] = useState<string>('');
 
-  // Hydration-Fix: Nur nach Mount rendern
+  // PERFORMANCE: API-Call verzögert (nicht blockierend)
   useEffect(() => {
-    // User-Daten per API holen
-    fetch('/api/user/display-name')
-      .then(res => res.json())
-      .then(data => {
-        if (data.displayName) {
-          setDisplayName(data.displayName);
-        }
-      })
-      .catch(err => {
-        console.error('Fehler beim Laden des Display-Namens:', err);
-      });
+    // Delay für bessere initial load performance
+    const delay = typeof window !== 'undefined' && window.innerWidth < 768 ? 1500 : 500;
+    
+    const timeoutId = setTimeout(() => {
+      fetch('/api/user/display-name')
+        .then(res => res.json())
+        .then(data => {
+          if (data.displayName) {
+            setDisplayName(data.displayName);
+          }
+        })
+        .catch(err => {
+          // Fail silently - greeting works without name
+        });
+    }, delay);
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const greeting = getTimeBasedGreeting();
 
   return (
     <div className="relative">
-      {/* CLEAN: Subtle logo gradient glow */}
-      <div className="absolute bg-orange-100/50 blur-[100px] w-[300px] h-[300px] rounded-full -top-24 -left-24 -z-10 pointer-events-none" />
-      <div className="absolute bg-pink-100/50 blur-[80px] w-[250px] h-[250px] rounded-full -top-16 -right-16 -z-10 pointer-events-none" />
+      {/* PERFORMANCE: Blur-Effekte nur auf Desktop (sehr teuer auf Mobile) */}
+      <div className="hidden md:block absolute bg-orange-100/50 blur-[100px] w-[300px] h-[300px] rounded-full -top-24 -left-24 -z-10 pointer-events-none" />
+      <div className="hidden md:block absolute bg-pink-100/50 blur-[80px] w-[250px] h-[250px] rounded-full -top-16 -right-16 -z-10 pointer-events-none" />
       
       <div className="relative z-10">
         {/* MOBILE: Kompakte Typography, Desktop: Full Size */}
