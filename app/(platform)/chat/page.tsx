@@ -543,12 +543,28 @@ export default function ChatPage() {
 
           {messages.map((msg, i) => (
             <div key={i} className="w-full">
-              <div
-                className={`flex w-full gap-3 md:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                {/* AI Avatar - Immer sichtbar auf Desktop */}
-                {msg.role === 'assistant' && (
-                  <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white mt-1 overflow-hidden">
+              {msg.role === 'user' ? (
+                /* USER MESSAGE: Elegante Card, rechtsbündig */
+                <div className="flex w-full justify-end items-start gap-3">
+                  {/* User Message Card */}
+                  <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[90%] rounded-2xl px-4 md:px-5 py-3 md:py-4 shadow-md border border-zinc-700/50 dark:bg-zinc-800 bg-gray-50 dark:text-white text-zinc-900">
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <CopyButton text={msg.content} variant="icon" size="md" />
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <p className="flex-1 whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed">{msg.content}</p>
+                      {/* User Avatar innerhalb der Card */}
+                      <div className="h-6 w-6 shrink-0 select-none items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-pink-500 text-[10px] font-semibold text-white flex">
+                        DU
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* AI MESSAGE: Invisible Container, linksbündig, volle Breite */
+                <div className="flex w-full justify-start items-start gap-3">
+                  {/* SiniChat Logo/Avatar links oben */}
+                  <div className="h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white overflow-hidden mt-0.5">
                     <Image 
                       src="/assets/logos/logo.webp" 
                       alt="Sinispace Logo" 
@@ -557,39 +573,21 @@ export default function ChatPage() {
                       className="object-contain p-1.5" 
                     />
                   </div>
-                )}
-
-                {/* Chat Bubble - Modern KI-Assistant Style */}
-                <div
-                  className={`group relative max-w-[85%] sm:max-w-[80%] md:max-w-[75%] rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4 shadow-sm ${
-                    msg.role === 'user'
-                      ? 'bg-zinc-800/90 backdrop-blur-sm text-white rounded-br-sm border border-white/10'
-                      : 'bg-white/5 backdrop-blur-sm border border-white/10 rounded-bl-sm text-zinc-100' // AI-Bubble: Sehr subtil, modern
-                  }`}
-                >
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <CopyButton text={msg.content} variant="icon" size="md" />
-                  </div>
-                  {msg.role === 'assistant' ? (
-                    // Perfektes Markdown-Rendering wie ChatGPT/Gemini
+                  {/* AI Text Block - KEINE Card, kein Hintergrund */}
+                  <div className="flex-1 group relative">
+                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <CopyButton text={msg.content} variant="icon" size="md" />
+                    </div>
+                    {/* Perfektes Markdown-Rendering mit verbesserter Typografie */}
                     <div className="prose prose-invert prose-sm md:prose-base max-w-none">
                       <MarkdownRenderer content={msg.content} />
                     </div>
-                  ) : (
-                    <p className="whitespace-pre-wrap break-words text-white text-sm md:text-base leading-relaxed">{msg.content}</p>
-                  )}
-                </div>
-
-                {/* User Avatar - Immer sichtbar auf Desktop */}
-                {msg.role === 'user' && (
-                  <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 text-xs font-semibold text-white border border-white/10 mt-1">
-                    DU
                   </div>
-                )}
-              </div>
+                </div>
+              )}
               {/* Suggested Actions - Nur bei der letzten AI-Nachricht */}
               {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
-                <div className="ml-0 md:ml-12 mt-4">
+                <div className="ml-11 mt-4">
                   <SuggestedActions 
                     content={msg.content} 
                     onActionClick={(prompt) => sendMessage(prompt)}

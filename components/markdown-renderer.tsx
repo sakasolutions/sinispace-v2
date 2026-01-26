@@ -92,41 +92,41 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-        // Paragraphs - Helle, gut lesbare Schrift
+        // Paragraphs - Weicheres Grau, leading-relaxed für bessere Lesbarkeit
         p({ children }) {
           return (
-            <p className="text-zinc-200 text-[15px] leading-7 mb-4 last:mb-0">
+            <p className="text-zinc-300 dark:text-zinc-300 text-[15px] md:text-base leading-relaxed mb-4 last:mb-0">
               {children}
             </p>
           );
         },
-        // Strong/Bold - Weiß und fett
+        // Strong/Bold - Helleres Grau statt reinem Weiß für weicheren Kontrast
         strong({ children }) {
           return (
-            <strong className="font-semibold text-white">
+            <strong className="font-semibold text-zinc-100 dark:text-zinc-100">
               {children}
             </strong>
           );
         },
-        // Lists - Gute Abstände und Markers
+        // Lists - Gute Abstände und Markers, weichere Grautöne
         ul({ children }) {
           return (
-            <ul className="my-4 pl-6 space-y-2 list-disc list-outside text-zinc-200">
+            <ul className="my-4 pl-6 space-y-2 list-disc list-outside text-zinc-300 dark:text-zinc-300">
               {children}
             </ul>
           );
         },
         ol({ children }) {
           return (
-            <ol className="my-4 pl-6 space-y-2 list-decimal list-outside text-zinc-200">
+            <ol className="my-4 pl-6 space-y-2 list-decimal list-outside text-zinc-300 dark:text-zinc-300">
               {children}
             </ol>
           );
         },
-        // List Items - Helle Schrift
+        // List Items - Weicheres Grau, leading-relaxed
         li({ children }) {
           return (
-            <li className="text-zinc-200 marker:text-zinc-400 leading-6">
+            <li className="text-zinc-300 dark:text-zinc-300 marker:text-zinc-500 leading-relaxed">
               {children}
             </li>
           );
@@ -150,20 +150,20 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             </code>
           );
         },
-        // Headings - Weiß und fett
+        // Headings - Helleres Grau statt reinem Weiß für weicheren Kontrast
         h1({ children }) {
-          return <h1 className="text-white font-bold text-xl mt-6 mb-3 first:mt-0">{children}</h1>;
+          return <h1 className="text-zinc-100 dark:text-zinc-100 font-bold text-xl md:text-2xl mt-6 mb-3 first:mt-0 leading-tight">{children}</h1>;
         },
         h2({ children }) {
-          return <h2 className="text-white font-bold text-lg mt-5 mb-2 first:mt-0">{children}</h2>;
+          return <h2 className="text-zinc-100 dark:text-zinc-100 font-bold text-lg md:text-xl mt-5 mb-2 first:mt-0 leading-tight">{children}</h2>;
         },
         h3({ children }) {
-          return <h3 className="text-white font-semibold text-base mt-4 mb-2 first:mt-0">{children}</h3>;
+          return <h3 className="text-zinc-100 dark:text-zinc-100 font-semibold text-base md:text-lg mt-4 mb-2 first:mt-0 leading-tight">{children}</h3>;
         },
-        // Blockquote - Sanfter Hintergrund
+        // Blockquote - Sanfter Hintergrund, weichere Grautöne
         blockquote({ children }) {
           return (
-            <blockquote className="border-l-4 border-zinc-600 pl-4 py-2 my-4 text-zinc-300 italic bg-zinc-800/30 rounded-r">
+            <blockquote className="border-l-4 border-zinc-600 pl-4 py-2 my-4 text-zinc-400 dark:text-zinc-400 italic bg-zinc-800/30 rounded-r leading-relaxed">
               {children}
             </blockquote>
           );
@@ -181,7 +181,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             </a>
           );
         },
-        // Tables - Sauber gestylt
+        // Tables - Sauber gestylt, weichere Grautöne
         table({ children }) {
           return (
             <div className="overflow-x-auto my-4 border border-zinc-700 rounded-lg">
@@ -196,14 +196,14 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
         },
         th({ children }) {
           return (
-            <th className="px-4 py-2 text-left text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+            <th className="px-4 py-2 text-left text-xs font-semibold text-zinc-400 dark:text-zinc-400 uppercase tracking-wider">
               {children}
             </th>
           );
         },
         td({ children }) {
           return (
-            <td className="px-4 py-2 text-sm text-zinc-200 border-t border-zinc-700/50">
+            <td className="px-4 py-2 text-sm text-zinc-300 dark:text-zinc-300 border-t border-zinc-700/50 leading-relaxed">
               {children}
             </td>
           );
