@@ -507,64 +507,66 @@ export default function ChatPage() {
           onClose={() => setToast(null)}
         />
       )}
-      <div className="flex flex-col h-[100dvh] w-full overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="flex flex-col h-[100dvh] w-full overflow-hidden bg-white">
       
-      {/* HEADER: Logo + SiniChat Branding */}
+      {/* HEADER: Logo + SiniChat Branding - Dashboard Style */}
       {/* Mobile: Safe-Area-Padding oben für Statusbar */}
-      <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:pt-2.5">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="relative h-8 w-8 sm:h-9 sm:w-9 overflow-hidden rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white shrink-0">
+      <div className="shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-200/50 bg-white pt-[calc(env(safe-area-inset-top)+0.75rem)] md:pt-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-xl shadow-md border border-gray-200/50 bg-white shrink-0">
             <Image 
               src="/assets/logos/logo.webp" 
               alt="Sinispace Logo" 
               fill 
-              className="object-contain p-1.5" 
+              className="object-contain p-2" 
               priority 
             />
           </div>
           <div>
-            <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white">SiniChat</h1>
-            <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-zinc-400">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+              SiniChat
+            </h1>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Frag mich alles – mit Code, Tabellen und Struktur.</p>
           </div>
         </div>
       </div>
 
-      {/* NACHRICHTEN BEREICH - Modern KI-Assistant Design (Gemini/Claude Style) */}
+      {/* NACHRICHTEN BEREICH - Dashboard Style Design */}
       {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Floating Bar */}
-      <div className="flex-1 overflow-y-auto scroll-smooth pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
+      <div className="flex-1 overflow-y-auto scroll-smooth bg-white pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
         {/* Central Container: Begrenzte Breite, zentriert */}
         <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
           {messages.length === 0 && (
-            <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-zinc-400 opacity-50">
+            <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
               <span className="text-5xl sm:text-6xl mb-4">💬</span>
-              <p className="text-lg font-medium">Ich bin bereit.</p>
+              <p className="text-lg font-medium text-gray-600">Ich bin bereit.</p>
             </div>
           )}
 
           {messages.map((msg, i) => (
             <div key={i} className="w-full">
               {msg.role === 'user' ? (
-                /* USER MESSAGE: Elegante Card, rechtsbündig */
+                /* USER MESSAGE: Dashboard Style Card, rechtsbündig */
                 <div className="flex w-full justify-end items-start gap-3">
-                  {/* User Message Card */}
-                  <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[90%] rounded-2xl px-4 md:px-5 py-3 md:py-4 shadow-md border border-zinc-700/50 dark:bg-zinc-800 bg-gray-50 dark:text-white text-zinc-900">
+                  {/* User Message Card - Dashboard Style */}
+                  <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[90%] rounded-xl px-4 md:px-5 py-3 md:py-4 shadow-sm border border-gray-200/50 bg-white">
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <CopyButton text={msg.content} variant="icon" size="md" />
                     </div>
                     <div className="flex items-start gap-3">
-                      <p className="flex-1 whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed">{msg.content}</p>
-                      {/* User Avatar innerhalb der Card */}
-                      <div className="h-6 w-6 shrink-0 select-none items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-pink-500 text-[10px] font-semibold text-white flex">
+                      <p className="flex-1 whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed text-gray-900">{msg.content}</p>
+                      {/* User Avatar innerhalb der Card - Dashboard Gradient */}
+                      <div className="h-7 w-7 shrink-0 select-none items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 text-[10px] font-semibold text-white flex shadow-sm">
                         DU
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                /* AI MESSAGE: Invisible Container, linksbündig, volle Breite */
+                /* AI MESSAGE: Dashboard Style, linksbündig, volle Breite */
                 <div className="flex w-full justify-start items-start gap-3">
-                  {/* SiniChat Logo/Avatar links oben */}
-                  <div className="h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white overflow-hidden mt-0.5">
+                  {/* SiniChat Logo/Avatar links oben - Dashboard Style */}
+                  <div className="h-8 w-8 shrink-0 select-none items-center justify-center rounded-xl shadow-md border border-gray-200/50 bg-white overflow-hidden mt-0.5">
                     <Image 
                       src="/assets/logos/logo.webp" 
                       alt="Sinispace Logo" 
@@ -573,13 +575,13 @@ export default function ChatPage() {
                       className="object-contain p-1.5" 
                     />
                   </div>
-                  {/* AI Text Block - KEINE Card, kein Hintergrund */}
+                  {/* AI Text Block - Dashboard Style (kein Hintergrund, Text auf weiß) */}
                   <div className="flex-1 group relative">
                     <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <CopyButton text={msg.content} variant="icon" size="md" />
                     </div>
-                    {/* Perfektes Markdown-Rendering mit verbesserter Typografie */}
-                    <div className="prose prose-invert prose-sm md:prose-base max-w-none">
+                    {/* Perfektes Markdown-Rendering - Dashboard Style (heller Text auf weiß) */}
+                    <div className="prose prose-sm md:prose-base max-w-none">
                       <MarkdownRenderer content={msg.content} />
                     </div>
                   </div>
@@ -599,7 +601,7 @@ export default function ChatPage() {
           
           {isLoading && (
             <div className="flex w-full gap-4 justify-start">
-               <div className="hidden md:flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white overflow-hidden">
+               <div className="h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-md border border-gray-200/50 bg-white overflow-hidden flex">
                  <Image 
                    src="/assets/logos/logo.webp" 
                    alt="Sinispace Logo" 
@@ -608,10 +610,10 @@ export default function ChatPage() {
                    className="object-contain p-1.5" 
                  />
                </div>
-               <div className="flex items-center space-x-1.5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-3 shadow-sm">
-                 <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]"></div>
-                 <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></div>
-                 <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"></div>
+               <div className="flex items-center space-x-1.5 rounded-xl bg-white border border-gray-200/50 px-4 py-3 shadow-sm">
+                 <div className="h-2 w-2 animate-bounce rounded-full bg-orange-500 [animation-delay:-0.3s]"></div>
+                 <div className="h-2 w-2 animate-bounce rounded-full bg-pink-500 [animation-delay:-0.15s]"></div>
+                 <div className="h-2 w-2 animate-bounce rounded-full bg-orange-500"></div>
                </div>
             </div>
           )}
@@ -624,22 +626,22 @@ export default function ChatPage() {
       {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
       <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 right-0 z-40 flex justify-center px-4 md:px-6">
         <div className="w-full max-w-3xl">
-          {/* Dokumente Liste - Über der Floating Bar */}
+          {/* Dokumente Liste - Dashboard Style */}
           {documents.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-2 justify-center md:justify-start">
               {documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="flex items-center gap-1.5 rounded-lg bg-zinc-800/80 dark:bg-zinc-800/80 backdrop-blur-sm border border-white/10 px-2.5 py-1.5 text-xs shadow-md"
+                  className="flex items-center gap-1.5 rounded-lg bg-white border border-gray-200/50 px-2.5 py-1.5 text-xs shadow-sm"
                 >
-                  <span className="text-zinc-400">📄</span>
-                  <span className="text-zinc-300 dark:text-zinc-300 max-w-[150px] truncate" title={doc.fileName}>
+                  <span className="text-gray-500">📄</span>
+                  <span className="text-gray-700 max-w-[150px] truncate" title={doc.fileName}>
                     {formatFileName(doc.fileName, 20)}
                   </span>
-                  <span className="text-zinc-500">({formatFileSize(doc.fileSize)})</span>
+                  <span className="text-gray-500">({formatFileSize(doc.fileSize)})</span>
                   <button
                     onClick={() => handleDeleteDocument(doc.id)}
-                    className="ml-1 text-zinc-500 hover:text-red-400 transition-colors"
+                    className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
                     title="Löschen"
                   >
                     ×
@@ -649,10 +651,10 @@ export default function ChatPage() {
             </div>
           )}
 
-          {/* Floating Bar - Schwebende Pille/Box */}
+          {/* Floating Bar - Dashboard Style */}
           <form 
             onSubmit={handleSubmit} 
-            className="relative flex items-center gap-2 rounded-2xl bg-white/90 dark:bg-zinc-800/90 backdrop-blur-xl border border-zinc-200/50 dark:border-white/10 p-2 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/50 focus-within:shadow-2xl transition-all"
+            className="relative flex items-center gap-2 rounded-2xl bg-white border border-gray-200/50 p-2 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:shadow-2xl transition-all"
           >
             <input
               ref={fileInputRef}
@@ -662,13 +664,13 @@ export default function ChatPage() {
               className="hidden"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
             />
-            {/* Upload Button */}
+            {/* Upload Button - Dashboard Style */}
             <div className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="rounded-xl bg-zinc-100 dark:bg-zinc-700/50 p-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-50 transition-all"
+                className="rounded-lg bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 disabled:opacity-50 transition-all"
                 title="Datei hochladen"
               >
                 {isUploading ? (
@@ -702,16 +704,16 @@ export default function ChatPage() {
               </div>
             </div>
             
-            {/* Input Field - Kein eigener Rahmen */}
+            {/* Input Field - Dashboard Style (kein eigener Rahmen) */}
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Schreib eine Nachricht..."
-              className="flex-1 bg-transparent px-3 md:px-4 py-2 text-base md:text-sm focus:outline-none border-none min-w-0 text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-400"
+              className="flex-1 bg-transparent px-3 md:px-4 py-2 text-base md:text-sm focus:outline-none border-none min-w-0 text-gray-900 placeholder:text-gray-400"
               autoFocus
             />
             
-            {/* Send Button - Mit Akzentfarbe */}
+            {/* Send Button - Dashboard Gradient */}
             <button
               type="submit"
               disabled={isLoading || (!input.trim() && documents.length === 0)}
@@ -725,8 +727,8 @@ export default function ChatPage() {
             </button>
           </form>
           
-          {/* Disclaimer Text */}
-          <p className="mt-2 text-center text-[10px] md:text-xs text-zinc-500 dark:text-zinc-400">
+          {/* Disclaimer Text - Dashboard Style */}
+          <p className="mt-2 text-center text-[10px] md:text-xs text-gray-500">
             KI kann Fehler machen. Überprüfe wichtige Informationen.
           </p>
         </div>
