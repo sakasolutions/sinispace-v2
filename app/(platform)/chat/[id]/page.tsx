@@ -549,7 +549,7 @@ export default function ChatDetailPage() {
       <div data-no-padding className="h-full flex w-full overflow-hidden bg-white">
         {/* LINKS: Chat-Liste (Desktop: w-80, Mobile: Drawer) */}
         <aside className={`
-          fixed inset-y-0 left-64 z-40 md:z-auto
+          fixed inset-y-0 left-0 md:left-64 z-40 md:z-auto
           w-80 shrink-0 !bg-white border-r border-gray-100 
           flex flex-col overflow-hidden
           transform transition-transform duration-300 ease-in-out
@@ -708,7 +708,7 @@ export default function ChatDetailPage() {
         )}
 
         {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0 md:ml-80">
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* STICKY HEADER - Glassmorphism */}
           <div className="sticky top-0 z-20 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
             <div className="flex items-center gap-3 sm:gap-4">
