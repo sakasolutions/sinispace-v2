@@ -602,22 +602,18 @@ export default function DashboardClient() {
                     opacity: 0,
                   };
 
-                  // FLOATING ANIMATION: Staggered Delays für organischen, wellenartigen Effekt
-                  // Card 1: 0s, Card 2: 1s, Card 3: 0.5s, Card 4: 1.5s
-                  const staggerDelays = [0, 1, 0.5, 1.5];
+                  // FLOATING ANIMATION: Random Delays für organischen, wellenartigen Effekt
+                  // Card 1: 0s, Card 2: 1.5s, Card 3: 0.8s, Card 4: 2.2s
+                  const staggerDelays = [0, 1.5, 0.8, 2.2];
                   const floatDelay = staggerDelays[index] || 0;
                   
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
-                    // FLOATING ANIMATION: Sanfte Auf-und-Ab-Bewegung (immer aktiv)
-                    'animate-card-float',
-                    // Performance: GPU-Beschleunigung für Animation
-                    'will-change-transform',
-                    // PERMANENT FLOATING: Smooth transition nur für shadow (transform wird von Animation übernommen)
+                    // FLOATING ANIMATION: Direkt via CSS-Klasse (keine Tailwind-Konflikte)
+                    'floating-card',
+                    // Smooth transition nur für shadow (transform wird von CSS-Animation übernommen)
                     'transition-shadow duration-300 ease',
-                    // PERMANENT FLOATING: Verstärktes Anheben beim Hover (pausiert Animation)
-                    'md:hover:animate-none md:hover:-translate-y-2',
                     colors.bg,
                     // PERMANENT FLOATING: Dünner vollumfänglicher Rahmen in Akzentfarbe (1px)
                     colors.border,
@@ -636,7 +632,7 @@ export default function DashboardClient() {
                     'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
                   
-                  // Animation delay als inline style
+                  // Animation delay als inline style (wichtig: direkt im HTML/JSX)
                   const floatAnimationStyle = {
                     animationDelay: `${floatDelay}s`,
                   };

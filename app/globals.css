@@ -162,19 +162,30 @@
     }
   }
 
-  /* CONTINUOUS FLOATING ANIMATION: Idle Animation für Hero Cards */
-  @keyframes float {
-    0% {
-      transform: translateY(0px);
+  /* CONTINUOUS FLOATING ANIMATION: Idle Animation für Hero Cards - Direkt via CSS */
+  @keyframes floating {
+    0% { 
+      transform: translateY(0px); 
     }
-    100% {
-      transform: translateY(-6px);
+    50% { 
+      transform: translateY(-10px); 
+    }
+    100% { 
+      transform: translateY(0px); 
     }
   }
 
-  .animate-card-float {
-    animation: float 3.5s ease-in-out infinite alternate;
-    will-change: transform;
+  .floating-card {
+    animation: floating 3s ease-in-out infinite;
+    will-change: transform; /* Erzwingt Hardware-Beschleunigung */
+  }
+
+  /* Pausiere Animation beim Hover und hebe Card weiter an (Desktop) */
+  @media (min-width: 768px) {
+    .floating-card:hover {
+      animation-play-state: paused;
+      transform: translateY(-12px) !important;
+    }
   }
 
   /* Smooth gradient rendering for category tabs */
