@@ -255,8 +255,8 @@ const toolColors: Record<string, {
     border: 'border-emerald-300',
     text: 'text-emerald-600',
     iconBg: 'bg-emerald-50',
-    hoverBorder: 'hover:border-emerald-400',
-    hoverBg: 'hover:bg-emerald-50',
+    hoverBorder: 'md:group-hover:border-emerald-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-emerald-50', // Nur Desktop
     accentColor: 'emerald',
   },
   blue: {
@@ -264,8 +264,8 @@ const toolColors: Record<string, {
     border: 'border-blue-300',
     text: 'text-blue-600',
     iconBg: 'bg-blue-50',
-    hoverBorder: 'hover:border-blue-400',
-    hoverBg: 'hover:bg-blue-50',
+    hoverBorder: 'md:group-hover:border-blue-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-blue-50', // Nur Desktop
     accentColor: 'blue',
   },
   green: {
@@ -273,8 +273,8 @@ const toolColors: Record<string, {
     border: 'border-green-300',
     text: 'text-green-600',
     iconBg: 'bg-green-50',
-    hoverBorder: 'hover:border-green-400',
-    hoverBg: 'hover:bg-green-50',
+    hoverBorder: 'md:group-hover:border-green-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-green-50', // Nur Desktop
     accentColor: 'green',
   },
   violet: {
@@ -282,8 +282,8 @@ const toolColors: Record<string, {
     border: 'border-violet-300',
     text: 'text-violet-600',
     iconBg: 'bg-violet-50',
-    hoverBorder: 'hover:border-violet-400',
-    hoverBg: 'hover:bg-violet-50',
+    hoverBorder: 'md:group-hover:border-violet-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-violet-50', // Nur Desktop
     accentColor: 'violet',
   },
   indigo: {
@@ -291,8 +291,8 @@ const toolColors: Record<string, {
     border: 'border-indigo-300',
     text: 'text-indigo-600',
     iconBg: 'bg-indigo-50',
-    hoverBorder: 'hover:border-indigo-400',
-    hoverBg: 'hover:bg-indigo-50',
+    hoverBorder: 'md:group-hover:border-indigo-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-indigo-50', // Nur Desktop
     accentColor: 'indigo',
   },
   amber: {
@@ -300,8 +300,8 @@ const toolColors: Record<string, {
     border: 'border-amber-300',
     text: 'text-amber-600',
     iconBg: 'bg-amber-50',
-    hoverBorder: 'hover:border-amber-400',
-    hoverBg: 'hover:bg-amber-50',
+    hoverBorder: 'md:group-hover:border-amber-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-amber-50', // Nur Desktop
     accentColor: 'amber',
   },
   cyan: {
@@ -309,8 +309,8 @@ const toolColors: Record<string, {
     border: 'border-cyan-300',
     text: 'text-cyan-600',
     iconBg: 'bg-cyan-50',
-    hoverBorder: 'hover:border-cyan-400',
-    hoverBg: 'hover:bg-cyan-50',
+    hoverBorder: 'md:group-hover:border-cyan-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-cyan-50', // Nur Desktop
     accentColor: 'cyan',
   },
   orange: {
@@ -318,8 +318,8 @@ const toolColors: Record<string, {
     border: 'border-orange-300',
     text: 'text-orange-600',
     iconBg: 'bg-gradient-to-br from-orange-50 to-pink-50',
-    hoverBorder: 'hover:border-orange-400',
-    hoverBg: 'hover:bg-gradient-to-br hover:from-orange-50 hover:to-pink-50',
+    hoverBorder: 'md:group-hover:border-orange-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-orange-50 md:group-hover:to-pink-50', // Nur Desktop
     gradient: 'from-orange-500 to-pink-500',
     accentColor: 'orange',
   },
@@ -328,8 +328,8 @@ const toolColors: Record<string, {
     border: 'border-rose-300',
     text: 'text-rose-600',
     iconBg: 'bg-gradient-to-br from-pink-50 to-rose-50',
-    hoverBorder: 'hover:border-rose-400',
-    hoverBg: 'hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50',
+    hoverBorder: 'md:group-hover:border-rose-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-pink-50 md:group-hover:to-rose-50', // Nur Desktop
     gradient: 'from-pink-500 to-rose-500',
     accentColor: 'rose',
   },
@@ -338,8 +338,8 @@ const toolColors: Record<string, {
     border: 'border-gray-300',
     text: 'text-gray-600',
     iconBg: 'bg-gray-50',
-    hoverBorder: 'hover:border-gray-400',
-    hoverBg: 'hover:bg-gray-50',
+    hoverBorder: 'md:group-hover:border-gray-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-gray-50', // Nur Desktop
     accentColor: 'gray',
   },
   pink: {
@@ -347,8 +347,8 @@ const toolColors: Record<string, {
     border: 'border-pink-300',
     text: 'text-pink-600',
     iconBg: 'bg-gradient-to-br from-pink-50 to-orange-50',
-    hoverBorder: 'hover:border-pink-400',
-    hoverBg: 'hover:bg-gradient-to-br hover:from-pink-50 hover:to-orange-50',
+    hoverBorder: 'md:group-hover:border-pink-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-pink-50 md:group-hover:to-orange-50', // Nur Desktop
     gradient: 'from-pink-500 to-orange-500',
     accentColor: 'pink',
   },
@@ -642,14 +642,18 @@ export default function DashboardClient() {
                     'rounded-xl',
                     // ELEVATION SYSTEM: Primary Cards mit höherer Elevation
                     isHeroCard ? 'card-elevation-primary-hero' : 'card-elevation-primary',
-                    // Smooth transitions für Hover-States
-                    'transition-all duration-200 ease-out',
+                    // Smooth transitions für Hover-States (inkl. Farben)
+                    'transition-all duration-300 ease-out',
+                    'transition-colors duration-300',
                     // Border: Subtiler, transparenter Rahmen (NUR Border, nicht Container!)
                     colors.border,
                     'border-[0.5px]',
-                    // FIX: Border-Opacity über border-color, nicht Container-Opacity
-                    colors.hoverBorder,
-                    colors.hoverBg,
+                    'opacity-30',
+                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (nur md:)
+                    'md:group-hover:opacity-100',
+                    'md:group-hover:border-opacity-100',
+                    colors.hoverBorder, // Wird nur auf Desktop aktiv (md:)
+                    colors.hoverBg, // Wird nur auf Desktop aktiv (md:)
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
@@ -791,14 +795,18 @@ export default function DashboardClient() {
                     'rounded-xl',
                     // ELEVATION SYSTEM: Secondary Cards mit niedrigerer Elevation
                     'card-elevation-secondary',
-                    // Smooth transitions für Hover-States
-                    'transition-all duration-200 ease-out',
+                    // Smooth transitions für Hover-States (inkl. Farben)
+                    'transition-all duration-300 ease-out',
+                    'transition-colors duration-300',
                     // Border: Subtiler, transparenter Rahmen (NUR Border, nicht Container!)
                     colors.border,
                     'border-[0.5px]',
-                    // FIX: Border-Opacity über border-color, nicht Container-Opacity
-                    colors.hoverBorder,
-                    colors.hoverBg,
+                    'opacity-30',
+                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (nur md:)
+                    'md:group-hover:opacity-100',
+                    'md:group-hover:border-opacity-100',
+                    colors.hoverBorder, // Wird nur auf Desktop aktiv (md:)
+                    colors.hoverBg, // Wird nur auf Desktop aktiv (md:)
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
