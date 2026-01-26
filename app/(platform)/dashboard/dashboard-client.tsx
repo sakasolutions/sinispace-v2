@@ -323,7 +323,7 @@ export default function DashboardClient() {
   return (
     <div
       ref={containerRef}
-      className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0 relative"
+      className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-8 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0 relative z-10"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -332,6 +332,12 @@ export default function DashboardClient() {
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
       }}
     >
+      {/* NEW: Brand watermark pattern - subtle S in background */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.015] -z-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[30rem] font-black text-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif', letterSpacing: '-0.05em' }}>
+          S
+        </div>
+      </div>
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 0 && (
         <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 z-50">
@@ -351,22 +357,22 @@ export default function DashboardClient() {
       {/* Header mit Background Glow */}
       <DashboardGreetingClient />
 
-      {/* Search Bar mit Glass-Effekt */}
-      <div className="mb-4 sm:mb-6">
+      {/* Search Bar mit Glass-Effekt 2.0 */}
+      <div className="mb-6 sm:mb-8">
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 md:w-5 md:h-5 text-zinc-500 group-focus-within:text-blue-400 transition-colors z-10" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 md:w-5 md:h-5 text-zinc-500 group-focus-within:text-blue-400 transition-all duration-300 z-10 group-focus-within:scale-110" />
           <input
             type="text"
             placeholder="Suche nach Tools..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 text-white placeholder:text-zinc-500 rounded-2xl py-4 md:py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all shadow-lg backdrop-blur-md text-base md:text-sm min-h-[56px] md:min-h-[56px] tracking-wide"
+            className="w-full bg-white/[0.03] border border-white/10 text-white placeholder:text-zinc-500 rounded-2xl py-4 md:py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 shadow-lg backdrop-blur-xl text-base md:text-sm min-h-[56px] md:min-h-[56px] tracking-wide hover:bg-white/[0.05] hover:border-white/15"
           />
         </div>
       </div>
 
-      <div className="mb-4 md:hidden">
-        <div className="grid grid-cols-4 gap-3">
+      <div className="mb-6 md:hidden">
+        <div className="grid grid-cols-4 gap-4">
           {quickAccessTools.map((quickTool) => {
             const QuickIcon = quickTool.icon;
             const quickColors = colorClasses[quickTool.color] || colorClasses.blue;
@@ -375,13 +381,20 @@ export default function DashboardClient() {
                 key={quickTool.id}
                 href={quickTool.href}
                 className="flex flex-col items-center group p-3"
+                onClick={() => triggerHaptic('light')}
               >
                 <div
-                  className={`w-12 h-12 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center shadow-lg transition-all group-active:scale-95 group-active:bg-white/10 group-active:border-white/20 ${quickColors.hoverBorder}`}
+                  className={cn(
+                    'w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl flex items-center justify-center shadow-lg',
+                    'transition-all duration-300 group-active:scale-90 group-hover:scale-110',
+                    'group-hover:bg-white/[0.08] group-hover:border-white/20',
+                    quickColors.hoverBorder,
+                    quickColors.bgHover
+                  )}
                 >
-                  <QuickIcon className={`w-6 h-6 ${quickColors.text}`} />
+                  <QuickIcon className={cn('w-7 h-7 transition-transform duration-300 group-hover:scale-110', quickColors.text)} />
                 </div>
-                <span className="text-[9px] text-zinc-400 text-center mt-1.5 truncate w-full group-hover:text-zinc-300 transition-colors leading-tight">
+                <span className="text-[10px] text-zinc-400 text-center mt-2 truncate w-full group-hover:text-zinc-300 transition-colors duration-300 leading-tight font-medium">
                   {quickTool.title}
                 </span>
               </Link>
@@ -390,16 +403,19 @@ export default function DashboardClient() {
         </div>
       </div>
 
-      <div className="mb-4 sm:mb-6 overflow-x-auto">
+      <div className="mb-6 sm:mb-8 overflow-x-auto">
         <div className="flex gap-3 md:gap-2 pb-2 min-w-max">
           {categoryTabs.map((cat) => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 md:px-3 md:py-1 sm:px-4 sm:py-2 rounded-full text-sm md:text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-[40px] md:min-h-[32px] sm:min-h-[36px] tracking-wide ${
+              onClick={() => {
+                setSelectedCategory(cat);
+                triggerHaptic('light');
+              }}
+              className={`px-5 py-2.5 md:px-4 md:py-2 sm:px-5 sm:py-2.5 rounded-full text-sm md:text-xs sm:text-sm font-semibold transition-all duration-300 whitespace-nowrap min-h-[44px] md:min-h-[36px] sm:min-h-[40px] tracking-wide backdrop-blur-md ${
                 selectedCategory === cat
-                  ? 'bg-gradient-to-r from-teal-500/20 to-indigo-500/20 text-white border border-teal-500/30 shadow-lg shadow-teal-500/10'
-                  : 'bg-zinc-900/50 text-zinc-400 border border-white/5 hover:bg-zinc-800/50'
+                  ? 'bg-gradient-to-r from-teal-500/25 via-indigo-500/25 to-blue-500/25 text-white border border-teal-500/40 shadow-lg shadow-teal-500/20 scale-105'
+                  : 'bg-white/[0.03] text-zinc-400 border border-white/10 hover:bg-white/[0.06] hover:text-zinc-300 hover:border-white/20 hover:scale-102'
               }`}
             >
               {cat}
@@ -409,59 +425,112 @@ export default function DashboardClient() {
       </div>
 
       {filteredTools.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-6">
           {filteredTools.map((tool) => {
             const Icon = tool.icon;
             const iconColors = colorClasses[tool.color] || colorClasses.blue;
             const cardColors = colorMap[tool.color] || colorMap.gray;
             const glowClass = glowColorMap[tool.color] || 'bg-zinc-500';
 
+            // BACKUP: Original card classes
+            // 'group relative flex flex-col h-full min-h-[180px] p-6 md:p-5 rounded-2xl border overflow-hidden',
+            // 'transform-gpu will-change-transform [backface-visibility:hidden] translate-z-0',
+            // 'backdrop-blur-sm shadow-md transition-[transform,box-shadow] duration-300 ease-out',
+            // 'hover:-translate-y-2 hover:shadow-2xl md:hover:-translate-y-2',
+
+            // NEW: Enhanced card with personality
             const cardClassName = cn(
-              'group relative flex flex-col h-full min-h-[180px] p-6 md:p-5 rounded-2xl border overflow-hidden',
+              'group relative flex flex-col h-full min-h-[200px] p-7 md:p-6 rounded-3xl border overflow-hidden',
               'transform-gpu will-change-transform [backface-visibility:hidden] translate-z-0',
-              'backdrop-blur-sm shadow-md transition-[transform,box-shadow] duration-300 ease-out',
-              'hover:-translate-y-2 hover:shadow-2xl md:hover:-translate-y-2',
+              'backdrop-blur-xl shadow-xl transition-all duration-500 ease-out',
+              'hover:-translate-y-3 hover:scale-[1.02] hover:shadow-2xl md:hover:-translate-y-3',
+              'hover:border-opacity-60',
               cardColors.bg,
               cardColors.border,
               cardColors.hoverBorder,
               cardColors.hoverShadow,
-              tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed'
+              tool.available ? 'cursor-pointer' : 'opacity-75 cursor-not-allowed',
+              // NEW: Tool-specific personality animations
+              tool.category === 'business' && 'hover:shadow-emerald-500/20',
+              tool.category === 'communication' && 'hover:shadow-blue-500/20',
+              tool.category === 'lifestyle' && 'hover:shadow-orange-500/20',
+              tool.category === 'writing' && 'hover:shadow-cyan-500/20'
             );
 
             const cardContent = (
               <>
-                <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
+                {/* BACKUP: Original gradient overlay */}
+                {/* <div className="absolute -inset-px bg-gradient-to-b from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" /> */}
+                
+                {/* NEW: Enhanced gradient overlay with tool-specific colors */}
+                <div className={cn(
+                  'absolute -inset-px bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none',
+                  tool.category === 'business' && 'from-emerald-500/20 via-transparent to-transparent',
+                  tool.category === 'communication' && 'from-blue-500/20 via-transparent to-transparent',
+                  tool.category === 'lifestyle' && 'from-orange-500/20 via-transparent to-transparent',
+                  tool.category === 'writing' && 'from-cyan-500/20 via-transparent to-transparent'
+                )} />
 
-                <div className="flex items-start justify-between mb-4 md:mb-4 relative z-10">
-                  <div className="w-12 h-12 md:w-10 md:h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
-                    <div className={iconColors.text}>
-                      <Icon className="w-6 h-6 md:w-5 md:h-5" />
+                {/* NEW: Subtle animated border glow */}
+                <div className={cn(
+                  'absolute -inset-0.5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none',
+                  'bg-gradient-to-r from-transparent via-white/5 to-transparent',
+                  tool.category === 'business' && 'via-emerald-500/10',
+                  tool.category === 'communication' && 'via-blue-500/10',
+                  tool.category === 'lifestyle' && 'via-orange-500/10',
+                  tool.category === 'writing' && 'via-cyan-500/10'
+                )} />
+
+                <div className="flex items-start justify-between mb-5 md:mb-5 relative z-10">
+                  {/* NEW: Enhanced icon container with parallax effect */}
+                  <div className={cn(
+                    'w-14 h-14 md:w-12 md:h-12 rounded-xl bg-white/[0.08] flex items-center justify-center shrink-0',
+                    'border border-white/10 backdrop-blur-md',
+                    'transition-all duration-500 group-hover:scale-110 group-hover:rotate-3',
+                    'group-hover:bg-white/[0.12] group-hover:border-white/20',
+                    iconColors.bg,
+                    iconColors.bgHover
+                  )}>
+                    <div className={cn(iconColors.text, 'transition-all duration-500 group-hover:scale-110')}>
+                      <Icon className="w-7 h-7 md:w-6 md:h-6 animate-float" style={{ animationDuration: '6s' }} />
                     </div>
                   </div>
                   {tool.available ? (
-                    <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-white transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 shrink-0" />
+                    <ArrowUpRight className="w-5 h-5 text-white/30 group-hover:text-white transition-all duration-500 group-hover:translate-x-2 group-hover:-translate-y-2 group-hover:scale-110 shrink-0" />
                   ) : tool.status === 'soon' ? (
-                    <span className="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full border border-zinc-600 bg-zinc-800/80 text-zinc-400 shrink-0">
+                    <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full border border-zinc-600/50 bg-zinc-800/60 backdrop-blur-sm text-zinc-400 shrink-0">
                       In Kürze
                     </span>
                   ) : null}
                 </div>
 
+                {/* NEW: Enhanced typography with better spacing */}
                 <h3
-                  className="font-bold text-xl md:text-lg text-white mb-2 md:mb-2 relative z-10 subpixel-antialiased leading-tight"
-                  style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
+                  className="font-bold text-2xl md:text-xl text-white mb-3 md:mb-3 relative z-10 subpixel-antialiased leading-tight tracking-tight"
+                  style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif', fontWeight: 750 }}
                 >
                   {tool.title}
                 </h3>
 
-                <p className="text-sm md:text-xs text-zinc-400 leading-relaxed line-clamp-3 relative z-10 flex-1 subpixel-antialiased">
+                <p className="text-sm md:text-xs text-zinc-400 leading-relaxed line-clamp-3 relative z-10 flex-1 subpixel-antialiased group-hover:text-zinc-300 transition-colors duration-300">
                   {tool.description}
                 </p>
 
+                {/* NEW: Enhanced glow effect with tool-specific colors */}
                 <div
                   className={cn(
-                    'absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-15 pointer-events-none',
-                    'transition-all duration-500 group-hover:scale-125 group-hover:opacity-30',
+                    'absolute -bottom-6 -right-6 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none',
+                    'transition-all duration-700 group-hover:scale-150 group-hover:opacity-40 group-hover:blur-[60px]',
+                    glowClass
+                  )}
+                  style={{ zIndex: 0 }}
+                />
+
+                {/* NEW: Additional subtle glow for depth */}
+                <div
+                  className={cn(
+                    'absolute -top-8 -left-8 w-24 h-24 rounded-full blur-2xl opacity-10 pointer-events-none',
+                    'transition-all duration-700 group-hover:scale-125 group-hover:opacity-20',
                     glowClass
                   )}
                   style={{ zIndex: 0 }}
@@ -481,9 +550,12 @@ export default function DashboardClient() {
           })}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <Search className="w-12 h-12 mx-auto mb-4 text-zinc-600 opacity-50" />
-          <p className="text-zinc-400 tracking-wide">Keine Tools gefunden.</p>
+        <div className="text-center py-16">
+          <div className="relative inline-block mb-6">
+            <Search className="w-16 h-16 mx-auto text-zinc-600/50 animate-pulse" />
+            <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full" />
+          </div>
+          <p className="text-zinc-400 tracking-wide text-lg mb-2">Keine Tools gefunden.</p>
           <p className="text-sm text-zinc-500 mt-1 tracking-wide">
             Versuche eine andere Suche oder Kategorie.
           </p>
