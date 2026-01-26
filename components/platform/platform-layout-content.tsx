@@ -97,7 +97,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
 
   // Sonst: Normales Layout mit Sidebar und Header
   return (
-    <div className="flex h-[100dvh] bg-white overflow-hidden relative" style={{
+    <div className="flex h-[100dvh] bg-white overflow-x-hidden relative" style={{
       minHeight: '100dvh',
       height: '100%',
     }}>
@@ -149,7 +149,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 md:ml-64 flex flex-col h-full overflow-hidden">
+      <main className="flex-1 md:ml-64 flex flex-col h-full overflow-x-hidden">
         {/* Mobile Header - AUSGEBLENDET (ersetzt durch Bottom Nav) */}
         {/* <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl px-4 md:hidden z-10">
           ...
