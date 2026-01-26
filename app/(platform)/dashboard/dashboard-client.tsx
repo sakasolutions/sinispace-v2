@@ -504,12 +504,12 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        {/* PREMIUM LAYOUT - Intentional Asymmetry mit Masonry Grid */}
+        {/* BENTO BOX LAYOUT - Organized but Stylish */}
         {filteredTools.length > 0 ? (
-          <div className="space-y-4 md:space-y-8 lg:space-y-12">
-            {/* MOBILE: 2x2 Grid, Desktop: Masonry Grid System mit Golden Ratio */}
+          <div className="space-y-4 md:space-y-6 lg:space-y-8">
+            {/* MOBILE: 2x4 Grid (kompakt), Desktop: Bento Box Grid System */}
             <div 
-              className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 lg:gap-8"
+              className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-4"
               style={{
                 gridAutoRows: 'minmax(auto, auto)',
               }}
@@ -521,15 +521,12 @@ export default function DashboardClient() {
                 const isLarge = size === 'large';
                 const isSmall = size === 'small';
 
-                // PREMIUM: Hierarchical Card Sizing - Golden Ratio Proportions
-                // Large: 1.618 ratio (Fibonacci), Medium: 1.414 ratio (√2), Small: 1.0 ratio (square)
-                const goldenRatio = 1.618;
-                const rootTwo = 1.414;
-                
-                // Desktop: Masonry Grid - Cards "settle" naturally
-                // Large Cards: span 2 columns, Medium: span 1, Small: span 1
+                // BENTO BOX: Hierarchical Card Sizing
+                // Large (2x2): Primary Tools (Gourmet, Invoice, Email)
+                // Medium (2x1): Secondary Tools (Excel, Legal, Chat-Coach, etc.)
+                // Small (1x1): Utility Tools (Translate, Fitness, Code, Social)
                 const desktopColSpan = isLarge ? 'lg:col-span-2' : 'lg:col-span-1';
-                const desktopRowSpan = isLarge ? 'lg:row-span-2' : 'lg:row-span-1';
+                const desktopRowSpan = isLarge ? 'lg:row-span-2' : size === 'medium' ? 'lg:row-span-1' : 'lg:row-span-1';
                 
                 // Visual Balance: Color-weight distribution
                 const colorWeight = colors.gradient ? 'high' : 'medium';
@@ -542,48 +539,47 @@ export default function DashboardClient() {
                 };
 
                 const cardClassName = cn(
-                  'group relative rounded-xl md:rounded-2xl border overflow-hidden',
-                  // PREMIUM: Material Physics - Natural Easing Curves
-                  'transition-all duration-500',
-                  'ease-[cubic-bezier(0.16,1,0.3,1)]', // Natural, smooth easing
-                  // PREMIUM: Subtle lift animations - neighboring cards react
-                  'hover:-translate-y-2 hover:scale-[1.01]',
-                  'hover:z-20', // Lift above neighbors
+                  'group relative rounded-xl border overflow-hidden',
+                  // BENTO BOX: Consistent border-radius (8px grid system)
+                  'rounded-xl', // 12px = 1.5 * 8px
+                  // FIXED: Subtle hover - no extreme transforms
+                  'transition-all duration-200 ease-out',
+                  'hover:-translate-y-1', // Max 4px lift
+                  'hover:z-10', // Subtle z-index lift
                   colors.bg,
                   colors.border,
                   colors.hoverBorder,
                   colors.hoverBg,
                   tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
-                  // PREMIUM: Masonry Grid System - Cards settle naturally
+                  // BENTO BOX: Grid System - Organized Layout
                   desktopColSpan,
                   desktopRowSpan,
-                  // PREMIUM: Visual Balance - Color-weight distribution
+                  // BENTO BOX: Visual Balance - Color-weight distribution
                   colorWeight === 'high' && 'border-2',
-                  colorWeight === 'high' && 'shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(249,115,22,0.03)]',
-                  colorWeight === 'medium' && 'shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.03)]',
-                  // Hover: Enhanced shadows mit realistic lift
-                  'hover:shadow-[0_2px_2px_rgba(0,0,0,0.03),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06),0_16px_32px_rgba(0,0,0,0.08)]',
-                  // PREMIUM: Colored shadows in brand colors (pink/orange tints)
-                  colors.gradient && 'hover:shadow-[0_2px_2px_rgba(0,0,0,0.03),0_4px_8px_rgba(249,115,22,0.08),0_8px_16px_rgba(244,114,182,0.1),0_16px_32px_rgba(249,115,22,0.12)]',
-                  // PREMIUM: Golden Ratio Proportions - Mathematical harmony
+                  // BENTO BOX: Shadow System - Ambient + Directional
+                  'shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.02)]', // Ambient
+                  'hover:shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.04)]', // Gentle shadow increase
+                  // BENTO BOX: Color-coded accent borders per tool category
+                  colors.gradient && 'hover:shadow-[0_2px_4px_rgba(249,115,22,0.08),0_4px_8px_rgba(244,114,182,0.06)]',
+                  // BENTO BOX: Proportional Heights - 8px Grid System
                   // MOBILE: Kompakte Card-Höhen (140px)
-                  // Desktop: Large = 1.618 ratio (480px), Medium = 1.414 ratio (360px), Small = 1.0 ratio (280px)
-                  isLarge ? 'p-4 md:p-10 lg:p-12 h-[140px] md:h-auto md:min-h-[400px] lg:min-h-[480px]' : 
-                  isSmall ? 'p-3 md:p-6 lg:p-7 h-[140px] md:h-auto md:min-h-[240px] lg:min-h-[280px]' : 
-                  'p-4 md:p-8 lg:p-10 h-[140px] md:h-auto md:min-h-[320px] lg:min-h-[360px]'
+                  // Desktop: Large (2x2) = 320px, Medium (2x1) = 200px, Small (1x1) = 160px
+                  isLarge ? 'p-4 md:p-6 lg:p-8 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
+                  isSmall ? 'p-3 md:p-4 lg:p-5 h-[140px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
+                  'p-4 md:p-5 lg:p-6 h-[140px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
                 );
 
                 const content = (
                   <>
-                    {/* PREMIUM: Advanced Material Layers - Layered Glassmorphism */}
+                    {/* BENTO BOX: Advanced Material Layers - Layered Glassmorphism */}
                     {/* Layer 1: Base Glassmorphism - Light blur */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-white/30 to-transparent backdrop-blur-[8px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/50 via-white/30 to-transparent backdrop-blur-[8px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
                     
                     {/* Layer 2: Medium Glassmorphism - Medium blur für depth */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 via-transparent to-white/20 backdrop-blur-[12px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-75 pointer-events-none" />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/40 via-transparent to-white/20 backdrop-blur-[12px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-50 pointer-events-none" />
                     
-                    {/* PREMIUM: Glass-Edge Border Gradient */}
-                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
+                    {/* BENTO BOX: Glass-Edge Border Gradient */}
+                    <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" style={{
                       background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
                       maskImage: 'linear-gradient(to bottom right, black 0%, transparent 60%)',
                       WebkitMaskImage: 'linear-gradient(to bottom right, black 0%, transparent 60%)',
@@ -591,51 +587,51 @@ export default function DashboardClient() {
                       borderImage: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, transparent 100%) 1',
                     }} />
                     
-                    {/* PREMIUM: Subtle Texture Overlay für Tactile Feeling */}
+                    {/* BENTO BOX: Subtle Texture Overlay für Tactile Feeling */}
                     <div 
-                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-[0.02] transition-opacity duration-500 pointer-events-none"
+                      className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-[0.02] transition-opacity duration-200 pointer-events-none"
                       style={{
                         backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
                         backgroundSize: '50px 50px'
                       }}
                     />
 
-                    {/* PREMIUM: Light & Atmosphere - Directional Lighting */}
-                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                    {/* BENTO BOX: Light & Atmosphere - Directional Lighting */}
+                    <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                       {/* Top-left light source */}
-                      <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/20 to-transparent rounded-tl-2xl" />
+                      <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/20 to-transparent rounded-tl-xl" />
                       {/* Bottom-right shadow */}
-                      <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-black/5 to-transparent rounded-br-2xl" />
+                      <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-black/5 to-transparent rounded-br-xl" />
                     </div>
 
-                    {/* PREMIUM: Atmospheric Perspective - Subtle Color Temperature */}
+                    {/* BENTO BOX: Atmospheric Perspective - Subtle Color Temperature */}
                     <div className={cn(
-                      'absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none',
+                      'absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none',
                       colors.gradient 
                         ? `bg-gradient-to-br ${colors.gradient} opacity-[0.03]` 
                         : 'bg-gradient-to-br from-gray-100/50 to-transparent opacity-20'
                     )} />
 
-                    {/* PREMIUM: Logo Gradient Glow - Light Source Effect */}
+                    {/* BENTO BOX: Logo Gradient Glow - Light Source Effect */}
                     {colors.gradient && (
                       <>
                         <div className={cn(
-                          'absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-25 transition-all duration-700',
+                          'absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-25 transition-all duration-200',
                           `bg-gradient-to-br ${colors.gradient}`
                         )} />
                         <div className={cn(
-                          'absolute -bottom-12 -left-12 w-32 h-32 rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition-all duration-700 delay-100',
+                          'absolute -bottom-12 -left-12 w-32 h-32 rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition-all duration-200 delay-50',
                           `bg-gradient-to-br ${colors.gradient}`
                         )} />
                       </>
                     )}
 
-                    {/* PREMIUM: Icon Container - MOBILE: Kompakter, Desktop: Full Size */}
-                    <div className="mb-2 md:mb-6 lg:mb-8">
+                    {/* BENTO BOX: Icon Container - MOBILE: Kompakter, Desktop: Full Size */}
+                    <div className="mb-2 md:mb-4 lg:mb-6">
                       <div className={cn(
-                        'inline-flex items-center justify-center rounded-lg md:rounded-xl border transition-all duration-500',
-                        'ease-[cubic-bezier(0.34,1.56,0.64,1)]', // Bouncy, natural easing
-                        'group-hover:scale-105 group-active:scale-95', // FIXED: Reduced scale
+                        'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
+                        'ease-out', // Smooth easing
+                        'group-hover:scale-105', // Subtle scale
                         colors.iconBg,
                         colors.border,
                         // MOBILE: Kleinere Icons für kompakte Cards
@@ -652,7 +648,7 @@ export default function DashboardClient() {
                       )}>
                         <Icon className={cn(
                           colors.text,
-                          'transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-105',
+                          'transition-transform duration-200 ease-out group-hover:scale-105',
                           // MOBILE: Kleinere Icons
                           isLarge ? 'w-5 h-5 md:w-8 lg:w-9 md:h-8 lg:h-9' : 
                           isSmall ? 'w-4 h-4 md:w-6 md:h-6' : 
@@ -742,48 +738,6 @@ export default function DashboardClient() {
                     href={tool.href} 
                     className={cardClassName}
                     style={animationStyle}
-                    onMouseEnter={(e) => {
-                      // PREMIUM: Material Physics - Realistic Lift
-                      const card = e.currentTarget;
-                      card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                      card.style.transform = 'translateY(-8px) scale(1.01)';
-                      
-                      // PREMIUM: Neighboring Cards React - Organic, Interconnected Feeling
-                      const siblings = Array.from(card.parentElement?.children || []) as HTMLElement[];
-                      siblings.forEach((sibling) => {
-                        if (sibling !== card && sibling.classList.contains('group')) {
-                          sibling.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                          sibling.style.transform = 'translateY(-2px) scale(1.002)';
-                        }
-                      });
-                    }}
-                    onMouseMove={(e) => {
-                      // PREMIUM: Subtle Parallax - Follow Mouse (reduced movement)
-                      const card = e.currentTarget;
-                      const rect = card.getBoundingClientRect();
-                      const x = e.clientX - rect.left;
-                      const y = e.clientY - rect.top;
-                      const centerX = rect.width / 2;
-                      const centerY = rect.height / 2;
-                      const moveX = (x - centerX) / 50; // Further reduced for subtlety
-                      const moveY = (y - centerY) / 50;
-                      card.style.transform = `translateY(-8px) scale(1.01) translate(${moveX}px, ${moveY}px)`;
-                    }}
-                    onMouseLeave={(e) => {
-                      // PREMIUM: Physics-Based Return - Natural easing
-                      const card = e.currentTarget;
-                      card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                      card.style.transform = '';
-                      
-                      // PREMIUM: Neighboring Cards Return
-                      const siblings = Array.from(card.parentElement?.children || []) as HTMLElement[];
-                      siblings.forEach((sibling) => {
-                        if (sibling !== card && sibling.classList.contains('group')) {
-                          sibling.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                          sibling.style.transform = '';
-                        }
-                      });
-                    }}
                   >
                     {content}
                   </Link>
