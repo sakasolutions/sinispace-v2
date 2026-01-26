@@ -561,8 +561,8 @@ export default function ChatDetailPage() {
           onClose={() => setToast(null)}
         />
       )}
-      {/* Chat Layout: Einfaches Flex-Layout */}
-      <div data-no-padding className="h-full flex w-full overflow-hidden bg-white">
+      {/* Chat Layout: Einfaches Flex-Layout - FIXED HEIGHT, NO SCROLL */}
+      <div data-no-padding className="h-full w-full overflow-hidden bg-white flex">
         {/* LINKS: Chat-Liste (Desktop: w-80, Mobile: Drawer) */}
         <aside className={`
           fixed inset-y-0 left-0 md:left-64 z-40 md:z-auto
@@ -723,8 +723,8 @@ export default function ChatDetailPage() {
           />
         )}
 
-        {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-white">
+        {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) - KEIN SCROLL HIER! */}
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-white h-full">
           {/* FIXED HEADER - Außerhalb Scroll-Container */}
           <div className="fixed top-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm">
             <div className="flex items-center gap-3 sm:gap-4 max-w-3xl mx-auto">

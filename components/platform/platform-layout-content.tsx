@@ -154,19 +154,15 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         
         {/* Children Container: Chat-Seite nutzt h-full direkt, andere Seiten bekommen Padding und können scrollen */}
         {/* MOBILE: More breathing room um bottom navigation + Safe Area */}
+        {/* WICHTIG: data-no-padding Seiten (Chat) haben eigenen Scroll-Container, hier NICHT scrollbar! */}
         <div 
-          className="flex-1 overflow-y-auto overflow-x-hidden pb-24 md:pb-0 pt-[max(0.5rem,env(safe-area-inset-top))] md:pt-0 bg-white" 
+          className="flex-1 overflow-hidden bg-white [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-24 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:pt-[max(0.5rem,env(safe-area-inset-top))] [&>*:not([data-no-padding])]:md:pt-0" 
           data-scroll-container
           style={{
-            WebkitOverflowScrolling: 'touch',
-            scrollBehavior: 'smooth',
-            overscrollBehaviorY: 'contain',
-            overscrollBehaviorX: 'none',
-            paddingBottom: 'max(6rem, calc(6rem + env(safe-area-inset-bottom)))',
             minHeight: 0,
           } as React.CSSProperties}
         >
-          <div className="min-h-full bg-white [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
+          <div className="h-full bg-white [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
             {children}
           </div>
         </div>
