@@ -38,8 +38,17 @@
     min-height: 100dvh;
     margin: 0;
     padding: 0;
-    /* Verhindert weißen Hintergrund beim Scrollen auf iOS */
+    /* NATIVE APP: Pull-to-Refresh deaktivieren */
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
+    /* NATIVE APP: Smooth scrolling auf iOS */
     -webkit-overflow-scrolling: touch;
+    /* NATIVE APP: Entfernt Tap-Highlight */
+    -webkit-tap-highlight-color: transparent;
+    /* NATIVE APP: Verhindert long-press menu auf iOS */
+    -webkit-touch-callout: none;
+    /* NATIVE APP: Smooth scroll behavior */
+    scroll-behavior: smooth;
     /* Safe Area Support */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -56,16 +65,62 @@
     min-height: 100dvh;
     margin: 0;
     padding: 0;
-    /* Verhindert weißen Hintergrund beim Rubber-Banding auf iOS */
-    overscroll-behavior: none;
-    /* PWA: Entfernt Tap-Highlight auf Mobile (sanfter) */
+    /* NATIVE APP: Pull-to-Refresh deaktivieren */
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
+    /* NATIVE APP: Smooth scrolling auf iOS */
+    -webkit-overflow-scrolling: touch;
+    /* NATIVE APP: Entfernt Tap-Highlight */
     -webkit-tap-highlight-color: transparent;
+    /* NATIVE APP: Verhindert long-press menu auf iOS */
+    -webkit-touch-callout: none;
+    /* NATIVE APP: Smooth scroll behavior */
+    scroll-behavior: smooth;
     position: relative;
     /* Safe Area für iPhone Notch und Home-Balken */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+  }
+  
+  /* NATIVE APP: UI-Stabilisierung - Verhindert Text-Selektion auf interaktiven Elementen */
+  button,
+  a,
+  [role="button"],
+  [role="link"],
+  .cursor-pointer,
+  .group {
+    /* Verhindert Text-Selektion beim Antippen */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    /* NATIVE APP: Touch-Action für bessere Performance */
+    touch-action: manipulation;
+    /* NATIVE APP: Entfernt Tap-Highlight */
+    -webkit-tap-highlight-color: transparent;
+    /* NATIVE APP: Verhindert long-press menu */
+    -webkit-touch-callout: none;
+  }
+  
+  /* NATIVE APP: Scrollable Container - Smooth Scrolling */
+  [data-scroll-container],
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+  
+  /* NATIVE APP: Erlaube Text-Selektion nur in Content-Bereichen */
+  p,
+  span:not(button span):not(a span),
+  h1, h2, h3, h4, h5, h6,
+  .text-selectable {
+    user-select: text;
+    -webkit-user-select: text;
   }
   
   /* Safe Area Support für alle Elemente */
