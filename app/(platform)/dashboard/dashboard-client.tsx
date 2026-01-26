@@ -34,11 +34,24 @@ type Tool = {
   href: string;
   available: boolean;
   status?: 'soon';
-  size?: 'large' | 'medium' | 'small'; // NEW: Size für asymmetrisches Layout
+  size?: 'large' | 'medium' | 'small';
+  priority?: 'high' | 'medium' | 'low'; // NEW: Priority für Layout
 };
 
 const allTools: Tool[] = [
-  // BUSINESS & FINANZEN - Large bubbles (wichtigste Tools)
+  // HIGH PRIORITY - Large Cards (Recipe, Invoice)
+  {
+    id: 'recipe',
+    title: 'Gourmet-Planer',
+    description: 'Was koche ich heute? Leckere Rezepte basierend auf deinem Vorrat.',
+    icon: ChefHat,
+    color: 'orange',
+    category: 'lifestyle',
+    href: '/tools/recipe',
+    available: true,
+    size: 'large',
+    priority: 'high',
+  },
   {
     id: 'invoice',
     title: 'Angebot & Rechnung',
@@ -49,6 +62,7 @@ const allTools: Tool[] = [
     href: '/actions/invoice',
     available: true,
     size: 'large',
+    priority: 'high',
   },
   {
     id: 'email',
@@ -60,7 +74,10 @@ const allTools: Tool[] = [
     href: '/actions/email',
     available: true,
     size: 'large',
+    priority: 'high',
   },
+
+  // MEDIUM PRIORITY - Medium Cards
   {
     id: 'excel',
     title: 'Excel-Coach',
@@ -70,10 +87,9 @@ const allTools: Tool[] = [
     category: 'business',
     href: '/tools/excel',
     available: true,
-    size: 'large',
+    size: 'medium',
+    priority: 'medium',
   },
-
-  // Medium bubbles
   {
     id: 'legal',
     title: 'Rechtstexte & Formales',
@@ -84,6 +100,7 @@ const allTools: Tool[] = [
     href: '/tools/legal',
     available: true,
     size: 'medium',
+    priority: 'medium',
   },
   {
     id: 'tough-msg',
@@ -95,6 +112,7 @@ const allTools: Tool[] = [
     href: '/tools/difficult',
     available: true,
     size: 'medium',
+    priority: 'medium',
   },
   {
     id: 'summarize',
@@ -106,6 +124,7 @@ const allTools: Tool[] = [
     href: '/actions/summarize',
     available: true,
     size: 'medium',
+    priority: 'medium',
   },
   {
     id: 'polish',
@@ -117,6 +136,7 @@ const allTools: Tool[] = [
     href: '/actions/polish',
     available: true,
     size: 'medium',
+    priority: 'medium',
   },
   {
     id: 'travel',
@@ -128,9 +148,10 @@ const allTools: Tool[] = [
     href: '/tools/travel',
     available: true,
     size: 'medium',
+    priority: 'medium',
   },
 
-  // Small bubbles
+  // LOW PRIORITY - Small/Compact Cards
   {
     id: 'translate',
     title: 'Sprachbrücke',
@@ -141,17 +162,7 @@ const allTools: Tool[] = [
     href: '/actions/translate',
     available: true,
     size: 'small',
-  },
-  {
-    id: 'recipe',
-    title: 'Gourmet-Planer',
-    description: 'Was koche ich heute? Leckere Rezepte basierend auf deinem Vorrat.',
-    icon: ChefHat,
-    color: 'orange',
-    category: 'lifestyle',
-    href: '/tools/recipe',
-    available: true,
-    size: 'small',
+    priority: 'low',
   },
   {
     id: 'fitness',
@@ -163,6 +174,7 @@ const allTools: Tool[] = [
     href: '/tools/fitness',
     available: true,
     size: 'small',
+    priority: 'low',
   },
   {
     id: 'code',
@@ -175,6 +187,7 @@ const allTools: Tool[] = [
     available: false,
     status: 'soon',
     size: 'small',
+    priority: 'low',
   },
   {
     id: 'social',
@@ -187,6 +200,7 @@ const allTools: Tool[] = [
     available: false,
     status: 'soon',
     size: 'small',
+    priority: 'low',
   },
 ];
 
@@ -208,102 +222,98 @@ const quickAccessTools = [
   { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'violet', href: '/actions/legal' },
 ];
 
-// NEW: Minimal Luxury Color Palette - Rich blacks mit subtle tints
-const luxuryColors: Record<string, {
+// BRAND COLORS: Pink-Orange Gradient aus Logo
+const brandGradient = 'from-orange-500 via-pink-500 to-rose-500';
+const brandGradientHover = 'from-orange-400 via-pink-400 to-rose-400';
+
+// Tool Colors mit Brand-Integration
+const toolColors: Record<string, {
   bg: string;
   border: string;
   text: string;
   iconBg: string;
-  glow: string;
-  accent: string;
+  hoverBorder: string;
+  hoverGradient?: string; // NEW: Brand gradient für hover
 }> = {
   emerald: {
-    bg: 'bg-[#0a1a14]',
+    bg: 'bg-zinc-900/40',
     border: 'border-emerald-500/10',
     text: 'text-emerald-400',
-    iconBg: 'bg-emerald-500/5',
-    glow: 'bg-emerald-500',
-    accent: 'emerald',
+    iconBg: 'bg-emerald-500/10',
+    hoverBorder: 'hover:border-emerald-500/30',
   },
   blue: {
-    bg: 'bg-[#0a111a]',
+    bg: 'bg-zinc-900/40',
     border: 'border-blue-500/10',
     text: 'text-blue-400',
-    iconBg: 'bg-blue-500/5',
-    glow: 'bg-blue-500',
-    accent: 'blue',
+    iconBg: 'bg-blue-500/10',
+    hoverBorder: 'hover:border-blue-500/30',
   },
   green: {
-    bg: 'bg-[#0a1a12]',
+    bg: 'bg-zinc-900/40',
     border: 'border-green-500/10',
     text: 'text-green-400',
-    iconBg: 'bg-green-500/5',
-    glow: 'bg-green-500',
-    accent: 'green',
+    iconBg: 'bg-green-500/10',
+    hoverBorder: 'hover:border-green-500/30',
   },
   violet: {
-    bg: 'bg-[#120a1a]',
+    bg: 'bg-zinc-900/40',
     border: 'border-violet-500/10',
     text: 'text-violet-400',
-    iconBg: 'bg-violet-500/5',
-    glow: 'bg-violet-500',
-    accent: 'violet',
+    iconBg: 'bg-violet-500/10',
+    hoverBorder: 'hover:border-violet-500/30',
   },
   indigo: {
-    bg: 'bg-[#0f0a1a]',
+    bg: 'bg-zinc-900/40',
     border: 'border-indigo-500/10',
     text: 'text-indigo-400',
-    iconBg: 'bg-indigo-500/5',
-    glow: 'bg-indigo-500',
-    accent: 'indigo',
+    iconBg: 'bg-indigo-500/10',
+    hoverBorder: 'hover:border-indigo-500/30',
   },
   amber: {
-    bg: 'bg-[#1a140a]',
+    bg: 'bg-zinc-900/40',
     border: 'border-amber-500/10',
     text: 'text-amber-400',
-    iconBg: 'bg-amber-500/5',
-    glow: 'bg-amber-500',
-    accent: 'amber',
+    iconBg: 'bg-amber-500/10',
+    hoverBorder: 'hover:border-amber-500/30',
   },
   cyan: {
-    bg: 'bg-[#0a161a]',
+    bg: 'bg-zinc-900/40',
     border: 'border-cyan-500/10',
     text: 'text-cyan-400',
-    iconBg: 'bg-cyan-500/5',
-    glow: 'bg-cyan-500',
-    accent: 'cyan',
+    iconBg: 'bg-cyan-500/10',
+    hoverBorder: 'hover:border-cyan-500/30',
   },
   orange: {
-    bg: 'bg-[#1a120a]',
+    bg: 'bg-zinc-900/40',
     border: 'border-orange-500/10',
     text: 'text-orange-400',
-    iconBg: 'bg-orange-500/5',
-    glow: 'bg-orange-500',
-    accent: 'orange',
+    iconBg: 'bg-orange-500/10',
+    hoverBorder: 'hover:border-orange-500/30',
+    hoverGradient: brandGradient, // BRAND: Logo-Farben
   },
   rose: {
-    bg: 'bg-[#1a0a12]',
+    bg: 'bg-zinc-900/40',
     border: 'border-rose-500/10',
     text: 'text-rose-400',
-    iconBg: 'bg-rose-500/5',
-    glow: 'bg-rose-500',
-    accent: 'rose',
+    iconBg: 'bg-rose-500/10',
+    hoverBorder: 'hover:border-rose-500/30',
+    hoverGradient: brandGradient, // BRAND: Logo-Farben
   },
   slate: {
-    bg: 'bg-[#0a0a0a]',
+    bg: 'bg-zinc-900/40',
     border: 'border-white/5',
     text: 'text-zinc-400',
-    iconBg: 'bg-white/3',
-    glow: 'bg-zinc-500',
-    accent: 'slate',
+    iconBg: 'bg-white/5',
+    hoverBorder: 'hover:border-white/20',
   },
   pink: {
-    bg: 'bg-[#1a0a14]',
+    bg: 'bg-zinc-900/40',
     border: 'border-pink-500/10',
     text: 'text-pink-400',
-    iconBg: 'bg-pink-500/5',
-    glow: 'bg-pink-500',
-    accent: 'pink',
+    iconBg: 'bg-pink-500/10',
+    hoverBorder: 'hover:border-pink-500/30',
+    hoverGradient: brandGradient, // BRAND: Logo-Farben
   },
 };
 
@@ -384,7 +394,7 @@ export default function DashboardClient() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full relative"
+      className="min-h-screen w-full relative bg-zinc-950"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -393,12 +403,17 @@ export default function DashboardClient() {
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
       }}
     >
+      {/* BRAND: Subtle gradient background - Logo-Farben */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-500/5 via-transparent to-pink-500/5" />
+      </div>
+
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 0 && (
-        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/5 z-50">
+        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-zinc-950/95 backdrop-blur-xl border-b border-white/5 z-50">
           {pullDistance >= 60 ? (
-            <div className="flex items-center gap-2 text-emerald-400">
-              <div className="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+            <div className="flex items-center gap-2 text-orange-400">
+              <div className="w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
               <span className="text-sm font-light">Loslassen zum Aktualisieren</span>
             </div>
           ) : (
@@ -409,34 +424,34 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Main Container mit großzügigem Whitespace */}
-      <div className="mx-auto max-w-[1600px] w-full px-6 sm:px-8 lg:px-12 xl:px-16 pb-24 pt-[calc(env(safe-area-inset-top)+2rem)] md:pt-12">
+      {/* Main Container - Mobile First mit großzügigem Whitespace */}
+      <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-32 pt-[calc(env(safe-area-inset-top)+1.5rem)] md:pt-8">
         
-        {/* Header Section - Ultra Premium Typography */}
-        <div className="mb-16 md:mb-20 lg:mb-24">
+        {/* Header Section */}
+        <div className="mb-12 md:mb-16 lg:mb-20">
           <DashboardGreetingClient />
         </div>
 
-        {/* Search Bar - Minimal Luxury */}
-        <div className="mb-12 md:mb-16">
+        {/* Search Bar - Brand Colors Integration */}
+        <div className="mb-8 md:mb-12">
           <div className="relative group max-w-2xl">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-zinc-400 transition-colors duration-500 z-10" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-orange-400 transition-colors duration-300 z-10" />
             <input
               type="text"
               placeholder="Suche nach Tools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#111111] border border-white/5 text-white placeholder:text-zinc-600 rounded-2xl py-5 pl-14 pr-6 focus:outline-none focus:border-white/10 transition-all duration-500 text-base font-light tracking-wide"
+              className="w-full bg-zinc-900/50 border border-white/5 text-white placeholder:text-zinc-600 rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-orange-500/30 focus:ring-1 focus:ring-orange-500/20 transition-all duration-300 text-base font-light tracking-wide backdrop-blur-sm"
             />
           </div>
         </div>
 
-        {/* Mobile Quick Access */}
-        <div className="mb-12 md:hidden">
-          <div className="flex gap-4 justify-center">
+        {/* Mobile Quick Access - Brand Gradient Touches */}
+        <div className="mb-10 md:hidden">
+          <div className="flex gap-3 justify-center">
             {quickAccessTools.slice(0, 4).map((quickTool) => {
               const QuickIcon = quickTool.icon;
-              const colors = luxuryColors[quickTool.color] || luxuryColors.blue;
+              const colors = toolColors[quickTool.color] || toolColors.blue;
               return (
                 <Link
                   key={quickTool.id}
@@ -445,13 +460,14 @@ export default function DashboardClient() {
                   onClick={() => triggerHaptic('light')}
                 >
                   <div className={cn(
-                    'w-16 h-16 rounded-2xl border flex items-center justify-center',
-                    'transition-all duration-500 group-active:scale-90',
+                    'w-14 h-14 rounded-xl border flex items-center justify-center',
+                    'transition-all duration-300 group-active:scale-90',
                     colors.bg,
                     colors.border,
-                    'group-hover:border-opacity-30'
+                    colors.hoverBorder,
+                    'group-hover:shadow-lg'
                   )}>
-                    <QuickIcon className={cn('w-7 h-7', colors.text)} />
+                    <QuickIcon className={cn('w-6 h-6', colors.text)} />
                   </div>
                 </Link>
               );
@@ -459,9 +475,9 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        {/* Category Tabs - Ultra Minimal */}
-        <div className="mb-16 md:mb-20 overflow-x-auto">
-          <div className="flex gap-4 pb-2 min-w-max">
+        {/* Category Tabs - Brand Gradient für Active */}
+        <div className="mb-10 md:mb-14 overflow-x-auto">
+          <div className="flex gap-3 pb-2 min-w-max">
             {categoryTabs.map((cat) => (
               <button
                 key={cat}
@@ -470,10 +486,10 @@ export default function DashboardClient() {
                   triggerHaptic('light');
                 }}
                 className={cn(
-                  'px-6 py-3 rounded-full text-sm font-light tracking-wider transition-all duration-500 whitespace-nowrap',
+                  'px-5 py-2.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 whitespace-nowrap',
                   selectedCategory === cat
-                    ? 'bg-white/5 text-white border border-white/10'
-                    : 'text-zinc-500 hover:text-zinc-400 border border-transparent'
+                    ? 'bg-gradient-to-r from-orange-500/20 via-pink-500/20 to-rose-500/20 text-white border border-orange-500/30 shadow-lg shadow-orange-500/10'
+                    : 'bg-zinc-900/50 text-zinc-500 border border-white/5 hover:text-zinc-400 hover:border-white/10'
                 )}
               >
                 {cat}
@@ -482,96 +498,111 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        {/* ASYMMETRICAL FLOATING LAYOUT - Minimal Luxury */}
+        {/* STAGGERED LAYOUT - Mobile First, Fluid & Organic */}
         {filteredTools.length > 0 ? (
-          <div className="relative">
-            {/* Floating Tools Grid - Asymmetrisch */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 auto-rows-max">
+          <div className="space-y-6 md:space-y-8">
+            {/* Mobile: Vertical Stack mit verschiedenen Größen */}
+            {/* Desktop: Staggered Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {filteredTools.map((tool, index) => {
                 const Icon = tool.icon;
-                const colors = luxuryColors[tool.color] || luxuryColors.blue;
+                const colors = toolColors[tool.color] || toolColors.blue;
                 const size = tool.size || 'medium';
-
-                // Asymmetrische Positionierung
-                const colSpan = size === 'large' ? 'md:col-span-6 lg:col-span-5' : size === 'medium' ? 'md:col-span-6 lg:col-span-4' : 'md:col-span-6 lg:col-span-3';
-                const rowSpan = size === 'large' ? 'md:row-span-2' : 'md:row-span-1';
-
-                // Staggered positioning für dynamisches Layout
-                const offset = index % 3 === 1 ? 'md:col-start-7' : '';
                 const isLarge = size === 'large';
+                const isSmall = size === 'small';
 
-                const bubbleClassName = cn(
-                  'group relative rounded-3xl border overflow-hidden',
-                  'transition-all duration-700 ease-out',
-                  'hover:-translate-y-2 hover:scale-[1.01]',
+                // Staggered positioning - verschiedene Start-Positionen
+                const staggeredClass = index % 3 === 1 ? 'md:mt-8 lg:mt-12' : index % 3 === 2 ? 'md:mt-4 lg:mt-6' : '';
+
+                const cardClassName = cn(
+                  'group relative rounded-2xl border overflow-hidden',
+                  'transition-all duration-500 ease-out',
+                  'hover:-translate-y-1 hover:shadow-2xl',
                   colors.bg,
                   colors.border,
-                  'hover:border-opacity-20',
-                  colSpan,
-                  rowSpan,
+                  colors.hoverBorder,
                   tool.available ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed',
-                  // Size-based padding
-                  isLarge ? 'p-10 md:p-12' : size === 'medium' ? 'p-8 md:p-10' : 'p-6 md:p-8'
+                  staggeredClass,
+                  // Size-based padding & min-height
+                  isLarge ? 'p-8 md:p-10 min-h-[280px] md:min-h-[320px]' : 
+                  isSmall ? 'p-5 md:p-6 min-h-[180px]' : 
+                  'p-6 md:p-8 min-h-[220px] md:min-h-[260px]'
                 );
 
                 const content = (
                   <>
-                    {/* Subtle glow effect */}
+                    {/* BRAND: Gradient overlay on hover */}
+                    {colors.hoverGradient && (
+                      <div className={cn(
+                        'absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-500',
+                        colors.hoverGradient
+                      )} />
+                    )}
+
+                    {/* Subtle glow effect - Brand colors */}
                     <div className={cn(
-                      'absolute -bottom-20 -right-20 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-700',
-                      colors.glow
+                      'absolute -bottom-16 -right-16 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500',
+                      colors.hoverGradient ? `bg-gradient-to-br ${colors.hoverGradient}` : colors.iconBg.replace('bg-', 'bg-').replace('/10', '')
                     )} />
 
-                    {/* Icon - Size-based */}
-                    <div className="mb-6 md:mb-8">
+                    {/* Icon Container - Brand gradient für hover */}
+                    <div className="mb-5 md:mb-6">
                       <div className={cn(
-                        'inline-flex items-center justify-center rounded-2xl border',
+                        'inline-flex items-center justify-center rounded-xl border transition-all duration-500',
                         colors.iconBg,
                         colors.border,
-                        isLarge ? 'w-16 h-16 md:w-20 md:h-20' : size === 'medium' ? 'w-14 h-14 md:w-16 md:h-16' : 'w-12 h-12 md:w-14 md:h-14',
-                        'transition-all duration-500 group-hover:scale-110 group-hover:rotate-3'
+                        isLarge ? 'w-14 h-14 md:w-16 md:h-16' : isSmall ? 'w-12 h-12' : 'w-13 h-13 md:w-14 md:h-14',
+                        'group-hover:scale-110 group-hover:rotate-3',
+                        colors.hoverGradient && 'group-hover:bg-gradient-to-br group-hover:border-orange-500/30',
+                        colors.hoverGradient && `group-hover:${colors.hoverGradient}`
                       )}>
                         <Icon className={cn(
                           colors.text,
-                          isLarge ? 'w-8 h-8 md:w-10 md:h-10' : size === 'medium' ? 'w-7 h-7 md:w-8 md:h-8' : 'w-6 h-6 md:w-7 md:h-7'
+                          isLarge ? 'w-7 h-7 md:w-8 md:h-8' : isSmall ? 'w-6 h-6' : 'w-6 h-6 md:w-7 md:h-7',
+                          'transition-transform duration-500 group-hover:scale-110'
                         )} />
                       </div>
                     </div>
 
-                    {/* Title - Premium Typography */}
+                    {/* Title */}
                     <h3 className={cn(
-                      'font-bold text-white mb-3 md:mb-4',
-                      'tracking-tight',
-                      isLarge ? 'text-3xl md:text-4xl' : size === 'medium' ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl',
-                      'leading-tight'
-                    )} style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif', fontWeight: 800 }}>
+                      'font-bold text-white mb-2 md:mb-3',
+                      'tracking-tight leading-tight',
+                      isLarge ? 'text-2xl md:text-3xl' : isSmall ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'
+                    )} style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
                       {tool.title}
                     </h3>
 
-                    {/* Description - Ultra-thin weight */}
+                    {/* Description - Ultra-thin */}
                     <p className={cn(
-                      'text-zinc-500 leading-relaxed',
-                      isLarge ? 'text-base md:text-lg' : size === 'medium' ? 'text-sm md:text-base' : 'text-sm',
-                      'font-light tracking-wide',
+                      'text-zinc-500 leading-relaxed font-light tracking-wide',
+                      isLarge ? 'text-sm md:text-base' : isSmall ? 'text-xs md:text-sm' : 'text-sm',
                       'group-hover:text-zinc-400 transition-colors duration-500'
                     )}>
                       {tool.description}
                     </p>
 
-                    {/* Arrow indicator */}
+                    {/* Arrow indicator - Brand gradient */}
                     {tool.available && (
-                      <div className="absolute top-6 right-6 md:top-8 md:right-8">
-                        <ArrowUpRight className={cn(
-                          'w-5 h-5 md:w-6 md:h-6 text-white/20 group-hover:text-white/40 transition-all duration-500',
-                          'group-hover:translate-x-1 group-hover:-translate-y-1'
-                        )} />
+                      <div className="absolute top-5 right-5 md:top-6 md:right-6">
+                        <div className={cn(
+                          'w-8 h-8 rounded-lg flex items-center justify-center',
+                          'bg-white/5 border border-white/10',
+                          'group-hover:bg-gradient-to-br group-hover:border-orange-500/30 transition-all duration-500',
+                          colors.hoverGradient && `group-hover:${colors.hoverGradient}`
+                        )}>
+                          <ArrowUpRight className={cn(
+                            'w-4 h-4 text-white/30 group-hover:text-white transition-all duration-500',
+                            'group-hover:translate-x-0.5 group-hover:-translate-y-0.5'
+                          )} />
+                        </div>
                       </div>
                     )}
 
                     {/* Status badge */}
                     {!tool.available && tool.status === 'soon' && (
-                      <div className="absolute top-6 right-6 md:top-8 md:right-8">
-                        <span className="text-[10px] uppercase tracking-widest font-light px-3 py-1.5 rounded-full border border-white/5 bg-white/2 text-zinc-500">
+                      <div className="absolute top-5 right-5 md:top-6 md:right-6">
+                        <span className="text-[10px] uppercase tracking-widest font-light px-2.5 py-1 rounded-full border border-white/5 bg-white/2 text-zinc-500">
                           In Kürze
                         </span>
                       </div>
@@ -580,11 +611,11 @@ export default function DashboardClient() {
                 );
 
                 return tool.available ? (
-                  <Link key={tool.id} href={tool.href} className={bubbleClassName}>
+                  <Link key={tool.id} href={tool.href} className={cardClassName}>
                     {content}
                   </Link>
                 ) : (
-                  <div key={tool.id} className={bubbleClassName}>
+                  <div key={tool.id} className={cardClassName}>
                     {content}
                   </div>
                 );
@@ -592,7 +623,7 @@ export default function DashboardClient() {
             </div>
           </div>
         ) : (
-          <div className="text-center py-32">
+          <div className="text-center py-24">
             <Search className="w-16 h-16 mx-auto mb-6 text-zinc-700" />
             <p className="text-zinc-500 text-lg font-light tracking-wide mb-2">Keine Tools gefunden.</p>
             <p className="text-zinc-600 text-sm font-light">
