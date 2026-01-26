@@ -190,6 +190,17 @@
     animation: card-float-idle 5.5s ease-in-out infinite;
     /* Respektiert prefers-reduced-motion */
     animation-play-state: running;
+    /* PERFORMANCE: will-change nur wenn Animation aktiv */
+    will-change: transform;
+  }
+  
+  /* PERFORMANCE: Reduziere will-change auf Mobile */
+  @media (max-width: 768px) {
+    .card-elevation-primary,
+    .card-elevation-primary-hero,
+    .card-elevation-secondary {
+      will-change: auto; /* Reduziert GPU-Load auf Mobile */
+    }
   }
 
   /* Stoppe Animation bei Hover/Focus für crisp Interaction */

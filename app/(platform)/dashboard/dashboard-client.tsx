@@ -360,13 +360,24 @@ export default function DashboardClient() {
   const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch usage stats on mount
+  // Fetch usage stats AFTER initial render (non-blocking)
+  // Delay auf Mobile länger für bessere Performance
   useEffect(() => {
-    getToolUsageStats().then((result) => {
-      if (result.success && result.stats) {
-        setUsageStats(result.stats);
-      }
-    });
+    // Delay für bessere initial load performance
+    const delay = typeof window !== 'undefined' && window.innerWidth < 768 ? 1000 : 300;
+    
+    const timeoutId = setTimeout(() => {
+      getToolUsageStats().then((result) => {
+        if (result.success && result.stats) {
+          setUsageStats(result.stats);
+        }
+      }).catch((error) => {
+        console.error('Failed to load usage stats:', error);
+        // Fail silently - dashboard works without stats
+      });
+    }, delay);
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -664,8 +675,8 @@ export default function DashboardClient() {
                           'shadow-sm', // PREMIUM: Winziger Schlagschatten für Tiefe
                           colors.border,
                           'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18',
-                          'group-hover:shadow-md', // Leicht verstärkter Schatten beim Hover
-                          'backdrop-blur-sm group-hover:backdrop-blur-md'
+                          'group-hover:shadow-md' // Leicht verstärkter Schatten beim Hover
+                          // PERFORMANCE: backdrop-blur entfernt (teuer auf Mobile)
                         )}>
                           <Icon className={cn(
                             colors.text,
@@ -823,8 +834,8 @@ export default function DashboardClient() {
                           isLarge ? 'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18' : 
                           isSmall ? 'w-8 h-8 md:w-13 md:h-13' : 
                           'w-9 h-9 md:w-14 lg:w-16 md:h-14 lg:h-16',
-                          'group-hover:shadow-md', // Leicht verstärkter Schatten beim Hover
-                          'backdrop-blur-sm group-hover:backdrop-blur-md'
+                          'group-hover:shadow-md' // Leicht verstärkter Schatten beim Hover
+                          // PERFORMANCE: backdrop-blur entfernt (teuer auf Mobile)
                         )}>
                           <Icon className={cn(
                             colors.text,
