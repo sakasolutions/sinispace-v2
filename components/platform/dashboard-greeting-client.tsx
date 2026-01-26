@@ -44,20 +44,23 @@ export function DashboardGreetingClient() {
       <div className="absolute bg-pink-100/50 blur-[80px] w-[250px] h-[250px] rounded-full -top-16 -right-16 -z-10 pointer-events-none" />
       
       <div className="relative z-10">
-        {/* Clean Typography - Dark gray für readability */}
+        {/* Premium Typography - Font-weight 700, improved letter-spacing */}
         <h1
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 tracking-tight leading-tight mb-4 md:mb-6"
           style={{ 
             fontFamily: 'var(--font-plus-jakarta-sans), sans-serif', 
-            fontWeight: 800,
-            letterSpacing: '-0.03em'
+            fontWeight: 700,
+            letterSpacing: '-0.025em'
           }}
         >
           {greeting}{displayName ? `, ${displayName}` : ''}
         </h1>
         
-        {/* Description - Light gray */}
-        <p className="text-base md:text-lg lg:text-xl text-gray-600 font-normal tracking-wide leading-relaxed max-w-2xl">
+        {/* Description - Font-weight 400, improved letter-spacing */}
+        <p className="text-base md:text-lg lg:text-xl text-gray-600 font-normal tracking-wide leading-relaxed max-w-2xl" style={{
+          fontWeight: 400,
+          letterSpacing: '0.01em'
+        }}>
           Dein Business läuft. Was optimieren wir jetzt?
         </p>
       </div>

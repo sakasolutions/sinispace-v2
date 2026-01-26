@@ -32,8 +32,10 @@
   }
   
   body {
-    /* CLEAN DESIGN: Light background with dark text */
-    background: #f9fafb;
+    /* PREMIUM DESIGN: Subtle gradient background mit logo colors */
+    background: linear-gradient(135deg, #fafafa 0%, #ffffff 25%, #fef7ed 50%, #fdf2f8 75%, #fafafa 100%);
+    background-size: 200% 200%;
+    animation: gradient-shift 20s ease infinite;
     color: #111827;
     /* Verhindert weißen Hintergrund beim Rubber-Banding auf iOS */
     overscroll-behavior: none;
@@ -42,7 +44,7 @@
     position: relative;
   }
   
-  /* CLEAN: Subtle logo gradient background */
+  /* PREMIUM: Enhanced logo gradient background mit mesh texture */
   body::before {
     content: '';
     position: fixed;
@@ -51,8 +53,23 @@
     width: 100%;
     height: 100%;
     background: 
-      radial-gradient(circle at 20% 30%, rgba(251, 146, 60, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, rgba(244, 114, 182, 0.05) 0%, transparent 50%);
+      radial-gradient(circle at 20% 30%, rgba(251, 146, 60, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(244, 114, 182, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(249, 115, 22, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  /* PREMIUM: Light mesh texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.4;
     pointer-events: none;
     z-index: 0;
   }
@@ -83,7 +100,7 @@
     animation: fade-in-up 700ms ease-out both;
   }
 
-  /* NEW: Animated gradient background */
+  /* PREMIUM: Animated gradient background - subtle movement */
   @keyframes gradient-shift {
     0% {
       background-position: 0% 50%;

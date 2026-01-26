@@ -396,7 +396,7 @@ export default function DashboardClient() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full relative bg-gray-50"
+      className="min-h-screen w-full relative"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -405,10 +405,6 @@ export default function DashboardClient() {
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
       }}
     >
-      {/* CLEAN: Subtle gradient background - Logo colors */}
-      <div className="fixed inset-0 pointer-events-none -z-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-50/30 via-transparent to-pink-50/30" />
-      </div>
 
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 0 && (
@@ -500,10 +496,11 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        {/* CLEAN LAYOUT - Floating Cards mit Proper Shadows */}
+        {/* PREMIUM LAYOUT - Floating Cards mit Depth & Polish */}
         {filteredTools.length > 0 ? (
-          <div className="space-y-6 md:space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="space-y-8 md:space-y-12">
+            {/* Golden Ratio Spacing: 1.618 ratio zwischen cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12">
               {filteredTools.map((tool, index) => {
                 const Icon = tool.icon;
                 const colors = toolColors[tool.color] || toolColors.blue;
@@ -517,74 +514,101 @@ export default function DashboardClient() {
                 const cardClassName = cn(
                   'group relative rounded-2xl border overflow-hidden',
                   'transition-all duration-300 ease-out',
-                  'hover:-translate-y-1 hover:shadow-xl',
+                  'hover:-translate-y-1',
                   colors.bg,
                   colors.border,
                   colors.hoverBorder,
                   colors.hoverBg,
                   tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                   staggeredClass,
-                  // Proper shadows - E-Wallet style
-                  'shadow-md',
-                  // Size-based padding
-                  isLarge ? 'p-8 md:p-10 min-h-[280px] md:min-h-[320px]' : 
-                  isSmall ? 'p-5 md:p-6 min-h-[180px]' : 
-                  'p-6 md:p-8 min-h-[220px] md:min-h-[260px]'
+                  // DEPTH: Multiple shadow layers für realistic depth
+                  'shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]',
+                  'hover:shadow-[0_4px_6px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.08)]',
+                  // Logo gradient glow für hover
+                  colors.gradient && 'hover:shadow-[0_4px_6px_rgba(0,0,0,0.1),0_12px_24px_rgba(249,115,22,0.15)]',
+                  // Size-based padding - Golden ratio spacing
+                  isLarge ? 'p-10 md:p-12 min-h-[300px] md:min-h-[360px]' : 
+                  isSmall ? 'p-6 md:p-7 min-h-[200px]' : 
+                  'p-8 md:p-10 min-h-[240px] md:min-h-[280px]'
                 );
 
                 const content = (
                   <>
-                    {/* Logo Gradient Accent für bestimmte Tools */}
+                    {/* DEPTH: Subtle border gradient */}
+                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                      <div className={cn(
+                        'absolute inset-0 rounded-2xl',
+                        colors.gradient 
+                          ? `bg-gradient-to-br ${colors.gradient} opacity-5` 
+                          : 'bg-gradient-to-br from-gray-100 to-transparent opacity-30'
+                      )} style={{ 
+                        maskImage: 'linear-gradient(to bottom right, black 0%, transparent 70%)',
+                        WebkitMaskImage: 'linear-gradient(to bottom right, black 0%, transparent 70%)'
+                      }} />
+                    </div>
+
+                    {/* Logo Gradient Accent für bestimmte Tools - Subtle Glow */}
                     {colors.gradient && (
                       <div className={cn(
-                        'absolute top-0 right-0 w-24 h-24 bg-gradient-to-br opacity-5 group-hover:opacity-10 transition-opacity duration-300',
+                        'absolute -top-12 -right-12 w-32 h-32 rounded-full blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500',
                         `bg-gradient-to-br ${colors.gradient}`
                       )} />
                     )}
 
-                    {/* Icon Container */}
-                    <div className="mb-5 md:mb-6">
+                    {/* Icon Container - Enhanced mit Glow */}
+                    <div className="mb-6 md:mb-8">
                       <div className={cn(
                         'inline-flex items-center justify-center rounded-xl border transition-all duration-300',
                         colors.iconBg,
                         colors.border,
-                        isLarge ? 'w-14 h-14 md:w-16 md:h-16' : isSmall ? 'w-12 h-12' : 'w-13 h-13 md:w-14 md:h-14',
-                        'group-hover:scale-110 group-hover:shadow-md',
-                        colors.gradient && 'group-hover:border-orange-300'
+                        isLarge ? 'w-16 h-16 md:w-18 md:h-18' : isSmall ? 'w-13 h-13' : 'w-14 h-14 md:w-16 md:h-16',
+                        'group-hover:scale-110',
+                        'shadow-sm group-hover:shadow-md',
+                        colors.gradient && 'group-hover:border-orange-300 group-hover:shadow-orange-200/50'
                       )}>
                         <Icon className={cn(
                           colors.text,
-                          isLarge ? 'w-7 h-7 md:w-8 md:h-8' : isSmall ? 'w-6 h-6' : 'w-6 h-6 md:w-7 md:h-7'
+                          isLarge ? 'w-8 h-8 md:w-9 md:h-9' : isSmall ? 'w-6 h-6' : 'w-7 h-7 md:w-8 md:h-8'
                         )} />
                       </div>
                     </div>
 
-                    {/* Title - Dark gray für readability */}
+                    {/* Title - Typography Upgrade: Font-weight 700 */}
                     <h3 className={cn(
-                      'font-bold text-gray-900 mb-2 md:mb-3',
+                      'font-bold text-gray-900 mb-3 md:mb-4',
                       'tracking-tight leading-tight',
                       isLarge ? 'text-2xl md:text-3xl' : isSmall ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'
-                    )} style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+                    )} style={{ 
+                      fontFamily: 'var(--font-plus-jakarta-sans), sans-serif',
+                      fontWeight: 700,
+                      letterSpacing: '-0.02em'
+                    }}>
                       {tool.title}
                     </h3>
 
-                    {/* Description - Light gray */}
+                    {/* Description - Typography Upgrade: Font-weight 400, improved letter-spacing */}
                     <p className={cn(
-                      'text-gray-600 leading-relaxed font-normal tracking-wide',
+                      'text-gray-600 leading-relaxed font-normal',
                       isLarge ? 'text-sm md:text-base' : isSmall ? 'text-xs md:text-sm' : 'text-sm',
                       'group-hover:text-gray-700 transition-colors duration-300'
-                    )}>
+                    )} style={{
+                      fontWeight: 400,
+                      letterSpacing: '0.01em',
+                      lineHeight: '1.6'
+                    }}>
                       {tool.description}
                     </p>
 
-                    {/* Arrow indicator - Logo gradient */}
+                    {/* Arrow indicator - Logo gradient mit Glow */}
                     {tool.available && (
-                      <div className="absolute top-5 right-5 md:top-6 md:right-6">
+                      <div className="absolute top-6 right-6 md:top-8 md:right-8">
                         <div className={cn(
-                          'w-8 h-8 rounded-lg flex items-center justify-center',
-                          'bg-gray-50 border border-gray-200',
+                          'w-9 h-9 rounded-lg flex items-center justify-center',
+                          'bg-white/80 backdrop-blur-sm border border-gray-200',
                           'group-hover:bg-gradient-to-br group-hover:border-orange-300 transition-all duration-300',
-                          colors.gradient && `group-hover:bg-gradient-to-br group-hover:${colors.gradient}`
+                          'shadow-sm group-hover:shadow-md',
+                          colors.gradient && `group-hover:bg-gradient-to-br group-hover:${colors.gradient}`,
+                          colors.gradient && 'group-hover:shadow-orange-200/50'
                         )}>
                           <ArrowUpRight className={cn(
                             'w-4 h-4 text-gray-400 group-hover:text-white transition-all duration-300',
