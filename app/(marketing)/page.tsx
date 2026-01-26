@@ -104,7 +104,7 @@ function Header() {
 
   return (
     <header 
-      className="fixed top-0 left-0 right-0 w-full z-50 bg-zinc-950/70 backdrop-blur-xl border-b border-white/5"
+      className="fixed top-0 left-0 right-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Logo - Links */}
@@ -119,7 +119,7 @@ function Header() {
               sizes="36px"
             />
           </div>
-          <span className="hidden sm:inline text-white font-semibold text-lg">Sinispace</span>
+          <span className="hidden sm:inline text-gray-900 font-semibold text-lg">Sinispace</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -128,7 +128,7 @@ function Header() {
             <Link 
               key={item.name} 
               href={item.href} 
-              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             >
               {item.name}
             </Link>
@@ -137,8 +137,8 @@ function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="/login" prefetch={true} className="text-sm font-medium text-white hover:text-white/80 transition-colors">Login</Link>
-          <Link href="/register" className="px-5 py-2.5 rounded-full bg-white text-zinc-950 text-sm font-bold hover:bg-zinc-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+          <Link href="/login" prefetch={true} className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Login</Link>
+          <Link href="/register" className="px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-bold hover:from-orange-600 hover:to-pink-600 transition-all shadow-md">
             Kostenlos starten
           </Link>
         </div>
@@ -148,13 +148,13 @@ function Header() {
           <Link 
             href="/login"
             prefetch={true}
-            className="text-sm font-medium px-4 py-2 rounded-full border border-white/10 text-white hover:bg-white/5 transition-colors shrink-0"
+            className="text-sm font-medium px-4 py-2 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
           >
             Anmelden
           </Link>
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)} 
-            className="text-white p-2 hover:bg-white/5 rounded-lg transition-colors"
+            className="text-gray-700 p-2 hover:bg-gray-50 rounded-lg transition-colors"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -169,7 +169,7 @@ function Header() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-zinc-950/95 backdrop-blur-xl border-b border-white/5 overflow-hidden"
+            className="md:hidden bg-white/95 backdrop-blur-xl border-b border-gray-200 overflow-hidden"
           >
             <div className="p-6 space-y-4">
               {navItems.map((item) => (
@@ -177,16 +177,16 @@ function Header() {
                   key={item.name} 
                   href={item.href} 
                   onClick={() => setIsMenuOpen(false)} 
-                  className="block text-zinc-300 font-medium text-lg hover:text-white transition-colors"
+                  className="block text-gray-700 font-medium text-lg hover:text-gray-900 transition-colors"
                 >
                   {item.name}
                 </Link>
               ))}
-              <div className="h-px bg-white/5 my-4" />
+              <div className="h-px bg-gray-200 my-4" />
               <Link 
                 href="/register" 
                 onClick={() => setIsMenuOpen(false)} 
-                className="block w-full text-center py-3 bg-white text-zinc-950 rounded-xl font-bold hover:bg-zinc-200 transition-colors"
+                className="block w-full text-center py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-bold hover:from-orange-600 hover:to-pink-600 transition-colors"
               >
                 Kostenlos starten
               </Link>
@@ -218,12 +218,12 @@ export default function LandingPage() {
   }), [prefersReducedMotion, mounted]);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-900 font-sans selection:bg-orange-500/30 selection:text-orange-100">
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-orange-500/30 selection:text-orange-100">
       <Header />
       
       <main>
         {/* --- HERO SECTION --- */}
-        <section className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-zinc-950 min-h-[95vh] flex flex-col justify-center">
+        <section className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white min-h-[95vh] flex flex-col justify-center">
           {/* Background nutzt das Grid-Pattern aus layout.tsx (bereits vorhanden) */}
           
           <div className="absolute inset-0 pointer-events-none">
@@ -240,7 +240,7 @@ export default function LandingPage() {
           </div>
 
           <div className="container mx-auto px-4 text-center relative z-10">
-            <motion.div {...fadeConfigs.badge} className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-4 py-1.5 text-sm font-medium text-zinc-300">
+            <motion.div {...fadeConfigs.badge} className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 backdrop-blur-md px-4 py-1.5 text-sm font-medium text-gray-700">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
@@ -250,7 +250,7 @@ export default function LandingPage() {
 
             <motion.h1 
               {...fadeConfigs.title} 
-              className="mx-auto max-w-5xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white leading-[1.1]"
+              className="mx-auto max-w-5xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-gray-900 leading-[1.1]"
               style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
             >
               Ergebnisse auf <br className="hidden sm:inline" />
@@ -259,9 +259,9 @@ export default function LandingPage() {
               </span>
             </motion.h1>
 
-            <motion.p {...fadeConfigs.sub} className="mx-auto mt-8 max-w-2xl text-lg text-zinc-400 md:text-xl leading-relaxed">
+            <motion.p {...fadeConfigs.sub} className="mx-auto mt-8 max-w-2xl text-lg text-gray-600 md:text-xl leading-relaxed">
               Keine Lust auf komplexe Prompts? Sinispace liefert dir fertige KI-Helfer. 
-              Klick drauf, fertig. <span className="text-zinc-100 font-bold">Und wenn du doch mal frei chatten willst?</span> Haben wir auch.
+              Klick drauf, fertig. <span className="text-gray-900 font-bold">Und wenn du doch mal frei chatten willst?</span> Haben wir auch.
             </motion.p>
 
             <motion.div {...fadeConfigs.btn} className="mt-12 flex flex-col items-center justify-center gap-4 md:flex-row max-w-xl mx-auto">
@@ -276,7 +276,7 @@ export default function LandingPage() {
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
                 <Link 
                   href="#features" 
-                  className="flex items-center justify-center w-full md:w-auto h-12 px-8 text-zinc-400 text-sm mt-0 md:mt-0 hover:text-white transition-colors"
+                  className="flex items-center justify-center w-full md:w-auto h-12 px-8 text-gray-600 text-sm mt-0 md:mt-0 hover:text-gray-900 transition-colors"
                 >
                   So funktioniert's
                 </Link>
@@ -294,34 +294,34 @@ export default function LandingPage() {
                <motion.div 
                  animate={mounted && !prefersReducedMotion ? { y: [0, -10, 0] } : {}}
                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                 className="relative rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl p-2 shadow-2xl shadow-blue-500/20 ring-1 ring-white/5 overflow-hidden"
+                 className="relative rounded-2xl border border-gray-200 bg-white p-2 shadow-lg overflow-hidden"
                  style={{
                    maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
                    WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
                  } as React.CSSProperties}
                >
-                  <div className="rounded-xl bg-zinc-950/80 border border-white/5 overflow-hidden">
-                     <div className="h-12 border-b border-white/5 bg-white/5 flex items-center px-4 gap-2">
+                  <div className="rounded-xl bg-white border border-gray-200 overflow-hidden">
+                     <div className="h-12 border-b border-gray-200 bg-gray-50 flex items-center px-4 gap-2">
                         <div className="h-3 w-3 rounded-full bg-red-500/20"></div>
                         <div className="h-3 w-3 rounded-full bg-yellow-500/20"></div>
                         <div className="h-3 w-3 rounded-full bg-green-500/20"></div>
-                        <div className="ml-4 h-6 w-1/3 bg-white/5 rounded-full"></div>
+                        <div className="ml-4 h-6 w-1/3 bg-gray-200 rounded-full"></div>
                      </div>
                      <div className="p-6 md:p-10 min-h-[300px] flex flex-col justify-end space-y-6">
                         <div className="flex gap-4">
                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shrink-0">AI</div>
-                           <div className="bg-zinc-800/80 border border-zinc-700 p-4 rounded-2xl rounded-tl-none text-zinc-300 text-sm max-w-[85%] leading-relaxed shadow-sm">
+                           <div className="bg-gray-100 border border-gray-200 p-4 rounded-2xl rounded-tl-none text-gray-700 text-sm max-w-[85%] leading-relaxed shadow-sm">
                               Hier ist dein fertiger LinkedIn Post zum Thema "SaaS Growth". Soll ich noch passende Hashtags hinzufügen?
                            </div>
                         </div>
                         <div className="flex gap-4 flex-row-reverse">
-                           <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-xs border border-zinc-700 shrink-0">DU</div>
-                           <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-2xl rounded-tr-none text-orange-200 text-sm max-w-[85%] leading-relaxed">
+                           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs border border-gray-300 shrink-0">DU</div>
+                           <div className="bg-orange-50 border border-orange-200 p-4 rounded-2xl rounded-tr-none text-orange-700 text-sm max-w-[85%] leading-relaxed">
                               Ja, bitte generiere 5 relevante Hashtags.
                            </div>
                         </div>
-                        <div className="h-14 w-full bg-zinc-900 rounded-xl border border-zinc-800 flex items-center px-4 gap-4 shadow-inner">
-                           <div className="h-2 w-full bg-zinc-800/50 rounded"></div>
+                        <div className="h-14 w-full bg-gray-50 rounded-xl border border-gray-200 flex items-center px-4 gap-4 shadow-inner">
+                           <div className="h-2 w-full bg-gray-200 rounded"></div>
                            <div className="h-10 w-10 bg-orange-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-600/20 shrink-0">
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                            </div>
@@ -331,13 +331,13 @@ export default function LandingPage() {
                </motion.div>
             </motion.div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-zinc-950 to-transparent pointer-events-none z-10"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"></div>
         </section>
 
         {/* --- MARQUEE --- */}
-        <section className="bg-zinc-950 border-y border-white/5 py-10 relative overflow-hidden z-20">
-           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-zinc-950 to-transparent z-10"></div>
-           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-zinc-950 to-transparent z-10"></div>
+        <section className="bg-gray-50 border-y border-gray-200 py-10 relative overflow-hidden z-20">
+           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-gray-50 to-transparent z-10"></div>
+           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-gray-50 to-transparent z-10"></div>
            <motion.div 
              className="flex gap-8" 
              animate={mounted && !prefersReducedMotion ? getMarqueeAnimation(false) : {}}
@@ -345,7 +345,7 @@ export default function LandingPage() {
              {[...Array(2)].map((_, i) => (
                <div key={i} className="flex gap-8 whitespace-nowrap">
                  {["LinkedIn Viral", "SEO Analyse", "Code Review", "Rechtstexte", "Blog Post", "Instagram Caption", "Meeting Protokoll", "Excel Formeln", "Sales E-Mail", "Zusammenfassung"].map((text) => (
-                   <div key={text} className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-zinc-800 bg-zinc-900/50 text-zinc-400 font-medium text-sm hover:border-orange-500/30 hover:text-orange-400 transition-colors cursor-default">
+                   <div key={text} className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-gray-700 font-medium text-sm hover:border-orange-500 hover:text-orange-500 transition-colors cursor-default shadow-sm">
                      <span className="text-orange-500">⚡️</span> {text}
                    </div>
                  ))}
@@ -355,7 +355,7 @@ export default function LandingPage() {
         </section>
 
         {/* --- FEATURES (Premium Glass Bubble) --- */}
-        <section id="features" className="py-20 bg-zinc-950 text-white relative overflow-hidden">
+        <section id="features" className="py-20 bg-white text-gray-900 relative overflow-hidden">
           {/* Hintergrund-Glows */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[120px] -z-10"></div>
@@ -364,10 +364,10 @@ export default function LandingPage() {
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <motion.div className="mb-12 md:text-center max-w-3xl mx-auto" {...fadeUp(0.1)}>
-              <h2 className="text-4xl font-extrabold tracking-tight sm:text-6xl mb-6 text-white">
+              <h2 className="text-4xl font-extrabold tracking-tight sm:text-6xl mb-6 text-gray-900">
                 Kein Studium nötig.
               </h2>
-              <p className="text-xl text-zinc-400 leading-relaxed">
+              <p className="text-xl text-gray-600 leading-relaxed">
                 Wir nehmen dir die technische Last ab. Du drückst den Knopf, die KI macht die Arbeit.
               </p>
             </motion.div>
@@ -378,19 +378,19 @@ export default function LandingPage() {
               {/* KARTE 1: Hunderte fertige Helfer */}
               <motion.div 
                 whileHover={{ scale: 1.02 }} 
-                className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 ring-1 ring-white/5 shadow-2xl shadow-black/20 rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between"
+                className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between hover:shadow-xl"
               >
                 <div className="relative z-10">
-                  <div className="h-12 w-12 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center mb-4">
+                  <div className="h-12 w-12 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mb-4">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
                       <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3 leading-tight">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
                     Hunderte <br/>
-                    <span className="text-zinc-400">fertige Helfer.</span>
+                    <span className="text-gray-600">fertige Helfer.</span>
                   </h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
                     Wähle dein Ziel, gib Stichpunkte ein, fertig. Professionelle Ergebnisse ohne Lernkurve.
                   </p>
                   
@@ -399,7 +399,7 @@ export default function LandingPage() {
                     {toolsColumn1.slice(0, 4).map((tool, i) => (
                       <span 
                         key={i} 
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm text-xs font-medium text-zinc-300"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-xs font-medium text-gray-700"
                       >
                         <span className="text-[10px] font-bold text-orange-400">{tool.icon}</span>
                         {tool.label}
@@ -417,28 +417,28 @@ export default function LandingPage() {
               {/* KARTE 2: Freier Chat */}
               <motion.div 
                 whileHover={{ scale: 1.02 }} 
-                className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 ring-1 ring-white/5 shadow-2xl shadow-black/20 rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between"
+                className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between hover:shadow-xl"
               >
                 <div className="relative z-10">
-                  <div className="h-12 w-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 backdrop-blur-sm flex items-center justify-center mb-4">
+                  <div className="h-12 w-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center mb-4">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Freier Chat.</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Freier Chat.</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
                     Manchmal willst du die Kontrolle. Nutze unsere ChatGPT-Anbindung (Fair Use) für deine eigenen Ideen.
                   </p>
                   
                   {/* Mehrwert: Features */}
                   <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
                       <span>Code, Tabellen & Struktur</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
@@ -456,26 +456,26 @@ export default function LandingPage() {
               {/* KARTE 3: Kostenlos anmelden (CTA) */}
               <motion.div 
                 whileHover={{ scale: 1.02 }} 
-                className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 ring-1 ring-white/5 shadow-2xl shadow-black/20 rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between"
+                className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between hover:shadow-xl"
               >
                 <div className="relative z-10">
-                  <div className="h-12 w-12 rounded-2xl bg-orange-500/20 border border-orange-400/30 backdrop-blur-sm flex items-center justify-center mb-4">
+                  <div className="h-12 w-12 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mb-4">
                     <span className="text-2xl">🔓</span>
                   </div>
-                   <h3 className="text-2xl font-bold text-white mb-3">Kostenlos anmelden.</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+                   <h3 className="text-2xl font-bold text-gray-900 mb-3">Kostenlos anmelden.</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
                     Erstell deinen Account unverbindlich. Schau dich im Dashboard um. Premium brauchst du erst für die Power-Features.
                   </p>
                   
                   {/* Mehrwert: Was du bekommst */}
                   <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-xs text-zinc-300">
+                    <div className="flex items-center gap-2 text-xs text-gray-700">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
                       <span>Kostenloses Basiskonto</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-zinc-300">
+                    <div className="flex items-center gap-2 text-xs text-gray-700">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
@@ -497,7 +497,7 @@ export default function LandingPage() {
         </section>
 
         {/* --- TRUST & SAFETY --- */}
-        <section className="py-20 bg-zinc-950 text-white relative overflow-hidden">
+        <section className="py-20 bg-white text-gray-900 relative overflow-hidden">
           {/* Hintergrund-Glows */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-green-500/10 rounded-full blur-[100px] -z-10"></div>
@@ -511,11 +511,11 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
-                className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 ring-1 ring-white/5 shadow-2xl shadow-black/20 rounded-3xl overflow-hidden relative p-8 md:p-12"
+                className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden relative p-8 md:p-12"
               >
                 <div className="flex items-start gap-6">
                   {/* Icon */}
-                  <div className="h-14 w-14 rounded-2xl bg-green-500/20 border border-green-400/30 backdrop-blur-sm flex items-center justify-center shrink-0">
+                  <div className="h-14 w-14 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center shrink-0">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                       <path d="M9 12l2 2 4-4"/>
@@ -524,11 +524,11 @@ export default function LandingPage() {
                   
                   {/* Content */}
                   <div className="flex-1">
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 tracking-tight">
+                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight">
                       Sicher & Verantwortungsvoll
                     </h3>
-                    <p className="text-base text-zinc-300 leading-relaxed mb-6">
-                      Wir nutzen <span className="font-bold text-white">GPT-4o</span> von OpenAI mit integrierten Safety-Features. 
+                    <p className="text-base text-gray-700 leading-relaxed mb-6">
+                      Wir nutzen <span className="font-bold text-gray-900">GPT-4o</span> von OpenAI mit integrierten Safety-Features. 
                       Sensible Themen werden automatisch gefiltert – für deine Sicherheit und die unserer Community.
                     </p>
                     
@@ -539,8 +539,8 @@ export default function LandingPage() {
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                         <div>
-                          <p className="text-sm font-medium text-white mb-1">Automatisches Content-Filtering</p>
-                          <p className="text-xs text-zinc-400">OpenAI blockiert problematische Inhalte automatisch</p>
+                          <p className="text-sm font-medium text-gray-900 mb-1">Automatisches Content-Filtering</p>
+                          <p className="text-xs text-gray-600">OpenAI blockiert problematische Inhalte automatisch</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
@@ -602,13 +602,13 @@ export default function LandingPage() {
         {/* --- PRICING TEASER --- */}
         <section className="py-24 bg-white border-t border-zinc-100 relative overflow-hidden">
           <div className="container mx-auto px-4 text-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="max-w-4xl mx-auto rounded-[2.5rem] bg-zinc-950 px-6 py-20 text-white shadow-2xl relative overflow-hidden group">
-               <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[300px] w-[500px] bg-purple-500/20 blur-[100px] rounded-full pointer-events-none group-hover:bg-purple-500/30 transition-colors duration-700"></div>
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="max-w-4xl mx-auto rounded-[2.5rem] bg-gradient-to-r from-orange-500 to-pink-500 px-6 py-20 text-white shadow-2xl relative overflow-hidden group">
+               <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[300px] w-[500px] bg-white/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-white/20 transition-colors duration-700"></div>
                <div className="relative z-10">
                  <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Ein Zugang. Keine monatlichen Kosten.</h2>
-                 <p className="text-lg text-zinc-300 max-w-2xl mx-auto mb-10 leading-relaxed">Wir glauben nicht an komplizierte Abo-Modelle oder versteckte Gebühren. Hol dir den Jahrespass für Sinispace und nutze die Power von zwei Top-KIs ohne Limits.</p>
-                 <Link href="/pricing" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-zinc-950 font-bold text-lg hover:bg-zinc-200 hover:scale-105 transition-all shadow-lg shadow-white/10">Preismodell ansehen <span>&rarr;</span></Link>
-                 <p className="mt-6 text-xs text-zinc-500 uppercase tracking-widest font-medium">Fair Use Policy • 14 Tage Geld-zurück</p>
+                 <p className="text-lg text-white/90 max-w-2xl mx-auto mb-10 leading-relaxed">Wir glauben nicht an komplizierte Abo-Modelle oder versteckte Gebühren. Hol dir den Jahrespass für Sinispace und nutze die Power von zwei Top-KIs ohne Limits.</p>
+                 <Link href="/pricing" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-gray-900 font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all shadow-lg">Preismodell ansehen <span>&rarr;</span></Link>
+                 <p className="mt-6 text-xs text-white/80 uppercase tracking-widest font-medium">Fair Use Policy • 14 Tage Geld-zurück</p>
                </div>
             </motion.div>
           </div>
@@ -632,15 +632,15 @@ export default function LandingPage() {
         </section>
 
         {/* --- FINAL CTA --- */}
-        <section className="relative py-40 bg-zinc-950 overflow-hidden text-center">
-           <div className="absolute inset-0 opacity-20"><div className="absolute inset-0 bg-[radial-gradient(#ffffff33_1px,transparent_1px)] [background-size:16px_16px]"></div></div>
+        <section className="relative py-40 bg-gradient-to-r from-orange-500 to-pink-500 overflow-hidden text-center">
+           <div className="absolute inset-0 opacity-10"><div className="absolute inset-0 bg-[radial-gradient(#ffffff33_1px,transparent_1px)] [background-size:16px_16px]"></div></div>
            <div className="container mx-auto px-4 relative z-10">
              <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-6xl font-extrabold text-white mb-8 tracking-tighter">Bereit für das Upgrade?</motion.h2>
-             <p className="mx-auto max-w-[600px] text-zinc-400 text-xl mb-12">Erstelle jetzt deinen Account. Kostenlos. <br className="hidden sm:block"/>Starte in wenigen Sekunden.</p>
+             <p className="mx-auto max-w-[600px] text-white/90 text-xl mb-12">Erstelle jetzt deinen Account. Kostenlos. <br className="hidden sm:block"/>Starte in wenigen Sekunden.</p>
              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
-               <Link href="/register" className="inline-flex h-16 items-center justify-center rounded-full bg-white px-12 text-lg font-bold text-zinc-950 shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)] hover:bg-zinc-200 transition-colors">Account erstellen & loslegen</Link>
+               <Link href="/register" className="inline-flex h-16 items-center justify-center rounded-full bg-white px-12 text-lg font-bold text-gray-900 shadow-lg hover:bg-gray-100 transition-colors">Account erstellen & loslegen</Link>
              </motion.div>
-             <p className="mt-8 text-sm text-zinc-500">Keine Kreditkarte für die Registrierung nötig.</p>
+             <p className="mt-8 text-sm text-white/80">Keine Kreditkarte für die Registrierung nötig.</p>
            </div>
         </section>
 
