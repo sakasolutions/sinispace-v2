@@ -602,15 +602,18 @@ export default function DashboardClient() {
                     opacity: 0,
                   };
 
+                  // FLOATING ANIMATION: Unterschiedliche Delays für organischen Look
+                  const floatDelay = index * 0.5; // 0s, 0.5s, 1s, 1.5s
+                  
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
                     // PERMANENT FLOATING: Smooth transition for transform and shadow
                     'transition-all duration-300 ease',
-                    // PERMANENT FLOATING: Dauerhaftes Anheben im Ruhezustand
-                    '-translate-y-1',
-                    // PERMANENT FLOATING: Verstärktes Anheben beim Hover
-                    'md:hover:-translate-y-2',
+                    // FLOATING ANIMATION: Sanfte Auf-und-Ab-Bewegung
+                    'animate-card-float',
+                    // PERMANENT FLOATING: Verstärktes Anheben beim Hover (pausiert Animation)
+                    'md:hover:-translate-y-2 md:hover:animate-none',
                     colors.bg,
                     // PERMANENT FLOATING: Dünner vollumfänglicher Rahmen in Akzentfarbe (1px)
                     colors.border,
@@ -628,6 +631,11 @@ export default function DashboardClient() {
                     // PREMIUM DEPTH: Mehr inneres Padding für mehr Weißraum
                     'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
+                  
+                  // Animation delay als inline style
+                  const floatAnimationStyle = {
+                    animationDelay: `${floatDelay}s`,
+                  };
 
                   const content = (
                     <>
@@ -700,7 +708,7 @@ export default function DashboardClient() {
                       key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
-                      style={animationStyle}
+                      style={{ ...animationStyle, ...floatAnimationStyle }}
                       onClick={async () => {
                         triggerHaptic('light');
                         // Track tool usage
@@ -720,7 +728,7 @@ export default function DashboardClient() {
                     <div 
                       key={tool.id} 
                       className={cardClassName}
-                      style={animationStyle}
+                      style={{ ...animationStyle, ...floatAnimationStyle }}
                     >
                       {content}
                     </div>
