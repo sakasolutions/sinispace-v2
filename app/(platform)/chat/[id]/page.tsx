@@ -12,7 +12,7 @@ import { CopyButton } from '@/components/ui/copy-button';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { triggerHaptic } from '@/lib/haptic-feedback';
-import { Copy, RefreshCw, X, Menu, Upload, Send } from 'lucide-react';
+import { Copy, RefreshCw, X, Menu, Upload, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getChats, deleteChat, updateChatTitle } from '@/actions/chat-actions';
 import { Pencil, Trash2, Check } from 'lucide-react';
 import Link from 'next/link';
@@ -134,6 +134,8 @@ export default function ChatDetailPage() {
   
   // Mobile Chat-Liste State
   const [isChatListOpen, setIsChatListOpen] = useState(false);
+  // Desktop Sidebar Collapse State
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   
   const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -563,25 +565,40 @@ export default function ChatDetailPage() {
       )}
       {/* Chat Layout: Einfaches Flex-Layout - FIXED HEIGHT, NO SCROLL */}
       <div data-no-padding className="h-full w-full overflow-hidden bg-white flex">
-        {/* LINKS: Chat-Liste (Desktop: w-80, Mobile: Drawer) */}
+        {/* LINKS: Chat-Liste (Desktop: w-80, Mobile: Drawer, Collapsible) */}
         <aside className={`
           fixed inset-y-0 left-0 md:left-64 z-40 md:z-auto
-          w-80 shrink-0 !bg-white border-r border-gray-100 
+          ${isSidebarCollapsed ? 'w-12' : 'w-80'} shrink-0 !bg-white border-r border-gray-100 
           flex flex-col overflow-hidden
-          transform transition-transform duration-300 ease-in-out
+          transform transition-all duration-300 ease-in-out
           ${isChatListOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}>
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100 shrink-0">
-            <h2 className="text-sm font-bold text-gray-900">Chats</h2>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/chat"
-                onClick={() => setIsChatListOpen(false)}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 shrink-0 h-16">
+            {!isSidebarCollapsed && (
+              <h2 className="text-sm font-bold text-gray-900">Chats</h2>
+            )}
+            <div className="flex items-center gap-2 ml-auto">
+              {!isSidebarCollapsed && (
+                <Link
+                  href="/chat"
+                  onClick={() => setIsChatListOpen(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                >
+                  Neu
+                </Link>
+              )}
+              <button
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                className="hidden md:flex p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label={isSidebarCollapsed ? "Sidebar erweitern" : "Sidebar einklappen"}
               >
-                Neu
-              </Link>
+                {isSidebarCollapsed ? (
+                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                ) : (
+                  <ChevronLeft className="w-4 h-4 text-gray-600" />
+                )}
+              </button>
               <button
                 onClick={() => setIsChatListOpen(false)}
                 className="md:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
@@ -593,7 +610,7 @@ export default function ChatDetailPage() {
           </div>
 
           {/* Chat List */}
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className={`flex-1 overflow-y-auto min-h-0 ${isSidebarCollapsed ? 'hidden' : ''}`}>
             {isLoadingChats ? (
               <div className="p-4 text-center text-gray-500 text-xs">Lade Chats...</div>
             ) : chats.length === 0 ? (
@@ -725,9 +742,9 @@ export default function ChatDetailPage() {
 
         {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) - KEIN SCROLL HIER! */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-white h-full">
-          {/* FIXED HEADER - Außerhalb Scroll-Container */}
-          <div className="fixed top-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm">
-            <div className="flex items-center gap-3 sm:gap-4 max-w-3xl mx-auto">
+          {/* FIXED HEADER - Außerhalb Scroll-Container, Consistent Height */}
+          <div className={`fixed top-0 ${isSidebarCollapsed ? 'md:left-[calc(16rem+3rem)]' : 'md:left-[calc(16rem+20rem)]'} left-0 right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 h-16 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm flex items-center transition-all duration-300`}>
+            <div className="flex items-center gap-3 sm:gap-4 w-full max-w-4xl mx-auto">
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsChatListOpen(true)}
@@ -756,10 +773,10 @@ export default function ChatDetailPage() {
           </div>
 
           {/* NACHRICHTEN BEREICH - EINZIGER SCROLLBARER CONTAINER */}
-          {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Input */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth !bg-white pt-[calc(4rem+env(safe-area-inset-top))] md:pt-20 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-24" style={{ minHeight: 0, height: '100%' } as React.CSSProperties}>
-            {/* Central Container: Begrenzte Breite, zentriert (wie Dokument) */}
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-4 md:py-6">
+          {/* Central Layout: Optimale reading-width, centered, mit genug Padding unten für Input */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth !bg-white pt-16 md:pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-24" style={{ minHeight: 0, height: '100%' } as React.CSSProperties}>
+            {/* Central Container: Optimale reading-width (65ch), zentriert */}
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-4 md:py-6" style={{ maxWidth: '65ch' } as React.CSSProperties}>
               {messages.length === 0 && (
                 <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
                   <span className="text-5xl sm:text-6xl mb-4">💬</span>
@@ -1007,10 +1024,10 @@ export default function ChatDetailPage() {
             </div>
           </div>
 
-          {/* CHAT INPUT - Fixed mit proper spacing */}
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 pb-4 md:pb-4">
-            <div className="max-w-3xl mx-auto px-4 md:px-6">
-              <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-sm focus-within:border-orange-500 focus-within:shadow-md transition-all">
+          {/* CHAT INPUT - Fixed, zentriert, elegant positioniert (Desktop) */}
+          <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 left-0 ${isSidebarCollapsed ? 'md:left-[calc(16rem+3rem)]' : 'md:left-[calc(16rem+20rem)]'} right-0 z-40 pb-4 md:pb-0 transition-all duration-300`}>
+            <div className="max-w-4xl mx-auto px-4 md:px-6">
+              <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-lg focus-within:border-orange-500 focus-within:shadow-xl transition-all">
                 <input
                   type="text"
                   value={input}
