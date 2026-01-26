@@ -725,6 +725,8 @@ export default function DashboardClient() {
                     'rounded-xl',
                     // ELEVATION SYSTEM: Primary Cards mit höherer Elevation
                     isHeroCard ? 'card-elevation-primary-hero' : 'card-elevation-primary',
+                    // WICHTIG: Standard Background (weiß) - wird von Hover überschrieben
+                    'bg-white',
                     // Smooth transitions für Hover-States (inkl. Farben)
                     'transition-all duration-300 ease-out',
                     'transition-colors duration-300',
@@ -912,6 +914,8 @@ export default function DashboardClient() {
                     'rounded-xl',
                     // ELEVATION SYSTEM: Secondary Cards mit niedrigerer Elevation
                     'card-elevation-secondary',
+                    // WICHTIG: Standard Background (weiß) - wird von Hover überschrieben
+                    'bg-white',
                     // Smooth transitions für Hover-States (inkl. Farben)
                     'transition-all duration-300 ease-out',
                     'transition-colors duration-300',

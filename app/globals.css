@@ -179,8 +179,8 @@
     /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
     opacity: 1;
     transform: none;
-    /* VOLLSTÄNDIG OPACKE Background */
-    background-color: #ffffff;
+    /* WICHTIG: Kein background-color hier, damit Tailwind-Hover-Klassen funktionieren */
+    /* Background wird von Tailwind-Klassen (bg-white, md:group-hover:bg-{color}-50) gesteuert */
     /* MOBILE FIRST: Vereinfachte Schatten (performanter) */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.04),
@@ -247,8 +247,8 @@
     /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
     opacity: 1;
     transform: none;
-    /* VOLLSTÄNDIG OPACKE Background */
-    background-color: #ffffff;
+    /* WICHTIG: Kein background-color hier, damit Tailwind-Hover-Klassen funktionieren */
+    /* Background wird von Tailwind-Klassen (bg-white, md:group-hover:bg-{color}-50) gesteuert */
     /* MOBILE FIRST: Vereinfachte Schatten (kein Ambient Glow) */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.04),
@@ -306,8 +306,8 @@
     /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
     opacity: 1;
     transform: none;
-    /* VOLLSTÄNDIG OPACKE Background - kein Schleier */
-    background-color: #ffffff;
+    /* WICHTIG: Kein background-color hier, damit Tailwind-Hover-Klassen funktionieren */
+    /* Background wird von Tailwind-Klassen (bg-white, md:group-hover:bg-{color}-50) gesteuert */
     /* MOBILE FIRST: Vereinfachte Schatten (performanter) */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.03),
