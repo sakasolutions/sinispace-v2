@@ -32,14 +32,22 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden px-4 mb-2" style={{
-      paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
-      marginBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
+    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden px-4" style={{
+      paddingBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
+      marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
     }}>
-      {/* BENTO BOX: Logo Gradient Navbar mit Glassmorphism */}
-      <div className="mx-auto max-w-md mb-3">
-        <div className="bg-gradient-to-r from-pink-500 via-orange-500 to-pink-500/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_4px_12px_rgba(249,115,22,0.15),0_8px_24px_rgba(244,114,182,0.1)]">
-          <div className="flex justify-around items-center h-16 px-2">
+      {/* PREMIUM: Native-Style Navbar mit Premium Depth & Spacing */}
+      <div className="mx-auto max-w-md">
+        <div 
+          className="bg-gradient-to-r from-pink-500 via-orange-500 to-pink-500/80 backdrop-blur-xl border border-white/20 rounded-2xl"
+          style={{
+            // Premium Depth: Soft, high-quality shadow with large blur radius
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(249, 115, 22, 0.15), 0 2px 8px rgba(244, 114, 182, 0.1)',
+          }}
+        >
+          <div className="flex justify-evenly items-center h-16 px-2" style={{
+            paddingBottom: `max(0.5rem, env(safe-area-inset-bottom))`,
+          }}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = item.active;
@@ -53,19 +61,35 @@ export function MobileNav() {
                     onClick={() => triggerHaptic('light')}
                     className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2 relative"
                   >
-                    <div className={cn(
-                      'h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 ease-out',
-                      isActive 
-                        ? 'bg-white/20 backdrop-blur-md shadow-lg shadow-white/20 ring-2 ring-white/30 scale-105' 
-                        : 'bg-white/10 backdrop-blur-sm shadow-sm'
-                    )}>
-                      <Icon 
-                        className={cn(
-                          'h-6 w-6 transition-all duration-200',
-                          isActive ? 'text-white' : 'text-white/90'
-                        )} 
-                        strokeWidth={isActive ? 2.5 : 2}
-                      />
+                    {/* Subtle Active State - Soft Glow instead of klobig square */}
+                    <div className="relative">
+                      {isActive && (
+                        <div 
+                          className="absolute inset-0 rounded-xl blur-md"
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.3)',
+                            transform: 'scale(1.2)',
+                            opacity: 0.6,
+                          }}
+                        />
+                      )}
+                      <div className={cn(
+                        'h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 ease-out relative',
+                        isActive 
+                          ? 'bg-white/15 backdrop-blur-md' 
+                          : 'bg-white/10 backdrop-blur-sm'
+                      )}>
+                        <Icon 
+                          className={cn(
+                            'h-6 w-6 transition-all duration-200 relative z-10',
+                            isActive ? 'text-white drop-shadow-lg' : 'text-white/90'
+                          )} 
+                          strokeWidth={isActive ? 3 : 2}
+                          style={isActive ? {
+                            filter: 'drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3))',
+                          } : {}}
+                        />
+                      </div>
                     </div>
                     <span className={cn(
                       'text-[11px] font-medium transition-colors duration-200',
@@ -77,7 +101,7 @@ export function MobileNav() {
                 );
               }
 
-              // Normale Buttons - White/Light Colors für Contrast auf Gradient
+              // Normale Buttons - Subtle Active State mit Soft Glow
               return (
                 <Link
                   key={item.href}
@@ -85,24 +109,35 @@ export function MobileNav() {
                   onClick={() => triggerHaptic('light')}
                   className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2 relative group"
                 >
-                  {/* Active Indicator - White Dot */}
-                  {isActive && (
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white" />
-                  )}
-                  
-                  <div className={cn(
-                    'h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-200 ease-out',
-                    isActive 
-                      ? 'bg-white/20 backdrop-blur-md ring-1 ring-white/30' 
-                      : 'bg-white/10 backdrop-blur-sm group-hover:bg-white/15'
-                  )}>
-                    <Icon 
-                      className={cn(
-                        'w-5 h-5 transition-colors duration-200',
-                        isActive ? 'text-white' : 'text-white/80 group-hover:text-white/90'
-                      )} 
-                      strokeWidth={isActive ? 2.5 : 2}
-                    />
+                  {/* Subtle Active State - Soft Glow instead of klobig background */}
+                  <div className="relative">
+                    {isActive && (
+                      <div 
+                        className="absolute inset-0 rounded-xl blur-md"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.25)',
+                          transform: 'scale(1.3)',
+                          opacity: 0.5,
+                        }}
+                      />
+                    )}
+                    <div className={cn(
+                      'h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-200 ease-out relative',
+                      isActive 
+                        ? 'bg-white/12 backdrop-blur-md' 
+                        : 'bg-white/10 backdrop-blur-sm group-hover:bg-white/15'
+                    )}>
+                      <Icon 
+                        className={cn(
+                          'w-5 h-5 transition-all duration-200 relative z-10',
+                          isActive ? 'text-white drop-shadow-md' : 'text-white/80 group-hover:text-white/90'
+                        )} 
+                        strokeWidth={isActive ? 3 : 2}
+                        style={isActive ? {
+                          filter: 'drop-shadow(0 1px 3px rgba(255, 255, 255, 0.4))',
+                        } : {}}
+                      />
+                    </div>
                   </div>
                   <span className={cn(
                     'text-[11px] font-medium transition-colors duration-200',
