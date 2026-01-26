@@ -55,12 +55,12 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
   };
 
   return (
-    <div className="flex justify-between items-center border-b-2 border-gray-200 bg-gray-100 px-4 py-3 rounded-t-xl mb-4">
+    <div className="flex justify-between items-center border-b border-gray-100 bg-gray-50/80 px-4 py-3 rounded-t-xl mb-4">
       <span className="text-xs uppercase tracking-wider text-gray-700 font-semibold">Dein Rezept</span>
       <div className="flex gap-2">
         <button
           onClick={handleCopy}
-          className="h-8 px-3 rounded-lg bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-2 border-gray-300 hover:border-gray-400 transition-all flex items-center gap-1.5 text-xs font-semibold"
+          className="h-8 px-3 rounded-lg bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-300 transition-all flex items-center gap-1.5 text-xs font-semibold"
           title="In Zwischenablage kopieren"
         >
           {copied ? (
@@ -77,7 +77,7 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
         </button>
         <button
           onClick={handleGoToChat}
-          className="h-8 px-3 rounded-lg bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-2 border-gray-300 hover:border-gray-400 transition-all flex items-center gap-1.5 text-xs font-semibold"
+          className="h-8 px-3 rounded-lg bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-300 transition-all flex items-center gap-1.5 text-xs font-semibold"
           title="Zu SiniChat"
         >
           <MessageSquare className="w-3.5 h-3.5" />
@@ -85,7 +85,7 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
         </button>
         <Link
           href={chatLink}
-          className="h-8 px-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white border-2 border-orange-500 hover:border-orange-600 transition-all flex items-center gap-1.5 text-xs font-semibold shadow-md shadow-orange-500/25"
+          className="h-8 px-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white border border-orange-500 transition-all flex items-center gap-1.5 text-xs font-semibold"
           title={hasMissing ? 'Einkaufsliste an Partner senden' : 'Rezept an Partner senden'}
         >
           <Share2 className="w-3.5 h-3.5" />
@@ -104,7 +104,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3.5 text-sm font-bold text-white hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 min-h-[48px]"
+      className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3.5 text-sm font-bold text-white hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
     >
       {pending ? (
         <>
@@ -284,7 +284,7 @@ export default function RecipePage() {
               className={`px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                 active
                   ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30'
-                  : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-orange-300 hover:text-gray-900 shadow-sm'
+                  : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:text-gray-900'
               }`}
             >
               {labels[tab]}
@@ -296,29 +296,27 @@ export default function RecipePage() {
       {/* Tab Content */}
       {activeTab === 'create' ? (
         <>
-          <div className="mt-2 p-4 rounded-xl bg-orange-100 border-2 border-orange-300 text-sm text-orange-900 font-medium mb-6">
+          <div className="mt-4 mb-8 p-4 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-900">
             💡 <strong>Tipp:</strong> Gib einfach ein, was im Kühlschrank ist. Daraus entsteht ein passendes Rezept inkl. Nährwerten.
           </div>
 
-      {/* MOBILE FIRST: flex-col auf Mobile, md:grid auf Desktop */}
-      <div className="flex flex-col md:grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-        {/* LINKE SEITE: EINGABE – klare Karten, kräftige Kontraste */}
-        <div className="rounded-xl border-2 border-gray-300 bg-white p-4 sm:p-5 md:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.08)] h-fit">
-          <form action={formAction} className="space-y-4 sm:space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
-                Gericht-Typ
-              </label>
+      {/* Formular direkt auf hellem Hintergrund – keine dunklen Container */}
+      <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12">
+        {/* LINKE SEITE: EINGABE – direkt auf bg-white, Sektionen mit H3 + Divider */}
+        <div className="h-fit">
+          <form action={formAction} className="flex flex-col gap-8">
+            <section className="pb-8 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Gericht-Typ</h3>
               <div className="flex flex-wrap gap-2">
                 {mealTypeOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() => setMealType(option.value)}
-                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                    className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
                       mealType === option.value
-                        ? 'bg-orange-500 text-white border-2 border-orange-500 shadow-md shadow-orange-500/30'
-                        : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                        ? 'bg-orange-500 text-white border border-orange-500 shadow-sm'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50/50'
                     }`}
                   >
                     {option.label}
@@ -326,62 +324,56 @@ export default function RecipePage() {
                 ))}
               </div>
               <input type="hidden" name="mealType" value={mealType} />
-            </div>
+            </section>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
-                Anzahl Personen
-              </label>
-              <div className="flex items-center gap-3 bg-gray-100 border-2 border-gray-300 rounded-xl p-2 w-fit">
+            <section className="pb-8 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Anzahl Personen</h3>
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setServings(Math.max(1, servings - 1))}
                   disabled={servings <= 1}
-                  className="w-9 h-9 rounded-lg bg-white border-2 border-gray-300 text-gray-600 hover:bg-orange-50 hover:border-orange-400 hover:text-orange-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center font-semibold"
+                  className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-600 hover:border-orange-300 hover:bg-orange-50/50 hover:text-orange-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center font-semibold"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="text-sm font-bold text-gray-900 min-w-[88px] text-center">
+                <span className="text-base font-bold text-gray-900 min-w-[100px] text-center">
                   {servings} {servings === 1 ? 'Person' : 'Personen'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setServings(servings + 1)}
-                  className="w-9 h-9 rounded-lg bg-white border-2 border-gray-300 text-gray-600 hover:bg-orange-50 hover:border-orange-400 hover:text-orange-700 transition-all flex items-center justify-center font-semibold"
+                  className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-600 hover:border-orange-300 hover:bg-orange-50/50 hover:text-orange-600 transition-all flex items-center justify-center font-semibold"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
               <input type="hidden" name="servings" value={servings} />
-            </div>
+            </section>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
-                Was hast du im Kühlschrank?
-              </label>
+            <section className="pb-8 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Was hast du im Kühlschrank?</h3>
               <textarea
                 name="ingredients"
                 required
                 value={ingredients}
                 onChange={(e) => setIngredients(e.target.value)}
                 placeholder="z.B. Eier, Tomaten, Reis..."
-                className="w-full rounded-xl border-2 border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 resize-none transition-all min-h-[150px]"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 resize-none transition-all min-h-[160px]"
                 rows={6}
               />
-            </div>
+            </section>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
-                Darf eingekauft werden?
-              </label>
+            <section className="pb-8 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Darf eingekauft werden?</h3>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setShoppingMode('strict')}
-                  className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
                     shoppingMode === 'strict'
-                      ? 'bg-orange-500 text-white border-2 border-orange-500 shadow-md shadow-orange-500/30'
-                      : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                      ? 'bg-orange-500 text-white border border-orange-500 shadow-sm'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50/50'
                   }`}
                 >
                   Nein, Reste verwerten 🦊
@@ -389,10 +381,10 @@ export default function RecipePage() {
                 <button
                   type="button"
                   onClick={() => setShoppingMode('shopping')}
-                  className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
                     shoppingMode === 'shopping'
-                      ? 'bg-orange-500 text-white border-2 border-orange-500 shadow-md shadow-orange-500/30'
-                      : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                      ? 'bg-orange-500 text-white border border-orange-500 shadow-sm'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50/50'
                   }`}
                 >
                   Ja, fehlendes ergänzen 🛒
@@ -400,26 +392,24 @@ export default function RecipePage() {
               </div>
               <input type="hidden" name="shoppingMode" value={shoppingMode} />
               {shoppingMode === 'shopping' && (
-                <p className="text-xs text-gray-600 mt-2 font-medium">
+                <p className="text-sm text-gray-500 mt-3">
                   Es werden fehlende Zutaten für ein besseres Gericht vorgeschlagen.
                 </p>
               )}
-            </div>
+            </section>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
-                Filter & Präferenzen
-              </label>
+            <section>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Filter & Präferenzen</h3>
               <div className="flex flex-wrap gap-2">
                 {filterOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() => toggleFilter(option.value)}
-                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                    className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
                       filters.includes(option.value)
-                        ? 'bg-orange-500 text-white border-2 border-orange-500 shadow-md shadow-orange-500/30'
-                        : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                        ? 'bg-orange-500 text-white border border-orange-500 shadow-sm'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50/50'
                     }`}
                   >
                     {option.label}
@@ -429,9 +419,11 @@ export default function RecipePage() {
               {filters.map((filter) => (
                 <input key={filter} type="hidden" name="filters" value={filter} />
               ))}
-            </div>
+            </section>
 
-            <SubmitButton />
+            <div className="pt-2">
+              <SubmitButton />
+            </div>
           </form>
           
           {state?.error && (
@@ -439,8 +431,8 @@ export default function RecipePage() {
           )}
         </div>
 
-        {/* RECHTE SEITE: ERGEBNIS – klare Card, Tiefe, Profi-Empty-State */}
-        <div className="rounded-xl border-2 border-gray-300 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.08)] min-h-[300px] sm:min-h-[400px] overflow-hidden">
+        {/* RECHTE SEITE: ERGEBNIS – hell, clean, border-gray-100 */}
+        <div className="rounded-xl border border-gray-100 bg-white min-h-[300px] sm:min-h-[400px] overflow-hidden">
           {state?.result && state.result.includes('🔒 Premium Feature') ? (
             <div className="p-4 sm:p-5 md:p-6">
               <div className="prose prose-sm max-w-none text-gray-800 prose-p:text-gray-700 prose-a:text-orange-600 font-medium">
@@ -453,28 +445,28 @@ export default function RecipePage() {
               
               <div className="flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto">
                 {/* RECIPE CARD – Weiß, klar, Orange-Akzente */}
-                <div className="rounded-xl border-2 border-gray-300 bg-gray-50 p-5 sm:p-6 shadow-sm">
+                <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-5 sm:p-6">
                   <div className="mb-4">
                     <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">{recipe.recipeName}</h2>
                   </div>
 
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <div className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-800 border-2 border-orange-300 rounded-full px-3 py-1.5 text-xs font-semibold">
+                    <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-800 border border-orange-200 rounded-full px-3 py-1.5 text-xs font-semibold">
                       <Clock className="w-3.5 h-3.5" />
                       {recipe.stats?.time}
                     </div>
-                    <div className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-800 border-2 border-orange-300 rounded-full px-3 py-1.5 text-xs font-semibold">
+                    <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-800 border border-orange-200 rounded-full px-3 py-1.5 text-xs font-semibold">
                       <ChefHat className="w-3.5 h-3.5" />
                       {recipe.stats?.difficulty}
                     </div>
-                    <div className="inline-flex items-center gap-1.5 bg-orange-100 text-orange-800 border-2 border-orange-300 rounded-full px-3 py-1.5 text-xs font-semibold">
+                    <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-800 border border-orange-200 rounded-full px-3 py-1.5 text-xs font-semibold">
                       <Users className="w-3.5 h-3.5" />
                       {servings} {servings === 1 ? 'Person' : 'Personen'}
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b-2 border-gray-200">
-                    <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 border-2 border-amber-300 rounded-full px-3 py-1.5 text-xs font-semibold">
+                  <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-gray-100">
+                    <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-full px-3 py-1.5 text-xs font-semibold">
                       🔥 {recipe.stats?.calories}
                     </div>
                   </div>
@@ -484,7 +476,7 @@ export default function RecipePage() {
                     <ul className="space-y-2">
                       {recipe.ingredients.map((ingredient, index) => (
                         <li key={index} className="flex items-start gap-3 text-gray-800 font-medium group cursor-pointer hover:text-gray-900 transition-colors">
-                          <div className="mt-1.5 w-5 h-5 rounded border-2 border-orange-300 bg-orange-100 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-200 group-hover:border-orange-400 transition-all">
+                          <div className="mt-1.5 w-5 h-5 rounded border border-orange-200 bg-orange-50 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-100 group-hover:border-orange-300 transition-all">
                             <CheckCircle2 className="w-3 h-3 text-orange-600 opacity-70 group-hover:opacity-100 transition-opacity" />
                           </div>
                           <span className="text-sm sm:text-base">{ingredient}</span>
@@ -496,7 +488,7 @@ export default function RecipePage() {
                   {recipe.shoppingList && recipe.shoppingList.length > 0 && (
                     <div className="mb-6">
                       <h3 className="text-lg font-bold text-gray-900 mb-3">Das fehlt noch (Einkaufsliste)</h3>
-                      <div className="bg-orange-100 border-2 border-orange-300 rounded-xl p-3">
+                      <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
                         <ul className="space-y-1 text-sm text-gray-800 font-medium">
                           {recipe.shoppingList.map((ingredient, index) => (
                             <li key={index}>• {ingredient}</li>
@@ -511,7 +503,7 @@ export default function RecipePage() {
                     <ol className="space-y-3">
                       {recipe.instructions.map((step, index) => (
                         <li key={index} className="flex gap-3 text-gray-800 font-medium">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-200 border-2 border-orange-300 flex items-center justify-center text-orange-800 text-xs font-bold">
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-800 text-xs font-bold">
                             {index + 1}
                           </span>
                           <span className="text-sm sm:text-base leading-relaxed">{step}</span>
@@ -521,8 +513,8 @@ export default function RecipePage() {
                   </div>
 
                   {recipe.chefTip && (
-                    <div className="pt-4 border-t-2 border-gray-200">
-                      <div className="bg-orange-100 border-2 border-orange-300 rounded-xl p-3">
+                      <div className="pt-4 border-t border-gray-100">
+                      <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
                         <p className="text-sm text-orange-900 font-bold mb-1">💡 Profi-Tipp</p>
                         <p className="text-sm text-gray-800 leading-relaxed font-medium">{recipe.chefTip}</p>
                       </div>
@@ -530,10 +522,10 @@ export default function RecipePage() {
                   )}
 
                   {recipe.shoppingList && recipe.shoppingList.length > 0 && (
-                    <div className="mt-6 pt-4 border-t-2 border-gray-200">
+                    <div className="mt-6 pt-4 border-t border-gray-100">
                       <button
                         onClick={() => setIsShoppingListOpen(true)}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white border-2 border-orange-500 rounded-xl font-semibold transition-all shadow-md shadow-orange-500/25"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white border border-orange-500 rounded-xl font-semibold transition-all"
                       >
                         <ShoppingCart className="w-5 h-5" />
                         Dir fehlen Zutaten? → Einkaufsliste erstellen
@@ -542,7 +534,7 @@ export default function RecipePage() {
                   )}
                 </div>
               </div>
-              <div className="p-4 sm:p-5 md:p-6 border-t-2 border-gray-200 bg-gray-50/50">
+              <div className="p-4 sm:p-5 md:p-6 border-t border-gray-100 bg-gray-50/50">
                 <FeedbackButton 
                   toolId="recipe" 
                   toolName="Gourmet-Planer"
@@ -552,7 +544,7 @@ export default function RecipePage() {
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center p-6 sm:p-8 md:p-10 bg-gradient-to-b from-orange-50/90 to-amber-50/70">
-              <div className="w-16 h-16 rounded-2xl bg-orange-100 border-2 border-orange-300 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mb-4">
                 <ChefHat className="w-8 h-8 text-orange-500" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">Dein Rezept wartet</h3>
@@ -560,9 +552,9 @@ export default function RecipePage() {
                 Gib Zutaten ein und klicke auf „Rezept zaubern“. Das Ergebnis erscheint hier.
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
-                <span className="px-3 py-1.5 rounded-full bg-white border-2 border-orange-200 text-orange-700 text-xs font-semibold">🍳 Hauptgericht</span>
-                <span className="px-3 py-1.5 rounded-full bg-white border-2 border-orange-200 text-orange-700 text-xs font-semibold">🥗 Salat</span>
-                <span className="px-3 py-1.5 rounded-full bg-white border-2 border-orange-200 text-orange-700 text-xs font-semibold">🥪 Snack</span>
+                <span className="px-3 py-1.5 rounded-full bg-white border border-orange-200 text-orange-700 text-xs font-semibold">🍳 Hauptgericht</span>
+                <span className="px-3 py-1.5 rounded-full bg-white border border-orange-200 text-orange-700 text-xs font-semibold">🥗 Salat</span>
+                <span className="px-3 py-1.5 rounded-full bg-white border border-orange-200 text-orange-700 text-xs font-semibold">🥪 Snack</span>
               </div>
             </div>
           )}
@@ -582,12 +574,12 @@ export default function RecipePage() {
           /* Meine Rezepte Tab */
           <div className="space-y-4">
             {isLoadingRecipes ? (
-              <div className="rounded-xl border-2 border-gray-300 bg-white p-6 text-center shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+              <div className="rounded-xl border border-gray-100 bg-white p-6 text-center">
                 <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-500 mb-2" />
                 <p className="text-gray-700 font-semibold">Lade Rezepte…</p>
               </div>
             ) : myRecipes.length === 0 ? (
-              <div className="rounded-xl border-2 border-gray-300 bg-white p-6 text-center shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+              <div className="rounded-xl border border-gray-100 bg-white p-6 text-center">
                 <ChefHat className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-800 font-semibold">Noch keine Rezepte gespeichert.</p>
                 <p className="text-sm text-gray-600 mt-2 font-medium">Erstelle dein erstes Rezept im Tab „Neues Rezept“.</p>
@@ -599,7 +591,7 @@ export default function RecipePage() {
                   return (
                     <div
                       key={result.id}
-                      className="rounded-xl border-2 border-gray-300 bg-white p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:border-orange-300 hover:shadow-lg transition-all cursor-pointer"
+                      className="rounded-xl border border-gray-100 bg-white p-5 hover:border-orange-200 transition-all cursor-pointer"
                       onClick={() => setSelectedRecipe({
                         recipe: r,
                         resultId: result.id,
@@ -634,12 +626,12 @@ export default function RecipePage() {
                       {r.stats && (
                         <div className="flex flex-wrap gap-2 mb-3">
                           {r.stats.time && (
-                            <span className="px-2 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-semibold border-2 border-orange-300">
+                            <span className="px-2 py-1 rounded-full bg-orange-50 text-orange-800 text-xs font-semibold border border-orange-200">
                               ⏱️ {r.stats.time}
                             </span>
                           )}
                           {r.stats.calories && (
-                            <span className="px-2 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-semibold border-2 border-orange-300">
+                            <span className="px-2 py-1 rounded-full bg-orange-50 text-orange-800 text-xs font-semibold border border-orange-200">
                               🔥 {r.stats.calories}
                             </span>
                           )}
@@ -655,7 +647,7 @@ export default function RecipePage() {
                             resultId: result.id,
                             createdAt: new Date(result.createdAt)
                           })}
-                          className="flex-1 px-3 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white border-2 border-orange-500 text-sm font-semibold transition-all shadow-md shadow-orange-500/25"
+                          className="flex-1 px-3 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white border border-orange-500 text-sm font-semibold transition-all"
                         >
                           Rezept öffnen
                         </button>
@@ -669,7 +661,7 @@ export default function RecipePage() {
                                 createdAt: new Date(result.createdAt)
                               });
                             }}
-                            className="flex-1 px-3 py-2 rounded-xl bg-white hover:bg-gray-50 border-2 border-gray-300 text-gray-700 hover:border-gray-400 text-sm font-semibold flex items-center justify-center gap-1 transition-all"
+                            className="flex-1 px-3 py-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 hover:border-gray-300 text-sm font-semibold flex items-center justify-center gap-1 transition-all"
                           >
                             <ShoppingCart className="w-4 h-4" />
                             Einkaufen
