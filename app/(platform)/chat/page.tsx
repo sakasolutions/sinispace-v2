@@ -134,6 +134,16 @@ export default function ChatPage() {
     }
   };
 
+  // Auto-Scroll nach Sidebar-Toggle, um Positionierung zu korrigieren
+  useEffect(() => {
+    if (!isInitialLoad.current && messages.length > 0) {
+      const timer = setTimeout(() => {
+        scrollToBottom();
+      }, 350); // Nach Transition (300ms) + kleine Verzögerung
+      return () => clearTimeout(timer);
+    }
+  }, [isSidebarCollapsed]);
+
   useEffect(() => {
     // Verhindere Auto-Scroll beim initialen Load
     if (isInitialLoad.current) {

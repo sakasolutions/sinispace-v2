@@ -149,6 +149,16 @@ export default function ChatDetailPage() {
     }
   };
 
+  // Auto-Scroll nach Sidebar-Toggle, um Positionierung zu korrigieren
+  useEffect(() => {
+    if (!isInitialLoad.current && messages.length > 0) {
+      const timer = setTimeout(() => {
+        scrollToBottom();
+      }, 350); // Nach Transition (300ms) + kleine Verzögerung
+      return () => clearTimeout(timer);
+    }
+  }, [isSidebarCollapsed]);
+
   // Chat beim Laden aus DB holen
   useEffect(() => {
     async function loadChat() {
