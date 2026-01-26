@@ -26,6 +26,7 @@ const config: Config = {
         'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
         'parallax-up': 'parallax-up 0.3s ease-out',
         'parallax-down': 'parallax-down 0.3s ease-out',
+        'card-float': 'card-float 4s ease-in-out infinite',
       },
       keyframes: {
         float: {
@@ -73,6 +74,10 @@ const config: Config = {
         'parallax-down': {
           '0%': { transform: 'translateY(0)' },
           '100%': { transform: 'translateY(4px)' },
+        },
+        'card-float': {
+          '0%, 100%': { transform: 'translateY(-4px)' },
+          '50%': { transform: 'translateY(-8px)' },
         },
       },
       scale: {
