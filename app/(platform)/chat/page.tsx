@@ -630,65 +630,76 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* INPUT BEREICH - Floating Bar */}
-        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
-          <div className="w-full max-w-3xl bg-white border border-gray-200/50 rounded-2xl shadow-xl flex items-center gap-2 p-2 md:p-3">
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              onChange={handleFileUpload}
-              accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Datei hochladen"
-            >
-              <Upload className={`w-5 h-5 text-gray-600 ${isUploading ? 'animate-pulse' : ''}`} />
-            </button>
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
-              placeholder="Schreib eine Nachricht..."
-              className="flex-1 border-none outline-none text-sm md:text-base text-gray-900 placeholder:text-gray-400 bg-transparent"
-            />
-            <button
-              onClick={() => sendMessage()}
-              disabled={isLoading || (!input.trim() && documents.length === 0)}
-              className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Nachricht senden"
-            >
-              <Send className="w-5 h-5" />
-            </button>
+        {/* INPUT BEREICH - Premium Floating Bar */}
+        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
+          <div className="w-full max-w-3xl">
+            {/* Disclaimer Text */}
+            <div className="mb-2 text-center">
+              <p className="text-[10px] md:text-xs text-gray-500">KI kann Fehler machen. Überprüfe wichtige Informationen.</p>
+            </div>
+            
+            {/* Floating Bar - Premium Design */}
+            <div className="relative flex items-center gap-2 rounded-2xl bg-white border border-gray-200/50 p-2.5 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:shadow-2xl transition-all">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileUpload}
+                accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                aria-label="Datei hochladen"
+              >
+                <Upload className={`w-5 h-5 ${isUploading ? 'animate-pulse' : ''}`} />
+              </button>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder="Schreib eine Nachricht..."
+                className="flex-1 border-none outline-none text-sm md:text-base text-gray-900 placeholder:text-gray-400 bg-transparent min-w-0"
+              />
+              <button
+                onClick={() => sendMessage()}
+                disabled={isLoading || (!input.trim() && documents.length === 0)}
+                className="p-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95 shrink-0"
+                aria-label="Nachricht senden"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Dokumente Liste (wenn vorhanden) */}
         {documents.length > 0 && (
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+12rem)] md:bottom-32 left-0 md:left-[calc(16rem+20rem)] right-0 z-30 flex justify-center px-4 md:px-6">
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+8rem)] md:bottom-28 left-0 md:left-[calc(16rem+20rem)] right-0 z-30 flex justify-center px-4 md:px-6">
             <div className="w-full max-w-3xl bg-white border border-gray-200/50 rounded-xl shadow-lg p-3 space-y-2">
               <div className="text-xs font-medium text-gray-700 mb-2">Hochgeladene Dateien:</div>
-              {documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                  <span className="text-xs text-gray-700 truncate flex-1">{doc.fileName}</span>
-                  <button
-                    onClick={() => setDocuments(prev => prev.filter(d => d.id !== doc.id))}
-                    className="ml-2 p-1 rounded hover:bg-gray-200 transition-colors"
-                    aria-label="Datei entfernen"
-                  >
-                    <X className="w-4 h-4 text-gray-500" />
-                  </button>
-                </div>
-              ))}
+              <div className="flex flex-wrap gap-2">
+                {documents.map((doc) => (
+                  <div key={doc.id} className="flex items-center gap-1.5 rounded-lg bg-gray-50 border border-gray-200/50 px-2.5 py-1.5 text-xs">
+                    <span className="text-gray-500">📄</span>
+                    <span className="text-gray-700 max-w-[150px] truncate" title={doc.fileName}>{doc.fileName}</span>
+                    <button
+                      onClick={() => setDocuments(prev => prev.filter(d => d.id !== doc.id))}
+                      className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
+                      aria-label="Datei entfernen"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
