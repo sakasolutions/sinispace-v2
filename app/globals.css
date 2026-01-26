@@ -176,36 +176,66 @@
 
   /* PRIMARY CARDS: Höhere Elevation, mehr Tiefe */
   .card-elevation-primary {
-    /* Base Elevation: Deutlicher Schatten für visuelle Priorität */
-    box-shadow: 
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 4px 8px rgba(0, 0, 0, 0.06),
-      0 12px 24px rgba(0, 0, 0, 0.08);
+    /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
+    opacity: 1;
+    transform: none;
     /* Lichtquelle oben links: Subtiler Highlight - VOLLSTÄNDIG OPACKE Background */
     background: linear-gradient(135deg, 
       #ffffff 0%,
       #ffffff 100%
     );
-    /* IDLE ANIMATION: Subtile Floating-Bewegung */
-    animation: card-float-idle 5.5s ease-in-out infinite;
-    /* Respektiert prefers-reduced-motion */
-    animation-play-state: running;
+    /* MOBILE FIRST: Vereinfachte Schatten (performanter) */
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* DESKTOP: Luxus-Schatten + Animation (nur ab md:) */
+  @media (min-width: 768px) {
+    .card-elevation-primary {
+      /* Desktop: Deutlicher Schatten für visuelle Priorität */
+      box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 4px 8px rgba(0, 0, 0, 0.06),
+        0 12px 24px rgba(0, 0, 0, 0.08);
+      /* IDLE ANIMATION: Nur auf Desktop aktiv */
+      animation: card-float-idle 5.5s ease-in-out infinite;
+      animation-play-state: running;
+      will-change: transform;
+    }
   }
 
-  /* Stoppe Animation bei Hover/Focus für crisp Interaction */
-  .card-elevation-primary:hover,
-  .card-elevation-primary:focus {
-    animation-play-state: paused;
+  /* Desktop: Stoppe Animation bei Hover/Focus für crisp Interaction */
+  @media (min-width: 768px) {
+    .card-elevation-primary:hover,
+    .card-elevation-primary:focus {
+      animation-play-state: paused;
+    }
   }
 
   /* PRIMARY CARD HOVER: Subtile Translation + Shadow-Anpassung */
   .card-elevation-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.05),
-      0 8px 16px rgba(0, 0, 0, 0.08),
-      0 16px 32px rgba(0, 0, 0, 0.12);
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+  
+  /* Desktop: Luxus-Hover-Schatten */
+  @media (min-width: 768px) {
+    .card-elevation-primary:hover {
+      box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        0 8px 16px rgba(0, 0, 0, 0.08),
+        0 16px 32px rgba(0, 0, 0, 0.12);
+    }
+  }
+  
+  /* Mobile: Vereinfachter Hover-Schatten */
+  @media (max-width: 767px) {
+    .card-elevation-primary:hover {
+      box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        0 4px 8px rgba(0, 0, 0, 0.06);
+    }
   }
 
   /* PRIMARY CARD FOCUS: Border-Akzentuierung für Accessibility */
@@ -216,56 +246,110 @@
 
   /* PRIMARY CARD - WICHTIGSTE (Index 0): Dezenter Ambient-Glow */
   .card-elevation-primary-hero {
+    /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
+    opacity: 1;
+    transform: none;
+    /* MOBILE FIRST: Vereinfachte Schatten (kein Ambient Glow) */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.04),
-      0 4px 8px rgba(0, 0, 0, 0.06),
-      0 12px 24px rgba(0, 0, 0, 0.08),
-      0 0 0 1px rgba(249, 115, 22, 0.08); /* Sehr dezenter Ambient-Glow */
-    /* IDLE ANIMATION: Subtile Floating-Bewegung */
-    animation: card-float-idle 5.5s ease-in-out infinite;
-    animation-play-state: running;
+      0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* DESKTOP: Luxus-Schatten + Ambient Glow + Animation (nur ab md:) */
+  @media (min-width: 768px) {
+    .card-elevation-primary-hero {
+      /* Desktop: Deutlicher Schatten + Ambient Glow */
+      box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 4px 8px rgba(0, 0, 0, 0.06),
+        0 12px 24px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(249, 115, 22, 0.08); /* Ambient Glow nur auf Desktop */
+      /* IDLE ANIMATION: Nur auf Desktop aktiv */
+      animation: card-float-idle 5.5s ease-in-out infinite;
+      animation-play-state: running;
+      will-change: transform;
+    }
+    
+    .card-elevation-primary-hero:hover,
+    .card-elevation-primary-hero:focus {
+      animation-play-state: paused;
+    }
   }
 
-  .card-elevation-primary-hero:hover,
-  .card-elevation-primary-hero:focus {
-    animation-play-state: paused;
+  /* Desktop: Luxus-Hover mit Ambient Glow */
+  @media (min-width: 768px) {
+    .card-elevation-primary-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        0 8px 16px rgba(0, 0, 0, 0.08),
+        0 16px 32px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(249, 115, 22, 0.12); /* Leicht verstärkter Glow beim Hover */
+      transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    }
   }
-
-  .card-elevation-primary-hero:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.05),
-      0 8px 16px rgba(0, 0, 0, 0.08),
-      0 16px 32px rgba(0, 0, 0, 0.12),
-      0 0 0 1px rgba(249, 115, 22, 0.12); /* Leicht verstärkter Glow beim Hover */
+  
+  /* Mobile: Vereinfachter Hover */
+  @media (max-width: 767px) {
+    .card-elevation-primary-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        0 4px 8px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    }
   }
 
   /* SECONDARY CARDS: Niedrigere Elevation, ruhiger */
   .card-elevation-secondary {
-    /* Base Elevation: Flacher, weniger dominant */
+    /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
+    opacity: 1;
+    transform: none;
+    /* VOLLSTÄNDIG OPACKE Background - kein Schleier */
+    background: #ffffff;
+    /* MOBILE FIRST: Vereinfachte Schatten (performanter) */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.03),
       0 2px 4px rgba(0, 0, 0, 0.04);
-    /* VOLLSTÄNDIG OPACKE Background - kein Schleier */
-    background: #ffffff;
-    /* IDLE ANIMATION: Subtile Floating-Bewegung */
-    animation: card-float-idle 6s ease-in-out infinite;
-    animation-play-state: running;
   }
-
-  /* Stoppe Animation bei Hover/Focus */
-  .card-elevation-secondary:hover,
-  .card-elevation-secondary:focus {
-    animation-play-state: paused;
+  
+  /* DESKTOP: Animation aktivieren (nur ab md:) */
+  @media (min-width: 768px) {
+    .card-elevation-secondary {
+      /* IDLE ANIMATION: Nur auf Desktop aktiv */
+      animation: card-float-idle 6s ease-in-out infinite;
+      animation-play-state: running;
+      will-change: transform;
+    }
+    
+    /* Stoppe Animation bei Hover/Focus */
+    .card-elevation-secondary:hover,
+    .card-elevation-secondary:focus {
+      animation-play-state: paused;
+    }
   }
 
   /* SECONDARY CARD HOVER: Minimale Translation */
   .card-elevation-secondary:hover {
     transform: translateY(-1px);
-    box-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.04),
-      0 4px 8px rgba(0, 0, 0, 0.06);
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+  
+  /* Desktop: Luxus-Hover-Schatten */
+  @media (min-width: 768px) {
+    .card-elevation-secondary:hover {
+      box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.04),
+        0 4px 8px rgba(0, 0, 0, 0.06);
+    }
+  }
+  
+  /* Mobile: Vereinfachter Hover-Schatten */
+  @media (max-width: 767px) {
+    .card-elevation-secondary:hover {
+      box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.04);
+    }
   }
 
   /* SECONDARY CARD FOCUS */
@@ -279,7 +363,8 @@
     .card-elevation-primary,
     .card-elevation-primary-hero,
     .card-elevation-secondary {
-      animation: none;
+      animation: none !important;
+      will-change: auto !important;
     }
   }
 
