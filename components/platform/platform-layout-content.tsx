@@ -162,9 +162,16 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         
         {/* Children Container: Chat-Seite nutzt h-full direkt, andere Seiten bekommen Padding und können scrollen */}
         {/* MOBILE: More breathing room um bottom navigation + Safe Area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-24 md:pb-0 pt-[max(0.5rem,env(safe-area-inset-top))] md:pt-0" style={{
-          paddingBottom: 'max(6rem, calc(6rem + env(safe-area-inset-bottom)))',
-        }}>
+        <div 
+          className="flex-1 overflow-y-auto overflow-x-hidden pb-24 md:pb-0 pt-[max(0.5rem,env(safe-area-inset-top))] md:pt-0" 
+          data-scroll-container
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            scrollBehavior: 'smooth',
+            overscrollBehavior: 'contain',
+            paddingBottom: 'max(6rem, calc(6rem + env(safe-area-inset-bottom)))',
+          } as React.CSSProperties}
+        >
           <div className="min-h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
             {children}
           </div>

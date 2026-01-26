@@ -47,14 +47,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className="h-full bg-white overscroll-y-none" style={{ 
+    <html lang="de" className="h-full bg-white" style={{ 
       margin: 0, 
       padding: 0,
       height: '100%',
-      minHeight: '100dvh'
+      minHeight: '100dvh',
+      overscrollBehaviorY: 'none',
+      overscrollBehaviorX: 'none',
+      WebkitOverflowScrolling: 'touch',
+      WebkitTapHighlightColor: 'transparent',
+      WebkitTouchCallout: 'none',
+      scrollBehavior: 'smooth',
     } as React.CSSProperties}>
-      <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} bg-white text-gray-900 antialiased relative overscroll-y-none`} style={{ 
+      <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} bg-white text-gray-900 antialiased relative`} style={{ 
         WebkitTapHighlightColor: 'transparent',
+        WebkitTouchCallout: 'none',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehaviorY: 'none',
+        overscrollBehaviorX: 'none',
+        scrollBehavior: 'smooth',
         margin: 0,
         padding: 0,
         minHeight: '100dvh',
