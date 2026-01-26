@@ -538,13 +538,21 @@ export default function DashboardClient() {
                   'px-5 py-2.5 rounded-full text-sm font-medium tracking-wide transition-all duration-500 whitespace-nowrap',
                   'ease-[cubic-bezier(0.16,1,0.3,1)]',
                   'active:scale-95',
+                  'relative',
+                  'will-change-transform', // Better rendering performance
                   selectedCategory === cat
-                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border-0 shadow-brand-orange scale-105'
+                    ? 'text-white border-0 shadow-brand-orange scale-105 gradient-tab-smooth'
                     : 'bg-white/90 backdrop-blur-sm text-gray-600 border border-gray-200/80 hover:text-gray-900 hover:border-gray-300 hover:scale-102 shadow-stack-base hover:shadow-brand-orange'
                 )}
                 style={{
                   animation: `fade-in-up 0.4s ease-out ${index * 0.1}s both`,
-                  opacity: 0
+                  opacity: 0,
+                  // Smooth rendering
+                  WebkitFontSmoothing: 'antialiased',
+                  MozOsxFontSmoothing: 'grayscale',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transform: 'translateZ(0)', // Force GPU acceleration for smooth rendering
                 }}
               >
                 {cat}

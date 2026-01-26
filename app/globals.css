@@ -96,6 +96,29 @@
     animation: fade-in-up 700ms ease-out both;
   }
 
+  /* Smooth gradient rendering for category tabs */
+  .gradient-tab-smooth {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gradient-tab-smooth::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: linear-gradient(to right, rgb(249, 115, 22), rgb(244, 114, 182));
+    z-index: -1;
+    /* Smooth rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    /* Prevent jagged edges */
+    will-change: transform;
+  }
+
   /* PREMIUM: Agency-Level Depth Enhancements */
   
   /* Multi-Layer Shadow Utilities */
