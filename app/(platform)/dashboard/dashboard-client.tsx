@@ -542,10 +542,9 @@ export default function DashboardClient() {
                   'group relative rounded-xl border overflow-hidden',
                   // BENTO BOX: Consistent border-radius (8px grid system)
                   'rounded-xl', // 12px = 1.5 * 8px
-                  // FIXED: Subtle hover - no extreme transforms
+                  // FIXED: Very subtle hover - minimal transforms
                   'transition-all duration-200 ease-out',
-                  'hover:-translate-y-1', // Max 4px lift
-                  'hover:z-10', // Subtle z-index lift
+                  // NO translateY - cards stay in place
                   colors.bg,
                   colors.border,
                   colors.hoverBorder,
@@ -556,11 +555,11 @@ export default function DashboardClient() {
                   desktopRowSpan,
                   // BENTO BOX: Visual Balance - Color-weight distribution
                   colorWeight === 'high' && 'border-2',
-                  // BENTO BOX: Shadow System - Ambient + Directional
+                  // BENTO BOX: Shadow System - Ambient + Minimal Hover
                   'shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.02)]', // Ambient
-                  'hover:shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.04)]', // Gentle shadow increase
+                  'hover:shadow-[0_1px_3px_rgba(0,0,0,0.05),0_2px_6px_rgba(0,0,0,0.03)]', // Very minimal shadow increase
                   // BENTO BOX: Color-coded accent borders per tool category
-                  colors.gradient && 'hover:shadow-[0_2px_4px_rgba(249,115,22,0.08),0_4px_8px_rgba(244,114,182,0.06)]',
+                  colors.gradient && 'hover:shadow-[0_1px_3px_rgba(249,115,22,0.06),0_2px_6px_rgba(244,114,182,0.04)]',
                   // BENTO BOX: Proportional Heights - 8px Grid System
                   // MOBILE: Kompakte Card-Höhen (140px)
                   // Desktop: Large (2x2) = 320px, Medium (2x1) = 200px, Small (1x1) = 160px
@@ -571,67 +570,22 @@ export default function DashboardClient() {
 
                 const content = (
                   <>
-                    {/* BENTO BOX: Advanced Material Layers - Layered Glassmorphism */}
-                    {/* Layer 1: Base Glassmorphism - Light blur */}
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/50 via-white/30 to-transparent backdrop-blur-[8px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                    {/* BENTO BOX: Very Subtle Material Layers - Minimal Hover Effects */}
+                    {/* Layer 1: Base Glassmorphism - Very light, barely visible */}
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 via-white/15 to-transparent backdrop-blur-[4px] opacity-0 group-hover:opacity-50 transition-opacity duration-200 pointer-events-none" />
                     
-                    {/* Layer 2: Medium Glassmorphism - Medium blur für depth */}
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/40 via-transparent to-white/20 backdrop-blur-[12px] opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-50 pointer-events-none" />
-                    
-                    {/* BENTO BOX: Glass-Edge Border Gradient */}
-                    <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" style={{
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
-                      maskImage: 'linear-gradient(to bottom right, black 0%, transparent 60%)',
-                      WebkitMaskImage: 'linear-gradient(to bottom right, black 0%, transparent 60%)',
-                      border: '1px solid',
-                      borderImage: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, transparent 100%) 1',
-                    }} />
-                    
-                    {/* BENTO BOX: Subtle Texture Overlay für Tactile Feeling */}
-                    <div 
-                      className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-[0.02] transition-opacity duration-200 pointer-events-none"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                        backgroundSize: '50px 50px'
-                      }}
-                    />
-
-                    {/* BENTO BOX: Light & Atmosphere - Directional Lighting */}
-                    <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                      {/* Top-left light source */}
-                      <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/20 to-transparent rounded-tl-xl" />
-                      {/* Bottom-right shadow */}
-                      <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-black/5 to-transparent rounded-br-xl" />
+                    {/* BENTO BOX: Very Subtle Light Effect */}
+                    <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-200 pointer-events-none">
+                      {/* Top-left light source - very subtle */}
+                      <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/10 to-transparent rounded-tl-xl" />
                     </div>
-
-                    {/* BENTO BOX: Atmospheric Perspective - Subtle Color Temperature */}
-                    <div className={cn(
-                      'absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none',
-                      colors.gradient 
-                        ? `bg-gradient-to-br ${colors.gradient} opacity-[0.03]` 
-                        : 'bg-gradient-to-br from-gray-100/50 to-transparent opacity-20'
-                    )} />
-
-                    {/* BENTO BOX: Logo Gradient Glow - Light Source Effect */}
-                    {colors.gradient && (
-                      <>
-                        <div className={cn(
-                          'absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-25 transition-all duration-200',
-                          `bg-gradient-to-br ${colors.gradient}`
-                        )} />
-                        <div className={cn(
-                          'absolute -bottom-12 -left-12 w-32 h-32 rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition-all duration-200 delay-50',
-                          `bg-gradient-to-br ${colors.gradient}`
-                        )} />
-                      </>
-                    )}
 
                     {/* BENTO BOX: Icon Container - MOBILE: Kompakter, Desktop: Full Size */}
                     <div className="mb-2 md:mb-4 lg:mb-6">
                       <div className={cn(
                         'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
                         'ease-out', // Smooth easing
-                        'group-hover:scale-105', // Subtle scale
+                        // NO scale on hover - icons stay in place
                         colors.iconBg,
                         colors.border,
                         // MOBILE: Kleinere Icons für kompakte Cards
@@ -648,7 +602,7 @@ export default function DashboardClient() {
                       )}>
                         <Icon className={cn(
                           colors.text,
-                          'transition-transform duration-200 ease-out group-hover:scale-105',
+                          'transition-opacity duration-200 ease-out group-hover:opacity-90',
                           // MOBILE: Kleinere Icons
                           isLarge ? 'w-5 h-5 md:w-8 lg:w-9 md:h-8 lg:h-9' : 
                           isSmall ? 'w-4 h-4 md:w-6 md:h-6' : 
