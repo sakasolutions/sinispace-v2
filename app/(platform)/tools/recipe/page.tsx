@@ -307,16 +307,16 @@ export default function RecipePage() {
           <form action={formAction} className="flex flex-col gap-8">
             <section className="pb-8 border-b border-gray-100">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Gericht-Typ</h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {mealTypeOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() => setMealType(option.value)}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                    className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
                       mealType === option.value
-                        ? 'bg-orange-500 text-white border border-orange-500 shadow-sm'
-                        : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50/50'
+                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border border-transparent shadow-lg shadow-orange-500/30'
+                        : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-white hover:-translate-y-0.5'
                     }`}
                   >
                     {option.label}
@@ -366,14 +366,14 @@ export default function RecipePage() {
 
             <section className="pb-8 border-b border-gray-100">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Darf eingekauft werden?</h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
                   onClick={() => setShoppingMode('strict')}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                  className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
                     shoppingMode === 'strict'
-                      ? 'bg-orange-500 text-white border border-orange-500 shadow-sm'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50/50'
+                      ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border border-transparent shadow-lg shadow-orange-500/30'
+                      : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-white hover:-translate-y-0.5'
                   }`}
                 >
                   Nein, Reste verwerten 🦊
@@ -381,10 +381,10 @@ export default function RecipePage() {
                 <button
                   type="button"
                   onClick={() => setShoppingMode('shopping')}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                  className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
                     shoppingMode === 'shopping'
-                      ? 'bg-orange-500 text-white border border-orange-500 shadow-sm'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50/50'
+                      ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border border-transparent shadow-lg shadow-orange-500/30'
+                      : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-white hover:-translate-y-0.5'
                   }`}
                 >
                   Ja, fehlendes ergänzen 🛒
@@ -400,16 +400,16 @@ export default function RecipePage() {
 
             <section>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Filter & Präferenzen</h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {filterOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() => toggleFilter(option.value)}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                    className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
                       filters.includes(option.value)
-                        ? 'bg-orange-500 text-white border border-orange-500 shadow-sm'
-                        : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50/50'
+                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border border-transparent shadow-lg shadow-orange-500/30'
+                        : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-white hover:-translate-y-0.5'
                     }`}
                   >
                     {option.label}
