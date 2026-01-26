@@ -685,8 +685,40 @@ export default function DashboardClient() {
                   const idleDelays = [0, -1.2, -2.8, -1.8]; // Card 1: 0s, Card 2: -1.2s, Card 3: -2.8s, Card 4: -1.8s
                   const idleDelay = idleDelays[index] || 0;
                   
-                  // FESTES MAPPING: Desktop Hover-Klassen explizit laden
-                  const hoverClasses = desktopHoverClasses[tool.color] || desktopHoverClasses.blue;
+                  // DESKTOP HOVER: Direkte Klassen basierend auf Tool-Farbe (EXPLIZIT für Tailwind)
+                  const getHoverBorderClass = (color: string) => {
+                    const map: Record<string, string> = {
+                      orange: 'md:group-hover:border-orange-500',
+                      emerald: 'md:group-hover:border-emerald-500',
+                      blue: 'md:group-hover:border-blue-500',
+                      green: 'md:group-hover:border-green-500',
+                      violet: 'md:group-hover:border-violet-500',
+                      indigo: 'md:group-hover:border-indigo-500',
+                      amber: 'md:group-hover:border-amber-500',
+                      cyan: 'md:group-hover:border-cyan-500',
+                      rose: 'md:group-hover:border-rose-500',
+                      pink: 'md:group-hover:border-pink-500',
+                      slate: 'md:group-hover:border-gray-500',
+                    };
+                    return map[color] || 'md:group-hover:border-blue-500';
+                  };
+                  
+                  const getHoverBgClass = (color: string) => {
+                    const map: Record<string, string> = {
+                      orange: 'md:group-hover:bg-orange-50',
+                      emerald: 'md:group-hover:bg-emerald-50',
+                      blue: 'md:group-hover:bg-blue-50',
+                      green: 'md:group-hover:bg-green-50',
+                      violet: 'md:group-hover:bg-violet-50',
+                      indigo: 'md:group-hover:bg-indigo-50',
+                      amber: 'md:group-hover:bg-amber-50',
+                      cyan: 'md:group-hover:bg-cyan-50',
+                      rose: 'md:group-hover:bg-rose-50',
+                      pink: 'md:group-hover:bg-pink-50',
+                      slate: 'md:group-hover:bg-gray-50',
+                    };
+                    return map[color] || 'md:group-hover:bg-blue-50';
+                  };
                   
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
@@ -700,11 +732,11 @@ export default function DashboardClient() {
                     colors.border,
                     'border-[0.5px]',
                     'opacity-30',
-                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (explizite Klassen)
+                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (DIREKTE KLASSEN)
                     'md:group-hover:opacity-100',
                     'md:group-hover:border-opacity-100',
-                    hoverClasses.border, // Explizite Hover-Border-Klasse
-                    hoverClasses.bg, // Explizite Hover-Background-Klasse
+                    getHoverBorderClass(tool.color), // Explizite Hover-Border-Klasse
+                    getHoverBgClass(tool.color), // Explizite Hover-Background-Klasse
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
@@ -712,8 +744,7 @@ export default function DashboardClient() {
                     'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
                   
-                  // Card Styles: VOLLSTÄNDIG OPACKE Background - kein Schleier
-                  // WICHTIG: Kein inline background, damit Hover-Background-Klassen funktionieren
+                  // Card Styles: Animation Delay
                   const cardStyle = {
                     animationDelay: `${idleDelay}s`,
                   };
@@ -840,8 +871,40 @@ export default function DashboardClient() {
                   const secondaryIdleDelays = [0, -1.5, -3.2, -2.1, -0.8, -2.5, -1.8, -3.5];
                   const secondaryIdleDelay = secondaryIdleDelays[index] || 0;
                   
-                  // FESTES MAPPING: Desktop Hover-Klassen explizit laden
-                  const hoverClasses = desktopHoverClasses[tool.color] || desktopHoverClasses.blue;
+                  // DESKTOP HOVER: Direkte Klassen basierend auf Tool-Farbe (EXPLIZIT für Tailwind)
+                  const getHoverBorderClass = (color: string) => {
+                    const map: Record<string, string> = {
+                      orange: 'md:group-hover:border-orange-500',
+                      emerald: 'md:group-hover:border-emerald-500',
+                      blue: 'md:group-hover:border-blue-500',
+                      green: 'md:group-hover:border-green-500',
+                      violet: 'md:group-hover:border-violet-500',
+                      indigo: 'md:group-hover:border-indigo-500',
+                      amber: 'md:group-hover:border-amber-500',
+                      cyan: 'md:group-hover:border-cyan-500',
+                      rose: 'md:group-hover:border-rose-500',
+                      pink: 'md:group-hover:border-pink-500',
+                      slate: 'md:group-hover:border-gray-500',
+                    };
+                    return map[color] || 'md:group-hover:border-blue-500';
+                  };
+                  
+                  const getHoverBgClass = (color: string) => {
+                    const map: Record<string, string> = {
+                      orange: 'md:group-hover:bg-orange-50',
+                      emerald: 'md:group-hover:bg-emerald-50',
+                      blue: 'md:group-hover:bg-blue-50',
+                      green: 'md:group-hover:bg-green-50',
+                      violet: 'md:group-hover:bg-violet-50',
+                      indigo: 'md:group-hover:bg-indigo-50',
+                      amber: 'md:group-hover:bg-amber-50',
+                      cyan: 'md:group-hover:bg-cyan-50',
+                      rose: 'md:group-hover:bg-rose-50',
+                      pink: 'md:group-hover:bg-pink-50',
+                      slate: 'md:group-hover:bg-gray-50',
+                    };
+                    return map[color] || 'md:group-hover:bg-blue-50';
+                  };
                   
                   // SECONDARY CARDS: Ruhiger, flacher - Niedrigere Elevation
                   const cardClassName = cn(
@@ -856,11 +919,11 @@ export default function DashboardClient() {
                     colors.border,
                     'border-[0.5px]',
                     'opacity-30',
-                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (explizite Klassen)
+                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (DIREKTE KLASSEN)
                     'md:group-hover:opacity-100',
                     'md:group-hover:border-opacity-100',
-                    hoverClasses.border, // Explizite Hover-Border-Klasse
-                    hoverClasses.bg, // Explizite Hover-Background-Klasse
+                    getHoverBorderClass(tool.color), // Explizite Hover-Border-Klasse
+                    getHoverBgClass(tool.color), // Explizite Hover-Background-Klasse
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
@@ -870,8 +933,7 @@ export default function DashboardClient() {
                     'p-4 md:p-6 lg:p-8 h-[100px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
                   );
                   
-                  // Card Styles: VOLLSTÄNDIG OPACKE Background - kein Schleier
-                  // WICHTIG: Kein inline background, damit Hover-Background-Klassen funktionieren
+                  // Card Styles: Animation Delay
                   const cardStyle = {
                     animationDelay: `${secondaryIdleDelay}s`,
                   };

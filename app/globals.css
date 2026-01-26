@@ -179,7 +179,7 @@
     /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
     opacity: 1;
     transform: none;
-    /* VOLLSTÄNDIG OPACKE Background - wird von Hover-Klassen überschrieben */
+    /* VOLLSTÄNDIG OPACKE Background */
     background-color: #ffffff;
     /* MOBILE FIRST: Vereinfachte Schatten (performanter) */
     box-shadow: 
@@ -200,6 +200,7 @@
       animation-play-state: running;
       will-change: transform;
     }
+    
   }
 
   /* Desktop: Stoppe Animation bei Hover/Focus für crisp Interaction */
@@ -246,7 +247,7 @@
     /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
     opacity: 1;
     transform: none;
-    /* VOLLSTÄNDIG OPACKE Background - wird von Hover-Klassen überschrieben */
+    /* VOLLSTÄNDIG OPACKE Background */
     background-color: #ffffff;
     /* MOBILE FIRST: Vereinfachte Schatten (kein Ambient Glow) */
     box-shadow: 
@@ -273,6 +274,7 @@
     .card-elevation-primary-hero:focus {
       animation-play-state: paused;
     }
+    
   }
 
   /* Desktop: Luxus-Hover mit Ambient Glow */
@@ -305,7 +307,7 @@
     opacity: 1;
     transform: none;
     /* VOLLSTÄNDIG OPACKE Background - kein Schleier */
-    background: #ffffff;
+    background-color: #ffffff;
     /* MOBILE FIRST: Vereinfachte Schatten (performanter) */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.03),
@@ -326,6 +328,7 @@
     .card-elevation-secondary:focus {
       animation-play-state: paused;
     }
+    
   }
 
   /* SECONDARY CARD HOVER: Minimale Translation */
