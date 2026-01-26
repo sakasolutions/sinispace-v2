@@ -97,7 +97,10 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
 
   // Sonst: Normales Layout mit Sidebar und Header
   return (
-    <div className="flex h-[100dvh] bg-white overflow-hidden relative">
+    <div className="flex h-[100dvh] bg-white overflow-hidden relative" style={{
+      minHeight: '100dvh',
+      height: '100%',
+    }}>
       {/* PREMIUM: Hero Background mit Radial Gradient & Floating Elements */}
       <HeroBackground showGlows={true} />
       
@@ -159,7 +162,9 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         
         {/* Children Container: Chat-Seite nutzt h-full direkt, andere Seiten bekommen Padding und können scrollen */}
         {/* Mobile: Padding-bottom für Bottom Nav + Safe Area Top */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0 pt-[calc(env(safe-area-inset-top)+1rem)] md:pt-0">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0 pt-[max(1rem,env(safe-area-inset-top))] md:pt-0" style={{
+          paddingBottom: 'max(5rem, calc(5rem + env(safe-area-inset-bottom)))',
+        }}>
           <div className="min-h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
             {children}
           </div>

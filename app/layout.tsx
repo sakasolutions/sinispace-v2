@@ -20,19 +20,25 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default', // Light status bar für light theme
     title: 'Sinispace',
   },
   formatDetection: {
     telephone: false,
   },
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  viewportFit: 'cover',
+  userScalable: false, // App-feeling: kein Zoom
+  viewportFit: 'cover', // iPhone notches
+  height: 'device-height', // Full coverage
 };
 
 export default function RootLayout({
@@ -41,8 +47,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className="bg-zinc-950 text-zinc-50 overscroll-y-none">
-      <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} min-h-[100dvh] bg-zinc-950 text-zinc-50 antialiased relative overscroll-y-none`} style={{ WebkitTapHighlightColor: 'transparent' }}>
+    <html lang="de" className="h-full bg-white overscroll-y-none" style={{ 
+      margin: 0, 
+      padding: 0,
+      height: '100%',
+      minHeight: '100dvh'
+    } as React.CSSProperties}>
+      <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} bg-white text-gray-900 antialiased relative overscroll-y-none`} style={{ 
+        WebkitTapHighlightColor: 'transparent',
+        margin: 0,
+        padding: 0,
+        minHeight: '100dvh',
+        height: '100%',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+      } as React.CSSProperties}>
         {/* Cinematic Background Stack - Theme-aware */}
         
         {/* Layer 3: Top Light (Ambient Glow) - Tiefe von oben */}
