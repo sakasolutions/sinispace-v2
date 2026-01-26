@@ -1023,82 +1023,70 @@ export default function ChatDetailPage() {
                 <p className="text-[10px] md:text-xs text-gray-500">KI kann Fehler machen. Überprüfe wichtige Informationen.</p>
               </div>
 
-              {/* Floating Bar - Premium Design */}
+              {/* Input Container - Branded Design */}
               <form 
-                onSubmit={handleSubmit} 
-                className="relative flex items-center gap-2 rounded-2xl bg-white border border-gray-200/50 p-2.5 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:shadow-2xl transition-all"
+                onSubmit={handleSubmit}
+                className="relative flex items-center gap-2"
               >
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={handleFileUpload}
-            disabled={!chatId || isUploading}
-            className="hidden"
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
-          />
-                {/* Upload Button - Dashboard Style */}
-                {chatId && (
-                  <div className="relative shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                      className="rounded-lg bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 disabled:opacity-50 transition-all active:scale-95"
-                      title="Datei hochladen"
-                    >
-              {isUploading ? (
-                <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-                    )}
-                    </button>
-                    <div className="absolute -top-1 -right-1">
-                      <Tooltip 
-                        content={
-                          <div className="space-y-1">
-                            <p className="font-semibold mb-1">Unterstützte Dateitypen:</p>
-                            <p>📄 Dokumente: PDF, Word, Excel, PowerPoint, TXT, Markdown</p>
-                            <p>💻 Code: JS, TS, Python, Java, C++, PHP, Ruby, Go, etc.</p>
-                            <p>🖼️ Bilder: JPG, PNG, GIF, WebP, SVG</p>
-                            <p>📊 Daten: CSV, JSON, XML</p>
-                          </div>
-                        }
-                        variant="info"
-                        position="top"
-                        iconOnly
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                {/* Input Field - Dashboard Style (kein eigener Rahmen) */}
                 <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Schreib eine Nachricht..."
-                  className="flex-1 bg-transparent px-3 md:px-4 py-2 text-base md:text-sm focus:outline-none border-none min-w-0 text-gray-900 placeholder:text-gray-400"
-                  autoFocus
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileUpload}
+                  disabled={!chatId || isUploading}
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
                 />
                 
-                {/* Send Button - Premium Gradient */}
-                <button
-                  type="submit"
-                  disabled={isLoading || (!input.trim() && documents.length === 0)}
-                  className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 p-2.5 text-white hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 shadow-md hover:shadow-lg active:scale-95"
-                  aria-label="Nachricht senden"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m22 2-7 20-4-9-9-4Z"/>
-                    <path d="M22 2 11 13"/>
-                  </svg>
-                </button>
+                {/* Upload Button - Left Side */}
+                {chatId && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="shrink-0 p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-50 transition-all active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Datei hochladen"
+                  >
+                    {isUploading ? (
+                      <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                      </svg>
+                    )}
+                  </button>
+                )}
+                
+                {/* Input Field Container - Relative for absolute Send Button */}
+                <div className="relative flex-1 min-w-0">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Schreib eine Nachricht..."
+                    className="w-full min-h-12 md:min-h-[3rem] py-3 px-4 pr-14 md:pr-16 text-lg md:text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
+                    autoFocus
+                  />
+                  
+                  {/* Send Button - Absolute inside Input Field */}
+                  <button
+                    type="submit"
+                    disabled={isLoading || (!input.trim() && documents.length === 0)}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105 active:scale-95 ${
+                      input.trim() ? 'opacity-100' : 'opacity-50'
+                    }`}
+                    aria-label="Nachricht senden"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m22 2-7 20-4-9-9-4Z"/>
+                      <path d="M22 2 11 13"/>
+                    </svg>
+                  </button>
+                </div>
               </form>
             </div>
           </div>
