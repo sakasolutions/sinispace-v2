@@ -50,8 +50,8 @@ export default function LoginPage() {
   }
 
   return (
-    // CONTAINER: Dark Mode (Konsistent mit Landing Page & Register)
-    <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-zinc-950 selection:bg-orange-500/30 selection:text-orange-100">
+    // CONTAINER: Light Theme (Dashboard Design)
+    <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-white">
       
       {/* Hero Background (Grid & Glows) - Lazy-loaded für bessere Performance */}
       <HeroBackground showGlows={true} />
@@ -64,7 +64,7 @@ export default function LoginPage() {
       >
         {/* LOGO (Home Link) */}
         <div className="mb-8 flex justify-center">
-           <Link href="/" className="relative h-12 w-12 overflow-hidden rounded-2xl shadow-lg shadow-orange-500/20 border border-white/10 bg-white hover:scale-105 transition-transform duration-300">
+           <Link href="/" className="relative h-12 w-12 overflow-hidden rounded-2xl shadow-md border border-gray-200 bg-white hover:scale-105 transition-transform duration-300">
              <Image 
                src="/assets/logos/logo.webp" 
                alt="Sinispace Logo" 
@@ -75,12 +75,12 @@ export default function LoginPage() {
            </Link>
         </div>
 
-        {/* GLASS CARD */}
-        <div className="rounded-3xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl p-8 shadow-2xl ring-1 ring-white/5">
+        {/* CARD - Dashboard Style */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
           
           <div className="space-y-2 text-center mb-8">
-            <h1 className="text-2xl font-bold tracking-tight text-white">Willkommen zurück</h1>
-            <p className="text-sm text-zinc-400">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Willkommen zurück</h1>
+            <p className="text-sm text-gray-600">
               Melde dich an, um fortzufahren.
             </p>
           </div>
@@ -88,11 +88,11 @@ export default function LoginPage() {
           {/* FORM */}
           <form action={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 ml-1" htmlFor="email">
+              <label className="text-xs font-semibold uppercase tracking-wider text-gray-700 ml-1" htmlFor="email">
                 E-Mail
               </label>
               <input
-                className="flex h-12 w-full rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-orange-500/50 focus:outline-none focus:ring-4 focus:ring-orange-500/10 transition-all disabled:opacity-50"
+                className="flex h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all disabled:opacity-50"
                 id="email"
                 name="email"
                 placeholder="name@beispiel.de"
@@ -103,15 +103,15 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
-                <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="password">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-700" htmlFor="password">
                   Passwort
                 </label>
-                <Link href="/forgot-password" className="text-xs text-zinc-400 hover:text-orange-400 transition-colors">
+                <Link href="/forgot-password" className="text-xs text-gray-600 hover:text-orange-500 transition-colors">
                   Passwort vergessen?
                 </Link>
               </div>
               <input
-                className="flex h-12 w-full rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-orange-500/50 focus:outline-none focus:ring-4 focus:ring-orange-500/10 transition-all disabled:opacity-50"
+                className="flex h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all disabled:opacity-50"
                 id="password"
                 name="password"
                 type="password"
@@ -122,13 +122,13 @@ export default function LoginPage() {
             
             {/* Fehlermeldung */}
             {error && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                 {error}
               </div>
             )}
             
             <button
-              className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-xl bg-white text-zinc-950 font-bold text-sm transition-all hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+              className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm transition-all hover:from-orange-600 hover:to-pink-600 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait shadow-md"
               type="submit"
               disabled={status === 'loading'}
             >
@@ -143,9 +143,9 @@ export default function LoginPage() {
             </button>
           </form>
           
-          <div className="mt-8 text-center text-sm text-zinc-500">
+          <div className="mt-8 text-center text-sm text-gray-600">
             Neu hier?{' '}
-            <Link href="/register" className="text-white hover:text-orange-400 font-medium transition-colors underline underline-offset-4 decoration-zinc-700 hover:decoration-orange-400">
+            <Link href="/register" className="text-gray-900 hover:text-orange-500 font-medium transition-colors underline underline-offset-4 decoration-gray-300 hover:decoration-orange-500">
               Konto erstellen
             </Link>
           </div>
