@@ -204,6 +204,40 @@
       radial-gradient(circle at 1px 1px, rgba(0,0,0,0.015) 1px, transparent 0);
     background-size: 40px 40px, 20px 20px;
   }
+  
+  /* PREMIUM: Masonry Grid System - Pinterest-style flowing layout */
+  .masonry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-auto-rows: 20px;
+    gap: 1.5rem;
+  }
+  
+  .masonry-item-large {
+    grid-row-end: span 40; /* Golden Ratio: 1.618 * base */
+  }
+  
+  .masonry-item-medium {
+    grid-row-end: span 25; /* Root Two: 1.414 * base */
+  }
+  
+  .masonry-item-small {
+    grid-row-end: span 18; /* Square: 1.0 * base */
+  }
+  
+  /* PREMIUM: Visual Balance - Color-weight distribution */
+  .color-weight-high {
+    border-width: 2px;
+    box-shadow: 
+      0 1px 1px rgba(0, 0, 0, 0.02),
+      0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 8px rgba(0, 0, 0, 0.03),
+      0 8px 16px rgba(249, 115, 22, 0.05);
+  }
+  
+  .color-weight-medium {
+    border-width: 1px;
+  }
 
   /* PREMIUM: Animated gradient background - subtle movement */
   @keyframes gradient-shift {
