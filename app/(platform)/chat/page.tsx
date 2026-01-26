@@ -129,36 +129,32 @@ export default function ChatPage() {
 
   const scrollToBottom = () => {
     if (shouldAutoScroll.current && messagesEndRef.current) {
-      // Scroll mit block: "end" für bessere Positionierung direkt über Input
       messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
     }
   };
 
-  // Auto-Scroll nach Sidebar-Toggle, um Positionierung zu korrigieren
+  // Auto-Scroll nach Sidebar-Toggle
   useEffect(() => {
     if (!isInitialLoad.current && messages.length > 0) {
       const timer = setTimeout(() => {
         scrollToBottom();
-      }, 350); // Nach Transition (300ms) + kleine Verzögerung
+      }, 350);
       return () => clearTimeout(timer);
     }
   }, [isSidebarCollapsed]);
 
   useEffect(() => {
-    // Verhindere Auto-Scroll beim initialen Load
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
       return;
     }
-    // Scrollen wenn neue Messages hinzugefügt wurden ODER wenn Loading fertig ist
     if (messages.length > 0) {
-      // Kleine Verzögerung für besseres Rendering
       const timer = setTimeout(() => {
         scrollToBottom();
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [messages.length, isLoading]); // Auf Längen-Änderung und Loading-State reagieren
+  }, [messages.length, isLoading]);
 
   // Chat-Liste laden
   const loadChats = async () => {
@@ -369,7 +365,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div data-no-padding className="h-full flex w-full overflow-hidden bg-white">
+    <div data-no-padding className="h-full w-full bg-white flex">
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
@@ -385,10 +381,10 @@ export default function ChatPage() {
         />
       )}
 
-      {/* LINKS: Chat-Liste (Desktop: w-80, Mobile: Drawer, Collapsible) */}
+      {/* LINKS: Chat-Liste (History) - w-80 flex-none */}
       <aside className={`
         fixed inset-y-0 left-0 md:left-64 z-40 md:z-auto
-        ${isSidebarCollapsed ? 'w-12' : 'w-80'} shrink-0 !bg-white border-r border-gray-100 
+        ${isSidebarCollapsed ? 'w-12' : 'w-80'} flex-none border-r border-gray-100 bg-white
         flex flex-col overflow-hidden
         transform transition-all duration-300 ease-in-out
         ${isChatListOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -561,16 +557,15 @@ export default function ChatPage() {
         />
       )}
 
-      {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) - KEIN SCROLL HIER! */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-white h-full">
-        {/* FIXED HEADER - Außerhalb Scroll-Container, Consistent Height, dynamisch basierend auf Sidebar */}
+      {/* RECHTS: Chat-Bereich (Stage) - flex-1 flex flex-col */}
+      <div className="flex-1 flex flex-col relative bg-white overflow-hidden">
+        {/* Header */}
         <div className={`fixed top-0 left-0 right-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 h-16 border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm flex items-center transition-all duration-300 ${
           isSidebarCollapsed 
             ? 'md:left-[calc(16rem+3rem)]' 
             : 'md:left-[calc(16rem+20rem)]'
         }`}>
           <div className="flex items-center gap-3 sm:gap-4 w-full max-w-4xl mx-auto">
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsChatListOpen(true)}
               className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -597,9 +592,9 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* NACHRICHTEN BEREICH - EINZIGER SCROLLBARER CONTAINER */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth !bg-white pt-16 md:pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-20" style={{ minHeight: 0, height: '100%' } as React.CSSProperties}>
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-4 md:py-6" style={{ maxWidth: '65ch' } as React.CSSProperties}>
+        {/* Messages Container - EINZIGER SCROLLBARER BEREICH */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white pt-16 pb-32">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8" style={{ maxWidth: '65ch' } as React.CSSProperties}>
             {messages.length === 0 && (
               <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
                 <span className="text-5xl sm:text-6xl mb-4">💬</span>
@@ -608,22 +603,19 @@ export default function ChatPage() {
             )}
 
             {messages.map((msg, i) => (
-              <div key={i} className="w-full mb-4">
+              <div key={i} className="w-full mb-6">
                 {msg.role === 'user' ? (
+                  /* USER MESSAGE: Card rechtsbündig */
                   <div className="flex w-full justify-end items-start gap-3">
-                    <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[75%] rounded-2xl px-4 md:px-5 py-3 md:py-4 shadow-md border border-orange-200/50 bg-gradient-to-br from-orange-500 to-pink-500">
+                    <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[75%] rounded-2xl px-4 md:px-5 py-3 md:py-4 bg-gray-50 border border-gray-200">
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <CopyButton text={msg.content} variant="icon" size="md" />
                       </div>
-                      <div className="flex items-start gap-3">
-                        <p className="flex-1 whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed text-white font-medium">{msg.content}</p>
-                        <div className="h-7 w-7 shrink-0 select-none items-center justify-center rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-[10px] font-semibold text-white flex shadow-sm">
-                          DU
-                        </div>
-                      </div>
+                      <p className="whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed text-gray-900">{msg.content}</p>
                     </div>
                   </div>
                 ) : (
+                  /* AI MESSAGE: Nur Text, KEIN Card, transparent */
                   <div className="flex w-full justify-start items-start gap-3">
                     <div className="h-9 w-9 shrink-0 select-none items-center justify-center rounded-xl shadow-sm border border-gray-200 bg-white overflow-hidden mt-0.5">
                       <Image 
@@ -638,11 +630,9 @@ export default function ChatPage() {
                       <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <CopyButton text={msg.content} variant="icon" size="md" />
                       </div>
-                      {/* Message Content Card */}
-                      <div className="bg-white border border-gray-200 rounded-2xl px-4 md:px-5 py-3 md:py-4 shadow-sm">
-                        <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-gray-800 prose-pre:bg-gray-50">
-                          <MarkdownRenderer content={msg.content} />
-                        </div>
+                      {/* KEIN bg-white, KEIN shadow, KEIN border - nur Text */}
+                      <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-gray-800 prose-pre:bg-gray-50">
+                        <MarkdownRenderer content={msg.content} />
                       </div>
                     </div>
                   </div>
@@ -681,11 +671,11 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* CHAT INPUT - Fixed, zentriert, dynamisch basierend auf Sidebar-State */}
-        <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 pb-4 md:pb-0 transition-all duration-300 ${
+        {/* INPUT AREA - Fixed unten mittig */}
+        <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 left-4 right-4 z-40 transition-all duration-300 ${
           isSidebarCollapsed 
-            ? 'left-4 md:left-[calc(16rem+3rem)] right-4' // Full width mit Padding wenn collapsed
-            : 'left-4 md:left-[calc(16rem+20rem)] right-4' // Sidebar-offset wenn open
+            ? 'md:left-[calc(16rem+3rem)]' 
+            : 'md:left-[calc(16rem+20rem)]'
         }`}>
           <div className="max-w-4xl mx-auto px-4 md:px-6">
             <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-lg focus-within:border-orange-500 focus-within:shadow-xl transition-all">
@@ -730,7 +720,7 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Dokumente Liste (wenn vorhanden) - dynamisch basierend auf Sidebar */}
+        {/* Dokumente Liste (wenn vorhanden) */}
         {documents.length > 0 && (
           <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+8rem)] md:bottom-28 left-4 right-4 z-30 flex justify-center px-4 md:px-6 transition-all duration-300 ${
             isSidebarCollapsed 
