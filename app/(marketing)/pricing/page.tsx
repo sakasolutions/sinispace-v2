@@ -13,7 +13,7 @@ const fadeUp = (delay = 0) => ({
 
 export default function PricingPage() {
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center py-20 overflow-hidden bg-zinc-950 selection:bg-orange-500/30 selection:text-orange-100">
+    <div className="relative min-h-screen flex flex-col items-center justify-center py-20 overflow-hidden bg-white selection:bg-orange-500/30 selection:text-orange-100">
       
       {/* Hero Background (Grid & Glows) */}
       <HeroBackground showGlows={true} />
@@ -23,13 +23,13 @@ export default function PricingPage() {
         {/* HEADER */}
         <div className="flex flex-col items-center text-center mb-16">
           <motion.h1 
-            className="text-3xl font-bold tracking-tighter text-white sm:text-4xl md:text-5xl"
+            className="text-3xl font-bold tracking-tighter text-gray-900 sm:text-4xl md:text-5xl"
             {...fadeUp(0.1)}
           >
             Ein Preis. Keine Überraschungen.
           </motion.h1>
           <motion.p 
-            className="mt-4 max-w-[600px] text-zinc-400 md:text-xl"
+            className="mt-4 max-w-[600px] text-gray-600 md:text-xl"
             {...fadeUp(0.2)}
           >
             Wir glauben nicht an versteckte Kosten oder Abo-Fallen.
@@ -42,7 +42,7 @@ export default function PricingPage() {
           className="flex justify-center"
           {...fadeUp(0.3)}
         >
-          <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl p-8 shadow-2xl ring-1 ring-white/5 hover:border-white/20 transition-colors">
+          <div className="relative w-full max-w-md rounded-3xl border border-gray-200 bg-white p-8 shadow-lg hover:shadow-xl transition-all">
             
             {/* Ersparnis-Badge (Der Trigger) */}
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
@@ -52,10 +52,10 @@ export default function PricingPage() {
             </div>
 
             <div className="flex items-baseline justify-between mb-6">
-              <span className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
+              <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
                 Jahrespass
               </span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs font-medium text-zinc-400">
+              <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-600">
                 Einmalzahlung
               </span>
             </div>
@@ -64,21 +64,21 @@ export default function PricingPage() {
             <div className="mb-4">
               {/* Alter Preis - Durchgestrichen */}
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-zinc-500 line-through text-lg decoration-red-500/50 decoration-2 font-medium">
+                <span className="text-gray-500 line-through text-lg decoration-red-500/50 decoration-2 font-medium">
                   219,90 €
                 </span>
               </div>
               
               {/* Neuer Preis - Dominant */}
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-white tracking-tight">99,90€</span>
-                <span className="text-lg font-medium text-zinc-400">
+                <span className="text-4xl font-black text-gray-900 tracking-tight">99,90€</span>
+                <span className="text-lg font-medium text-gray-600">
                   / Jahr
                 </span>
               </div>
               
               {/* Reframing: Täglicher Preis */}
-              <p className="mt-2 text-xs text-zinc-500">
+              <p className="mt-2 text-xs text-gray-500">
                 Weniger als 0,30€ pro Tag bei einem Jahr Nutzung.
               </p>
             </div>
@@ -88,13 +88,13 @@ export default function PricingPage() {
               ⚡ Nur für kurze Zeit verfügbar. Danach steigt der Preis.
             </p>
             
-            <p className="mb-6 text-sm text-zinc-400 leading-relaxed">
+            <p className="mb-6 text-sm text-gray-600 leading-relaxed">
               Zugang endet automatisch nach 365 Tagen. <br/>Keine Kündigung nötig.
             </p>
 
-            <div className="my-8 h-px w-full bg-white/10"></div>
+            <div className="my-8 h-px w-full bg-gray-200"></div>
 
-            <ul className="space-y-4 text-sm text-zinc-300">
+            <ul className="space-y-4 text-sm text-gray-700">
               <li className="flex items-start gap-3">
                 <CheckIcon /> <span>Unbegrenzter Zugriff auf Actions</span>
               </li>
@@ -111,12 +111,12 @@ export default function PricingPage() {
 
             <Link
               href="/register"
-              className="mt-8 block w-full rounded-xl bg-white px-4 py-3.5 text-center text-sm font-bold text-zinc-950 transition-all hover:bg-zinc-200 hover:scale-[1.02] shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+              className="mt-8 block w-full rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-3.5 text-center text-sm font-bold text-white transition-all hover:from-orange-600 hover:to-pink-600 hover:scale-[1.02] shadow-md"
             >
               Jetzt Zugang sichern
             </Link>
             
-            <p className="mt-4 text-center text-xs text-zinc-500">
+            <p className="mt-4 text-center text-xs text-gray-500">
               Zahlung via Stripe (Kreditkarte, Apple Pay, Google Pay).
             </p>
           </div>
