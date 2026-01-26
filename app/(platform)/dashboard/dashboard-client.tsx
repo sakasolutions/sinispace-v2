@@ -492,7 +492,7 @@ export default function DashboardClient() {
                     iconColors.bgHover
                   )}>
                     <div className={cn(iconColors.text, 'transition-all duration-500 group-hover:scale-110')}>
-                      <Icon className="w-7 h-7 md:w-6 md:h-6 animate-float" style={{ animationDuration: '6s' }} />
+                      <Icon className="w-7 h-7 md:w-6 md:h-6 animate-float [animation-duration:6s]" />
                     </div>
                   </div>
                   {tool.available ? (
