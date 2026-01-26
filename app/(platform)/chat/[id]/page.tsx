@@ -502,7 +502,7 @@ export default function ChatDetailPage() {
 
       {/* LINKS: Chat-Liste (History) - w-80 flex-none */}
       <aside className={`
-        fixed inset-y-0 left-0 md:left-64 z-40 md:z-auto
+        fixed inset-y-0 left-0 md:left-64 z-40 md:z-20
         ${isSidebarCollapsed ? 'w-12' : 'w-80'} flex-none border-r border-gray-100 bg-white
         flex flex-col overflow-hidden
         transform transition-all duration-300 ease-in-out
