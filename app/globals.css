@@ -68,6 +68,69 @@
     animation: fade-in-up 700ms ease-out both;
   }
 
+  /* PREMIUM: Agency-Level Depth Enhancements */
+  
+  /* Multi-Layer Shadow Utilities */
+  .shadow-ambient {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  
+  .shadow-penumbra {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  
+  .shadow-contact {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+  }
+  
+  .shadow-multi {
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 2px 8px rgba(0, 0, 0, 0.06),
+      0 8px 16px rgba(0, 0, 0, 0.04);
+  }
+  
+  /* Colored Shadow Variants */
+  .shadow-brand-orange {
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.06),
+      0 4px 12px rgba(249, 115, 22, 0.12),
+      0 16px 32px rgba(244, 114, 182, 0.15);
+  }
+  
+  /* Glassmorphism Utilities */
+  .glass-light {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .glass-medium {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  
+  .glass-heavy {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  
+  /* Material Surface Textures */
+  .surface-matte {
+    background-image: 
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,0.02) 1px, transparent 0);
+    background-size: 20px 20px;
+  }
+  
+  .surface-satin {
+    background-image: 
+      linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%),
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,0.015) 1px, transparent 0);
+    background-size: 40px 40px, 20px 20px;
+  }
+
   /* PREMIUM: Animated gradient background - subtle movement */
   @keyframes gradient-shift {
     0% {
