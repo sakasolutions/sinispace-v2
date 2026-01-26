@@ -27,17 +27,17 @@ function CodeBlock({ language, children }: { language: string; children: string 
 
   if (isLoading || !SyntaxHighlighter || !style) {
     return (
-      <div className="rounded-lg overflow-hidden my-3 border border-zinc-700 shadow-sm bg-zinc-900">
-        <div className="bg-zinc-800 px-3 py-1.5 text-xs text-zinc-400 flex items-center justify-between border-b border-zinc-700">
+      <div className="rounded-lg overflow-hidden my-3 border border-gray-200 shadow-sm bg-white">
+        <div className="bg-gray-50 px-3 py-1.5 text-xs text-gray-600 flex items-center justify-between border-b border-gray-200">
           <span className="font-mono">{language}</span>
           <button
             onClick={() => navigator.clipboard.writeText(children.replace(/\n$/, ''))}
-            className="hover:text-white transition-colors"
+            className="hover:text-gray-900 transition-colors"
           >
             Copy
           </button>
         </div>
-        <pre className="text-sm text-zinc-300 font-mono whitespace-pre overflow-x-auto p-4">
+        <pre className="text-sm text-gray-800 font-mono whitespace-pre overflow-x-auto p-4 bg-white">
           <code>{children.replace(/\n$/, '')}</code>
         </pre>
       </div>
@@ -45,12 +45,12 @@ function CodeBlock({ language, children }: { language: string; children: string 
   }
 
   return (
-    <div className="rounded-lg overflow-hidden my-3 border border-zinc-700 shadow-sm">
-      <div className="bg-zinc-800 px-3 py-1.5 text-xs text-zinc-400 flex items-center justify-between border-b border-zinc-700">
+    <div className="rounded-lg overflow-hidden my-3 border border-gray-200 shadow-sm bg-white">
+      <div className="bg-gray-50 px-3 py-1.5 text-xs text-gray-600 flex items-center justify-between border-b border-gray-200">
         <span className="font-mono">{language}</span>
         <button
           onClick={() => navigator.clipboard.writeText(children.replace(/\n$/, ''))}
-          className="hover:text-white transition-colors"
+          className="hover:text-gray-900 transition-colors"
         >
           Copy
         </button>
@@ -92,41 +92,41 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-        // Paragraphs - Weicheres Grau, leading-relaxed für bessere Lesbarkeit
+        // Paragraphs - Dashboard Style (dunkler Text auf weißem Hintergrund)
         p({ children }) {
           return (
-            <p className="text-zinc-300 dark:text-zinc-300 text-[15px] md:text-base leading-relaxed mb-4 last:mb-0">
+            <p className="text-gray-700 text-[15px] md:text-base leading-relaxed mb-4 last:mb-0">
               {children}
             </p>
           );
         },
-        // Strong/Bold - Helleres Grau statt reinem Weiß für weicheren Kontrast
+        // Strong/Bold - Dashboard Style
         strong({ children }) {
           return (
-            <strong className="font-semibold text-zinc-100 dark:text-zinc-100">
+            <strong className="font-semibold text-gray-900">
               {children}
             </strong>
           );
         },
-        // Lists - Gute Abstände und Markers, weichere Grautöne
+        // Lists - Dashboard Style
         ul({ children }) {
           return (
-            <ul className="my-4 pl-6 space-y-2 list-disc list-outside text-zinc-300 dark:text-zinc-300">
+            <ul className="my-4 pl-6 space-y-2 list-disc list-outside text-gray-700">
               {children}
             </ul>
           );
         },
         ol({ children }) {
           return (
-            <ol className="my-4 pl-6 space-y-2 list-decimal list-outside text-zinc-300 dark:text-zinc-300">
+            <ol className="my-4 pl-6 space-y-2 list-decimal list-outside text-gray-700">
               {children}
             </ol>
           );
         },
-        // List Items - Weicheres Grau, leading-relaxed
+        // List Items - Dashboard Style
         li({ children }) {
           return (
-            <li className="text-zinc-300 dark:text-zinc-300 marker:text-zinc-500 leading-relaxed">
+            <li className="text-gray-700 marker:text-gray-500 leading-relaxed">
               {children}
             </li>
           );
@@ -140,70 +140,70 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             return <CodeBlock language={match[1]}>{String(children)}</CodeBlock>;
           }
           
-          // Inline Code
+          // Inline Code - Dashboard Style
           return (
             <code 
-              className="bg-zinc-800/80 px-1.5 py-0.5 rounded text-xs font-mono text-blue-300 border border-zinc-700/50" 
+              className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono text-orange-600 border border-gray-200" 
               {...props}
             >
               {children}
             </code>
           );
         },
-        // Headings - Helleres Grau statt reinem Weiß für weicheren Kontrast
+        // Headings - Dashboard Style
         h1({ children }) {
-          return <h1 className="text-zinc-100 dark:text-zinc-100 font-bold text-xl md:text-2xl mt-6 mb-3 first:mt-0 leading-tight">{children}</h1>;
+          return <h1 className="text-gray-900 font-bold text-xl md:text-2xl mt-6 mb-3 first:mt-0 leading-tight">{children}</h1>;
         },
         h2({ children }) {
-          return <h2 className="text-zinc-100 dark:text-zinc-100 font-bold text-lg md:text-xl mt-5 mb-2 first:mt-0 leading-tight">{children}</h2>;
+          return <h2 className="text-gray-900 font-bold text-lg md:text-xl mt-5 mb-2 first:mt-0 leading-tight">{children}</h2>;
         },
         h3({ children }) {
-          return <h3 className="text-zinc-100 dark:text-zinc-100 font-semibold text-base md:text-lg mt-4 mb-2 first:mt-0 leading-tight">{children}</h3>;
+          return <h3 className="text-gray-900 font-semibold text-base md:text-lg mt-4 mb-2 first:mt-0 leading-tight">{children}</h3>;
         },
-        // Blockquote - Sanfter Hintergrund, weichere Grautöne
+        // Blockquote - Dashboard Style
         blockquote({ children }) {
           return (
-            <blockquote className="border-l-4 border-zinc-600 pl-4 py-2 my-4 text-zinc-400 dark:text-zinc-400 italic bg-zinc-800/30 rounded-r leading-relaxed">
+            <blockquote className="border-l-4 border-orange-500/30 pl-4 py-2 my-4 text-gray-600 italic bg-orange-50/50 rounded-r leading-relaxed">
               {children}
             </blockquote>
           );
         },
-        // Links - Blau mit Hover
+        // Links - Dashboard Style (Orange-Pink Gradient)
         a({ href, children }) {
           return (
             <a 
               href={href} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 underline transition-colors"
+              className="text-orange-500 hover:text-pink-500 underline transition-colors font-medium"
             >
               {children}
             </a>
           );
         },
-        // Tables - Sauber gestylt, weichere Grautöne
+        // Tables - Dashboard Style
         table({ children }) {
           return (
-            <div className="overflow-x-auto my-4 border border-zinc-700 rounded-lg">
-              <table className="min-w-full divide-y divide-zinc-700">
+            <div className="overflow-x-auto my-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+              <table className="min-w-full divide-y divide-gray-200">
                 {children}
               </table>
             </div>
           );
         },
         thead({ children }) {
-          return <thead className="bg-zinc-800/50">{children}</thead>;
+          return <thead className="bg-gray-50">{children}</thead>;
         },
         th({ children }) {
           return (
-            <th className="px-4 py-2 text-left text-xs font-semibold text-zinc-400 dark:text-zinc-400 uppercase tracking-wider">
+            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
               {children}
             </th>
           );
         },
         td({ children }) {
           return (
-            <td className="px-4 py-2 text-sm text-zinc-300 dark:text-zinc-300 border-t border-zinc-700/50 leading-relaxed">
+            <td className="px-4 py-2 text-sm text-gray-700 border-t border-gray-200 leading-relaxed">
               {children}
             </td>
           );
