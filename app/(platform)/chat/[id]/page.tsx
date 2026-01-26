@@ -1062,16 +1062,15 @@ export default function ChatDetailPage() {
                 )}
                 
                 {/* Input Field - Brand New Design */}
-                <div className="relative flex-1 min-w-0">
+                <div className="relative flex-1 min-w-0 isolate z-0">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Schreib eine Nachricht..."
-                    className="w-full min-h-14 py-4 px-6 pr-16 text-base text-gray-900 placeholder:text-gray-400 bg-white border-2 border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
+                    className="w-full h-14 py-0 px-6 pr-16 text-base leading-normal text-gray-900 placeholder:text-gray-500 bg-white border-2 border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all resize-none"
                     style={{
-                      lineHeight: '1.4',
-                      fontSize: '16px', // Prevents iOS zoom
+                      minHeight: '56px', // Touch-friendly on mobile
                     }}
                     autoFocus
                   />
@@ -1080,7 +1079,7 @@ export default function ChatDetailPage() {
                   <button
                     type="submit"
                     disabled={isLoading || (!input.trim() && documents.length === 0)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105 active:scale-95 backdrop-blur-none"
                     aria-label="Nachricht senden"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
