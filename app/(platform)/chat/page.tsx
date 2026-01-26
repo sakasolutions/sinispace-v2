@@ -630,7 +630,7 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* INPUT BEREICH - Premium Floating Bar */}
+        {/* INPUT BEREICH - Branded Input Field */}
         <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
           <div className="w-full max-w-3xl">
             {/* Disclaimer Text */}
@@ -638,8 +638,9 @@ export default function ChatPage() {
               <p className="text-[10px] md:text-xs text-gray-500">KI kann Fehler machen. Überprüfe wichtige Informationen.</p>
             </div>
             
-            {/* Floating Bar - Premium Design */}
-            <div className="relative flex items-center gap-2 rounded-2xl bg-white border border-gray-200/50 p-2.5 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:shadow-2xl transition-all">
+            {/* Input Container - Light Theme with Logo Accents */}
+            <div className="relative flex items-center gap-2">
+              {/* Upload Button - Left Side */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -650,32 +651,40 @@ export default function ChatPage() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                className="shrink-0 p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Datei hochladen"
               >
                 <Upload className={`w-5 h-5 ${isUploading ? 'animate-pulse' : ''}`} />
               </button>
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                placeholder="Schreib eine Nachricht..."
-                className="flex-1 border-none outline-none text-sm md:text-base text-gray-900 placeholder:text-gray-400 bg-transparent min-w-0"
-              />
-              <button
-                onClick={() => sendMessage()}
-                disabled={isLoading || (!input.trim() && documents.length === 0)}
-                className="p-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95 shrink-0"
-                aria-label="Nachricht senden"
-              >
-                <Send className="w-5 h-5" />
-              </button>
+              
+              {/* Input Field Container - Relative for absolute Send Button */}
+              <div className="relative flex-1 min-w-0">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  placeholder="Schreib eine Nachricht..."
+                  className="w-full min-h-12 md:min-h-[3rem] py-3 px-4 pr-14 md:pr-16 text-lg md:text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
+                />
+                
+                {/* Send Button - Absolute inside Input Field */}
+                <button
+                  onClick={() => sendMessage()}
+                  disabled={isLoading || (!input.trim() && documents.length === 0)}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105 active:scale-95 ${
+                    input.trim() ? 'opacity-100' : 'opacity-50'
+                  }`}
+                  aria-label="Nachricht senden"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
