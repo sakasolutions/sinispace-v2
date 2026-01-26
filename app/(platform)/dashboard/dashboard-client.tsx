@@ -613,6 +613,10 @@ export default function DashboardClient() {
                   const desktopRowSpan = 'lg:row-span-2';
                   const isHeroCard = index === 0; // Wichtigste Card (Index 0) bekommt Ambient-Glow
                   
+                  // IDLE ANIMATION: Unterschiedliche Delays für asynchronen Look
+                  const idleDelays = [0, -1.2, -2.8, -1.8]; // Card 1: 0s, Card 2: -1.2s, Card 3: -2.8s, Card 4: -1.8s
+                  const idleDelay = idleDelays[index] || 0;
+                  
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
@@ -620,11 +624,10 @@ export default function DashboardClient() {
                     isHeroCard ? 'card-elevation-primary-hero' : 'card-elevation-primary',
                     // Smooth transitions für Hover-States
                     'transition-all duration-200 ease-out',
-                    // Border: Subtiler, transparenter Rahmen
+                    // Border: Subtiler, transparenter Rahmen (NUR Border, nicht Container!)
                     colors.border,
                     'border-[0.5px]',
-                    'opacity-30',
-                    'md:group-hover:opacity-50',
+                    // FIX: Border-Opacity über border-color, nicht Container-Opacity
                     colors.hoverBorder,
                     colors.hoverBg,
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
@@ -634,13 +637,10 @@ export default function DashboardClient() {
                     'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
                   
-                  // Rich Surface: Subtiler Gradient (Lichtquelle oben links)
-                  const accentRGB = getAccentColorRGB(colors.accentColor);
-                  const surfaceGradient = `linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%)`;
-                  
-                  // Card Styles: Gradient im Background
+                  // Card Styles: VOLLSTÄNDIG OPACKE Background - kein Schleier
                   const cardStyle = {
-                    background: surfaceGradient,
+                    background: '#ffffff',
+                    animationDelay: `${idleDelay}s`,
                   };
 
                   const content = (
@@ -761,6 +761,10 @@ export default function DashboardClient() {
                   // Visual Balance: Color-weight distribution
                   const colorWeight = colors.gradient ? 'high' : 'medium';
 
+                  // IDLE ANIMATION: Unterschiedliche Delays für asynchronen Look (Secondary Cards)
+                  const secondaryIdleDelays = [0, -1.5, -3.2, -2.1, -0.8, -2.5, -1.8, -3.5];
+                  const secondaryIdleDelay = secondaryIdleDelays[index] || 0;
+                  
                   // SECONDARY CARDS: Ruhiger, flacher - Niedrigere Elevation
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
@@ -769,11 +773,10 @@ export default function DashboardClient() {
                     'card-elevation-secondary',
                     // Smooth transitions für Hover-States
                     'transition-all duration-200 ease-out',
-                    // Border: Subtiler, transparenter Rahmen
+                    // Border: Subtiler, transparenter Rahmen (NUR Border, nicht Container!)
                     colors.border,
                     'border-[0.5px]',
-                    'opacity-30',
-                    'md:group-hover:opacity-50',
+                    // FIX: Border-Opacity über border-color, nicht Container-Opacity
                     colors.hoverBorder,
                     colors.hoverBg,
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
@@ -785,12 +788,10 @@ export default function DashboardClient() {
                     'p-4 md:p-6 lg:p-8 h-[100px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
                   );
                   
-                  // Rich Surface: Subtiler Gradient (Lichtquelle oben links)
-                  const surfaceGradient = `linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%)`;
-                  
-                  // Card Styles: Gradient im Background
+                  // Card Styles: VOLLSTÄNDIG OPACKE Background - kein Schleier
                   const cardStyle = {
-                    background: surfaceGradient,
+                    background: '#ffffff',
+                    animationDelay: `${secondaryIdleDelay}s`,
                   };
 
                   const content = (
