@@ -1019,14 +1019,14 @@ export default function ChatDetailPage() {
               )}
 
               {/* Disclaimer Text */}
-              <div className="mb-2 text-center">
+              <div className="mb-3 text-center">
                 <p className="text-[10px] md:text-xs text-gray-500">KI kann Fehler machen. Überprüfe wichtige Informationen.</p>
               </div>
 
-              {/* Input Container - Clean White Design */}
+              {/* Input Container - Brand New Design */}
               <form 
                 onSubmit={handleSubmit}
-                className="relative flex items-center gap-2 bg-transparent"
+                className="flex items-center gap-3"
               >
                 <input
                   ref={fileInputRef}
@@ -1043,7 +1043,7 @@ export default function ChatDetailPage() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="shrink-0 p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-50 transition-all active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center"
                     title="Datei hochladen"
                   >
                     {isUploading ? (
@@ -1061,14 +1061,18 @@ export default function ChatDetailPage() {
                   </button>
                 )}
                 
-                {/* Input Field Container - Relative for absolute Send Button */}
+                {/* Input Field - Brand New Design */}
                 <div className="relative flex-1 min-w-0">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Schreib eine Nachricht..."
-                    className="w-full min-h-12 md:min-h-[3rem] py-3 px-4 pr-14 md:pr-16 text-lg md:text-base text-gray-900 placeholder:text-gray-400 !bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
+                    className="w-full min-h-14 py-4 px-6 pr-16 text-base text-gray-900 placeholder:text-gray-400 bg-white border-2 border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
+                    style={{
+                      lineHeight: '1.4',
+                      fontSize: '16px', // Prevents iOS zoom
+                    }}
                     autoFocus
                   />
                   
@@ -1076,9 +1080,7 @@ export default function ChatDetailPage() {
                   <button
                     type="submit"
                     disabled={isLoading || (!input.trim() && documents.length === 0)}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105 active:scale-95 ${
-                      input.trim() ? 'opacity-100' : 'opacity-50'
-                    }`}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                     aria-label="Nachricht senden"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
