@@ -32,19 +32,29 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden px-4" style={{
+    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden" style={{
       paddingBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
       marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
     }}>
-      {/* PREMIUM: Native-Style Navbar mit Premium Depth & Spacing */}
-      <div className="mx-auto max-w-md">
+      {/* FLOATING ISLAND: Modern, ausgewogene Navbar mit Margin links/rechts */}
+      <div className="mx-auto max-w-md px-4">
         <div 
-          className="bg-gradient-to-r from-pink-500 via-orange-500 to-pink-500/80 backdrop-blur-xl border border-white/20 rounded-2xl"
+          className="bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-2xl shadow-lg"
           style={{
-            // Premium Depth: Soft, high-quality shadow with large blur radius
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(249, 115, 22, 0.15), 0 2px 8px rgba(244, 114, 182, 0.1)',
+            // Premium Depth: Soft, high-quality shadow
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)',
           }}
         >
+          {/* SVG Gradient Definition (einmalig für alle Icons) */}
+          <svg className="absolute w-0 h-0">
+            <defs>
+              <linearGradient id="nav-gradient-active" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="rgb(249, 115, 22)" />
+                <stop offset="100%" stopColor="rgb(244, 114, 182)" />
+              </linearGradient>
+            </defs>
+          </svg>
+          
           <div className="flex justify-evenly items-center h-16 px-2" style={{
             paddingBottom: `max(0.5rem, env(safe-area-inset-bottom))`,
           }}>
@@ -52,56 +62,6 @@ export function MobileNav() {
               const Icon = item.icon;
               const isActive = item.active;
 
-              // SiniChat Button - Highlighted on Gradient Background
-              if (item.highlight) {
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => triggerHaptic('light')}
-                    className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2 relative"
-                  >
-                    {/* Subtle Active State - Soft Glow instead of klobig square */}
-                    <div className="relative">
-                      {isActive && (
-                        <div 
-                          className="absolute inset-0 rounded-xl blur-md"
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.3)',
-                            transform: 'scale(1.2)',
-                            opacity: 0.6,
-                          }}
-                        />
-                      )}
-                      <div className={cn(
-                        'h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 ease-out relative',
-                        isActive 
-                          ? 'bg-white/15 backdrop-blur-md' 
-                          : 'bg-white/10 backdrop-blur-sm'
-                      )}>
-                        <Icon 
-                          className={cn(
-                            'h-6 w-6 transition-all duration-200 relative z-10',
-                            isActive ? 'text-white drop-shadow-lg' : 'text-white/90'
-                          )} 
-                          strokeWidth={isActive ? 3 : 2}
-                          style={isActive ? {
-                            filter: 'drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3))',
-                          } : {}}
-                        />
-                      </div>
-                    </div>
-                    <span className={cn(
-                      'text-[11px] font-medium transition-colors duration-200',
-                      isActive ? 'text-white font-semibold' : 'text-white/80'
-                    )}>
-                      {item.label}
-                    </span>
-                  </Link>
-                );
-              }
-
-              // Normale Buttons - Subtle Active State mit Soft Glow
               return (
                 <Link
                   key={item.href}
@@ -109,39 +69,32 @@ export function MobileNav() {
                   onClick={() => triggerHaptic('light')}
                   className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2 relative group"
                 >
-                  {/* Subtle Active State - Soft Glow instead of klobig background */}
-                  <div className="relative">
-                    {isActive && (
-                      <div 
-                        className="absolute inset-0 rounded-xl blur-md"
+                  {/* Icon Container - GLEICHE GRÖSSE für alle Icons (kein Protruding) */}
+                  <div className="h-10 w-10 flex items-center justify-center transition-all duration-300 ease-out">
+                    {isActive ? (
+                      // AKTIV: Icon mit Orange/Pink Gradient
+                      <Icon 
+                        className="w-5 h-5 transition-all duration-300"
                         style={{
-                          background: 'rgba(255, 255, 255, 0.25)',
-                          transform: 'scale(1.3)',
-                          opacity: 0.5,
+                          stroke: 'url(#nav-gradient-active)',
                         }}
+                        strokeWidth={2.5}
+                      />
+                    ) : (
+                      // INAKTIV: Neutrales Mittelgrau
+                      <Icon 
+                        className="w-5 h-5 text-gray-400 transition-all duration-300 group-hover:text-gray-500"
+                        strokeWidth={2}
                       />
                     )}
-                    <div className={cn(
-                      'h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-200 ease-out relative',
-                      isActive 
-                        ? 'bg-white/12 backdrop-blur-md' 
-                        : 'bg-white/10 backdrop-blur-sm group-hover:bg-white/15'
-                    )}>
-                      <Icon 
-                        className={cn(
-                          'w-5 h-5 transition-all duration-200 relative z-10',
-                          isActive ? 'text-white drop-shadow-md' : 'text-white/80 group-hover:text-white/90'
-                        )} 
-                        strokeWidth={isActive ? 3 : 2}
-                        style={isActive ? {
-                          filter: 'drop-shadow(0 1px 3px rgba(255, 255, 255, 0.4))',
-                        } : {}}
-                      />
-                    </div>
                   </div>
+                  
+                  {/* Text Label */}
                   <span className={cn(
-                    'text-[11px] font-medium transition-colors duration-200',
-                    isActive ? 'text-white font-semibold' : 'text-white/80'
+                    'text-[11px] font-medium transition-all duration-300',
+                    isActive 
+                      ? 'bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent font-semibold'
+                      : 'text-gray-400 group-hover:text-gray-500'
                   )}>
                     {item.label}
                   </span>
