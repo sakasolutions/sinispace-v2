@@ -219,6 +219,24 @@ const quickAccessTools = [
   { id: 'legal', title: 'Rechtstexte', icon: Scale, color: 'violet', href: '/actions/legal' },
 ];
 
+// PREMIUM HIGH-FIDELITY: Helper-Funktion für Akzentfarben (RGB-Werte)
+const getAccentColorRGB = (accentColor: string): { r: number; g: number; b: number } => {
+  const colorMap: Record<string, { r: number; g: number; b: number }> = {
+    orange: { r: 249, g: 115, b: 22 },
+    pink: { r: 244, g: 114, b: 182 },
+    blue: { r: 59, g: 130, b: 246 },
+    emerald: { r: 16, g: 185, b: 129 },
+    green: { r: 34, g: 197, b: 94 },
+    violet: { r: 139, g: 92, b: 246 },
+    indigo: { r: 99, g: 102, b: 241 },
+    amber: { r: 245, g: 158, b: 11 },
+    cyan: { r: 6, g: 182, b: 212 },
+    rose: { r: 244, g: 63, b: 94 },
+    slate: { r: 100, g: 116, b: 139 },
+  };
+  return colorMap[accentColor] || colorMap.blue;
+};
+
 // PREMIUM FLOATING DESIGN: Permanent Floating Cards mit vollumfänglichem farbigen Rahmen
 const toolColors: Record<string, {
   bg: string;
@@ -608,36 +626,49 @@ export default function DashboardClient() {
                     'floating-card',
                     // Smooth transition nur für shadow (transform wird von CSS-Animation übernommen)
                     'transition-shadow duration-300 ease',
-                    colors.bg,
-                    // PERMANENT FLOATING: Dünner vollumfänglicher Rahmen in Akzentfarbe (1px)
+                    // PREMIUM HIGH-FIDELITY: Border reduziert auf 0.5px und transparenter (30% Opacity)
                     colors.border,
-                    'border',
+                    'border-[0.5px]',
+                    'opacity-30',
+                    'md:group-hover:opacity-50',
                     colors.hoverBorder,
                     colors.hoverBg,
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // PERMANENT FLOATING: Deutlicher, weicher mittlerer Schatten im Ruhezustand
-                    'shadow-[0_8px_16px_rgba(0,0,0,0.08)]',
-                    // PERMANENT FLOATING: Größerer, weicherer Schatten beim Hover
-                    'md:hover:shadow-[0_12px_24px_rgba(0,0,0,0.12)]',
-                    colors.gradient && 'md:hover:shadow-[0_12px_24px_rgba(249,115,22,0.15),0_8px_16px_rgba(244,114,182,0.1)]',
                     // PREMIUM DEPTH: Mehr inneres Padding für mehr Weißraum
                     'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
+                  
+                  // PREMIUM HIGH-FIDELITY: Dynamische Akzentfarbe für Schatten und Gradient
+                  const accentRGB = getAccentColorRGB(colors.accentColor);
+                  
+                  // Ambient Colored Glow: Dynamischer Schatten basierend auf Akzentfarbe
+                  const ambientShadow = `0 15px 35px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.15), 0 10px 10px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.04)`;
+                  const ambientShadowHover = `0 20px 40px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.2), 0 15px 15px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.06)`;
+                  
+                  // Rich Surface: Subtiler Gradient von Weiß zu sehr hellem Pastell der Akzentfarbe
+                  const surfaceGradient = `linear-gradient(to bottom right, #ffffff, rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.03))`;
                   
                   // Animation delay als inline style (negative Werte für sofortigen, asynchronen Start)
                   const floatAnimationStyle = {
                     animationDelay: `${floatDelay}s`,
                   };
+                  
+                  // Premium Card Styles: Dynamischer Schatten + Gradient
+                  const premiumCardStyle = {
+                    ...floatAnimationStyle,
+                    background: surfaceGradient,
+                    boxShadow: ambientShadow,
+                  };
+                  
+                  const premiumCardStyleHover = {
+                    boxShadow: ambientShadowHover,
+                  };
 
                   const content = (
                     <>
-                      {/* Very Subtle Material Layers */}
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 via-white/15 to-transparent backdrop-blur-[4px] opacity-0 group-hover:opacity-50 transition-opacity duration-200 pointer-events-none" />
-                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-200 pointer-events-none">
-                        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/10 to-transparent rounded-tl-xl" />
-                      </div>
+                      {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
                       {/* Trending Indicator */}
                       {isTrending && (
@@ -647,18 +678,16 @@ export default function DashboardClient() {
                         </div>
                       )}
 
-                      {/* Icon Container */}
+                      {/* Icon Container - Premium: Weißer Hintergrund mit eigenem Schatten für Layering */}
                       <div className="mb-2 md:mb-4 lg:mb-6">
                         <div className={cn(
                           'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
                           'ease-out',
-                          colors.iconBg,
+                          'bg-white', // PREMIUM: Weißer Hintergrund für Layering
+                          'shadow-sm', // PREMIUM: Winziger Schlagschatten für Tiefe
                           colors.border,
                           'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18',
-                          'shadow-[0_1px_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.02)]',
-                          'group-hover:shadow-[0_2px_2px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)]',
-                          colors.gradient && 'group-hover:shadow-[0_2px_2px_rgba(249,115,22,0.1),0_4px_8px_rgba(244,114,182,0.08),0_8px_16px_rgba(249,115,22,0.1)]',
-                          colors.gradient && 'group-hover:border-orange-300',
+                          'group-hover:shadow-md', // Leicht verstärkter Schatten beim Hover
                           'backdrop-blur-sm group-hover:backdrop-blur-md'
                         )}>
                           <Icon className={cn(
@@ -702,7 +731,13 @@ export default function DashboardClient() {
                       key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
-                      style={floatAnimationStyle}
+                      style={premiumCardStyle}
+                      onMouseEnter={(e) => {
+                        Object.assign(e.currentTarget.style, premiumCardStyleHover);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = ambientShadow;
+                      }}
                       onClick={async () => {
                         triggerHaptic('light');
                         // Track tool usage
@@ -722,7 +757,7 @@ export default function DashboardClient() {
                     <div 
                       key={tool.id} 
                       className={cardClassName}
-                      style={floatAnimationStyle}
+                      style={premiumCardStyle}
                     >
                       {content}
                     </div>
@@ -755,11 +790,24 @@ export default function DashboardClient() {
                   // Visual Balance: Color-weight distribution
                   const colorWeight = colors.gradient ? 'high' : 'medium';
 
-                  // Smooth entrance animation with offset for secondary cards
-                  const animationDelay = `${(heroTools.length + index) * 0.1}s`;
-                  const animationStyle = {
-                    animation: `fade-in-up 0.6s ease-out ${animationDelay} both`,
-                    opacity: 0,
+                  // PREMIUM HIGH-FIDELITY: Dynamische Akzentfarbe für Schatten und Gradient (wie Hero Cards)
+                  const accentRGB = getAccentColorRGB(colors.accentColor);
+                  
+                  // Ambient Colored Glow: Dynamischer Schatten basierend auf Akzentfarbe
+                  const ambientShadow = `0 15px 35px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.15), 0 10px 10px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.04)`;
+                  const ambientShadowHover = `0 20px 40px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.2), 0 15px 15px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.06)`;
+                  
+                  // Rich Surface: Subtiler Gradient von Weiß zu sehr hellem Pastell der Akzentfarbe
+                  const surfaceGradient = `linear-gradient(to bottom right, #ffffff, rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.03))`;
+                  
+                  // Premium Card Styles: Dynamischer Schatten + Gradient
+                  const premiumCardStyle = {
+                    background: surfaceGradient,
+                    boxShadow: ambientShadow,
+                  };
+                  
+                  const premiumCardStyleHover = {
+                    boxShadow: ambientShadowHover,
                   };
 
                   const cardClassName = cn(
@@ -771,20 +819,16 @@ export default function DashboardClient() {
                     '-translate-y-1',
                     // PERMANENT FLOATING: Verstärktes Anheben beim Hover
                     'md:hover:-translate-y-2',
-                    colors.bg,
-                    // PERMANENT FLOATING: Dünner vollumfänglicher Rahmen in Akzentfarbe (1px)
+                    // PREMIUM HIGH-FIDELITY: Border reduziert auf 0.5px und transparenter (30% Opacity)
                     colors.border,
-                    'border',
+                    'border-[0.5px]',
+                    'opacity-30',
+                    'md:group-hover:opacity-50',
                     colors.hoverBorder,
                     colors.hoverBg,
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // PERMANENT FLOATING: Deutlicher, weicher mittlerer Schatten im Ruhezustand
-                    'shadow-[0_8px_16px_rgba(0,0,0,0.08)]',
-                    // PERMANENT FLOATING: Größerer, weicherer Schatten beim Hover
-                    'md:hover:shadow-[0_12px_24px_rgba(0,0,0,0.12)]',
-                    colors.gradient && 'md:hover:shadow-[0_12px_24px_rgba(249,115,22,0.15),0_8px_16px_rgba(244,114,182,0.1)]',
                     // PREMIUM DEPTH: Mehr inneres Padding für mehr Weißraum
                     isLarge ? 'p-4 md:p-7 lg:p-10 h-[100px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
                     isSmall ? 'p-3 md:p-5 lg:p-7 h-[90px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
@@ -793,11 +837,7 @@ export default function DashboardClient() {
 
                   const content = (
                     <>
-                      {/* Very Subtle Material Layers */}
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 via-white/15 to-transparent backdrop-blur-[4px] opacity-0 group-hover:opacity-50 transition-opacity duration-200 pointer-events-none" />
-                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-200 pointer-events-none">
-                        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/10 to-transparent rounded-tl-xl" />
-                      </div>
+                      {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
                       {/* Trending Indicator for Secondary Cards */}
                       {isTrending && (
@@ -817,16 +857,14 @@ export default function DashboardClient() {
                         <div className={cn(
                           'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
                           'ease-out',
-                          colors.iconBg,
+                          'bg-white', // PREMIUM: Weißer Hintergrund für Layering
+                          'shadow-sm', // PREMIUM: Winziger Schlagschatten für Tiefe
                           colors.border,
                           // MOBILE: Smaller icons for compact 2-column layout
                           isLarge ? 'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18' : 
                           isSmall ? 'w-8 h-8 md:w-13 md:h-13' : 
                           'w-9 h-9 md:w-14 lg:w-16 md:h-14 lg:h-16',
-                          'shadow-[0_1px_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.02)]',
-                          'group-hover:shadow-[0_2px_2px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)]',
-                          colors.gradient && 'group-hover:shadow-[0_2px_2px_rgba(249,115,22,0.1),0_4px_8px_rgba(244,114,182,0.08),0_8px_16px_rgba(249,115,22,0.1)]',
-                          colors.gradient && 'group-hover:border-orange-300',
+                          'group-hover:shadow-md', // Leicht verstärkter Schatten beim Hover
                           'backdrop-blur-sm group-hover:backdrop-blur-md'
                         )}>
                           <Icon className={cn(
@@ -920,7 +958,13 @@ export default function DashboardClient() {
                       key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
-                      style={animationStyle}
+                      style={premiumCardStyle}
+                      onMouseEnter={(e) => {
+                        Object.assign(e.currentTarget.style, premiumCardStyleHover);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = ambientShadow;
+                      }}
                       onClick={async () => {
                         triggerHaptic('light');
                         // Track tool usage
@@ -940,7 +984,7 @@ export default function DashboardClient() {
                     <div 
                       key={tool.id} 
                       className={cardClassName}
-                      style={animationStyle}
+                      style={premiumCardStyle}
                     >
                       {content}
                     </div>
