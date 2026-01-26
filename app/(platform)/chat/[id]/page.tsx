@@ -989,15 +989,15 @@ export default function ChatDetailPage() {
           </div>
 
           {/* NEUER CHAT INPUT - KOMPLETT NEU */}
-          <div className="fixed bottom-20 left-4 right-4 z-50">
-            <div className="max-w-4xl mx-auto">
-              <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 bg-white rounded-2xl shadow-lg border border-gray-200">
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
+            <div className="max-w-3xl mx-auto">
+              <form onSubmit={handleSubmit} className="flex items-center gap-2 p-3 bg-white rounded-2xl shadow-lg border border-gray-200">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Nachricht eingeben..."
-                  className="flex-1 px-4 py-3 text-base bg-transparent border-0 outline-none resize-none placeholder-gray-500"
+                  className="flex-1 px-4 py-3 h-12 text-base bg-transparent border-0 outline-none resize-none placeholder-gray-500"
                 />
                 <button
                   type="submit"
