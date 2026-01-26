@@ -75,10 +75,8 @@ export default function RootLayout({
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
       } as React.CSSProperties}>
-        {/* Cinematic Background Stack - Theme-aware */}
-        
-        {/* Layer 3: Top Light (Ambient Glow) - Tiefe von oben - KEIN LILA */}
-        <div className="fixed top-0 left-0 right-0 h-[500px] z-[-3] bg-gradient-to-b from-gray-50/5 via-transparent to-transparent pointer-events-none will-change-transform" style={{ transform: 'translateZ(0)' }} />
+        {/* Cinematic Background Stack – nur Hintergrund, kein Foreground-Gradient */}
+        {/* Top-Light-Gradient entfernt: 500px weisser Schleier über Tool-Inhalten */}
         
         {/* Layer 2: The Fading Grid - Mit Vignette-Maske */}
         <div 
@@ -92,16 +90,7 @@ export default function RootLayout({
           } as React.CSSProperties}
         />
         
-        {/* Layer 1: Noise (Körnung) - Performante Textur mit Hardware-Beschleunigung */}
-        <div 
-          className="fixed inset-0 z-[-1] opacity-10 pointer-events-none mix-blend-overlay will-change-transform"
-          style={{
-            transform: 'translateZ(0)',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100' height='100' fill='%23ffffff' opacity='0.05'/%3E%3Ccircle cx='20' cy='20' r='0.5' fill='%23ffffff' opacity='0.3'/%3E%3Ccircle cx='80' cy='40' r='0.3' fill='%23ffffff' opacity='0.2'/%3E%3Ccircle cx='40' cy='80' r='0.4' fill='%23ffffff' opacity='0.25'/%3E%3Ccircle cx='90' cy='90' r='0.2' fill='%23ffffff' opacity='0.15'/%3E%3C/svg%3E")`,
-            backgroundSize: '100px 100px',
-            imageRendering: 'pixelated',
-          } as React.CSSProperties}
-        />
+        {/* Noise (Körnung) entfernt – hat als Schleier über dem Content gewirkt */}
         
         <div className="relative z-10">
           {children}

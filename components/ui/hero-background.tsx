@@ -29,7 +29,7 @@ export function HeroBackground({ className = "", showGlows = true }: HeroBackgro
   }
 
   return (
-    <div className={`absolute inset-0 pointer-events-none ${className}`}>
+    <div className={`absolute inset-0 pointer-events-none z-0 ${className}`} aria-hidden="true">
       {/* PREMIUM: Subtle Radial Gradient - Logo-Inspired */}
       <div className="absolute inset-0 bg-radial-gradient-white-to-brand">
         <div 

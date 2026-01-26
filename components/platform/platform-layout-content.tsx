@@ -96,15 +96,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
       {/* PREMIUM: Hero Background mit Radial Gradient & Floating Elements */}
       <HeroBackground showGlows={true} />
       
-      {/* PREMIUM: Fine Grain Texture für Premium Feel */}
-      <div 
-        className="fixed inset-0 pointer-events-none -z-10 opacity-[0.15]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E")`,
-          backgroundSize: '200px 200px',
-          mixBlendMode: 'overlay'
-        }}
-      />
+      {/* Fine Grain Texture entfernt – hat als Schleier über dem Content gewirkt */}
       
       {/* SIDEBAR (Desktop) - Glassmorphism Modern Redesign */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-white/10 bg-white/80 backdrop-blur-xl md:block z-10 shadow-xl">
@@ -140,8 +132,8 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <main className="flex-1 md:ml-64 flex flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100dvh', overflowY: 'hidden', overflowX: 'hidden' } as React.CSSProperties}>
+      {/* MAIN CONTENT – relative z-10 damit über HeroBackground (z-0), kein Schleier */}
+      <main className="relative z-10 flex-1 md:ml-64 flex flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100dvh', overflowY: 'hidden', overflowX: 'hidden' } as React.CSSProperties}>
         {/* Mobile Header - AUSGEBLENDET (ersetzt durch Bottom Nav) */}
         {/* <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl px-4 md:hidden z-10">
           ...
