@@ -743,7 +743,7 @@ export default function ChatDetailPage() {
           {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Floating Bar */}
           <div className="flex-1 overflow-y-auto scroll-smooth !bg-white pb-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:pb-20">
             {/* Central Container: Begrenzte Breite, zentriert (wie Dokument) */}
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8">
               {messages.length === 0 && (
                 <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
                   <span className="text-5xl sm:text-6xl mb-4">💬</span>
@@ -856,43 +856,46 @@ export default function ChatDetailPage() {
 
                 <div className="w-full">
                   {msg.role === 'user' ? (
-                    /* USER MESSAGE: Dashboard Style Card, rechtsbündig */
-                    <div className="flex w-full justify-end items-start gap-3">
-                      {/* User Message Card - Dashboard Style */}
-                      <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[90%] rounded-xl px-4 md:px-5 py-3 md:py-4 shadow-sm border border-gray-200/50 bg-white">
+                    /* USER MESSAGE: Logo-Gradient Background, rechtsbündig */
+                    <div className="flex w-full justify-end items-start gap-3 mb-4">
+                      {/* User Message Card - Logo Gradient Background */}
+                      <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[75%] rounded-2xl px-4 md:px-5 py-3 md:py-4 shadow-md border border-orange-200/50 bg-gradient-to-br from-orange-500 to-pink-500">
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                           <CopyButton text={msg.content} variant="icon" size="md" />
                         </div>
                         <div className="flex items-start gap-3">
-                          <p className="flex-1 whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed text-gray-900">{msg.content}</p>
-                          {/* User Avatar innerhalb der Card - Dashboard Gradient */}
-                          <div className="h-7 w-7 shrink-0 select-none items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 text-[10px] font-semibold text-white flex shadow-sm">
+                          <p className="flex-1 whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed text-white font-medium">{msg.content}</p>
+                          {/* User Avatar - White Circle */}
+                          <div className="h-7 w-7 shrink-0 select-none items-center justify-center rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-[10px] font-semibold text-white flex shadow-sm">
                             DU
                           </div>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    /* AI MESSAGE: Dashboard Style, linksbündig, volle Breite */
-                    <div className="flex w-full justify-start items-start gap-3">
-                      {/* SiniChat Logo/Avatar links oben - Dashboard Style */}
-                      <div className="h-8 w-8 shrink-0 select-none items-center justify-center rounded-xl shadow-md border border-gray-200/50 bg-white overflow-hidden mt-0.5">
+                    /* AI MESSAGE: Clean Design, linksbündig */
+                    <div className="flex w-full justify-start items-start gap-3 mb-4">
+                      {/* SiniChat Logo/Avatar - Cleaner Design */}
+                      <div className="h-9 w-9 shrink-0 select-none items-center justify-center rounded-xl shadow-sm border border-gray-200 bg-white overflow-hidden mt-0.5">
                         <Image 
                           src="/assets/logos/logo.webp" 
                           alt="Sinispace Logo" 
-                          width={32}
-                          height={32}
+                          width={36}
+                          height={36}
                           className="object-contain p-1.5" 
                         />
                       </div>
-                      {/* AI Text Block - Dashboard Style (kein Hintergrund, Text auf weiß) */}
-                      <div className="flex-1 group relative">
+                      {/* AI Text Block - Clean Background Card */}
+                      <div className="flex-1 group relative max-w-[85%] sm:max-w-[80%] md:max-w-[90%]">
                         <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                           <CopyButton text={msg.content} variant="icon" size="md" />
                         </div>
-                        {/* Tailwind Typography: Blogartikel-ähnliches Formatting */}
-                        <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none">
-                          <MarkdownRenderer content={msg.content} />
+                        {/* Message Content Card */}
+                        <div className="bg-white border border-gray-200 rounded-2xl px-4 md:px-5 py-3 md:py-4 shadow-sm">
+                          {/* Tailwind Typography: Blogartikel-ähnliches Formatting */}
+                          <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-gray-800 prose-pre:bg-gray-50">
+                            <MarkdownRenderer content={msg.content} />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -988,21 +991,21 @@ export default function ChatDetailPage() {
             </div>
           </div>
 
-          {/* CHAT INPUT - Minimal White Design */}
+          {/* CHAT INPUT - Visible & Professional Design */}
           <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-40">
             <div className="max-w-3xl mx-auto px-4 md:px-6">
-              <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white">
+              <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-sm focus-within:border-orange-500 focus-within:shadow-md transition-all">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Nachricht eingeben..."
-                  className="flex-1 px-4 py-4 text-base bg-white border-0 outline-none resize-none placeholder-gray-400"
+                  className="flex-1 px-4 py-4 text-base bg-gray-50 border-0 outline-none resize-none placeholder-gray-400 focus:bg-white focus:outline-none transition-colors rounded-l-xl"
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className="w-10 h-10 bg-white border-0 outline-none flex items-center justify-center disabled:opacity-30"
+                  className="w-10 h-10 bg-white border-0 outline-none flex items-center justify-center disabled:opacity-30 rounded-r-xl"
                 >
                   <Send className="w-5 h-5 text-gray-600" />
                 </button>
