@@ -22,31 +22,59 @@
    - text-zinc-400 für descriptions
 */
 
-/* Mobile Responsiveness Fixes */
+/* Mobile Responsiveness Fixes - Full Coverage */
 @layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
   html {
     /* PREMIUM DESIGN: Pure white - gradient kommt von HeroBackground */
     background: #ffffff;
+    /* Full Coverage */
+    height: 100%;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
     /* Verhindert weißen Hintergrund beim Scrollen auf iOS */
     -webkit-overflow-scrolling: touch;
+    /* Safe Area Support */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   
   body {
     /* PREMIUM DESIGN: Pure white base - gradient kommt von HeroBackground */
     background: #ffffff;
     color: #111827;
+    /* Full Coverage */
+    height: 100%;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
     /* Verhindert weißen Hintergrund beim Rubber-Banding auf iOS */
     overscroll-behavior: none;
     /* PWA: Entfernt Tap-Highlight auf Mobile (sanfter) */
     -webkit-tap-highlight-color: transparent;
     position: relative;
+    /* Safe Area für iPhone Notch und Home-Balken */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   
-  /* Safe Area für iPhone Notch und Home-Balken */
+  /* Safe Area Support für alle Elemente */
   @supports (padding: max(0px)) {
-    body {
-      padding-left: env(safe-area-inset-left);
-      padding-right: env(safe-area-inset-right);
+    html, body {
+      padding-top: max(0px, env(safe-area-inset-top));
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+      padding-left: max(0px, env(safe-area-inset-left));
+      padding-right: max(0px, env(safe-area-inset-right));
     }
   }
 }
