@@ -12,8 +12,11 @@ import { CopyButton } from '@/components/ui/copy-button';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { triggerHaptic } from '@/lib/haptic-feedback';
-import { Copy, RefreshCw, X, Menu } from 'lucide-react';
-import { ChatSidebar } from '@/components/platform/chat-sidebar';
+import { Copy, RefreshCw, X } from 'lucide-react';
+import { getChats, deleteChat, updateChatTitle } from '@/actions/chat-actions';
+import { Pencil, Trash2, Check } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -113,17 +116,23 @@ export default function ChatDetailPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Modal/Toast State
-  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; chatId?: string | null }>({
     isOpen: false,
     title: '',
     message: '',
     onConfirm: () => {},
+    chatId: null,
   });
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'error' | 'success' } | null>(null);
   
-  // Sidebar State
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Chat-Liste State
+  const [chats, setChats] = useState<Array<{ id: string; title: string; createdAt: Date; updatedAt: Date }>>([]);
+  const [isLoadingChats, setIsLoadingChats] = useState(true);
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
   
+  const pathname = usePathname();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -154,6 +163,59 @@ export default function ChatDetailPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  // Chat-Liste laden
+  const loadChats = async () => {
+    const loadedChats = await getChats();
+    setChats(loadedChats);
+    setIsLoadingChats(false);
+  };
+
+  useEffect(() => {
+    loadChats();
+  }, []);
+
+  // Chat-Funktionen
+  const handleEdit = (chat: { id: string; title: string }) => {
+    setEditingChatId(chat.id);
+    setEditingTitle(chat.title);
+  };
+
+  const handleSaveEdit = async (chatId: string) => {
+    if (!editingTitle.trim()) {
+      setEditingChatId(null);
+      return;
+    }
+    const result = await updateChatTitle(chatId, editingTitle);
+    if (result.success) {
+      await loadChats();
+      setEditingChatId(null);
+      setEditingTitle('');
+    }
+  };
+
+  const handleDelete = async (chatId: string) => {
+    setDeletingChatId(chatId);
+    const result = await deleteChat(chatId);
+    if (result.success) {
+      await loadChats();
+      if (pathname === `/chat/${chatId}`) {
+        router.push('/chat');
+      }
+    }
+    setDeletingChatId(null);
+  };
+
+  const formatDate = (date: Date) => {
+    const d = new Date(date);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - d.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Heute';
+    if (diffDays === 1) return 'Gestern';
+    if (diffDays < 7) return `Vor ${diffDays} Tagen`;
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+  };
 
   // File Upload Handler
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -480,28 +542,148 @@ export default function ChatDetailPage() {
           onClose={() => setToast(null)}
         />
       )}
-      {/* Chat Layout: Sidebar + Main Area */}
-      <div className="flex h-[100dvh] w-full overflow-hidden bg-white">
-        {/* SIDEBAR - Dashboard Style */}
-        <ChatSidebar 
-          isOpen={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)} 
-        />
-        
-        {/* MAIN CHAT AREA */}
-        <div className="flex-1 flex flex-col overflow-hidden md:ml-64">
+      {/* Chat Layout: Einfaches Flex-Layout */}
+      <div className="h-full flex w-full overflow-hidden bg-white">
+        {/* LINKS: Chat-Liste (w-80, fixe Spalte) */}
+        <aside className="w-80 shrink-0 bg-white border-r border-gray-100 flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <h2 className="text-sm font-bold text-gray-900">Chats</h2>
+            <Link
+              href="/chat"
+              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+            >
+              Neu
+            </Link>
+          </div>
+
+          {/* Chat List */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {isLoadingChats ? (
+              <div className="p-4 text-center text-gray-500 text-xs">Lade Chats...</div>
+            ) : chats.length === 0 ? (
+              <div className="p-4 text-center text-gray-500 text-xs">
+                <p className="mb-2">Noch keine Chats</p>
+                <Link
+                  href="/chat"
+                  className="text-gray-900 font-medium hover:text-orange-500 transition-colors"
+                >
+                  Ersten Chat starten
+                </Link>
+              </div>
+            ) : (
+              <div className="p-2 space-y-1">
+                {chats.map((chat) => {
+                  const isActive = pathname === `/chat/${chat.id}`;
+                  
+                  if (editingChatId === chat.id) {
+                    return (
+                      <div key={chat.id} className="p-3">
+                        <input
+                          type="text"
+                          value={editingTitle}
+                          onChange={(e) => setEditingTitle(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleSaveEdit(chat.id);
+                            } else if (e.key === 'Escape') {
+                              setEditingChatId(null);
+                              setEditingTitle('');
+                            }
+                          }}
+                          className="w-full px-2 py-1 text-xs font-medium border border-gray-200 bg-white rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 mb-1 text-gray-900 placeholder:text-gray-400"
+                          autoFocus
+                        />
+                        <div className="flex items-center gap-2 mt-1">
+                          <button
+                            onClick={() => handleSaveEdit(chat.id)}
+                            className="p-1 rounded hover:bg-gray-100 transition-colors"
+                            aria-label="Speichern"
+                          >
+                            <Check className="w-3.5 h-3.5 text-green-600" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingChatId(null);
+                              setEditingTitle('');
+                            }}
+                            className="p-1 rounded hover:bg-gray-100 transition-colors"
+                            aria-label="Abbrechen"
+                          >
+                            <X className="w-3.5 h-3.5 text-gray-400" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={chat.id}
+                      className={`group relative rounded-lg transition-colors ${
+                        isActive ? 'bg-gradient-to-r from-orange-50 to-pink-50' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <Link
+                        href={`/chat/${chat.id}`}
+                        className="block p-3 pr-10"
+                      >
+                        <div className={`font-medium text-xs truncate mb-0.5 ${
+                          isActive 
+                            ? 'bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent font-bold' 
+                            : 'text-gray-700'
+                        }`}>
+                          {chat.title}
+                        </div>
+                        <div className="text-[10px] text-gray-500">{formatDate(chat.updatedAt)}</div>
+                      </Link>
+
+                      {/* Action Buttons (Desktop Hover) */}
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleEdit(chat);
+                          }}
+                          className="p-1.5 rounded hover:bg-gray-100 transition-colors"
+                          aria-label="Chat umbenennen"
+                          title="Umbenennen"
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-gray-400 hover:text-gray-700" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setConfirmModal({
+                              isOpen: true,
+                              title: 'Chat löschen',
+                              message: 'Möchtest du diesen Chat wirklich endgültig löschen?',
+                              onConfirm: () => handleDelete(chat.id),
+                            });
+                          }}
+                          disabled={deletingChatId === chat.id}
+                          className="p-1.5 rounded hover:bg-red-50 transition-colors disabled:opacity-50"
+                          aria-label="Chat löschen"
+                          title="Löschen"
+                        >
+                          <Trash2 className={`w-3.5 h-3.5 ${deletingChatId === chat.id ? 'text-gray-400' : 'text-red-500'}`} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* RECHTS: Chat-Window (flex-1, Rest des Platzes) */}
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* STICKY HEADER - Glassmorphism */}
           <div className="sticky top-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
             <div className="flex items-center gap-3 sm:gap-4">
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                aria-label="Menu"
-              >
-                <Menu className="w-5 h-5 text-gray-700" />
-              </button>
-              
               <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-xl shadow-md border border-gray-200/50 bg-white shrink-0">
                 <Image 
                   src="/assets/logos/logo.webp" 
@@ -772,7 +954,7 @@ export default function ChatDetailPage() {
           {/* INPUT BEREICH - Floating Bar Design */}
           {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
           {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 right-0 md:left-64 z-40 flex justify-center px-4 md:px-6">
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-80 right-0 z-40 flex justify-center px-4 md:px-6">
             <div className="w-full max-w-3xl">
               {/* Dokumente Liste - Dashboard Style */}
               {documents.length > 0 && (
