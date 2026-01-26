@@ -39,14 +39,14 @@ export function DashboardGreetingClient() {
 
   return (
     <div className="relative">
-      {/* BRAND: Logo-Farben als ambient glow */}
-      <div className="absolute bg-orange-500/5 blur-[120px] w-[400px] h-[400px] rounded-full -top-32 -left-32 -z-10 pointer-events-none" />
-      <div className="absolute bg-pink-500/5 blur-[100px] w-[300px] h-[300px] rounded-full -top-20 -right-20 -z-10 pointer-events-none" />
+      {/* CLEAN: Subtle logo gradient glow */}
+      <div className="absolute bg-orange-100/50 blur-[100px] w-[300px] h-[300px] rounded-full -top-24 -left-24 -z-10 pointer-events-none" />
+      <div className="absolute bg-pink-100/50 blur-[80px] w-[250px] h-[250px] rounded-full -top-16 -right-16 -z-10 pointer-events-none" />
       
       <div className="relative z-10">
-        {/* Premium Typography mit Brand Touch */}
+        {/* Clean Typography - Dark gray für readability */}
         <h1
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-tight mb-4 md:mb-6"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 tracking-tight leading-tight mb-4 md:mb-6"
           style={{ 
             fontFamily: 'var(--font-plus-jakarta-sans), sans-serif', 
             fontWeight: 800,
@@ -56,8 +56,8 @@ export function DashboardGreetingClient() {
           {greeting}{displayName ? `, ${displayName}` : ''}
         </h1>
         
-        {/* Description mit Brand Gradient Touch */}
-        <p className="text-base md:text-lg lg:text-xl text-zinc-500 font-light tracking-wide leading-relaxed max-w-2xl">
+        {/* Description - Light gray */}
+        <p className="text-base md:text-lg lg:text-xl text-gray-600 font-normal tracking-wide leading-relaxed max-w-2xl">
           Dein Business läuft. Was optimieren wir jetzt?
         </p>
       </div>
