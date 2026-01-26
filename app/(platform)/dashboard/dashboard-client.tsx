@@ -228,97 +228,109 @@ const toolColors: Record<string, {
   hoverBorder: string;
   hoverBg: string;
   gradient?: string;
+  accentBorder: string; // Farbiger Akzent-Streifen am oberen Rand
 }> = {
   emerald: {
     bg: 'bg-white',
-    border: 'border-emerald-100',
+    border: 'border-gray-100',
     text: 'text-emerald-600',
     iconBg: 'bg-emerald-50',
-    hoverBorder: 'hover:border-emerald-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-emerald-50',
+    accentBorder: 'border-t-emerald-500',
   },
   blue: {
     bg: 'bg-white',
-    border: 'border-blue-100',
+    border: 'border-gray-100',
     text: 'text-blue-600',
     iconBg: 'bg-blue-50',
-    hoverBorder: 'hover:border-blue-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-blue-50',
+    accentBorder: 'border-t-blue-500',
   },
   green: {
     bg: 'bg-white',
-    border: 'border-green-100',
+    border: 'border-gray-100',
     text: 'text-green-600',
     iconBg: 'bg-green-50',
-    hoverBorder: 'hover:border-green-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-green-50',
+    accentBorder: 'border-t-green-500',
   },
   violet: {
     bg: 'bg-white',
-    border: 'border-violet-100',
+    border: 'border-gray-100',
     text: 'text-violet-600',
     iconBg: 'bg-violet-50',
-    hoverBorder: 'hover:border-violet-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-violet-50',
+    accentBorder: 'border-t-violet-500',
   },
   indigo: {
     bg: 'bg-white',
-    border: 'border-indigo-100',
+    border: 'border-gray-100',
     text: 'text-indigo-600',
     iconBg: 'bg-indigo-50',
-    hoverBorder: 'hover:border-indigo-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-indigo-50',
+    accentBorder: 'border-t-indigo-500',
   },
   amber: {
     bg: 'bg-white',
-    border: 'border-amber-100',
+    border: 'border-gray-100',
     text: 'text-amber-600',
     iconBg: 'bg-amber-50',
-    hoverBorder: 'hover:border-amber-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-amber-50',
+    accentBorder: 'border-t-amber-500',
   },
   cyan: {
     bg: 'bg-white',
-    border: 'border-cyan-100',
+    border: 'border-gray-100',
     text: 'text-cyan-600',
     iconBg: 'bg-cyan-50',
-    hoverBorder: 'hover:border-cyan-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-cyan-50',
+    accentBorder: 'border-t-cyan-500',
   },
   orange: {
     bg: 'bg-white',
-    border: 'border-orange-100',
+    border: 'border-gray-100',
     text: 'text-orange-600',
     iconBg: 'bg-gradient-to-br from-orange-50 to-pink-50',
-    hoverBorder: 'hover:border-orange-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-gradient-to-br hover:from-orange-50 hover:to-pink-50',
     gradient: 'from-orange-500 to-pink-500',
+    accentBorder: 'border-t-orange-500',
   },
   rose: {
     bg: 'bg-white',
-    border: 'border-rose-100',
+    border: 'border-gray-100',
     text: 'text-rose-600',
     iconBg: 'bg-gradient-to-br from-pink-50 to-rose-50',
-    hoverBorder: 'hover:border-rose-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50',
     gradient: 'from-pink-500 to-rose-500',
+    accentBorder: 'border-t-rose-500',
   },
   slate: {
     bg: 'bg-white',
     border: 'border-gray-100',
     text: 'text-gray-600',
     iconBg: 'bg-gray-50',
-    hoverBorder: 'hover:border-gray-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-gray-50',
+    accentBorder: 'border-t-gray-500',
   },
   pink: {
     bg: 'bg-white',
-    border: 'border-pink-100',
+    border: 'border-gray-100',
     text: 'text-pink-600',
     iconBg: 'bg-gradient-to-br from-pink-50 to-orange-50',
-    hoverBorder: 'hover:border-pink-300',
+    hoverBorder: 'hover:border-gray-200',
     hoverBg: 'hover:bg-gradient-to-br hover:from-pink-50 hover:to-orange-50',
     gradient: 'from-pink-500 to-orange-500',
+    accentBorder: 'border-t-pink-500',
   },
 };
 
@@ -598,20 +610,23 @@ export default function DashboardClient() {
                     // MODERN HOVER: Leichtes Anheben auf Desktop (nur md+)
                     'md:hover:-translate-y-2',
                     colors.bg,
-                    colors.border,
+                    // Neutral border (hellgrau)
+                    'border-gray-100',
                     colors.hoverBorder,
                     colors.hoverBg,
+                    // PREMIUM DEPTH: Farbiger Akzent-Streifen am oberen Rand (3px)
+                    colors.accentBorder,
+                    'border-t-[3px]',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    colorWeight === 'high' && 'border-2',
-                    // Base shadow
-                    'shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.02)]',
+                    // PREMIUM DEPTH: Subtiler permanenter Schatten im Ruhezustand
+                    'shadow-[0_2px_8px_rgba(0,0,0,0.05)]',
                     // MODERN HOVER: Verstärkter, weicher Schatten auf Desktop
                     'md:hover:shadow-[0_10px_20px_rgba(0,0,0,0.1),0_4px_8px_rgba(0,0,0,0.06)]',
                     colors.gradient && 'md:hover:shadow-[0_10px_20px_rgba(249,115,22,0.12),0_4px_8px_rgba(244,114,182,0.08)]',
-                    // Hero Cards: Larger padding and height
-                    'p-4 md:p-6 lg:p-8 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
+                    // PREMIUM DEPTH: Mehr inneres Padding für mehr Weißraum
+                    'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
 
                   const content = (
@@ -753,22 +768,25 @@ export default function DashboardClient() {
                     // MODERN HOVER: Leichtes Anheben auf Desktop (nur md+)
                     'md:hover:-translate-y-2',
                     colors.bg,
-                    colors.border,
+                    // Neutral border (hellgrau)
+                    'border-gray-100',
                     colors.hoverBorder,
                     colors.hoverBg,
+                    // PREMIUM DEPTH: Farbiger Akzent-Streifen am oberen Rand (3px)
+                    colors.accentBorder,
+                    'border-t-[3px]',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    colorWeight === 'high' && 'border-2',
-                    // Base shadow
-                    'shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.02)]',
+                    // PREMIUM DEPTH: Subtiler permanenter Schatten im Ruhezustand
+                    'shadow-[0_2px_8px_rgba(0,0,0,0.05)]',
                     // MODERN HOVER: Verstärkter, weicher Schatten auf Desktop
                     'md:hover:shadow-[0_10px_20px_rgba(0,0,0,0.1),0_4px_8px_rgba(0,0,0,0.06)]',
                     colors.gradient && 'md:hover:shadow-[0_10px_20px_rgba(249,115,22,0.12),0_4px_8px_rgba(244,114,182,0.08)]',
-                    // MOBILE: Compact height for 2-column layout, Desktop: Full heights
-                    isLarge ? 'p-3 md:p-6 lg:p-8 h-[100px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
-                    isSmall ? 'p-2.5 md:p-4 lg:p-5 h-[90px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
-                    'p-3 md:p-5 lg:p-6 h-[100px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
+                    // PREMIUM DEPTH: Mehr inneres Padding für mehr Weißraum
+                    isLarge ? 'p-4 md:p-7 lg:p-10 h-[100px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
+                    isSmall ? 'p-3 md:p-5 lg:p-7 h-[90px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
+                    'p-4 md:p-6 lg:p-8 h-[100px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
                   );
 
                   const content = (
