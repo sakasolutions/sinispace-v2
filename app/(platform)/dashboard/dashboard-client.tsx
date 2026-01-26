@@ -595,16 +595,10 @@ export default function DashboardClient() {
                   const desktopRowSpan = 'lg:row-span-2';
                   const colorWeight = colors.gradient ? 'high' : 'medium';
 
-                  // Smooth entrance animation (nur opacity, transform wird von card-float übernommen)
-                  const animationDelay = `${index * 0.1}s`;
-                  const animationStyle = {
-                    animation: `fade-in 0.6s ease-out ${animationDelay} both`,
-                    opacity: 0,
-                  };
-
-                  // FLOATING ANIMATION: Random Delays für organischen, wellenartigen Effekt
-                  // Card 1: 0s, Card 2: 1.5s, Card 3: 0.8s, Card 4: 2.2s
-                  const staggerDelays = [0, 1.5, 0.8, 2.2];
+                  // FLOATING ANIMATION: Negative Delays für sofortigen, asynchronen Start
+                  // Card 1: 0s, Card 2: -1s, Card 3: -2.5s, Card 4: -1.5s
+                  // Negative Delays starten die Animation sofort an verschiedenen Punkten im Zyklus
+                  const staggerDelays = [0, -1, -2.5, -1.5];
                   const floatDelay = staggerDelays[index] || 0;
                   
                   const cardClassName = cn(
@@ -632,7 +626,7 @@ export default function DashboardClient() {
                     'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
                   
-                  // Animation delay als inline style (wichtig: direkt im HTML/JSX)
+                  // Animation delay als inline style (negative Werte für sofortigen, asynchronen Start)
                   const floatAnimationStyle = {
                     animationDelay: `${floatDelay}s`,
                   };
@@ -708,7 +702,7 @@ export default function DashboardClient() {
                       key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
-                      style={{ ...animationStyle, ...floatAnimationStyle }}
+                      style={floatAnimationStyle}
                       onClick={async () => {
                         triggerHaptic('light');
                         // Track tool usage
@@ -728,7 +722,7 @@ export default function DashboardClient() {
                     <div 
                       key={tool.id} 
                       className={cardClassName}
-                      style={{ ...animationStyle, ...floatAnimationStyle }}
+                      style={floatAnimationStyle}
                     >
                       {content}
                     </div>

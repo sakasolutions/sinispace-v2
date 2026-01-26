@@ -163,20 +163,17 @@
   }
 
   /* CONTINUOUS FLOATING ANIMATION: Idle Animation für Hero Cards - Direkt via CSS */
-  @keyframes floating {
-    0% { 
+  @keyframes float {
+    0%, 100% { 
       transform: translateY(0px); 
     }
     50% { 
-      transform: translateY(-10px); 
-    }
-    100% { 
-      transform: translateY(0px); 
+      transform: translateY(-8px); 
     }
   }
 
   .floating-card {
-    animation: floating 3s ease-in-out infinite;
+    animation: float 4s ease-in-out infinite;
     will-change: transform; /* Erzwingt Hardware-Beschleunigung */
   }
 
