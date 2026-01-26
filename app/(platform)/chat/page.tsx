@@ -529,91 +529,96 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* NACHRICHTEN BEREICH - Nutzt verfügbaren Platz optimal */}
-      {/* Mobile: Extra Padding unten für Input-Feld über Bottom Nav (5rem Nav + 8rem Input-Bereich + Safe Area) */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-4">
-        {messages.length === 0 && (
-          <div className="flex h-full flex-col items-center justify-center text-zinc-400 opacity-50">
-            <span className="text-5xl sm:text-6xl mb-4">💬</span>
-            <p className="text-lg font-medium">Ich bin bereit.</p>
-          </div>
-        )}
+      {/* NACHRICHTEN BEREICH - Modern KI-Assistant Design (Gemini/Claude Style) */}
+      {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten */}
+      <div className="flex-1 overflow-y-auto scroll-smooth pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-32">
+        {/* Central Container: Begrenzte Breite, zentriert */}
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
+          {messages.length === 0 && (
+            <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-zinc-400 opacity-50">
+              <span className="text-5xl sm:text-6xl mb-4">💬</span>
+              <p className="text-lg font-medium">Ich bin bereit.</p>
+            </div>
+          )}
 
-        {messages.map((msg, i) => (
-          <div key={i} className="w-full">
-            <div
-              className={`flex w-full gap-2 sm:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              {/* AI Avatar */}
-              {msg.role === 'assistant' && (
-                <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white mt-1 overflow-hidden">
-                  <Image 
-                    src="/assets/logos/logo.webp" 
-                    alt="Sinispace Logo" 
-                    width={32}
-                    height={32}
-                    className="object-contain p-1.5" 
+          {messages.map((msg, i) => (
+            <div key={i} className="w-full">
+              <div
+                className={`flex w-full gap-3 md:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {/* AI Avatar - Immer sichtbar auf Desktop */}
+                {msg.role === 'assistant' && (
+                  <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white mt-1 overflow-hidden">
+                    <Image 
+                      src="/assets/logos/logo.webp" 
+                      alt="Sinispace Logo" 
+                      width={32}
+                      height={32}
+                      className="object-contain p-1.5" 
+                    />
+                  </div>
+                )}
+
+                {/* Chat Bubble - Modern KI-Assistant Style */}
+                <div
+                  className={`group relative max-w-[85%] sm:max-w-[80%] md:max-w-[75%] rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4 shadow-sm ${
+                    msg.role === 'user'
+                      ? 'bg-zinc-800/90 backdrop-blur-sm text-white rounded-br-sm border border-white/10'
+                      : 'bg-white/5 backdrop-blur-sm border border-white/10 rounded-bl-sm text-zinc-100' // AI-Bubble: Sehr subtil, modern
+                  }`}
+                >
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <CopyButton text={msg.content} variant="icon" size="md" />
+                  </div>
+                  {msg.role === 'assistant' ? (
+                    // Perfektes Markdown-Rendering wie ChatGPT/Gemini
+                    <div className="prose prose-invert prose-sm md:prose-base max-w-none">
+                      <MarkdownRenderer content={msg.content} />
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap break-words text-white text-sm md:text-base leading-relaxed">{msg.content}</p>
+                  )}
+                </div>
+
+                {/* User Avatar - Immer sichtbar auf Desktop */}
+                {msg.role === 'user' && (
+                  <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 text-xs font-semibold text-white border border-white/10 mt-1">
+                    DU
+                  </div>
+                )}
+              </div>
+              {/* Suggested Actions - Nur bei der letzten AI-Nachricht */}
+              {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
+                <div className="ml-0 md:ml-12 mt-4">
+                  <SuggestedActions 
+                    content={msg.content} 
+                    onActionClick={(prompt) => sendMessage(prompt)}
                   />
                 </div>
               )}
-
-              {/* Chat Bubble */}
-              <div
-                className={`group relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 shadow-sm ${
-                  msg.role === 'user'
-                    ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
-                    : 'bg-zinc-900/30 backdrop-blur-sm border border-white/10 rounded-bl-none' // AI-Bubble: Transparenter für besseren Kontrast
-                }`}
-              >
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <CopyButton text={msg.content} variant="icon" size="md" />
-                </div>
-                {msg.role === 'assistant' ? (
-                  // Perfektes Markdown-Rendering wie ChatGPT/Gemini
-                  <MarkdownRenderer content={msg.content} />
-                ) : (
-                  <p className="whitespace-pre-wrap break-words text-white text-sm leading-6">{msg.content}</p>
-                )}
-              </div>
-
-              {/* User Avatar */}
-              {msg.role === 'user' && (
-                <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-800/50 text-xs font-bold text-zinc-300 border border-white/10 mt-1">
-                  DU
-                </div>
-              )}
             </div>
-            {/* Suggested Actions - Nur bei der letzten AI-Nachricht */}
-            {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
-              <div className="ml-0 md:ml-10 mt-3">
-                <SuggestedActions 
-                  content={msg.content} 
-                  onActionClick={(prompt) => sendMessage(prompt)}
-                />
-              </div>
-            )}
-          </div>
-        ))}
-        
-        {isLoading && (
-          <div className="flex w-full gap-4 justify-start">
-             <div className="hidden md:flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white overflow-hidden">
-               <Image 
-                 src="/assets/logos/logo.webp" 
-                 alt="Sinispace Logo" 
-                 width={32}
-                 height={32}
-                 className="object-contain p-1.5" 
-               />
-             </div>
-             <div className="flex items-center space-x-1 rounded-2xl bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl border border-white/10 px-4 py-3 shadow-sm">
-               <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]"></div>
-               <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></div>
-               <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"></div>
-             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} className="h-1" />
+          ))}
+          
+          {isLoading && (
+            <div className="flex w-full gap-4 justify-start">
+               <div className="hidden md:flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white overflow-hidden">
+                 <Image 
+                   src="/assets/logos/logo.webp" 
+                   alt="Sinispace Logo" 
+                   width={32}
+                   height={32}
+                   className="object-contain p-1.5" 
+                 />
+               </div>
+               <div className="flex items-center space-x-1.5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-3 shadow-sm">
+                 <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]"></div>
+                 <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></div>
+                 <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"></div>
+               </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} className="h-1" />
+        </div>
       </div>
 
       {/* INPUT BEREICH - Fixed für Mobile, damit Tastatur nicht darüber liegt */}
