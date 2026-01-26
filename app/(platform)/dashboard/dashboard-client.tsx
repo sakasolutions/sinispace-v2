@@ -439,7 +439,7 @@ export default function DashboardClient() {
               placeholder="Suche nach Tools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/90 backdrop-blur-md border border-gray-200/80 text-gray-900 placeholder:text-gray-400 rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all duration-500 text-base font-medium tracking-wide shadow-multi hover:shadow-brand-orange focus:shadow-brand-orange"
+              className="w-full bg-white/90 backdrop-blur-md border border-gray-200/80 text-gray-900 placeholder:text-gray-400 rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] text-base font-medium tracking-wide shadow-stack-base hover:shadow-stack-hover focus:shadow-brand-orange"
             />
             {/* PREMIUM: Subtle Glow on Focus */}
             <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-pink-500/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none -z-10 blur-xl" />
@@ -487,10 +487,11 @@ export default function DashboardClient() {
                 }}
                 className={cn(
                   'px-5 py-2.5 rounded-full text-sm font-medium tracking-wide transition-all duration-500 whitespace-nowrap',
+                  'ease-[cubic-bezier(0.16,1,0.3,1)]',
                   'active:scale-95',
                   selectedCategory === cat
                     ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border-0 shadow-brand-orange scale-105'
-                    : 'bg-white/90 backdrop-blur-sm text-gray-600 border border-gray-200/80 hover:text-gray-900 hover:border-gray-300 hover:scale-102 shadow-multi hover:shadow-brand-orange'
+                    : 'bg-white/90 backdrop-blur-sm text-gray-600 border border-gray-200/80 hover:text-gray-900 hover:border-gray-300 hover:scale-102 shadow-stack-base hover:shadow-brand-orange'
                 )}
                 style={{
                   animation: `fade-in-up 0.4s ease-out ${index * 0.1}s both`,
@@ -527,19 +528,24 @@ export default function DashboardClient() {
 
                 const cardClassName = cn(
                   'group relative rounded-2xl border overflow-hidden',
-                  'transition-all duration-500 ease-out',
-                  'hover:-translate-y-2 hover:scale-[1.01]',
+                  // PREMIUM: Material Physics - Natural Easing Curves
+                  'transition-all duration-500',
+                  'ease-[cubic-bezier(0.16,1,0.3,1)]', // Natural, smooth easing
+                  // FIXED: Reduced hover transform (war zu stark)
+                  'hover:-translate-y-1 hover:scale-[1.005]',
                   colors.bg,
                   colors.border,
                   colors.hoverBorder,
                   colors.hoverBg,
                   tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                   staggeredClass,
-                  // PREMIUM: Multi-Layer Shadow System (ambient, penumbra, contact)
-                  'shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_8px_rgba(0,0,0,0.06),0_8px_16px_rgba(0,0,0,0.04)]',
-                  'hover:shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.08),0_16px_32px_rgba(0,0,0,0.12)]',
-                  // PREMIUM: Colored shadows mit logo-colors
-                  colors.gradient && 'hover:shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(249,115,22,0.12),0_16px_32px_rgba(244,114,182,0.15)]',
+                  // PREMIUM: Advanced Shadow Stacks - Multiple Layers mit different blur/spread
+                  // Base: Ambient (soft, wide), Penumbra (medium), Contact (sharp, close)
+                  'shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.03)]',
+                  // Hover: Enhanced shadows mit realistic lift
+                  'hover:shadow-[0_2px_2px_rgba(0,0,0,0.03),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06),0_16px_32px_rgba(0,0,0,0.08)]',
+                  // PREMIUM: Colored shadows in brand colors (pink/orange tints)
+                  colors.gradient && 'hover:shadow-[0_2px_2px_rgba(0,0,0,0.03),0_4px_8px_rgba(249,115,22,0.08),0_8px_16px_rgba(244,114,182,0.1),0_16px_32px_rgba(249,115,22,0.12)]',
                   // Size-based padding - Golden ratio spacing
                   isLarge ? 'p-10 md:p-12 min-h-[300px] md:min-h-[360px]' : 
                   isSmall ? 'p-6 md:p-7 min-h-[200px]' : 
@@ -548,12 +554,25 @@ export default function DashboardClient() {
 
                 const content = (
                   <>
-                    {/* PREMIUM: Advanced Material Layers - Glassmorphism Background */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/60 via-white/40 to-transparent backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    {/* PREMIUM: Advanced Material Layers - Layered Glassmorphism */}
+                    {/* Layer 1: Base Glassmorphism - Light blur */}
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/50 via-white/30 to-transparent backdrop-blur-[8px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    
+                    {/* Layer 2: Medium Glassmorphism - Medium blur für depth */}
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/40 via-transparent to-white/20 backdrop-blur-[12px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-75 pointer-events-none" />
+                    
+                    {/* PREMIUM: Glass-Edge Border Gradient */}
+                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+                      maskImage: 'linear-gradient(to bottom right, black 0%, transparent 60%)',
+                      WebkitMaskImage: 'linear-gradient(to bottom right, black 0%, transparent 60%)',
+                      border: '1px solid',
+                      borderImage: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, transparent 100%) 1',
+                    }} />
                     
                     {/* PREMIUM: Subtle Texture Overlay für Tactile Feeling */}
                     <div 
-                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500 pointer-events-none"
+                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-[0.02] transition-opacity duration-500 pointer-events-none"
                       style={{
                         backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
                         backgroundSize: '50px 50px'
@@ -590,23 +609,26 @@ export default function DashboardClient() {
                       </>
                     )}
 
-                    {/* PREMIUM: Icon Container - Physics-Based Feedback */}
+                    {/* PREMIUM: Icon Container - Material Physics mit Glassmorphism */}
                     <div className="mb-6 md:mb-8">
                       <div className={cn(
                         'inline-flex items-center justify-center rounded-xl border transition-all duration-500',
-                        'group-hover:scale-110 group-active:scale-95',
+                        'ease-[cubic-bezier(0.34,1.56,0.64,1)]', // Bouncy, natural easing
+                        'group-hover:scale-105 group-active:scale-95', // FIXED: Reduced scale
                         colors.iconBg,
                         colors.border,
                         isLarge ? 'w-16 h-16 md:w-18 md:h-18' : isSmall ? 'w-13 h-13' : 'w-14 h-14 md:w-16 md:h-16',
-                        // PREMIUM: Multi-layer shadows für icon
-                        'shadow-[0_1px_2px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.03)]',
-                        'group-hover:shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_8px_rgba(0,0,0,0.06)]',
-                        colors.gradient && 'group-hover:shadow-[0_2px_4px_rgba(249,115,22,0.15),0_4px_8px_rgba(244,114,182,0.12)]',
-                        colors.gradient && 'group-hover:border-orange-300'
+                        // PREMIUM: Advanced Shadow Stacks für icon
+                        'shadow-[0_1px_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.02)]',
+                        'group-hover:shadow-[0_2px_2px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)]',
+                        colors.gradient && 'group-hover:shadow-[0_2px_2px_rgba(249,115,22,0.1),0_4px_8px_rgba(244,114,182,0.08),0_8px_16px_rgba(249,115,22,0.1)]',
+                        colors.gradient && 'group-hover:border-orange-300',
+                        // PREMIUM: Glassmorphism Layer für Icon Container
+                        'backdrop-blur-sm group-hover:backdrop-blur-md'
                       )}>
                         <Icon className={cn(
                           colors.text,
-                          'transition-transform duration-500 group-hover:scale-110',
+                          'transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-105',
                           isLarge ? 'w-8 h-8 md:w-9 md:h-9' : isSmall ? 'w-6 h-6' : 'w-7 h-7 md:w-8 md:h-8'
                         )} />
                       </div>
@@ -638,23 +660,27 @@ export default function DashboardClient() {
                       {tool.description}
                     </p>
 
-                    {/* PREMIUM: Arrow Indicator - Interactive Feedback mit Haptic-Style */}
+                    {/* PREMIUM: Arrow Indicator - Material Physics mit Glassmorphism */}
                     {tool.available && (
                       <div className="absolute top-6 right-6 md:top-8 md:right-8">
                         <div className={cn(
                           'w-9 h-9 rounded-lg flex items-center justify-center',
                           'bg-white/90 backdrop-blur-md border border-gray-200/80',
                           'group-hover:bg-gradient-to-br group-hover:border-orange-300 transition-all duration-500',
+                          'ease-[cubic-bezier(0.34,1.56,0.64,1)]',
                           'group-active:scale-90',
-                          // PREMIUM: Multi-layer shadows
-                          'shadow-[0_1px_2px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.03)]',
-                          'group-hover:shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_8px_rgba(249,115,22,0.2)]',
+                          // PREMIUM: Advanced Shadow Stacks
+                          'shadow-[0_1px_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.02)]',
+                          'group-hover:shadow-[0_2px_2px_rgba(0,0,0,0.04),0_4px_8px_rgba(249,115,22,0.15),0_8px_16px_rgba(244,114,182,0.12)]',
                           colors.gradient && `group-hover:bg-gradient-to-br group-hover:${colors.gradient}`,
-                          colors.gradient && 'group-hover:animate-glow-pulse'
+                          colors.gradient && 'group-hover:animate-glow-pulse',
+                          // PREMIUM: Glass-Edge Effect
+                          'group-hover:glass-edge-brand'
                         )}>
                           <ArrowUpRight className={cn(
                             'w-4 h-4 text-gray-400 group-hover:text-white transition-all duration-500',
-                            'group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:scale-110'
+                            'ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+                            'group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-105'
                           )} />
                         </div>
                       </div>
@@ -678,25 +704,27 @@ export default function DashboardClient() {
                     className={cardClassName}
                     style={animationStyle}
                     onMouseEnter={(e) => {
-                      // PREMIUM: Real-time Responsiveness - Parallax Effect
+                      // PREMIUM: Material Physics - Realistic Lift
                       const card = e.currentTarget;
-                      card.style.transform = 'translateY(-8px) scale(1.02)';
+                      card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                      card.style.transform = 'translateY(-4px) scale(1.005)';
                     }}
                     onMouseMove={(e) => {
-                      // PREMIUM: Contextual Micro-Animation - Follow Mouse
+                      // PREMIUM: Subtle Parallax - Follow Mouse (reduced movement)
                       const card = e.currentTarget;
                       const rect = card.getBoundingClientRect();
                       const x = e.clientX - rect.left;
                       const y = e.clientY - rect.top;
                       const centerX = rect.width / 2;
                       const centerY = rect.height / 2;
-                      const moveX = (x - centerX) / 20;
-                      const moveY = (y - centerY) / 20;
-                      card.style.transform = `translateY(-8px) scale(1.02) translate(${moveX}px, ${moveY}px)`;
+                      const moveX = (x - centerX) / 40; // FIXED: Reduced parallax (war zu stark)
+                      const moveY = (y - centerY) / 40;
+                      card.style.transform = `translateY(-4px) scale(1.005) translate(${moveX}px, ${moveY}px)`;
                     }}
                     onMouseLeave={(e) => {
-                      // PREMIUM: Physics-Based Return
+                      // PREMIUM: Physics-Based Return - Natural easing
                       const card = e.currentTarget;
+                      card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
                       card.style.transform = '';
                     }}
                   >
