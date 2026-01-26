@@ -504,11 +504,16 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        {/* PREMIUM LAYOUT - Floating Cards mit Depth & Polish */}
+        {/* PREMIUM LAYOUT - Intentional Asymmetry mit Masonry Grid */}
         {filteredTools.length > 0 ? (
           <div className="space-y-4 md:space-y-8 lg:space-y-12">
-            {/* MOBILE: 2x2 Grid für kompakte Cards, Desktop: Golden Ratio Spacing */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-8 lg:gap-12">
+            {/* MOBILE: 2x2 Grid, Desktop: Masonry Grid System mit Golden Ratio */}
+            <div 
+              className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 lg:gap-8"
+              style={{
+                gridAutoRows: 'minmax(auto, auto)',
+              }}
+            >
               {filteredTools.map((tool, index) => {
                 const Icon = tool.icon;
                 const colors = toolColors[tool.color] || toolColors.blue;
@@ -516,8 +521,18 @@ export default function DashboardClient() {
                 const isLarge = size === 'large';
                 const isSmall = size === 'small';
 
-                // Staggered positioning - MOBILE: None (2x2 grid), Desktop: Staggered
-                const staggeredClass = index % 3 === 1 ? 'md:mt-8 lg:mt-12' : index % 3 === 2 ? 'md:mt-4 lg:mt-6' : '';
+                // PREMIUM: Hierarchical Card Sizing - Golden Ratio Proportions
+                // Large: 1.618 ratio (Fibonacci), Medium: 1.414 ratio (√2), Small: 1.0 ratio (square)
+                const goldenRatio = 1.618;
+                const rootTwo = 1.414;
+                
+                // Desktop: Masonry Grid - Cards "settle" naturally
+                // Large Cards: span 2 columns, Medium: span 1, Small: span 1
+                const desktopColSpan = isLarge ? 'lg:col-span-2' : 'lg:col-span-1';
+                const desktopRowSpan = isLarge ? 'lg:row-span-2' : 'lg:row-span-1';
+                
+                // Visual Balance: Color-weight distribution
+                const colorWeight = colors.gradient ? 'high' : 'medium';
 
                 // PREMIUM: Staggered Entrance Animation
                 const animationDelay = `${index * 0.1}s`;
@@ -531,25 +546,31 @@ export default function DashboardClient() {
                   // PREMIUM: Material Physics - Natural Easing Curves
                   'transition-all duration-500',
                   'ease-[cubic-bezier(0.16,1,0.3,1)]', // Natural, smooth easing
-                  // FIXED: Reduced hover transform (war zu stark)
-                  'hover:-translate-y-1 hover:scale-[1.005]',
+                  // PREMIUM: Subtle lift animations - neighboring cards react
+                  'hover:-translate-y-2 hover:scale-[1.01]',
+                  'hover:z-20', // Lift above neighbors
                   colors.bg,
                   colors.border,
                   colors.hoverBorder,
                   colors.hoverBg,
                   tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
-                  // MOBILE: Remove staggered on mobile (2x2 grid), Desktop: Keep staggered
-                  staggeredClass,
-                  // PREMIUM: Advanced Shadow Stacks - Multiple Layers mit different blur/spread
-                  'shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.03)]',
+                  // PREMIUM: Masonry Grid System - Cards settle naturally
+                  desktopColSpan,
+                  desktopRowSpan,
+                  // PREMIUM: Visual Balance - Color-weight distribution
+                  colorWeight === 'high' && 'border-2',
+                  colorWeight === 'high' && 'shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(249,115,22,0.03)]',
+                  colorWeight === 'medium' && 'shadow-[0_1px_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.03)]',
                   // Hover: Enhanced shadows mit realistic lift
                   'hover:shadow-[0_2px_2px_rgba(0,0,0,0.03),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06),0_16px_32px_rgba(0,0,0,0.08)]',
                   // PREMIUM: Colored shadows in brand colors (pink/orange tints)
                   colors.gradient && 'hover:shadow-[0_2px_2px_rgba(0,0,0,0.03),0_4px_8px_rgba(249,115,22,0.08),0_8px_16px_rgba(244,114,182,0.1),0_16px_32px_rgba(249,115,22,0.12)]',
-                  // MOBILE: Kompakte Card-Höhen (max-height: 140px), Desktop: Golden ratio spacing
-                  isLarge ? 'p-4 md:p-10 lg:p-12 h-[140px] md:min-h-[300px] lg:min-h-[360px]' : 
-                  isSmall ? 'p-3 md:p-6 lg:p-7 h-[140px] md:min-h-[200px]' : 
-                  'p-4 md:p-8 lg:p-10 h-[140px] md:min-h-[240px] lg:min-h-[280px]'
+                  // PREMIUM: Golden Ratio Proportions - Mathematical harmony
+                  // MOBILE: Kompakte Card-Höhen (140px)
+                  // Desktop: Large = 1.618 ratio (480px), Medium = 1.414 ratio (360px), Small = 1.0 ratio (280px)
+                  isLarge ? 'p-4 md:p-10 lg:p-12 h-[140px] md:h-auto md:min-h-[400px] lg:min-h-[480px]' : 
+                  isSmall ? 'p-3 md:p-6 lg:p-7 h-[140px] md:h-auto md:min-h-[240px] lg:min-h-[280px]' : 
+                  'p-4 md:p-8 lg:p-10 h-[140px] md:h-auto md:min-h-[320px] lg:min-h-[360px]'
                 );
 
                 const content = (
@@ -725,7 +746,16 @@ export default function DashboardClient() {
                       // PREMIUM: Material Physics - Realistic Lift
                       const card = e.currentTarget;
                       card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                      card.style.transform = 'translateY(-4px) scale(1.005)';
+                      card.style.transform = 'translateY(-8px) scale(1.01)';
+                      
+                      // PREMIUM: Neighboring Cards React - Organic, Interconnected Feeling
+                      const siblings = Array.from(card.parentElement?.children || []) as HTMLElement[];
+                      siblings.forEach((sibling) => {
+                        if (sibling !== card && sibling.classList.contains('group')) {
+                          sibling.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                          sibling.style.transform = 'translateY(-2px) scale(1.002)';
+                        }
+                      });
                     }}
                     onMouseMove={(e) => {
                       // PREMIUM: Subtle Parallax - Follow Mouse (reduced movement)
@@ -735,15 +765,24 @@ export default function DashboardClient() {
                       const y = e.clientY - rect.top;
                       const centerX = rect.width / 2;
                       const centerY = rect.height / 2;
-                      const moveX = (x - centerX) / 40; // FIXED: Reduced parallax (war zu stark)
-                      const moveY = (y - centerY) / 40;
-                      card.style.transform = `translateY(-4px) scale(1.005) translate(${moveX}px, ${moveY}px)`;
+                      const moveX = (x - centerX) / 50; // Further reduced for subtlety
+                      const moveY = (y - centerY) / 50;
+                      card.style.transform = `translateY(-8px) scale(1.01) translate(${moveX}px, ${moveY}px)`;
                     }}
                     onMouseLeave={(e) => {
                       // PREMIUM: Physics-Based Return - Natural easing
                       const card = e.currentTarget;
                       card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
                       card.style.transform = '';
+                      
+                      // PREMIUM: Neighboring Cards Return
+                      const siblings = Array.from(card.parentElement?.children || []) as HTMLElement[];
+                      siblings.forEach((sibling) => {
+                        if (sibling !== card && sibling.classList.contains('group')) {
+                          sibling.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                          sibling.style.transform = '';
+                        }
+                      });
                     }}
                   >
                     {content}
