@@ -608,25 +608,19 @@ export default function DashboardClient() {
                   const toolStats = usageStats[tool.id];
                   const isTrending = toolStats?.isTrending || false;
                   
-                  // Hero Cards: Always large (2x2)
+                  // PRIMARY CARDS: Hero Cards (Top 4) - Visuell priorisiert
                   const desktopColSpan = 'lg:col-span-2';
                   const desktopRowSpan = 'lg:row-span-2';
-                  const colorWeight = colors.gradient ? 'high' : 'medium';
-
-                  // FLOATING ANIMATION: Negative Delays für sofortigen, asynchronen Start
-                  // Card 1: 0s, Card 2: -1s, Card 3: -2.5s, Card 4: -1.5s
-                  // Negative Delays starten die Animation sofort an verschiedenen Punkten im Zyklus
-                  const staggerDelays = [0, -1, -2.5, -1.5];
-                  const floatDelay = staggerDelays[index] || 0;
+                  const isHeroCard = index === 0; // Wichtigste Card (Index 0) bekommt Ambient-Glow
                   
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
-                    // FLOATING ANIMATION: Direkt via CSS-Klasse (keine Tailwind-Konflikte)
-                    'floating-card',
-                    // Smooth transition nur für shadow (transform wird von CSS-Animation übernommen)
-                    'transition-shadow duration-300 ease',
-                    // PREMIUM HIGH-FIDELITY: Border reduziert auf 0.5px und transparenter (30% Opacity)
+                    // ELEVATION SYSTEM: Primary Cards mit höherer Elevation
+                    isHeroCard ? 'card-elevation-primary-hero' : 'card-elevation-primary',
+                    // Smooth transitions für Hover-States
+                    'transition-all duration-200 ease-out',
+                    // Border: Subtiler, transparenter Rahmen
                     colors.border,
                     'border-[0.5px]',
                     'opacity-30',
@@ -640,30 +634,13 @@ export default function DashboardClient() {
                     'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
                   
-                  // PREMIUM HIGH-FIDELITY: Dynamische Akzentfarbe für Schatten und Gradient
+                  // Rich Surface: Subtiler Gradient (Lichtquelle oben links)
                   const accentRGB = getAccentColorRGB(colors.accentColor);
+                  const surfaceGradient = `linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%)`;
                   
-                  // Ambient Colored Glow: Dynamischer Schatten basierend auf Akzentfarbe
-                  const ambientShadow = `0 15px 35px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.15), 0 10px 10px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.04)`;
-                  const ambientShadowHover = `0 20px 40px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.2), 0 15px 15px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.06)`;
-                  
-                  // Rich Surface: Subtiler Gradient von Weiß zu sehr hellem Pastell der Akzentfarbe
-                  const surfaceGradient = `linear-gradient(to bottom right, #ffffff, rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.03))`;
-                  
-                  // Animation delay als inline style (negative Werte für sofortigen, asynchronen Start)
-                  const floatAnimationStyle = {
-                    animationDelay: `${floatDelay}s`,
-                  };
-                  
-                  // Premium Card Styles: Dynamischer Schatten + Gradient
-                  const premiumCardStyle = {
-                    ...floatAnimationStyle,
+                  // Card Styles: Gradient im Background
+                  const cardStyle = {
                     background: surfaceGradient,
-                    boxShadow: ambientShadow,
-                  };
-                  
-                  const premiumCardStyleHover = {
-                    boxShadow: ambientShadowHover,
                   };
 
                   const content = (
@@ -757,7 +734,7 @@ export default function DashboardClient() {
                     <div 
                       key={tool.id} 
                       className={cardClassName}
-                      style={premiumCardStyle}
+                      style={cardStyle}
                     >
                       {content}
                     </div>
@@ -790,36 +767,15 @@ export default function DashboardClient() {
                   // Visual Balance: Color-weight distribution
                   const colorWeight = colors.gradient ? 'high' : 'medium';
 
-                  // PREMIUM HIGH-FIDELITY: Dynamische Akzentfarbe für Schatten und Gradient (wie Hero Cards)
-                  const accentRGB = getAccentColorRGB(colors.accentColor);
-                  
-                  // Ambient Colored Glow: Dynamischer Schatten basierend auf Akzentfarbe
-                  const ambientShadow = `0 15px 35px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.15), 0 10px 10px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.04)`;
-                  const ambientShadowHover = `0 20px 40px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.2), 0 15px 15px -5px rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.06)`;
-                  
-                  // Rich Surface: Subtiler Gradient von Weiß zu sehr hellem Pastell der Akzentfarbe
-                  const surfaceGradient = `linear-gradient(to bottom right, #ffffff, rgba(${accentRGB.r}, ${accentRGB.g}, ${accentRGB.b}, 0.03))`;
-                  
-                  // Premium Card Styles: Dynamischer Schatten + Gradient
-                  const premiumCardStyle = {
-                    background: surfaceGradient,
-                    boxShadow: ambientShadow,
-                  };
-                  
-                  const premiumCardStyleHover = {
-                    boxShadow: ambientShadowHover,
-                  };
-
+                  // SECONDARY CARDS: Ruhiger, flacher - Niedrigere Elevation
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
-                    // PERMANENT FLOATING: Smooth transition for transform and shadow
-                    'transition-all duration-300 ease',
-                    // PERMANENT FLOATING: Dauerhaftes Anheben im Ruhezustand
-                    '-translate-y-1',
-                    // PERMANENT FLOATING: Verstärktes Anheben beim Hover
-                    'md:hover:-translate-y-2',
-                    // PREMIUM HIGH-FIDELITY: Border reduziert auf 0.5px und transparenter (30% Opacity)
+                    // ELEVATION SYSTEM: Secondary Cards mit niedrigerer Elevation
+                    'card-elevation-secondary',
+                    // Smooth transitions für Hover-States
+                    'transition-all duration-200 ease-out',
+                    // Border: Subtiler, transparenter Rahmen
                     colors.border,
                     'border-[0.5px]',
                     'opacity-30',
@@ -834,6 +790,14 @@ export default function DashboardClient() {
                     isSmall ? 'p-3 md:p-5 lg:p-7 h-[90px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
                     'p-4 md:p-6 lg:p-8 h-[100px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
                   );
+                  
+                  // Rich Surface: Subtiler Gradient (Lichtquelle oben links)
+                  const surfaceGradient = `linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%)`;
+                  
+                  // Card Styles: Gradient im Background
+                  const cardStyle = {
+                    background: surfaceGradient,
+                  };
 
                   const content = (
                     <>
@@ -984,7 +948,7 @@ export default function DashboardClient() {
                     <div 
                       key={tool.id} 
                       className={cardClassName}
-                      style={premiumCardStyle}
+                      style={cardStyle}
                     >
                       {content}
                     </div>

@@ -162,27 +162,78 @@
     }
   }
 
-  /* CONTINUOUS FLOATING ANIMATION: Idle Animation für Hero Cards - Direkt via CSS */
-  @keyframes float {
-    0%, 100% { 
-      transform: translateY(0px); 
-    }
-    50% { 
-      transform: translateY(-8px); 
-    }
+  /* CARD ELEVATION SYSTEM: Primary (Top-Usage) vs Secondary Cards */
+  
+  /* PRIMARY CARDS: Höhere Elevation, mehr Tiefe */
+  .card-elevation-primary {
+    /* Base Elevation: Deutlicher Schatten für visuelle Priorität */
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 4px 8px rgba(0, 0, 0, 0.06),
+      0 12px 24px rgba(0, 0, 0, 0.08);
+    /* Lichtquelle oben links: Subtiler Highlight */
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(255, 255, 255, 0.95) 100%
+    );
   }
 
-  .floating-card {
-    animation: float 4s ease-in-out infinite;
-    will-change: transform; /* Erzwingt Hardware-Beschleunigung */
+  /* PRIMARY CARD HOVER: Subtile Translation + Shadow-Anpassung */
+  .card-elevation-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.05),
+      0 8px 16px rgba(0, 0, 0, 0.08),
+      0 16px 32px rgba(0, 0, 0, 0.12);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
   }
 
-  /* Pausiere Animation beim Hover und hebe Card weiter an (Desktop) */
-  @media (min-width: 768px) {
-    .floating-card:hover {
-      animation-play-state: paused;
-      transform: translateY(-12px) !important;
-    }
+  /* PRIMARY CARD FOCUS: Border-Akzentuierung für Accessibility */
+  .card-elevation-primary:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+  }
+
+  /* PRIMARY CARD - WICHTIGSTE (Index 0): Dezenter Ambient-Glow */
+  .card-elevation-primary-hero {
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 4px 8px rgba(0, 0, 0, 0.06),
+      0 12px 24px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(249, 115, 22, 0.08); /* Sehr dezenter Ambient-Glow */
+  }
+
+  .card-elevation-primary-hero:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.05),
+      0 8px 16px rgba(0, 0, 0, 0.08),
+      0 16px 32px rgba(0, 0, 0, 0.12),
+      0 0 0 1px rgba(249, 115, 22, 0.12); /* Leicht verstärkter Glow beim Hover */
+  }
+
+  /* SECONDARY CARDS: Niedrigere Elevation, ruhiger */
+  .card-elevation-secondary {
+    /* Base Elevation: Flacher, weniger dominant */
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.03),
+      0 2px 4px rgba(0, 0, 0, 0.04);
+    background: rgba(255, 255, 255, 0.98);
+  }
+
+  /* SECONDARY CARD HOVER: Minimale Translation */
+  .card-elevation-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+
+  /* SECONDARY CARD FOCUS */
+  .card-elevation-secondary:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.4);
+    outline-offset: 2px;
   }
 
   /* Smooth gradient rendering for category tabs */
