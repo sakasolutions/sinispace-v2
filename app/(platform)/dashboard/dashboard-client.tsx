@@ -430,17 +430,19 @@ export default function DashboardClient() {
           <DashboardGreetingClient />
         </div>
 
-        {/* Search Bar - Clean Design */}
+        {/* PREMIUM: Search Bar - Advanced Material Layers */}
         <div className="mb-8 md:mb-12">
           <div className="relative group max-w-2xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors duration-300 z-10" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-all duration-500 z-10 group-focus-within:scale-110" />
             <input
               type="text"
               placeholder="Suche nach Tools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all duration-300 text-base font-medium tracking-wide shadow-sm hover:shadow-md"
+              className="w-full bg-white/90 backdrop-blur-md border border-gray-200/80 text-gray-900 placeholder:text-gray-400 rounded-xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all duration-500 text-base font-medium tracking-wide shadow-multi hover:shadow-brand-orange focus:shadow-brand-orange"
             />
+            {/* PREMIUM: Subtle Glow on Focus */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/0 via-orange-500/5 to-pink-500/0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none -z-10 blur-xl" />
           </div>
         </div>
 
@@ -473,10 +475,10 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        {/* Category Tabs - Clean with Logo Gradient */}
+        {/* PREMIUM: Category Tabs - Physics-Based Feedback */}
         <div className="mb-10 md:mb-14 overflow-x-auto">
           <div className="flex gap-3 pb-2 min-w-max">
-            {categoryTabs.map((cat) => (
+            {categoryTabs.map((cat, index) => (
               <button
                 key={cat}
                 onClick={() => {
@@ -484,11 +486,16 @@ export default function DashboardClient() {
                   triggerHaptic('light');
                 }}
                 className={cn(
-                  'px-5 py-2.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 whitespace-nowrap shadow-sm',
+                  'px-5 py-2.5 rounded-full text-sm font-medium tracking-wide transition-all duration-500 whitespace-nowrap',
+                  'active:scale-95',
                   selectedCategory === cat
-                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border-0 shadow-md'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:text-gray-900 hover:border-gray-300'
+                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border-0 shadow-brand-orange scale-105'
+                    : 'bg-white/90 backdrop-blur-sm text-gray-600 border border-gray-200/80 hover:text-gray-900 hover:border-gray-300 hover:scale-102 shadow-multi hover:shadow-brand-orange'
                 )}
+                style={{
+                  animation: `fade-in-up 0.4s ease-out ${index * 0.1}s both`,
+                  opacity: 0
+                }}
               >
                 {cat}
               </button>
@@ -511,21 +518,28 @@ export default function DashboardClient() {
                 // Staggered positioning
                 const staggeredClass = index % 3 === 1 ? 'md:mt-8 lg:mt-12' : index % 3 === 2 ? 'md:mt-4 lg:mt-6' : '';
 
+                // PREMIUM: Staggered Entrance Animation
+                const animationDelay = `${index * 0.1}s`;
+                const animationStyle = {
+                  animation: `fade-in-up 0.6s ease-out ${animationDelay} both`,
+                  opacity: 0,
+                };
+
                 const cardClassName = cn(
                   'group relative rounded-2xl border overflow-hidden',
-                  'transition-all duration-300 ease-out',
-                  'hover:-translate-y-1',
+                  'transition-all duration-500 ease-out',
+                  'hover:-translate-y-2 hover:scale-[1.01]',
                   colors.bg,
                   colors.border,
                   colors.hoverBorder,
                   colors.hoverBg,
                   tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                   staggeredClass,
-                  // DEPTH: Multiple shadow layers für realistic depth
-                  'shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.04)]',
-                  'hover:shadow-[0_4px_6px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.08)]',
-                  // Logo gradient glow für hover
-                  colors.gradient && 'hover:shadow-[0_4px_6px_rgba(0,0,0,0.1),0_12px_24px_rgba(249,115,22,0.15)]',
+                  // PREMIUM: Multi-Layer Shadow System (ambient, penumbra, contact)
+                  'shadow-[0_1px_2px_rgba(0,0,0,0.04),0_2px_8px_rgba(0,0,0,0.06),0_8px_16px_rgba(0,0,0,0.04)]',
+                  'hover:shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.08),0_16px_32px_rgba(0,0,0,0.12)]',
+                  // PREMIUM: Colored shadows mit logo-colors
+                  colors.gradient && 'hover:shadow-[0_2px_4px_rgba(0,0,0,0.06),0_4px_12px_rgba(249,115,22,0.12),0_16px_32px_rgba(244,114,182,0.15)]',
                   // Size-based padding - Golden ratio spacing
                   isLarge ? 'p-10 md:p-12 min-h-[300px] md:min-h-[360px]' : 
                   isSmall ? 'p-6 md:p-7 min-h-[200px]' : 
@@ -534,40 +548,65 @@ export default function DashboardClient() {
 
                 const content = (
                   <>
-                    {/* DEPTH: Subtle border gradient */}
-                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                      <div className={cn(
-                        'absolute inset-0 rounded-2xl',
-                        colors.gradient 
-                          ? `bg-gradient-to-br ${colors.gradient} opacity-5` 
-                          : 'bg-gradient-to-br from-gray-100 to-transparent opacity-30'
-                      )} style={{ 
-                        maskImage: 'linear-gradient(to bottom right, black 0%, transparent 70%)',
-                        WebkitMaskImage: 'linear-gradient(to bottom right, black 0%, transparent 70%)'
-                      }} />
+                    {/* PREMIUM: Advanced Material Layers - Glassmorphism Background */}
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/60 via-white/40 to-transparent backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    
+                    {/* PREMIUM: Subtle Texture Overlay für Tactile Feeling */}
+                    <div 
+                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500 pointer-events-none"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                        backgroundSize: '50px 50px'
+                      }}
+                    />
+
+                    {/* PREMIUM: Light & Atmosphere - Directional Lighting */}
+                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                      {/* Top-left light source */}
+                      <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/20 to-transparent rounded-tl-2xl" />
+                      {/* Bottom-right shadow */}
+                      <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-black/5 to-transparent rounded-br-2xl" />
                     </div>
 
-                    {/* Logo Gradient Accent für bestimmte Tools - Subtle Glow */}
+                    {/* PREMIUM: Atmospheric Perspective - Subtle Color Temperature */}
+                    <div className={cn(
+                      'absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none',
+                      colors.gradient 
+                        ? `bg-gradient-to-br ${colors.gradient} opacity-[0.03]` 
+                        : 'bg-gradient-to-br from-gray-100/50 to-transparent opacity-20'
+                    )} />
+
+                    {/* PREMIUM: Logo Gradient Glow - Light Source Effect */}
                     {colors.gradient && (
-                      <div className={cn(
-                        'absolute -top-12 -right-12 w-32 h-32 rounded-full blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500',
-                        `bg-gradient-to-br ${colors.gradient}`
-                      )} />
+                      <>
+                        <div className={cn(
+                          'absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-25 transition-all duration-700',
+                          `bg-gradient-to-br ${colors.gradient}`
+                        )} />
+                        <div className={cn(
+                          'absolute -bottom-12 -left-12 w-32 h-32 rounded-full blur-2xl opacity-0 group-hover:opacity-15 transition-all duration-700 delay-100',
+                          `bg-gradient-to-br ${colors.gradient}`
+                        )} />
+                      </>
                     )}
 
-                    {/* Icon Container - Enhanced mit Glow */}
+                    {/* PREMIUM: Icon Container - Physics-Based Feedback */}
                     <div className="mb-6 md:mb-8">
                       <div className={cn(
-                        'inline-flex items-center justify-center rounded-xl border transition-all duration-300',
+                        'inline-flex items-center justify-center rounded-xl border transition-all duration-500',
+                        'group-hover:scale-110 group-active:scale-95',
                         colors.iconBg,
                         colors.border,
                         isLarge ? 'w-16 h-16 md:w-18 md:h-18' : isSmall ? 'w-13 h-13' : 'w-14 h-14 md:w-16 md:h-16',
-                        'group-hover:scale-110',
-                        'shadow-sm group-hover:shadow-md',
-                        colors.gradient && 'group-hover:border-orange-300 group-hover:shadow-orange-200/50'
+                        // PREMIUM: Multi-layer shadows für icon
+                        'shadow-[0_1px_2px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.03)]',
+                        'group-hover:shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_8px_rgba(0,0,0,0.06)]',
+                        colors.gradient && 'group-hover:shadow-[0_2px_4px_rgba(249,115,22,0.15),0_4px_8px_rgba(244,114,182,0.12)]',
+                        colors.gradient && 'group-hover:border-orange-300'
                       )}>
                         <Icon className={cn(
                           colors.text,
+                          'transition-transform duration-500 group-hover:scale-110',
                           isLarge ? 'w-8 h-8 md:w-9 md:h-9' : isSmall ? 'w-6 h-6' : 'w-7 h-7 md:w-8 md:h-8'
                         )} />
                       </div>
@@ -599,20 +638,23 @@ export default function DashboardClient() {
                       {tool.description}
                     </p>
 
-                    {/* Arrow indicator - Logo gradient mit Glow */}
+                    {/* PREMIUM: Arrow Indicator - Interactive Feedback mit Haptic-Style */}
                     {tool.available && (
                       <div className="absolute top-6 right-6 md:top-8 md:right-8">
                         <div className={cn(
                           'w-9 h-9 rounded-lg flex items-center justify-center',
-                          'bg-white/80 backdrop-blur-sm border border-gray-200',
-                          'group-hover:bg-gradient-to-br group-hover:border-orange-300 transition-all duration-300',
-                          'shadow-sm group-hover:shadow-md',
+                          'bg-white/90 backdrop-blur-md border border-gray-200/80',
+                          'group-hover:bg-gradient-to-br group-hover:border-orange-300 transition-all duration-500',
+                          'group-active:scale-90',
+                          // PREMIUM: Multi-layer shadows
+                          'shadow-[0_1px_2px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.03)]',
+                          'group-hover:shadow-[0_2px_4px_rgba(0,0,0,0.08),0_4px_8px_rgba(249,115,22,0.2)]',
                           colors.gradient && `group-hover:bg-gradient-to-br group-hover:${colors.gradient}`,
-                          colors.gradient && 'group-hover:shadow-orange-200/50'
+                          colors.gradient && 'group-hover:animate-glow-pulse'
                         )}>
                           <ArrowUpRight className={cn(
-                            'w-4 h-4 text-gray-400 group-hover:text-white transition-all duration-300',
-                            'group-hover:translate-x-0.5 group-hover:-translate-y-0.5'
+                            'w-4 h-4 text-gray-400 group-hover:text-white transition-all duration-500',
+                            'group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:scale-110'
                           )} />
                         </div>
                       </div>
@@ -630,11 +672,42 @@ export default function DashboardClient() {
                 );
 
                 return tool.available ? (
-                  <Link key={tool.id} href={tool.href} className={cardClassName}>
+                  <Link 
+                    key={tool.id} 
+                    href={tool.href} 
+                    className={cardClassName}
+                    style={animationStyle}
+                    onMouseEnter={(e) => {
+                      // PREMIUM: Real-time Responsiveness - Parallax Effect
+                      const card = e.currentTarget;
+                      card.style.transform = 'translateY(-8px) scale(1.02)';
+                    }}
+                    onMouseMove={(e) => {
+                      // PREMIUM: Contextual Micro-Animation - Follow Mouse
+                      const card = e.currentTarget;
+                      const rect = card.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const y = e.clientY - rect.top;
+                      const centerX = rect.width / 2;
+                      const centerY = rect.height / 2;
+                      const moveX = (x - centerX) / 20;
+                      const moveY = (y - centerY) / 20;
+                      card.style.transform = `translateY(-8px) scale(1.02) translate(${moveX}px, ${moveY}px)`;
+                    }}
+                    onMouseLeave={(e) => {
+                      // PREMIUM: Physics-Based Return
+                      const card = e.currentTarget;
+                      card.style.transform = '';
+                    }}
+                  >
                     {content}
                   </Link>
                 ) : (
-                  <div key={tool.id} className={cardClassName}>
+                  <div 
+                    key={tool.id} 
+                    className={cardClassName}
+                    style={animationStyle}
+                  >
                     {content}
                   </div>
                 );
