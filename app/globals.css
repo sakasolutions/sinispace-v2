@@ -113,36 +113,82 @@
   
   .shadow-multi {
     box-shadow: 
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 2px 8px rgba(0, 0, 0, 0.06),
-      0 8px 16px rgba(0, 0, 0, 0.04);
+      0 1px 1px rgba(0, 0, 0, 0.02),
+      0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 8px rgba(0, 0, 0, 0.03);
   }
   
-  /* Colored Shadow Variants */
+  /* PREMIUM: Advanced Shadow Stacks - Multiple Layers */
+  .shadow-stack-base {
+    box-shadow: 
+      0 1px 1px rgba(0, 0, 0, 0.02),
+      0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 8px rgba(0, 0, 0, 0.03);
+  }
+  
+  .shadow-stack-hover {
+    box-shadow: 
+      0 2px 2px rgba(0, 0, 0, 0.03),
+      0 4px 8px rgba(0, 0, 0, 0.05),
+      0 8px 16px rgba(0, 0, 0, 0.06),
+      0 16px 32px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Colored Shadow Variants - Brand Colors */
   .shadow-brand-orange {
     box-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.06),
-      0 4px 12px rgba(249, 115, 22, 0.12),
-      0 16px 32px rgba(244, 114, 182, 0.15);
+      0 2px 2px rgba(0, 0, 0, 0.03),
+      0 4px 8px rgba(249, 115, 22, 0.08),
+      0 8px 16px rgba(244, 114, 182, 0.1),
+      0 16px 32px rgba(249, 115, 22, 0.12);
   }
   
-  /* Glassmorphism Utilities */
+  /* Dynamic Shadows based on z-index layers */
+  .shadow-layer-1 {
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.02);
+  }
+  
+  .shadow-layer-2 {
+    box-shadow: 
+      0 1px 1px rgba(0, 0, 0, 0.02),
+      0 2px 4px rgba(0, 0, 0, 0.04);
+  }
+  
+  .shadow-layer-3 {
+    box-shadow: 
+      0 1px 1px rgba(0, 0, 0, 0.02),
+      0 2px 4px rgba(0, 0, 0, 0.04),
+      0 4px 8px rgba(0, 0, 0, 0.03);
+  }
+  
+  /* PREMIUM: Glassmorphism Utilities - Layered Transparency */
   .glass-light {
     background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
   
   .glass-medium {
     background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
   
   .glass-heavy {
     background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  
+  /* PREMIUM: Glass-Edge Border Gradients */
+  .glass-edge {
+    border: 1px solid;
+    border-image: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, transparent 100%) 1;
+  }
+  
+  .glass-edge-brand {
+    border: 1px solid;
+    border-image: linear-gradient(135deg, rgba(249,115,22,0.3) 0%, rgba(244,114,182,0.2) 50%, transparent 100%) 1;
   }
   
   /* Material Surface Textures */
