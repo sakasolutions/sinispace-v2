@@ -630,17 +630,16 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* INPUT BEREICH - Branded Input Field */}
+        {/* INPUT BEREICH - Brand New Design */}
         <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
           <div className="w-full max-w-3xl">
             {/* Disclaimer Text */}
-            <div className="mb-2 text-center">
+            <div className="mb-3 text-center">
               <p className="text-[10px] md:text-xs text-gray-500">KI kann Fehler machen. Überprüfe wichtige Informationen.</p>
             </div>
             
-            {/* Input Container - Clean White Theme */}
-            <div className="relative flex items-center gap-2 bg-transparent">
-              {/* Upload Button - Left Side */}
+            {/* Upload Button - Left Side */}
+            <div className="flex items-center gap-3">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -651,13 +650,13 @@ export default function ChatPage() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="shrink-0 p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 flex items-center justify-center"
                 aria-label="Datei hochladen"
               >
                 <Upload className={`w-5 h-5 ${isUploading ? 'animate-pulse' : ''}`} />
               </button>
               
-              {/* Input Field Container - Relative for absolute Send Button */}
+              {/* Input Field - Brand New Design */}
               <div className="relative flex-1 min-w-0">
                 <input
                   type="text"
@@ -670,16 +669,18 @@ export default function ChatPage() {
                     }
                   }}
                   placeholder="Schreib eine Nachricht..."
-                  className="w-full min-h-12 md:min-h-[3rem] py-3 px-4 pr-14 md:pr-16 text-lg md:text-base text-gray-900 placeholder:text-gray-400 !bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
+                  className="w-full min-h-14 py-4 px-6 pr-16 text-base text-gray-900 placeholder:text-gray-400 bg-white border-2 border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
+                  style={{
+                    lineHeight: '1.4',
+                    fontSize: '16px', // Prevents iOS zoom
+                  }}
                 />
                 
                 {/* Send Button - Absolute inside Input Field */}
                 <button
                   onClick={() => sendMessage()}
                   disabled={isLoading || (!input.trim() && documents.length === 0)}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105 active:scale-95 ${
-                    input.trim() ? 'opacity-100' : 'opacity-50'
-                  }`}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
                   aria-label="Nachricht senden"
                 >
                   <Send className="w-5 h-5" />
