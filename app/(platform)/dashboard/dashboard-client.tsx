@@ -686,38 +686,39 @@ export default function DashboardClient() {
                   const idleDelay = idleDelays[index] || 0;
                   
                   // DESKTOP HOVER: Direkte Klassen basierend auf Tool-Farbe (EXPLIZIT für Tailwind)
+                  // WICHTIG: hover: statt group-hover:, da wir direkt auf der Card hovern
                   const getHoverBorderClass = (color: string) => {
                     const map: Record<string, string> = {
-                      orange: 'md:group-hover:border-orange-500',
-                      emerald: 'md:group-hover:border-emerald-500',
-                      blue: 'md:group-hover:border-blue-500',
-                      green: 'md:group-hover:border-green-500',
-                      violet: 'md:group-hover:border-violet-500',
-                      indigo: 'md:group-hover:border-indigo-500',
-                      amber: 'md:group-hover:border-amber-500',
-                      cyan: 'md:group-hover:border-cyan-500',
-                      rose: 'md:group-hover:border-rose-500',
-                      pink: 'md:group-hover:border-pink-500',
-                      slate: 'md:group-hover:border-gray-500',
+                      orange: 'md:hover:border-orange-500',
+                      emerald: 'md:hover:border-emerald-500',
+                      blue: 'md:hover:border-blue-500',
+                      green: 'md:hover:border-green-500',
+                      violet: 'md:hover:border-violet-500',
+                      indigo: 'md:hover:border-indigo-500',
+                      amber: 'md:hover:border-amber-500',
+                      cyan: 'md:hover:border-cyan-500',
+                      rose: 'md:hover:border-rose-500',
+                      pink: 'md:hover:border-pink-500',
+                      slate: 'md:hover:border-gray-500',
                     };
-                    return map[color] || 'md:group-hover:border-blue-500';
+                    return map[color] || 'md:hover:border-blue-500';
                   };
                   
                   const getHoverBgClass = (color: string) => {
                     const map: Record<string, string> = {
-                      orange: 'md:group-hover:bg-orange-50',
-                      emerald: 'md:group-hover:bg-emerald-50',
-                      blue: 'md:group-hover:bg-blue-50',
-                      green: 'md:group-hover:bg-green-50',
-                      violet: 'md:group-hover:bg-violet-50',
-                      indigo: 'md:group-hover:bg-indigo-50',
-                      amber: 'md:group-hover:bg-amber-50',
-                      cyan: 'md:group-hover:bg-cyan-50',
-                      rose: 'md:group-hover:bg-rose-50',
-                      pink: 'md:group-hover:bg-pink-50',
-                      slate: 'md:group-hover:bg-gray-50',
+                      orange: 'md:hover:bg-orange-50',
+                      emerald: 'md:hover:bg-emerald-50',
+                      blue: 'md:hover:bg-blue-50',
+                      green: 'md:hover:bg-green-50',
+                      violet: 'md:hover:bg-violet-50',
+                      indigo: 'md:hover:bg-indigo-50',
+                      amber: 'md:hover:bg-amber-50',
+                      cyan: 'md:hover:bg-cyan-50',
+                      rose: 'md:hover:bg-rose-50',
+                      pink: 'md:hover:bg-pink-50',
+                      slate: 'md:hover:bg-gray-50',
                     };
-                    return map[color] || 'md:group-hover:bg-blue-50';
+                    return map[color] || 'md:hover:bg-blue-50';
                   };
                   
                   const cardClassName = cn(
@@ -735,8 +736,9 @@ export default function DashboardClient() {
                     'border-[0.5px]',
                     'opacity-30',
                     // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (DIREKTE KLASSEN)
-                    'md:group-hover:opacity-100',
-                    'md:group-hover:border-opacity-100',
+                    // WICHTIG: hover: statt group-hover:, da wir direkt auf der Card hovern
+                    'md:hover:opacity-100',
+                    'md:hover:border-opacity-100',
                     getHoverBorderClass(tool.color), // Explizite Hover-Border-Klasse
                     getHoverBgClass(tool.color), // Explizite Hover-Background-Klasse
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
@@ -874,38 +876,39 @@ export default function DashboardClient() {
                   const secondaryIdleDelay = secondaryIdleDelays[index] || 0;
                   
                   // DESKTOP HOVER: Direkte Klassen basierend auf Tool-Farbe (EXPLIZIT für Tailwind)
+                  // WICHTIG: hover: statt group-hover:, da wir direkt auf der Card hovern
                   const getHoverBorderClass = (color: string) => {
                     const map: Record<string, string> = {
-                      orange: 'md:group-hover:border-orange-500',
-                      emerald: 'md:group-hover:border-emerald-500',
-                      blue: 'md:group-hover:border-blue-500',
-                      green: 'md:group-hover:border-green-500',
-                      violet: 'md:group-hover:border-violet-500',
-                      indigo: 'md:group-hover:border-indigo-500',
-                      amber: 'md:group-hover:border-amber-500',
-                      cyan: 'md:group-hover:border-cyan-500',
-                      rose: 'md:group-hover:border-rose-500',
-                      pink: 'md:group-hover:border-pink-500',
-                      slate: 'md:group-hover:border-gray-500',
+                      orange: 'md:hover:border-orange-500',
+                      emerald: 'md:hover:border-emerald-500',
+                      blue: 'md:hover:border-blue-500',
+                      green: 'md:hover:border-green-500',
+                      violet: 'md:hover:border-violet-500',
+                      indigo: 'md:hover:border-indigo-500',
+                      amber: 'md:hover:border-amber-500',
+                      cyan: 'md:hover:border-cyan-500',
+                      rose: 'md:hover:border-rose-500',
+                      pink: 'md:hover:border-pink-500',
+                      slate: 'md:hover:border-gray-500',
                     };
-                    return map[color] || 'md:group-hover:border-blue-500';
+                    return map[color] || 'md:hover:border-blue-500';
                   };
                   
                   const getHoverBgClass = (color: string) => {
                     const map: Record<string, string> = {
-                      orange: 'md:group-hover:bg-orange-50',
-                      emerald: 'md:group-hover:bg-emerald-50',
-                      blue: 'md:group-hover:bg-blue-50',
-                      green: 'md:group-hover:bg-green-50',
-                      violet: 'md:group-hover:bg-violet-50',
-                      indigo: 'md:group-hover:bg-indigo-50',
-                      amber: 'md:group-hover:bg-amber-50',
-                      cyan: 'md:group-hover:bg-cyan-50',
-                      rose: 'md:group-hover:bg-rose-50',
-                      pink: 'md:group-hover:bg-pink-50',
-                      slate: 'md:group-hover:bg-gray-50',
+                      orange: 'md:hover:bg-orange-50',
+                      emerald: 'md:hover:bg-emerald-50',
+                      blue: 'md:hover:bg-blue-50',
+                      green: 'md:hover:bg-green-50',
+                      violet: 'md:hover:bg-violet-50',
+                      indigo: 'md:hover:bg-indigo-50',
+                      amber: 'md:hover:bg-amber-50',
+                      cyan: 'md:hover:bg-cyan-50',
+                      rose: 'md:hover:bg-rose-50',
+                      pink: 'md:hover:bg-pink-50',
+                      slate: 'md:hover:bg-gray-50',
                     };
-                    return map[color] || 'md:group-hover:bg-blue-50';
+                    return map[color] || 'md:hover:bg-blue-50';
                   };
                   
                   // SECONDARY CARDS: Ruhiger, flacher - Niedrigere Elevation
@@ -924,8 +927,9 @@ export default function DashboardClient() {
                     'border-[0.5px]',
                     'opacity-30',
                     // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (DIREKTE KLASSEN)
-                    'md:group-hover:opacity-100',
-                    'md:group-hover:border-opacity-100',
+                    // WICHTIG: hover: statt group-hover:, da wir direkt auf der Card hovern
+                    'md:hover:opacity-100',
+                    'md:hover:border-opacity-100',
                     getHoverBorderClass(tool.color), // Explizite Hover-Border-Klasse
                     getHoverBgClass(tool.color), // Explizite Hover-Background-Klasse
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
