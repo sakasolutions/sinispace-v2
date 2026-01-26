@@ -32,17 +32,20 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden" style={{
-      paddingBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
-      marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
-    }}>
-      {/* FLOATING ISLAND: Glassmorphism / Frosted Glass Look */}
+    <nav 
+      className="fixed bottom-0 left-0 right-0 z-50 block md:hidden"
+      style={{
+        paddingBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
+        marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
+      }}
+    >
+      {/* Heavy Frosted Glass – iOS-style, Light/Dark kompatibel */}
       <div className="mx-auto max-w-md px-4">
         <div 
-          className="bg-white/80 backdrop-blur-lg border-t border-white/50 rounded-2xl shadow-2xl"
+          className="rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border-t border-white/40 dark:border-white/10"
           style={{
-            // Glassmorphism: Verstärkter Schatten für Schwebe-Effekt
-            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08), 0 -2px 10px rgba(0, 0, 0, 0.04)',
+            WebkitBackdropFilter: 'blur(24px)',
+            boxShadow: '0 -4px 24px rgba(0, 0, 0, 0.06), 0 -2px 12px rgba(0, 0, 0, 0.04)',
           }}
         >
           {/* SVG Gradient Definition (einmalig für alle Icons) */}
