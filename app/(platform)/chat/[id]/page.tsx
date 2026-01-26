@@ -988,23 +988,23 @@ export default function ChatDetailPage() {
             </div>
           </div>
 
-          {/* NEUER CHAT INPUT - KOMPLETT NEU */}
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
-            <div className="max-w-3xl mx-auto">
-              <form onSubmit={handleSubmit} className="flex items-center gap-2 p-3 bg-white rounded-2xl shadow-lg border border-gray-200">
+          {/* CHAT INPUT - Minimal White Design */}
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 md:left-[calc(16rem+20rem)] right-0 z-40">
+            <div className="max-w-3xl mx-auto px-4 md:px-6">
+              <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Nachricht eingeben..."
-                  className="flex-1 px-4 py-3 h-12 text-base bg-transparent border-0 outline-none resize-none placeholder-gray-500"
+                  className="flex-1 px-4 py-4 text-base bg-white border-0 outline-none resize-none placeholder-gray-400"
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className="w-12 h-12 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl flex items-center justify-center text-white disabled:opacity-50"
+                  className="w-10 h-10 bg-white border-0 outline-none flex items-center justify-center disabled:opacity-30"
                 >
-                  <Send className="w-5 h-5" />
+                  <Send className="w-5 h-5 text-gray-600" />
                 </button>
               </form>
             </div>
