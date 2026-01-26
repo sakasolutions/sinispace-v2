@@ -616,4 +616,36 @@
     font-weight: 750;
     letter-spacing: -0.025em;
   }
+
+  /* Recipe Detail: Modern Range Slider – Track gray-200, Thumb white + shadow */
+  input.slider-recipe {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 9999px;
+    background: #e5e7eb;
+    accent-color: #f97316;
+  }
+  input.slider-recipe::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    cursor: pointer;
+    border: 1px solid #e5e7eb;
+  }
+  input.slider-recipe::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    cursor: pointer;
+    border: 1px solid #e5e7eb;
+  }
+  input.slider-recipe::-webkit-slider-runnable-track { height: 8px; border-radius: 9999px; }
+  input.slider-recipe::-moz-range-track { background: #e5e7eb; height: 8px; border-radius: 9999px; }
+  input.slider-recipe::-moz-range-progress { background: #f97316; height: 8px; border-radius: 9999px; }
 }

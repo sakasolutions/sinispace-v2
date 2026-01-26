@@ -50,76 +50,70 @@ export function ShoppingListModal({ isOpen, onClose, ingredients, recipeName, sh
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl shadow-xl max-h-[90vh] overflow-hidden"
+        className="w-full max-w-md bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">Einkaufsliste erstellen</h2>
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900">Einkaufsliste erstellen</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-500 hover:text-gray-700"
           >
-            <X className="w-4 h-4 text-zinc-400" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-4 overflow-y-auto max-h-[calc(90vh-200px)]">
-          <p className="text-sm text-zinc-400 mb-4">
+        <div className="p-4 overflow-y-auto max-h-[calc(90vh-220px)]">
+          <p className="text-sm text-gray-600 mb-4">
             Wähle die Zutaten aus, die du einkaufen musst:
           </p>
 
-          {/* Format Selection */}
-          <div className="mb-4 flex gap-2">
+          <div className="mb-4 flex rounded-xl bg-gray-100 p-1">
             <button
               onClick={() => setFormat('simple')}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 format === 'simple'
-                  ? 'bg-blue-500/20 border border-blue-500/30 text-blue-300'
-                  : 'bg-zinc-800/50 border border-white/10 text-zinc-400 hover:bg-zinc-800'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Für mich
             </button>
             <button
               onClick={() => setFormat('whatsapp')}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 format === 'whatsapp'
-                  ? 'bg-green-500/20 border border-green-500/30 text-green-300'
-                  : 'bg-zinc-800/50 border border-white/10 text-zinc-400 hover:bg-zinc-800'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Als WhatsApp
             </button>
           </div>
 
-          {/* Ingredients List */}
-          <div className="space-y-2 mb-4">
+          <div className="space-y-0 rounded-xl border border-gray-100 overflow-hidden">
             {ingredients.map((ingredient, index) => {
               const isSelected = selectedIngredients.includes(ingredient);
               return (
                 <button
                   key={index}
                   onClick={() => toggleIngredient(ingredient)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
-                    isSelected
-                      ? 'bg-orange-500/20 border border-orange-500/30'
-                      : 'bg-zinc-800/50 border border-white/10 hover:bg-zinc-800'
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors border-b border-gray-100 last:border-b-0 ${
+                    isSelected ? 'bg-orange-50' : 'bg-white hover:bg-gray-50'
                   }`}
                 >
-                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
                     isSelected
                       ? 'bg-orange-500 border-orange-500'
-                      : 'border-zinc-600'
+                      : 'border-gray-300 bg-white'
                   }`}>
-                    {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
+                    {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                   </div>
-                  <span className={`text-sm ${isSelected ? 'text-white' : 'text-zinc-400'}`}>
+                  <span className={`text-sm ${isSelected ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
                     {ingredient}
                   </span>
                 </button>
@@ -127,28 +121,26 @@ export function ShoppingListModal({ isOpen, onClose, ingredients, recipeName, sh
             })}
           </div>
 
-          {/* Preview */}
           {selectedIngredients.length > 0 && (
-            <div className="mt-4 p-3 rounded-lg bg-zinc-800/50 border border-white/10">
-              <p className="text-xs text-zinc-500 mb-2">Vorschau:</p>
-              <pre className="text-xs text-zinc-300 whitespace-pre-wrap font-sans">
+            <div className="mt-4 p-4 rounded-xl border border-gray-100 bg-gray-50">
+              <p className="text-xs text-gray-500 mb-2 font-medium">Vorschau</p>
+              <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
                 {generateShoppingList()}
               </pre>
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-white/10 space-y-2">
+        <div className="p-4 border-t border-gray-100 space-y-3">
           <div className="flex gap-2">
             <button
               onClick={handleCopy}
               disabled={selectedIngredients.length === 0}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm transition-colors"
             >
               {copied ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
                   Kopiert!
                 </>
               ) : (
@@ -162,7 +154,7 @@ export function ShoppingListModal({ isOpen, onClose, ingredients, recipeName, sh
               <button
                 onClick={handleWhatsApp}
                 disabled={selectedIngredients.length === 0}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#25D366] hover:bg-[#20BD5A] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm transition-colors"
               >
                 <MessageSquare className="w-4 h-4" />
                 WhatsApp öffnen
@@ -172,7 +164,7 @@ export function ShoppingListModal({ isOpen, onClose, ingredients, recipeName, sh
           {showBackToRecipe && onBackToRecipe && (
             <button
               onClick={onBackToRecipe}
-              className="w-full px-4 py-2 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 text-sm font-medium transition-colors"
+              className="w-full py-2.5 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
             >
               Zurück zum Rezept
             </button>

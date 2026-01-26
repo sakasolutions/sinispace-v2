@@ -128,83 +128,70 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   const cookingTime = parseTime(recipe.stats?.time || '');
 
-  // Kochmodus: Step-by-Step View
+  // Kochmodus: Step-by-Step View – hell, clean
   if (cookingMode) {
     return (
       <div className="max-w-4xl mx-auto">
-        {/* Breadcrumb */}
-        <div className="mb-4 flex items-center gap-2 text-sm text-zinc-400">
-          <button onClick={() => setCookingMode(false)} className="hover:text-white transition-colors">
+        <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
+          <button onClick={() => setCookingMode(false)} className="hover:text-gray-900 transition-colors font-medium">
             Rezept
           </button>
           <span>/</span>
-          <span className="text-white">Kochmodus</span>
+          <span className="text-gray-900 font-medium">Kochmodus</span>
         </div>
 
-        {/* Step-by-Step Anleitung */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-white mb-2">{recipe.recipeName}</h2>
-            <p className="text-zinc-400">
-              Schritt {currentStep + 1} von {recipe.instructions.length}
-            </p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">{recipe.recipeName}</h2>
+            <p className="text-gray-500">Schritt {currentStep + 1} von {recipe.instructions.length}</p>
           </div>
 
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-300 text-xl font-bold">
+              <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white text-xl font-bold">
                 {currentStep + 1}
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white">Schritt {currentStep + 1}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Schritt {currentStep + 1}</h3>
               </div>
               <button
                 onClick={() => {
                   const newCompleted = new Set(completedSteps);
-                  if (newCompleted.has(currentStep)) {
-                    newCompleted.delete(currentStep);
-                  } else {
-                    newCompleted.add(currentStep);
-                  }
+                  if (newCompleted.has(currentStep)) newCompleted.delete(currentStep);
+                  else newCompleted.add(currentStep);
                   setCompletedSteps(newCompleted);
                 }}
-                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors border ${
                   completedSteps.has(currentStep)
-                    ? 'bg-green-500/20 border border-green-500/30 text-green-400'
-                    : 'bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-700'
+                    ? 'bg-orange-500 border-orange-500 text-white'
+                    : 'bg-white border-gray-200 text-gray-400 hover:border-orange-300 hover:text-orange-500'
                 }`}
               >
                 <CheckCircle2 className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-lg text-zinc-300 leading-relaxed pl-16">
-              {recipe.instructions[currentStep]}
-            </p>
+            <p className="text-lg text-gray-800 leading-relaxed pl-16">{recipe.instructions[currentStep]}</p>
           </div>
 
-          {/* Navigation */}
-          <div className="flex gap-3 pt-4 border-t border-white/10">
+          <div className="flex gap-3 pt-4 border-t border-gray-100">
             <button
               onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
               disabled={currentStep === 0}
-              className="flex-1 px-4 py-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-medium transition-colors"
+              className="flex-1 px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium transition-colors"
             >
               Zurück
             </button>
             {currentStep < recipe.instructions.length - 1 ? (
               <button
                 onClick={() => setCurrentStep(currentStep + 1)}
-                className="flex-1 px-4 py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors"
+                className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium transition-colors shadow-lg shadow-orange-500/30"
               >
                 Weiter
               </button>
             ) : (
               <button
-                onClick={() => {
-                  setCookingMode(false);
-                  setCurrentStep(0);
-                }}
-                className="flex-1 px-4 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium transition-colors"
+                onClick={() => { setCookingMode(false); setCurrentStep(0); }}
+                className="flex-1 px-4 py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white font-medium transition-colors"
               >
                 Fertig! 🎉
               </button>
@@ -217,27 +204,24 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Breadcrumb Navigation */}
       <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-zinc-400">
-          <button onClick={onBack} className="hover:text-white transition-colors">
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <button onClick={onBack} className="hover:text-gray-900 transition-colors font-medium">
             {fromWeekPlan ? 'Wochenplaner' : 'Meine Rezepte'}
           </button>
           <span>/</span>
-          <span className="text-white">{recipe.recipeName}</span>
+          <span className="text-gray-900 font-medium truncate max-w-[200px]">{recipe.recipeName}</span>
           {isShoppingListOpen && (
             <>
               <span>/</span>
-              <span className="text-white">Einkaufsliste</span>
+              <span className="text-gray-900 font-medium">Einkaufsliste</span>
             </>
           )}
         </div>
-        
-        {/* Save-to-Collection Button (nur für Wochenplan-Rezepte) */}
         {fromWeekPlan && onSaveToCollection && (
           <button
             onClick={onSaveToCollection}
-            className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors flex items-center gap-2"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-medium transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/30"
           >
             <ChefHat className="w-4 h-4" />
             In Meine Rezepte speichern
@@ -245,32 +229,29 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         )}
       </div>
 
-      {/* Header mit Rezept-Info */}
-      <div className="mb-6">
+      <div className="mb-8">
         <div className="flex items-start gap-4 mb-4">
-          <div className="w-16 h-16 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-            <ChefHat className="w-8 h-8 text-orange-400" />
+          <div className="w-16 h-16 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center flex-shrink-0">
+            <ChefHat className="w-8 h-8 text-orange-500" />
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-white mb-2">{recipe.recipeName}</h1>
-            <div className="flex flex-wrap gap-3 items-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{recipe.recipeName}</h1>
+            <div className="flex flex-wrap gap-3 items-center text-gray-600">
               {recipe.stats?.time && (
-                <div className="flex items-center gap-1.5 text-zinc-400 text-sm">
+                <div className="flex items-center gap-1.5 text-sm">
                   <Clock className="w-4 h-4" />
                   {recipe.stats.time}
                 </div>
               )}
               {adjustedCalories && (
-                <div className="flex items-center gap-1.5 text-zinc-400 text-sm">
+                <div className="flex items-center gap-1.5 text-sm">
                   🔥 {adjustedCalories} {servings !== originalServings && `(pro Portion)`}
                 </div>
               )}
               {recipe.stats?.difficulty && (
-                <div className="flex items-center gap-1.5 text-zinc-400 text-sm">
-                  {recipe.stats.difficulty}
-                </div>
+                <div className="flex items-center gap-1.5 text-sm">{recipe.stats.difficulty}</div>
               )}
-              <div className="text-xs text-zinc-500">
+              <div className="text-xs text-gray-500">
                 {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </div>
             </div>
@@ -278,15 +259,15 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         </div>
       </div>
 
-      {/* Smart "Nochmal kochen" Panel - In-Place Bearbeitung */}
-      <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 mb-6">
+      {/* Rezept anpassen – kein grauer Kasten, Slider modern */}
+      <div className="mb-8 pb-8 border-b border-gray-100">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Rezept anpassen</h2>
+          <h2 className="text-xl font-bold text-gray-900">Rezept anpassen</h2>
           <div className="flex gap-2">
             {servings !== originalServings && (
               <button
                 onClick={() => setServings(originalServings)}
-                className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium transition-colors flex items-center gap-1.5"
                 title="Original-Portionen wiederherstellen"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -295,7 +276,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             )}
             <button
               onClick={() => setCookingMode(true)}
-              className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors flex items-center gap-2"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/30"
             >
               <Play className="w-4 h-4" />
               Jetzt kochen
@@ -303,56 +284,48 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           </div>
         </div>
 
-        {/* Portionen-Slider - Touch-friendly mit Live-Updates */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-zinc-300 mb-3">
-            Anzahl Personen: <span className="text-orange-400 font-bold text-lg">{servings}</span>
-          </label>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setServings(Math.max(1, servings - 1))}
-              disabled={servings <= 1}
-              className="w-12 h-12 rounded-lg bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center touch-manipulation"
-            >
-              <Minus className="w-5 h-5" />
-            </button>
-            <div className="flex-1">
-              <input
-                type="range"
-                min="1"
-                max="8"
-                value={servings}
-                onChange={(e) => setServings(parseInt(e.target.value))}
-                className="w-full h-3 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-orange-500 touch-manipulation"
-                style={{ transition: 'none' }}
-              />
-              <div className="flex justify-between text-xs text-zinc-500 mt-1">
-                <span>1</span>
-                <span>4</span>
-                <span>8</span>
-              </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setServings(Math.max(1, servings - 1))}
+            disabled={servings <= 1}
+            className="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-600 hover:border-orange-300 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+          >
+            <Minus className="w-5 h-5" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <input
+              type="range"
+              min="1"
+              max="8"
+              value={servings}
+              onChange={(e) => setServings(parseInt(e.target.value))}
+              className="slider-recipe w-full h-2 cursor-pointer touch-manipulation"
+              style={{ transition: 'none' }}
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <span>1</span>
+              <span>4</span>
+              <span>8</span>
             </div>
-            <button
-              onClick={() => setServings(Math.min(8, servings + 1))}
-              disabled={servings >= 8}
-              className="w-12 h-12 rounded-lg bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center touch-manipulation"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
           </div>
+          <button
+            onClick={() => setServings(Math.min(8, servings + 1))}
+            disabled={servings >= 8}
+            className="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-600 hover:border-orange-300 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
         </div>
+        <p className="mt-2 text-sm font-bold text-gray-900">Anzahl Personen: {servings}</p>
 
-        {/* Smart "Was fehlt mir?" Button - Priorität */}
         {prioritizedMissingIngredients.length > 0 && (
-          <div className="pt-4 border-t border-white/10">
+          <div className="mt-4 pt-4 border-t border-gray-100">
             <button
-              onClick={() => {
-                setIsShoppingListOpen(true);
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-blue-300 font-medium transition-colors"
+              onClick={() => setIsShoppingListOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-xl text-orange-700 font-medium transition-colors"
             >
               <AlertCircle className="w-5 h-5" />
-              {prioritizedMissingIngredients.length <= 3 
+              {prioritizedMissingIngredients.length <= 3
                 ? `Was fehlt mir? (${prioritizedMissingIngredients.length} wichtige Zutaten)`
                 : `${prioritizedMissingIngredients.length} Zutaten fehlen`}
             </button>
@@ -360,50 +333,44 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Zutaten-Liste (mit angepassten Mengen) */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
           <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-orange-400" />
-            <h2 className="text-lg font-semibold text-white">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
+            <Users className="w-5 h-5 text-orange-500" />
+            <h2 className="text-xl font-bold text-gray-900">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
           </div>
-          <ul className="space-y-2 transition-all duration-200">
+          <ul className="space-y-2">
             {adjustedIngredients.map((ingredient, index) => (
-              <li key={index} className="text-zinc-300 flex items-start gap-2 transition-all duration-200">
-                <span className="text-orange-400 mt-1">•</span>
+              <li key={index} className="text-gray-800 flex items-start gap-2">
+                <span className="text-orange-500 mt-1">•</span>
                 <span className="text-sm leading-relaxed">{ingredient}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Zubereitung */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Zubereitung</h2>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Zubereitung</h2>
           <ol className="space-y-4">
             {recipe.instructions.map((step, index) => (
-              <li key={index} className="flex gap-3 text-zinc-300">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-300 text-sm font-bold">
+              <li key={index} className="flex gap-3">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold">
                   {index + 1}
                 </span>
-                <span className="text-sm leading-relaxed flex-1">{step}</span>
+                <span className="text-gray-800 text-sm leading-relaxed flex-1">{step}</span>
               </li>
             ))}
           </ol>
 
-          {/* Timer-Integration */}
           {cookingTime > 0 && (
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <div className="flex items-center gap-2 text-orange-300">
-                <Clock className="w-5 h-5" />
-                <span className="font-medium">Gesamt-Kochzeit: {cookingTime} Minuten</span>
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-2 text-gray-700 font-medium">
+                <Clock className="w-5 h-5 text-orange-500" />
+                Gesamt-Kochzeit: {cookingTime} Minuten
               </div>
               <button
-                onClick={() => {
-                  // TODO: Timer starten
-                  alert(`Timer für ${cookingTime} Minuten starten - Feature kommt gleich!`);
-                }}
-                className="mt-2 px-4 py-2 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 text-sm font-medium transition-colors"
+                onClick={() => alert(`Timer für ${cookingTime} Minuten starten – Feature kommt gleich!`)}
+                className="mt-2 px-4 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-700 text-sm font-medium transition-colors"
               >
                 ⏱️ Timer starten
               </button>
@@ -412,11 +379,10 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         </div>
       </div>
 
-      {/* Profi-Tipp */}
       {recipe.chefTip && (
-        <div className="mt-6 rounded-xl border border-orange-500/20 bg-orange-500/10 p-4">
-          <p className="text-sm text-orange-200 font-medium mb-1">💡 Profi-Tipp</p>
-          <p className="text-sm text-zinc-300 leading-relaxed">{recipe.chefTip}</p>
+        <div className="mt-8 rounded-2xl border border-orange-200 bg-orange-50 p-4">
+          <p className="text-sm text-orange-800 font-bold mb-1">💡 Profi-Tipp</p>
+          <p className="text-sm text-gray-800 leading-relaxed">{recipe.chefTip}</p>
         </div>
       )}
 
