@@ -38,26 +38,26 @@ export function DashboardGreetingClient() {
   const greeting = getTimeBasedGreeting();
 
   return (
-    <div className="relative mb-8 sm:mb-10 md:mb-12 lg:mb-16">
-      {/* BACKUP: Original background glow */}
-      {/* <div className="absolute bg-blue-600/20 blur-[100px] w-[300px] h-[300px] rounded-full -top-20 -left-20 -z-10 pointer-events-none" /> */}
-      
-      {/* NEW: Enhanced multi-color glow with animation */}
-      <div className="absolute bg-blue-600/15 blur-[120px] w-[400px] h-[400px] rounded-full -top-32 -left-32 -z-10 pointer-events-none animate-pulse" style={{ animationDuration: '4s' }} />
-      <div className="absolute bg-indigo-600/10 blur-[100px] w-[300px] h-[300px] rounded-full -top-16 -right-16 -z-10 pointer-events-none animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-      <div className="absolute bg-teal-600/10 blur-[80px] w-[250px] h-[250px] rounded-full top-0 left-1/2 -translate-x-1/2 -z-10 pointer-events-none animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+    <div className="relative">
+      {/* Minimal Luxury: Subtle ambient glow */}
+      <div className="absolute bg-emerald-500/3 blur-[120px] w-[500px] h-[500px] rounded-full -top-40 -left-40 -z-10 pointer-events-none" />
+      <div className="absolute bg-blue-500/2 blur-[100px] w-[400px] h-[400px] rounded-full -top-20 -right-20 -z-10 pointer-events-none" />
       
       <div className="relative z-10">
-        <div className="flex items-center justify-between gap-4 mb-3">
-          <h1
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight"
-            style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif', fontWeight: 800, letterSpacing: '-0.03em' }}
-          >
-            {greeting}{displayName ? `, ${displayName}` : ''} 👋
-          </h1>
-        </div>
+        {/* Ultra Premium Typography - Apple-level sophistication */}
+        <h1
+          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight leading-[0.95] mb-6 md:mb-8"
+          style={{ 
+            fontFamily: 'var(--font-plus-jakarta-sans), sans-serif', 
+            fontWeight: 900,
+            letterSpacing: '-0.04em'
+          }}
+        >
+          {greeting}{displayName ? `, ${displayName}` : ''}
+        </h1>
         
-        <p className="text-base md:text-lg lg:text-xl text-zinc-400 mt-3 sm:mt-4 tracking-wide leading-relaxed group-hover:text-zinc-300 transition-colors duration-300">
+        {/* Ultra-thin description */}
+        <p className="text-lg md:text-xl lg:text-2xl text-zinc-500 font-light tracking-wide leading-relaxed max-w-2xl">
           Dein Business läuft. Was optimieren wir jetzt?
         </p>
       </div>
