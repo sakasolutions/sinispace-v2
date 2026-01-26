@@ -77,8 +77,8 @@ export default function RootLayout({
       } as React.CSSProperties}>
         {/* Cinematic Background Stack - Theme-aware */}
         
-        {/* Layer 3: Top Light (Ambient Glow) - Tiefe von oben */}
-        <div className="fixed top-0 left-0 right-0 h-[500px] z-[-3] bg-gradient-to-b from-blue-900/10 via-zinc-900/0 to-transparent blur-3xl pointer-events-none will-change-transform" style={{ transform: 'translateZ(0)' }} />
+        {/* Layer 3: Top Light (Ambient Glow) - Tiefe von oben - KEIN LILA */}
+        <div className="fixed top-0 left-0 right-0 h-[500px] z-[-3] bg-gradient-to-b from-gray-50/5 via-transparent to-transparent pointer-events-none will-change-transform" style={{ transform: 'translateZ(0)' }} />
         
         {/* Layer 2: The Fading Grid - Mit Vignette-Maske */}
         <div 

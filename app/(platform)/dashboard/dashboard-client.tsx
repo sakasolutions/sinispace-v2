@@ -402,16 +402,18 @@ export default function DashboardClient() {
     const touch = e.touches[0];
     const deltaY = touch.clientY - touchStartRef.current.y;
 
-    if (deltaY > 0) {
+    // WENIGER EMPFINDLICH: Nur bei deutlichem Pull (> 20px) aktivieren
+    if (deltaY > 20) {
       if (e.cancelable) {
         e.preventDefault();
       }
       requestAnimationFrame(() => {
-        const maxPull = 100;
+        const maxPull = 120;
         const limitedDeltaY = Math.min(maxPull, deltaY);
         setPullDistance(limitedDeltaY);
 
-        if (limitedDeltaY >= 60 && pullDistance < 60) {
+        // WENIGER EMPFINDLICH: Haptic Feedback erst bei 100px (statt 60px)
+        if (limitedDeltaY >= 100 && pullDistance < 100) {
           triggerHaptic('light');
         }
       });
@@ -419,7 +421,8 @@ export default function DashboardClient() {
   };
 
   const handleTouchEnd = () => {
-    if (pullDistance >= 60) {
+    // WENIGER EMPFINDLICH: Reload erst bei 100px (statt 60px)
+    if (pullDistance >= 100) {
       triggerHaptic('success');
       setTimeout(() => {
         window.location.reload();
@@ -493,15 +496,17 @@ export default function DashboardClient() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       style={{
-        transform: pullDistance > 0 ? `translateY(${Math.min(pullDistance, 100)}px)` : 'none',
+        transform: pullDistance > 0 ? `translateY(${Math.min(pullDistance, 120)}px)` : 'none',
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
+        // FIX: Kein lila Hintergrund beim Reload
+        backgroundColor: '#ffffff',
       }}
     >
 
       {/* Pull-to-Refresh Indicator */}
-      {pullDistance > 0 && (
-        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-white/95 backdrop-blur-xl border-b border-gray-200 z-50">
-          {pullDistance >= 60 ? (
+      {pullDistance > 20 && (
+        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-white z-50">
+          {pullDistance >= 100 ? (
             <div className="flex items-center gap-2 text-orange-500">
               <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
               <span className="text-sm font-medium text-gray-700">Loslassen zum Aktualisieren</span>
