@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { DashboardGreetingClient } from '@/components/platform/dashboard-greeting-client';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { getToolUsageStats, trackToolUsage } from '@/actions/tool-usage-actions';
+
+// PERFORMANCE: Lazy Loading für Greeting-Komponente (nicht blockierend)
+const DashboardGreetingClient = lazy(() => import('@/components/platform/dashboard-greeting-client').then(mod => ({ default: mod.DashboardGreetingClient })));
 import {
   Mail,
   Languages,
@@ -517,7 +519,9 @@ export default function DashboardClient() {
         
         {/* Header Section - MOBILE: Kompakt */}
         <div className="mb-6 md:mb-12 lg:mb-16">
-          <DashboardGreetingClient />
+          <Suspense fallback={<div className="h-16 md:h-24" />}>
+            <DashboardGreetingClient />
+          </Suspense>
         </div>
 
         {/* PREMIUM: Search Bar - Advanced Material Layers - MOBILE: Kompakt */}
