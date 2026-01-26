@@ -374,18 +374,7 @@
     }
   }
 
-  /* NEW: Parallax float animation */
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px) rotate(0deg);
-    }
-    33% {
-      transform: translateY(-10px) rotate(1deg);
-    }
-    66% {
-      transform: translateY(5px) rotate(-1deg);
-    }
-  }
+  /* OLD: Parallax float animation - REMOVED (replaced by simple float animation without rotation) */
 
   /* NEW: Pulse glow for interactive elements */
   @keyframes pulse-glow {
