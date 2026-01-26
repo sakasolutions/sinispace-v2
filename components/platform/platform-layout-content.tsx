@@ -97,7 +97,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
 
   // Sonst: Normales Layout mit Sidebar und Header
   return (
-    <div className="flex min-h-[100dvh] bg-white overflow-x-hidden relative">
+    <div className="flex h-[100dvh] bg-white overflow-x-hidden relative">
       {/* PREMIUM: Hero Background mit Radial Gradient & Floating Elements */}
       <HeroBackground showGlows={true} />
       
@@ -146,7 +146,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 md:ml-64 flex flex-col min-h-[100dvh] overflow-x-hidden">
+      <main className="flex-1 md:ml-64 flex flex-col overflow-x-hidden" style={{ height: '100%', maxHeight: '100dvh' } as React.CSSProperties}>
         {/* Mobile Header - AUSGEBLENDET (ersetzt durch Bottom Nav) */}
         {/* <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl px-4 md:hidden z-10">
           ...
@@ -168,6 +168,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
             overscrollBehaviorY: 'contain',
             overscrollBehaviorX: 'none',
             paddingBottom: 'max(6rem, calc(6rem + env(safe-area-inset-bottom)))',
+            minHeight: 0,
           } as React.CSSProperties}
         >
           <div className="min-h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
