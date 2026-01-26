@@ -550,7 +550,7 @@ export default function ChatPage() {
         </div>
 
         {/* NACHRICHTEN BEREICH */}
-        <div className="flex-1 overflow-y-auto scroll-smooth bg-white md:bg-gray-50 pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
+        <div className="flex-1 overflow-y-auto scroll-smooth bg-white pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
             {messages.length === 0 && (
               <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
@@ -638,8 +638,8 @@ export default function ChatPage() {
               <p className="text-[10px] md:text-xs text-gray-500">KI kann Fehler machen. Überprüfe wichtige Informationen.</p>
             </div>
             
-            {/* Input Container - Light Theme with Logo Accents */}
-            <div className="relative flex items-center gap-2">
+            {/* Input Container - Clean White Theme */}
+            <div className="relative flex items-center gap-2 bg-transparent">
               {/* Upload Button - Left Side */}
               <input
                 ref={fileInputRef}
@@ -670,7 +670,7 @@ export default function ChatPage() {
                     }
                   }}
                   placeholder="Schreib eine Nachricht..."
-                  className="w-full min-h-12 md:min-h-[3rem] py-3 px-4 pr-14 md:pr-16 text-lg md:text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
+                  className="w-full min-h-12 md:min-h-[3rem] py-3 px-4 pr-14 md:pr-16 text-lg md:text-base text-gray-900 placeholder:text-gray-400 !bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
                 />
                 
                 {/* Send Button - Absolute inside Input Field */}

@@ -741,7 +741,7 @@ export default function ChatDetailPage() {
 
           {/* NACHRICHTEN BEREICH - Dashboard Style Design */}
           {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Floating Bar */}
-          <div className="flex-1 overflow-y-auto scroll-smooth bg-white md:bg-gray-50 pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
+          <div className="flex-1 overflow-y-auto scroll-smooth bg-white pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
             {/* Central Container: Begrenzte Breite, zentriert (wie Dokument) */}
             <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
               {messages.length === 0 && (
@@ -1023,10 +1023,10 @@ export default function ChatDetailPage() {
                 <p className="text-[10px] md:text-xs text-gray-500">KI kann Fehler machen. Überprüfe wichtige Informationen.</p>
               </div>
 
-              {/* Input Container - Branded Design */}
+              {/* Input Container - Clean White Design */}
               <form 
                 onSubmit={handleSubmit}
-                className="relative flex items-center gap-2"
+                className="relative flex items-center gap-2 bg-transparent"
               >
                 <input
                   ref={fileInputRef}
@@ -1068,7 +1068,7 @@ export default function ChatDetailPage() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Schreib eine Nachricht..."
-                    className="w-full min-h-12 md:min-h-[3rem] py-3 px-4 pr-14 md:pr-16 text-lg md:text-base text-gray-900 placeholder:text-gray-400 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
+                    className="w-full min-h-12 md:min-h-[3rem] py-3 px-4 pr-14 md:pr-16 text-lg md:text-base text-gray-900 placeholder:text-gray-400 !bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:shadow-md transition-all"
                     autoFocus
                   />
                   
