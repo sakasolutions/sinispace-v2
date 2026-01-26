@@ -394,7 +394,7 @@ export default function ChatPage() {
           {!isSidebarCollapsed && (
             <h2 className="text-sm font-bold text-gray-900">Chats</h2>
           )}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className={`flex items-center gap-2 ${isSidebarCollapsed ? 'w-full justify-center' : 'ml-auto'}`}>
             {!isSidebarCollapsed && (
               <Link
                 href="/chat"
