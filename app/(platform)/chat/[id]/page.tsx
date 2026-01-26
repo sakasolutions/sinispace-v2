@@ -988,18 +988,18 @@ export default function ChatDetailPage() {
             </div>
           </div>
 
-          {/* INPUT BEREICH - Floating Bar Design */}
+          {/* INPUT BEREICH - Premium Floating Bar */}
           {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
           {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
-          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1rem)] md:bottom-6 left-0 md:left-[calc(16rem+20rem)] right-0 z-40 flex justify-center px-4 md:px-6">
             <div className="w-full max-w-3xl">
-              {/* Dokumente Liste - Dashboard Style */}
+              {/* Dokumente Liste - Premium Style */}
               {documents.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2 justify-center md:justify-start">
                   {documents.map((doc) => (
                     <div
                       key={doc.id}
-                      className="flex items-center gap-1.5 rounded-lg bg-white border border-gray-200/50 px-2.5 py-1.5 text-xs shadow-sm"
+                      className="flex items-center gap-1.5 rounded-lg bg-gray-50 border border-gray-200/50 px-2.5 py-1.5 text-xs"
                     >
                       <span className="text-gray-500">📄</span>
                       <span className="text-gray-700 max-w-[150px] truncate" title={doc.fileName}>
@@ -1011,17 +1011,22 @@ export default function ChatDetailPage() {
                         className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
                         title="Löschen"
                       >
-                        ×
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Floating Bar - Dashboard Style */}
+              {/* Disclaimer Text */}
+              <div className="mb-2 text-center">
+                <p className="text-[10px] md:text-xs text-gray-500">KI kann Fehler machen. Überprüfe wichtige Informationen.</p>
+              </div>
+
+              {/* Floating Bar - Premium Design */}
               <form 
                 onSubmit={handleSubmit} 
-                className="relative flex items-center gap-2 rounded-2xl bg-white border border-gray-200/50 p-2 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:shadow-2xl transition-all"
+                className="relative flex items-center gap-2 rounded-2xl bg-white border border-gray-200/50 p-2.5 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:shadow-2xl transition-all"
               >
           <input
             ref={fileInputRef}
@@ -1038,7 +1043,7 @@ export default function ChatDetailPage() {
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
-                      className="rounded-lg bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 disabled:opacity-50 transition-all"
+                      className="rounded-lg bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 disabled:opacity-50 transition-all active:scale-95"
                       title="Datei hochladen"
                     >
               {isUploading ? (
@@ -1082,11 +1087,11 @@ export default function ChatDetailPage() {
                   autoFocus
                 />
                 
-                {/* Send Button - Dashboard Gradient */}
+                {/* Send Button - Premium Gradient */}
                 <button
                   type="submit"
                   disabled={isLoading || (!input.trim() && documents.length === 0)}
-                  className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 p-2.5 text-white hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 shadow-md hover:shadow-lg"
+                  className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 p-2.5 text-white hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 shadow-md hover:shadow-lg active:scale-95"
                   aria-label="Nachricht senden"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1095,11 +1100,6 @@ export default function ChatDetailPage() {
                   </svg>
                 </button>
               </form>
-              
-              {/* Disclaimer Text - Dashboard Style */}
-              <p className="mt-2 text-center text-[10px] md:text-xs text-gray-500">
-                KI kann Fehler machen. Überprüfe wichtige Informationen.
-              </p>
             </div>
           </div>
         </div>
