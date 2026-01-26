@@ -713,8 +713,8 @@ export default function DashboardClient() {
                   );
                   
                   // Card Styles: VOLLSTÄNDIG OPACKE Background - kein Schleier
+                  // WICHTIG: Kein inline background, damit Hover-Background-Klassen funktionieren
                   const cardStyle = {
-                    background: '#ffffff',
                     animationDelay: `${idleDelay}s`,
                   };
 
@@ -871,8 +871,8 @@ export default function DashboardClient() {
                   );
                   
                   // Card Styles: VOLLSTÄNDIG OPACKE Background - kein Schleier
+                  // WICHTIG: Kein inline background, damit Hover-Background-Klassen funktionieren
                   const cardStyle = {
-                    background: '#ffffff',
                     animationDelay: `${secondaryIdleDelay}s`,
                   };
 
