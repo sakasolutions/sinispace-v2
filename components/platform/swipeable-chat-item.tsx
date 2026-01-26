@@ -201,23 +201,23 @@ export function SwipeableChatItem({
               onCancelEdit();
             }
           }}
-          className="w-full px-2 py-1 text-xs sm:text-sm font-medium border border-white/10 bg-zinc-900/50 rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 mb-1 text-white placeholder:text-zinc-500"
+          className="w-full px-2 py-1 text-xs sm:text-sm font-medium border border-gray-200 bg-white rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 mb-1 text-gray-900 placeholder:text-gray-400"
           autoFocus
         />
         <div className="flex items-center gap-1.5 sm:gap-2 mt-1">
           <button
             onClick={() => onSaveEdit(chat.id)}
-            className="p-1 rounded hover:bg-white/10 transition-colors"
+            className="p-1 rounded hover:bg-gray-100 transition-colors"
             aria-label="Speichern"
           >
-            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" />
+            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
           </button>
           <button
             onClick={onCancelEdit}
-            className="p-1 rounded hover:bg-white/10 transition-colors"
+            className="p-1 rounded hover:bg-gray-100 transition-colors"
             aria-label="Abbrechen"
           >
-            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400" />
+            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
           </button>
         </div>
       </div>
@@ -256,11 +256,11 @@ export function SwipeableChatItem({
         </div>
       )}
 
-      {/* Chat Item */}
+      {/* Chat Item - Dashboard Style */}
       <div
         className={`
           relative bg-transparent rounded-lg transition-colors
-          ${isActive ? 'bg-white/10' : 'hover:bg-white/5 active:bg-white/10'}
+          ${isActive ? 'bg-gradient-to-r from-orange-50 to-pink-50' : 'hover:bg-gray-50 active:bg-gray-100'}
         `}
       >
         <Link
@@ -269,11 +269,13 @@ export function SwipeableChatItem({
           onClick={onClose}
         >
           <div className={`font-medium text-xs sm:text-sm truncate mb-0.5 sm:mb-1 ${
-            isActive ? 'text-white' : 'text-zinc-300'
+            isActive 
+              ? 'bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent font-bold' 
+              : 'text-gray-700'
           }`}>
             {chat.title}
           </div>
-          <div className="text-[10px] sm:text-xs text-zinc-500">{formatDate(chat.updatedAt)}</div>
+          <div className="text-[10px] sm:text-xs text-gray-500">{formatDate(chat.updatedAt)}</div>
         </Link>
 
         {/* Action Buttons (Desktop Hover) */}
@@ -284,11 +286,11 @@ export function SwipeableChatItem({
               e.stopPropagation();
               onEdit(chat);
             }}
-            className="p-1 sm:p-1.5 rounded hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation"
+            className="p-1 sm:p-1.5 rounded hover:bg-gray-100 active:bg-gray-200 transition-colors touch-manipulation"
             aria-label="Chat umbenennen"
             title="Umbenennen"
           >
-            <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-400 hover:text-white" />
+            <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 hover:text-gray-700" />
           </button>
           <button
             onClick={(e) => {
@@ -297,29 +299,29 @@ export function SwipeableChatItem({
               onDelete(chat.id);
             }}
             disabled={deletingChatId === chat.id}
-            className="p-1 sm:p-1.5 rounded hover:bg-red-500/20 active:bg-red-500/30 transition-colors disabled:opacity-50 touch-manipulation"
+            className="p-1 sm:p-1.5 rounded hover:bg-red-50 active:bg-red-100 transition-colors disabled:opacity-50 touch-manipulation"
             aria-label="Chat löschen"
             title="Löschen"
           >
-            <Trash2 className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${deletingChatId === chat.id ? 'text-zinc-500' : 'text-red-400'}`} />
+            <Trash2 className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${deletingChatId === chat.id ? 'text-gray-400' : 'text-red-500'}`} />
           </button>
         </div>
       </div>
 
-      {/* Context Menu (Long-Press) */}
+      {/* Context Menu (Long-Press) - Dashboard Style */}
       {showContextMenu && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowContextMenu(false)}>
           <div
-            className="bg-zinc-900 border border-white/10 rounded-xl p-4 max-w-xs w-full mx-4 shadow-xl"
+            className="bg-white border border-gray-200 rounded-xl p-4 max-w-xs w-full mx-4 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white">{chat.title}</h3>
+              <h3 className="text-sm font-semibold text-gray-900">{chat.title}</h3>
               <button
                 onClick={() => setShowContextMenu(false)}
-                className="p-1 rounded hover:bg-white/10 transition-colors"
+                className="p-1 rounded hover:bg-gray-100 transition-colors"
               >
-                <X className="w-4 h-4 text-zinc-400" />
+                <X className="w-4 h-4 text-gray-400" />
               </button>
             </div>
             <div className="space-y-2">
@@ -328,10 +330,10 @@ export function SwipeableChatItem({
                   onEdit(chat);
                   setShowContextMenu(false);
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
               >
-                <Pencil className="w-4 h-4 text-zinc-400" />
-                <span className="text-sm text-white">Umbenennen</span>
+                <Pencil className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-700">Umbenennen</span>
               </button>
               {onArchive && (
                 <button
@@ -339,10 +341,10 @@ export function SwipeableChatItem({
                     onArchive(chat.id);
                     setShowContextMenu(false);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
-                  <Archive className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm text-white">Archivieren</span>
+                  <Archive className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm text-gray-700">Archivieren</span>
                 </button>
               )}
               {onFavorite && (
@@ -351,10 +353,10 @@ export function SwipeableChatItem({
                     onFavorite(chat.id);
                     setShowContextMenu(false);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
-                  <Star className="w-4 h-4 text-yellow-400" />
-                  <span className="text-sm text-white">Favorisieren</span>
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm text-gray-700">Favorisieren</span>
                 </button>
               )}
               {onShare && (
@@ -363,22 +365,22 @@ export function SwipeableChatItem({
                     onShare(chat.id);
                     setShowContextMenu(false);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
-                  <Share2 className="w-4 h-4 text-green-400" />
-                  <span className="text-sm text-white">Teilen</span>
+                  <Share2 className="w-4 h-4 text-green-500" />
+                  <span className="text-sm text-gray-700">Teilen</span>
                 </button>
               )}
-              <div className="h-px bg-white/5 my-2" />
+              <div className="h-px bg-gray-200 my-2" />
               <button
                 onClick={() => {
                   onDelete(chat.id);
                   setShowContextMenu(false);
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-500/20 transition-colors text-left"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors text-left"
               >
-                <Trash2 className="w-4 h-4 text-red-400" />
-                <span className="text-sm text-red-400">Löschen</span>
+                <Trash2 className="w-4 h-4 text-red-500" />
+                <span className="text-sm text-red-500">Löschen</span>
               </button>
             </div>
           </div>

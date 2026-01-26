@@ -12,7 +12,8 @@ import { CopyButton } from '@/components/ui/copy-button';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { triggerHaptic } from '@/lib/haptic-feedback';
-import { Copy, RefreshCw, X } from 'lucide-react';
+import { Copy, RefreshCw, X, Menu } from 'lucide-react';
+import { ChatSidebar } from '@/components/platform/chat-sidebar';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -48,15 +49,15 @@ function ConfirmModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div 
-        className="bg-zinc-900 border border-white/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl" 
+        className="bg-white border border-gray-200 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl" 
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
-        <p className="text-zinc-300 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-700 mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors"
+            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
           >
             Abbrechen
           </button>
@@ -65,7 +66,7 @@ function ConfirmModal({
               onConfirm();
               onClose();
             }}
-            className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+            className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 transition-colors"
           >
             Bestätigen
           </button>
@@ -84,10 +85,10 @@ function Toast({ message, type = 'info', onClose }: { message: string; type?: 'i
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const bgColor = type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-zinc-800';
+  const bgColor = type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-gray-800';
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg border border-white/10`}>
+    <div className={`fixed bottom-4 right-4 z-50 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg border border-gray-200`}>
       {message}
     </div>
   );
@@ -119,6 +120,9 @@ export default function ChatDetailPage() {
     onConfirm: () => {},
   });
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'error' | 'success' } | null>(null);
+  
+  // Sidebar State
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -454,8 +458,8 @@ export default function ChatDetailPage() {
 
   if (isLoadingChat) {
     return (
-      <div className="flex flex-col h-full w-full items-center justify-center">
-        <div className="text-zinc-400">Lade Chat...</div>
+      <div className="flex flex-col h-full w-full items-center justify-center bg-white">
+        <div className="text-gray-500">Lade Chat...</div>
       </div>
     );
   }
@@ -476,38 +480,59 @@ export default function ChatDetailPage() {
           onClose={() => setToast(null)}
         />
       )}
-      <div className="flex flex-col h-[100dvh] w-full overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
-      {/* Chat Titel - Logo + SiniChat Branding */}
-      {/* Mobile: Safe-Area-Padding oben für Statusbar */}
-      <div className="shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 border-b border-transparent sm:border-white/5 pt-[calc(env(safe-area-inset-top)+0.5rem)] md:pt-2.5">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="relative h-8 w-8 sm:h-9 sm:w-9 overflow-hidden rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white shrink-0">
-            <Image 
-              src="/assets/logos/logo.webp" 
-              alt="Sinispace Logo" 
-              fill 
-              className="object-contain p-1.5" 
-              priority 
-            />
+      {/* Chat Layout: Sidebar + Main Area */}
+      <div className="flex h-[100dvh] w-full overflow-hidden bg-white">
+        {/* SIDEBAR - Dashboard Style */}
+        <ChatSidebar 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
+        />
+        
+        {/* MAIN CHAT AREA */}
+        <div className="flex-1 flex flex-col overflow-hidden md:ml-64">
+          {/* STICKY HEADER - Glassmorphism */}
+          <div className="sticky top-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Menu"
+              >
+                <Menu className="w-5 h-5 text-gray-700" />
+              </button>
+              
+              <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-xl shadow-md border border-gray-200/50 bg-white shrink-0">
+                <Image 
+                  src="/assets/logos/logo.webp" 
+                  alt="Sinispace Logo" 
+                  fill 
+                  className="object-contain p-2" 
+                  priority 
+                />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                  SiniChat
+                </h1>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white">SiniChat</h1>
-            <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-zinc-400">Frag mich alles – mit Code, Tabellen und Struktur.</p>
-          </div>
-        </div>
-      </div>
 
-      {/* NACHRICHTEN BEREICH - Nutzt verfügbaren Platz optimal */}
-      {/* Mobile: Extra Padding unten für Input-Feld über Bottom Nav (5rem Nav + 9rem Input-Bereich + Safe Area) */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-4">
-        {messages.length === 0 && (
-          <div className="flex h-full flex-col items-center justify-center text-zinc-400 opacity-50">
-            <span className="text-5xl sm:text-6xl mb-4">💬</span>
-            <p className="text-lg font-medium">Ich bin bereit.</p>
-          </div>
-        )}
+          {/* NACHRICHTEN BEREICH - Dashboard Style Design */}
+          {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Floating Bar */}
+          <div className="flex-1 overflow-y-auto scroll-smooth bg-white md:bg-gray-50 pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
+            {/* Central Container: Begrenzte Breite, zentriert (wie Dokument) */}
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
+              {messages.length === 0 && (
+                <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
+                  <span className="text-5xl sm:text-6xl mb-4">💬</span>
+                  <p className="text-lg font-medium text-gray-600">Ich bin bereit.</p>
+                </div>
+              )}
 
-        {messages.map((msg, i) => {
+              {messages.map((msg, i) => {
           const isSwiping = swipingMessageIndex === i;
           const showContextMenu = longPressMessageIndex === i;
           const COPY_THRESHOLD = 80;
@@ -610,79 +635,83 @@ export default function ChatDetailPage() {
                 </div>
               )}
 
-              <div className="w-full">
-                <div
-                  className={`flex w-full gap-2 sm:gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.role === 'assistant' && (
-                    <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white mt-1 overflow-hidden">
-                      <Image 
-                        src="/assets/logos/logo.webp" 
-                        alt="Sinispace Logo" 
-                        width={32}
-                        height={32}
-                        className="object-contain p-1.5" 
+                <div className="w-full">
+                  {msg.role === 'user' ? (
+                    /* USER MESSAGE: Dashboard Style Card, rechtsbündig */
+                    <div className="flex w-full justify-end items-start gap-3">
+                      {/* User Message Card - Dashboard Style */}
+                      <div className="group relative max-w-[85%] sm:max-w-[80%] md:max-w-[90%] rounded-xl px-4 md:px-5 py-3 md:py-4 shadow-sm border border-gray-200/50 bg-white">
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          <CopyButton text={msg.content} variant="icon" size="md" />
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <p className="flex-1 whitespace-pre-wrap break-words text-sm md:text-base leading-relaxed text-gray-900">{msg.content}</p>
+                          {/* User Avatar innerhalb der Card - Dashboard Gradient */}
+                          <div className="h-7 w-7 shrink-0 select-none items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 text-[10px] font-semibold text-white flex shadow-sm">
+                            DU
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* AI MESSAGE: Dashboard Style, linksbündig, volle Breite */
+                    <div className="flex w-full justify-start items-start gap-3">
+                      {/* SiniChat Logo/Avatar links oben - Dashboard Style */}
+                      <div className="h-8 w-8 shrink-0 select-none items-center justify-center rounded-xl shadow-md border border-gray-200/50 bg-white overflow-hidden mt-0.5">
+                        <Image 
+                          src="/assets/logos/logo.webp" 
+                          alt="Sinispace Logo" 
+                          width={32}
+                          height={32}
+                          className="object-contain p-1.5" 
+                        />
+                      </div>
+                      {/* AI Text Block - Dashboard Style (kein Hintergrund, Text auf weiß) */}
+                      <div className="flex-1 group relative">
+                        <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                          <CopyButton text={msg.content} variant="icon" size="md" />
+                        </div>
+                        {/* Tailwind Typography: Blogartikel-ähnliches Formatting */}
+                        <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none">
+                          <MarkdownRenderer content={msg.content} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {/* Suggested Actions - Nur bei der letzten AI-Nachricht */}
+                  {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
+                    <div className="ml-11 mt-4">
+                      <SuggestedActions 
+                        content={msg.content} 
+                        onActionClick={(prompt) => sendMessage(prompt)}
                       />
                     </div>
                   )}
-
-                  <div
-                    className={`group relative max-w-[88%] xs:max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] rounded-lg sm:rounded-xl md:rounded-2xl px-3 sm:px-4 md:px-5 py-3 sm:py-4 md:py-5 shadow-sm ${
-                      msg.role === 'user'
-                        ? 'bg-zinc-900/80 backdrop-blur-sm text-white rounded-br-none border border-white/10'
-                        : 'bg-zinc-900/30 backdrop-blur-sm border border-white/10 rounded-bl-none'
-                    }`}
-                  >
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <CopyButton text={msg.content} variant="icon" size="md" />
-                    </div>
-                    {msg.role === 'assistant' ? (
-                      <MarkdownRenderer content={msg.content} />
-                    ) : (
-                      <p className="whitespace-pre-wrap break-words text-white text-sm leading-6">{msg.content}</p>
-                    )}
-                  </div>
-
-                  {msg.role === 'user' && (
-                    <div className="hidden md:flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-zinc-800/50 text-xs font-bold text-zinc-300 border border-white/10 mt-1">
-                      DU
+                  {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
+                    <div className="ml-11 mt-3">
+                      <FeedbackButton
+                        toolId="chat"
+                        toolName="SiniChat"
+                        resultId={msg.content ? `chat-${i}-${Date.now()}` : undefined}
+                      />
                     </div>
                   )}
                 </div>
-                {/* Suggested Actions - Nur bei der letzten AI-Nachricht */}
-                {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
-                  <div className="ml-0 md:ml-10 mt-3">
-                    <SuggestedActions 
-                      content={msg.content} 
-                      onActionClick={(prompt) => sendMessage(prompt)}
-                    />
-                  </div>
-                )}
-                {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
-                  <div className="ml-0 md:ml-10 mt-3">
-                    <FeedbackButton
-                      toolId="chat"
-                      toolName="SiniChat"
-                      resultId={msg.content ? `chat-${i}-${Date.now()}` : undefined}
-                    />
-                  </div>
-                )}
-              </div>
 
-              {/* Context Menu (Long-Press) */}
+              {/* Context Menu (Long-Press) - Dashboard Style */}
               {showContextMenu && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setLongPressMessageIndex(null)}>
                   <div
-                    className="bg-zinc-900 border border-white/10 rounded-xl p-4 max-w-xs w-full mx-4 shadow-xl"
+                    className="bg-white border border-gray-200 rounded-xl p-4 max-w-xs w-full mx-4 shadow-xl"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-semibold text-white">Nachricht</h3>
+                      <h3 className="text-sm font-semibold text-gray-900">Nachricht</h3>
                       <button
                         onClick={() => setLongPressMessageIndex(null)}
-                        className="p-1 rounded hover:bg-white/10 transition-colors"
+                        className="p-1 rounded hover:bg-gray-100 transition-colors"
                       >
-                        <X className="w-4 h-4 text-zinc-400" />
+                        <X className="w-4 h-4 text-gray-400" />
                       </button>
                     </div>
                     <div className="space-y-2">
@@ -692,10 +721,10 @@ export default function ChatDetailPage() {
                           triggerHaptic('success');
                           setLongPressMessageIndex(null);
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
                       >
-                        <Copy className="w-4 h-4 text-blue-400" />
-                        <span className="text-sm text-white">Kopieren</span>
+                        <Copy className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm text-gray-700">Kopieren</span>
                       </button>
                       {msg.role === 'assistant' && (
                         <button
@@ -704,70 +733,77 @@ export default function ChatDetailPage() {
                             setLongPressMessageIndex(null);
                             triggerHaptic('medium');
                           }}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
                         >
-                          <RefreshCw className="w-4 h-4 text-green-400" />
-                          <span className="text-sm text-white">Neu generieren</span>
+                          <RefreshCw className="w-4 h-4 text-green-500" />
+                          <span className="text-sm text-gray-700">Neu generieren</span>
                         </button>
                       )}
                     </div>
                   </div>
                 </div>
               )}
-            </div>
-          );
-        })}
-        
-        {isLoading && (
-          <div className="flex w-full gap-4 justify-start">
-             <div className="hidden md:flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-lg shadow-orange-500/10 border border-white/10 bg-white overflow-hidden">
-               <Image 
-                 src="/assets/logos/logo.webp" 
-                 alt="Sinispace Logo" 
-                 width={32}
-                 height={32}
-                 className="object-contain p-1.5" 
-               />
-             </div>
-             <div className="flex items-center space-x-1 rounded-2xl bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl border border-white/10 px-4 py-3 shadow-sm">
-               <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]"></div>
-               <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></div>
-               <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"></div>
-             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} className="h-1" />
-      </div>
-
-      {/* INPUT BEREICH - Fixed für Mobile, damit Tastatur nicht darüber liegt */}
-      {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
-      <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:relative md:bottom-0 left-0 right-0 shrink-0 p-2 sm:p-3 md:p-4 lg:p-5 border-t border-white/5 bg-zinc-950 z-40 md:pb-4 lg:pb-5">
-        {/* Dokumente Liste */}
-        {documents.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center gap-1.5 rounded-md bg-zinc-800/50 border border-white/10 px-2 py-1 text-xs"
-              >
-                <span className="text-zinc-400">📄</span>
-                <span className="text-zinc-300 max-w-[150px] truncate" title={doc.fileName}>
-                  {formatFileName(doc.fileName, 20)}
-                </span>
-                <span className="text-zinc-500">({formatFileSize(doc.fileSize)})</span>
-                <button
-                  onClick={() => handleDeleteDocument(doc.id)}
-                  className="ml-1 text-zinc-500 hover:text-red-400 transition-colors"
-                  title="Löschen"
-                >
-                  ×
-                </button>
               </div>
-            ))}
+            );
+          })}
+          
+          {isLoading && (
+            <div className="flex w-full gap-4 justify-start">
+               <div className="h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow-md border border-gray-200/50 bg-white overflow-hidden flex">
+                 <Image 
+                   src="/assets/logos/logo.webp" 
+                   alt="Sinispace Logo" 
+                   width={32}
+                   height={32}
+                   className="object-contain p-1.5" 
+                 />
+               </div>
+               <div className="flex items-center space-x-1.5 rounded-xl bg-white border border-gray-200/50 px-4 py-3 shadow-sm">
+                 <div className="h-2 w-2 animate-bounce rounded-full bg-orange-500 [animation-delay:-0.3s]"></div>
+                 <div className="h-2 w-2 animate-bounce rounded-full bg-pink-500 [animation-delay:-0.15s]"></div>
+                 <div className="h-2 w-2 animate-bounce rounded-full bg-orange-500"></div>
+               </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} className="h-1" />
+            </div>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="relative flex items-end gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-1.5 sm:p-2 md:p-2.5 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/50 transition-all">
+          {/* INPUT BEREICH - Floating Bar Design */}
+          {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
+          {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 right-0 md:left-64 z-40 flex justify-center px-4 md:px-6">
+            <div className="w-full max-w-3xl">
+              {/* Dokumente Liste - Dashboard Style */}
+              {documents.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2 justify-center md:justify-start">
+                  {documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center gap-1.5 rounded-lg bg-white border border-gray-200/50 px-2.5 py-1.5 text-xs shadow-sm"
+                    >
+                      <span className="text-gray-500">📄</span>
+                      <span className="text-gray-700 max-w-[150px] truncate" title={doc.fileName}>
+                        {formatFileName(doc.fileName, 20)}
+                      </span>
+                      <span className="text-gray-500">({formatFileSize(doc.fileSize)})</span>
+                      <button
+                        onClick={() => handleDeleteDocument(doc.id)}
+                        className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Löschen"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Floating Bar - Dashboard Style */}
+              <form 
+                onSubmit={handleSubmit} 
+                className="relative flex items-center gap-2 rounded-2xl bg-white border border-gray-200/50 p-2 md:p-3 shadow-xl focus-within:ring-2 focus-within:ring-orange-500/30 focus-within:shadow-2xl transition-all"
+              >
           <input
             ref={fileInputRef}
             type="file"
@@ -776,15 +812,16 @@ export default function ChatDetailPage() {
             className="hidden"
             accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.html,.css,.js,.json,.xml,.py,.java,.c,.cpp,.cs,.php,.rb,.go,.ts,.sh,.jpg,.jpeg,.png,.gif,.webp,.svg,.bmp,.tiff,.csv"
           />
-          {chatId && (
-            <div className="relative mb-0.5 sm:mb-1 shrink-0">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="rounded-lg bg-zinc-800 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all"
-                title="Datei hochladen"
-              >
+                {/* Upload Button - Dashboard Style */}
+                {chatId && (
+                  <div className="relative shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="rounded-lg bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 disabled:opacity-50 transition-all"
+                      title="Datei hochladen"
+                    >
               {isUploading ? (
                 <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -796,47 +833,58 @@ export default function ChatDetailPage() {
                   <polyline points="17 8 12 3 7 8"></polyline>
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-              )}
-              </button>
-              <div className="absolute -top-1 -right-1">
-                <Tooltip 
-                  content={
-                    <div className="space-y-1">
-                      <p className="font-semibold mb-1">Unterstützte Dateitypen:</p>
-                      <p>📄 Dokumente: PDF, Word, Excel, PowerPoint, TXT, Markdown</p>
-                      <p>💻 Code: JS, TS, Python, Java, C++, PHP, Ruby, Go, etc.</p>
-                      <p>🖼️ Bilder: JPG, PNG, GIF, WebP, SVG</p>
-                      <p>📊 Daten: CSV, JSON, XML</p>
+                    )}
+                    </button>
+                    <div className="absolute -top-1 -right-1">
+                      <Tooltip 
+                        content={
+                          <div className="space-y-1">
+                            <p className="font-semibold mb-1">Unterstützte Dateitypen:</p>
+                            <p>📄 Dokumente: PDF, Word, Excel, PowerPoint, TXT, Markdown</p>
+                            <p>💻 Code: JS, TS, Python, Java, C++, PHP, Ruby, Go, etc.</p>
+                            <p>🖼️ Bilder: JPG, PNG, GIF, WebP, SVG</p>
+                            <p>📊 Daten: CSV, JSON, XML</p>
+                          </div>
+                        }
+                        variant="info"
+                        position="top"
+                        iconOnly
+                      />
                     </div>
-                  }
-                  variant="info"
-                  position="top"
-                  iconOnly
+                  </div>
+                )}
+                
+                {/* Input Field - Dashboard Style (kein eigener Rahmen) */}
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Schreib eine Nachricht..."
+                  className="flex-1 bg-transparent px-3 md:px-4 py-2 text-base md:text-sm focus:outline-none border-none min-w-0 text-gray-900 placeholder:text-gray-400"
+                  autoFocus
                 />
-              </div>
+                
+                {/* Send Button - Dashboard Gradient */}
+                <button
+                  type="submit"
+                  disabled={isLoading || (!input.trim() && documents.length === 0)}
+                  className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 p-2.5 text-white hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 shadow-md hover:shadow-lg"
+                  aria-label="Nachricht senden"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m22 2-7 20-4-9-9-4Z"/>
+                    <path d="M22 2 11 13"/>
+                  </svg>
+                </button>
+              </form>
+              
+              {/* Disclaimer Text - Dashboard Style */}
+              <p className="mt-2 text-center text-[10px] md:text-xs text-gray-500">
+                KI kann Fehler machen. Überprüfe wichtige Informationen.
+              </p>
             </div>
-          )}
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Schreib eine Nachricht..."
-            className="flex-1 bg-transparent px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-base md:text-sm focus:outline-none min-w-0 text-white placeholder:text-zinc-500"
-            autoFocus
-          />
-          <button
-            type="submit"
-            disabled={isLoading || (!input.trim() && documents.length === 0)}
-            className="mb-0.5 sm:mb-1 mr-0.5 sm:mr-1 rounded-lg bg-zinc-900 p-1.5 sm:p-2 md:p-2.5 text-white hover:bg-zinc-700 disabled:opacity-50 transition-all shrink-0"
-            aria-label="Nachricht senden"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-          </button>
-        </form>
-        <p className="mt-1.5 sm:mt-2 text-center text-[9px] sm:text-[10px] md:text-xs text-zinc-500">
-          KI kann Fehler machen. Überprüfe wichtige Informationen.
-        </p>
+          </div>
+        </div>
       </div>
-    </div>
     </>
   );
 }

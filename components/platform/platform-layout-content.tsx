@@ -87,13 +87,8 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
   //   };
   // }, []);
   
-  // Prüfe ob wir auf einer /chat Route sind
-  const isChatRoute = pathname?.startsWith('/chat') ?? false;
-
-  // Wenn Chat-Route: Nur children rendern (Chat-Layout übernimmt)
-  if (isChatRoute) {
-    return <>{children}</>;
-  }
+  // Chat-Route nutzt jetzt eigenes Layout mit Sidebar
+  // Keine spezielle Behandlung mehr nötig
 
   // Sonst: Normales Layout mit Sidebar und Header
   return (

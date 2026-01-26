@@ -12,6 +12,8 @@ import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { SuggestedActions } from '@/components/suggested-actions';
 import { CopyButton } from '@/components/ui/copy-button';
 import { Tooltip } from '@/components/ui/tooltip';
+import { ChatSidebar } from '@/components/platform/chat-sidebar';
+import { Menu, X } from 'lucide-react';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -47,15 +49,15 @@ function ConfirmModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div 
-        className="bg-zinc-900 border border-white/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl" 
+        className="bg-white border border-gray-200 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl" 
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
-        <p className="text-zinc-300 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-700 mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors"
+            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
           >
             Abbrechen
           </button>
@@ -64,7 +66,7 @@ function ConfirmModal({
               onConfirm();
               onClose();
             }}
-            className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+            className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 transition-colors"
           >
             Bestätigen
           </button>
@@ -83,10 +85,10 @@ function Toast({ message, type = 'info', onClose }: { message: string; type?: 'i
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const bgColor = type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-zinc-800';
+  const bgColor = type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-gray-800';
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg border border-white/10`}>
+    <div className={`fixed bottom-4 right-4 z-50 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg border border-gray-200`}>
       {message}
     </div>
   );
@@ -111,7 +113,8 @@ export default function ChatPage() {
   });
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'error' | 'success' } | null>(null);
   
-  // sidebarOpen State ist WEG (macht jetzt das Layout)
+  // Sidebar State
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -507,35 +510,55 @@ export default function ChatPage() {
           onClose={() => setToast(null)}
         />
       )}
-      <div className="flex flex-col h-[100dvh] w-full overflow-hidden bg-white">
-      
-      {/* HEADER: Logo + SiniChat Branding - Dashboard Style */}
-      {/* Mobile: Safe-Area-Padding oben für Statusbar */}
-      <div className="shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-200/50 bg-white pt-[calc(env(safe-area-inset-top)+0.75rem)] md:pt-4">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-xl shadow-md border border-gray-200/50 bg-white shrink-0">
-            <Image 
-              src="/assets/logos/logo.webp" 
-              alt="Sinispace Logo" 
-              fill 
-              className="object-contain p-2" 
-              priority 
-            />
+      {/* Chat Layout: Sidebar + Main Area */}
+      <div className="flex h-[100dvh] w-full overflow-hidden bg-white">
+        {/* SIDEBAR - Dashboard Style */}
+        <ChatSidebar 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
+        />
+        
+        {/* MAIN CHAT AREA */}
+        <div className="flex-1 flex flex-col overflow-hidden md:ml-64">
+          {/* STICKY HEADER - Glassmorphism */}
+          <div className="sticky top-0 z-30 shrink-0 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Menu"
+              >
+                {sidebarOpen ? (
+                  <X className="w-5 h-5 text-gray-700" />
+                ) : (
+                  <Menu className="w-5 h-5 text-gray-700" />
+                )}
+              </button>
+              
+              <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-xl shadow-md border border-gray-200/50 bg-white shrink-0">
+                <Image 
+                  src="/assets/logos/logo.webp" 
+                  alt="Sinispace Logo" 
+                  fill 
+                  className="object-contain p-2" 
+                  priority 
+                />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                  SiniChat
+                </h1>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">Frag mich alles – mit Code, Tabellen und Struktur.</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-              SiniChat
-            </h1>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Frag mich alles – mit Code, Tabellen und Struktur.</p>
-          </div>
-        </div>
-      </div>
 
-      {/* NACHRICHTEN BEREICH - Dashboard Style Design */}
-      {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Floating Bar */}
-      <div className="flex-1 overflow-y-auto scroll-smooth bg-white pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
-        {/* Central Container: Begrenzte Breite, zentriert */}
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
+          {/* NACHRICHTEN BEREICH - Dashboard Style Design */}
+          {/* Central Layout: max-w-3xl (48rem), centered, mit genug Padding unten für Floating Bar */}
+          <div className="flex-1 overflow-y-auto scroll-smooth bg-white md:bg-gray-50 pb-[calc(5rem+env(safe-area-inset-bottom)+9rem)] md:pb-40">
+            {/* Central Container: Begrenzte Breite, zentriert (wie Dokument) */}
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8 space-y-6 md:space-y-8">
           {messages.length === 0 && (
             <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
               <span className="text-5xl sm:text-6xl mb-4">💬</span>
@@ -617,15 +640,15 @@ export default function ChatPage() {
                </div>
             </div>
           )}
-          <div ref={messagesEndRef} className="h-1" />
-        </div>
-      </div>
+              <div ref={messagesEndRef} className="h-1" />
+            </div>
+          </div>
 
-      {/* INPUT BEREICH - Floating Bar Design */}
-      {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
-      {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
-      <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 right-0 z-40 flex justify-center px-4 md:px-6">
-        <div className="w-full max-w-3xl">
+          {/* INPUT BEREICH - Floating Bar Design */}
+          {/* Mobile: Über der Bottom Nav positioniert (5rem = Nav-Höhe + Safe Area) */}
+          {/* Desktop: Fixed bottom-6, zentriert, max-w-3xl */}
+          <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+1.5rem)] md:bottom-6 left-0 right-0 md:left-64 z-40 flex justify-center px-4 md:px-6">
+            <div className="w-full max-w-3xl">
           {/* Dokumente Liste - Dashboard Style */}
           {documents.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-2 justify-center md:justify-start">
@@ -727,13 +750,14 @@ export default function ChatPage() {
             </button>
           </form>
           
-          {/* Disclaimer Text - Dashboard Style */}
-          <p className="mt-2 text-center text-[10px] md:text-xs text-gray-500">
-            KI kann Fehler machen. Überprüfe wichtige Informationen.
-          </p>
+              {/* Disclaimer Text - Dashboard Style */}
+              <p className="mt-2 text-center text-[10px] md:text-xs text-gray-500">
+                KI kann Fehler machen. Überprüfe wichtige Informationen.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
