@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutGrid, MessageSquare, Settings } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptic-feedback';
+import { cn } from '@/lib/utils';
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -20,7 +21,7 @@ export function MobileNav() {
       label: 'SiniChat',
       icon: MessageSquare,
       active: pathname?.startsWith('/chat') ?? false,
-      highlight: true, // Hervorgehoben!
+      highlight: true, // Hervorgehoben mit Logo-Gradient!
     },
     {
       href: '/settings',
@@ -31,62 +32,86 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden bg-zinc-950/80 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
-      <div className="flex justify-around items-center h-16 px-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = item.active;
+    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden pb-[env(safe-area-inset-bottom)] px-4">
+      {/* PREMIUM: Floating Navigation mit Glassmorphism */}
+      <div className="mx-auto max-w-md mb-3">
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200/50 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.04)]">
+          <div className="flex justify-around items-center h-16 px-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = item.active;
 
-          // SiniChat Button - Auf gleicher Höhe wie andere Buttons mit etwas Freiraum
-          if (item.highlight) {
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => triggerHaptic('light')}
-                className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2"
-              >
-                <div className={`h-12 w-12 md:h-10 md:w-10 rounded-full ${
-                  isActive 
-                    ? 'bg-gradient-to-br from-teal-500 to-indigo-500 shadow-lg shadow-teal-500/30 ring-2 ring-teal-400/50' 
-                    : 'bg-gradient-to-br from-teal-500/60 to-indigo-500/60 shadow-lg shadow-teal-500/20'
-                } border-2 border-zinc-950 flex items-center justify-center transition-all duration-300`}>
-                  <Icon 
-                    className={`h-6 w-6 md:h-5 md:w-5 text-white transition-all duration-300`} 
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                </div>
-                <span className={`text-[11px] md:text-[10px] font-medium ${
-                  isActive ? 'text-teal-400 font-semibold' : 'text-zinc-500'
-                } transition-colors duration-300`}>
-                  {item.label}
-                </span>
-              </Link>
-            );
-          }
+              // SiniChat Button - Logo-Gradient für Brand Integration
+              if (item.highlight) {
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => triggerHaptic('light')}
+                    className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2 relative"
+                  >
+                    <div className={cn(
+                      'h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-300',
+                      isActive 
+                        ? 'bg-gradient-to-br from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30 ring-2 ring-orange-200/50 scale-105' 
+                        : 'bg-gradient-to-br from-orange-100 to-pink-100 shadow-sm'
+                    )}>
+                      <Icon 
+                        className={cn(
+                          'h-6 w-6 transition-all duration-300',
+                          isActive ? 'text-white' : 'text-orange-600'
+                        )} 
+                        strokeWidth={isActive ? 2.5 : 2}
+                      />
+                    </div>
+                    <span className={cn(
+                      'text-[11px] font-medium transition-colors duration-300',
+                      isActive ? 'text-orange-600 font-semibold' : 'text-gray-600'
+                    )}>
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              }
 
-          // Normale Buttons
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => triggerHaptic('light')}
-              className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2"
-            >
-              <Icon 
-                className={`w-6 h-6 md:w-5 md:h-5 ${
-                  isActive ? 'text-white' : 'text-zinc-500'
-                } transition-colors duration-300`} 
-                strokeWidth={isActive ? 2.5 : 2}
-              />
-              <span className={`text-[11px] md:text-[10px] font-medium ${
-                isActive ? 'text-white font-semibold' : 'text-zinc-500'
-              } transition-colors duration-300`}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
+              // Normale Buttons - Clean Light Design
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => triggerHaptic('light')}
+                  className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2 relative group"
+                >
+                  {/* Active Indicator - Logo Gradient */}
+                  {isActive && (
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gradient-to-r from-orange-500 to-pink-500" />
+                  )}
+                  
+                  <div className={cn(
+                    'h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-300',
+                    isActive 
+                      ? 'bg-gradient-to-br from-orange-50 to-pink-50 ring-1 ring-orange-200/50' 
+                      : 'bg-gray-50 group-hover:bg-gray-100'
+                  )}>
+                    <Icon 
+                      className={cn(
+                        'w-5 h-5 transition-colors duration-300',
+                        isActive ? 'text-orange-600' : 'text-gray-500 group-hover:text-gray-700'
+                      )} 
+                      strokeWidth={isActive ? 2.5 : 2}
+                    />
+                  </div>
+                  <span className={cn(
+                    'text-[11px] font-medium transition-colors duration-300',
+                    isActive ? 'text-orange-600 font-semibold' : 'text-gray-600'
+                  )}>
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </nav>
   );
