@@ -32,8 +32,9 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden px-4" style={{
-      paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+    <nav className="fixed bottom-0 left-0 right-0 z-50 block md:hidden px-4 mb-2" style={{
+      paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
+      marginBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
     }}>
       {/* PREMIUM: Floating Navigation mit Glassmorphism */}
       <div className="mx-auto max-w-md mb-3">
