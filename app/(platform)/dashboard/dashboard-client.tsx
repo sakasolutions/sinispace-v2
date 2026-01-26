@@ -239,6 +239,54 @@ const getAccentColorRGB = (accentColor: string): { r: number; g: number; b: numb
   return colorMap[accentColor] || colorMap.blue;
 };
 
+// FESTES MAPPING: Desktop Hover-Klassen für jede Tool-Farbe (explizit, damit Tailwind sie erkennt)
+const desktopHoverClasses: Record<string, { border: string; bg: string }> = {
+  orange: {
+    border: 'md:group-hover:border-orange-500',
+    bg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-orange-50 md:group-hover:to-pink-50',
+  },
+  pink: {
+    border: 'md:group-hover:border-pink-500',
+    bg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-pink-50 md:group-hover:to-orange-50',
+  },
+  rose: {
+    border: 'md:group-hover:border-rose-500',
+    bg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-pink-50 md:group-hover:to-rose-50',
+  },
+  emerald: {
+    border: 'md:group-hover:border-emerald-500',
+    bg: 'md:group-hover:bg-emerald-50',
+  },
+  blue: {
+    border: 'md:group-hover:border-blue-500',
+    bg: 'md:group-hover:bg-blue-50',
+  },
+  green: {
+    border: 'md:group-hover:border-green-500',
+    bg: 'md:group-hover:bg-green-50',
+  },
+  violet: {
+    border: 'md:group-hover:border-violet-500',
+    bg: 'md:group-hover:bg-violet-50',
+  },
+  indigo: {
+    border: 'md:group-hover:border-indigo-500',
+    bg: 'md:group-hover:bg-indigo-50',
+  },
+  amber: {
+    border: 'md:group-hover:border-amber-500',
+    bg: 'md:group-hover:bg-amber-50',
+  },
+  cyan: {
+    border: 'md:group-hover:border-cyan-500',
+    bg: 'md:group-hover:bg-cyan-50',
+  },
+  slate: {
+    border: 'md:group-hover:border-gray-500',
+    bg: 'md:group-hover:bg-gray-50',
+  },
+};
+
 // PREMIUM FLOATING DESIGN: Permanent Floating Cards mit vollumfänglichem farbigen Rahmen
 const toolColors: Record<string, {
   bg: string;
@@ -637,6 +685,9 @@ export default function DashboardClient() {
                   const idleDelays = [0, -1.2, -2.8, -1.8]; // Card 1: 0s, Card 2: -1.2s, Card 3: -2.8s, Card 4: -1.8s
                   const idleDelay = idleDelays[index] || 0;
                   
+                  // FESTES MAPPING: Desktop Hover-Klassen explizit laden
+                  const hoverClasses = desktopHoverClasses[tool.color] || desktopHoverClasses.blue;
+                  
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
                     'rounded-xl',
@@ -649,11 +700,11 @@ export default function DashboardClient() {
                     colors.border,
                     'border-[0.5px]',
                     'opacity-30',
-                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (nur md:)
+                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (explizite Klassen)
                     'md:group-hover:opacity-100',
                     'md:group-hover:border-opacity-100',
-                    colors.hoverBorder, // Wird nur auf Desktop aktiv (md:)
-                    colors.hoverBg, // Wird nur auf Desktop aktiv (md:)
+                    hoverClasses.border, // Explizite Hover-Border-Klasse
+                    hoverClasses.bg, // Explizite Hover-Background-Klasse
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
@@ -789,6 +840,9 @@ export default function DashboardClient() {
                   const secondaryIdleDelays = [0, -1.5, -3.2, -2.1, -0.8, -2.5, -1.8, -3.5];
                   const secondaryIdleDelay = secondaryIdleDelays[index] || 0;
                   
+                  // FESTES MAPPING: Desktop Hover-Klassen explizit laden
+                  const hoverClasses = desktopHoverClasses[tool.color] || desktopHoverClasses.blue;
+                  
                   // SECONDARY CARDS: Ruhiger, flacher - Niedrigere Elevation
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
@@ -802,11 +856,11 @@ export default function DashboardClient() {
                     colors.border,
                     'border-[0.5px]',
                     'opacity-30',
-                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (nur md:)
+                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (explizite Klassen)
                     'md:group-hover:opacity-100',
                     'md:group-hover:border-opacity-100',
-                    colors.hoverBorder, // Wird nur auf Desktop aktiv (md:)
-                    colors.hoverBg, // Wird nur auf Desktop aktiv (md:)
+                    hoverClasses.border, // Explizite Hover-Border-Klasse
+                    hoverClasses.bg, // Explizite Hover-Background-Klasse
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
