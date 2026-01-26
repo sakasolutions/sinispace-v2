@@ -14,7 +14,6 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       animation: {
-        'float': 'float 6s ease-in-out infinite',
         'subtle-glow': 'subtle-glow 3s ease-in-out infinite',
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
         // PREMIUM: Micro-Animation System
@@ -26,14 +25,9 @@ const config: Config = {
         'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
         'parallax-up': 'parallax-up 0.3s ease-out',
         'parallax-down': 'parallax-down 0.3s ease-out',
-        'card-float': 'card-float 4s ease-in-out infinite',
+        'card-float': 'float 3.5s ease-in-out infinite alternate',
       },
       keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
-          '33%': { transform: 'translateY(-10px) rotate(1deg)' },
-          '66%': { transform: 'translateY(5px) rotate(-1deg)' },
-        },
         'subtle-glow': {
           '0%, 100%': { opacity: '0.15' },
           '50%': { opacity: '0.25' },
@@ -75,9 +69,9 @@ const config: Config = {
           '0%': { transform: 'translateY(0)' },
           '100%': { transform: 'translateY(4px)' },
         },
-        'card-float': {
-          '0%, 100%': { transform: 'translateY(-4px)' },
-          '50%': { transform: 'translateY(-8px)' },
+        'float': {
+          '0%': { transform: 'translateY(0px)' },
+          '100%': { transform: 'translateY(-6px)' },
         },
       },
       scale: {

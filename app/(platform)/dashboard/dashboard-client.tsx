@@ -602,8 +602,10 @@ export default function DashboardClient() {
                     opacity: 0,
                   };
 
-                  // FLOATING ANIMATION: Unterschiedliche Delays für organischen Look
-                  const floatDelay = index * 0.5; // 0s, 0.5s, 1s, 1.5s
+                  // FLOATING ANIMATION: Staggered Delays für organischen, wellenartigen Effekt
+                  // Card 1: 0s, Card 2: 1s, Card 3: 0.5s, Card 4: 1.5s
+                  const staggerDelays = [0, 1, 0.5, 1.5];
+                  const floatDelay = staggerDelays[index] || 0;
                   
                   const cardClassName = cn(
                     'group relative rounded-xl border overflow-hidden',
