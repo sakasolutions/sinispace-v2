@@ -15,6 +15,7 @@ import {
   Table2,
   MessageCircleHeart,
   MessageSquare,
+  MessageCircle,
   FileInput,
   Terminal,
   ChefHat,
@@ -24,6 +25,8 @@ import {
   ArrowUpRight,
   Search,
   TrendingUp,
+  LayoutGrid,
+  Briefcase,
 } from 'lucide-react';
 
 type Tool = {
@@ -210,6 +213,20 @@ const categoryFilterMap: Record<string, string[]> = {
   Kommunikation: ['communication', 'writing'],
   'Tech & Life': ['dev', 'lifestyle', 'social'],
 };
+
+const categoryConfig: Record<(typeof categoryTabs)[number], { icon: React.ComponentType<{ className?: string }> }> = {
+  Alle: { icon: LayoutGrid },
+  Business: { icon: Briefcase },
+  Kommunikation: { icon: MessageCircle },
+  'Tech & Life': { icon: Sparkles },
+};
+
+function formatEditorialDate(date: Date): string {
+  const weekday = date.toLocaleDateString('de-DE', { weekday: 'long' }).toUpperCase();
+  const day = date.getDate();
+  const month = date.toLocaleDateString('de-DE', { month: 'short' }).toUpperCase();
+  return `${weekday}, ${day}. ${month}`;
+}
 
 // PREMIUM HIGH-FIDELITY: Helper-Funktion für Akzentfarben (RGB-Werte)
 const getAccentColorRGB = (accentColor: string): { r: number; g: number; b: number } => {
@@ -549,35 +566,58 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Main Container - minimalistisch, Cards above the fold */}
-      <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32 pt-[max(2rem,env(safe-area-inset-top))] md:pt-6">
-        
-        {/* Action Header: Tabs (Mobile: full width, kein Badge); Desktop: Tabs + Premium-Badge */}
-        <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
-          <div className="flex flex-1 md:flex-initial overflow-x-auto scrollbar-hide min-w-0 rounded-full bg-white border border-gray-200 shadow-sm px-6 py-1 gap-3">
-            {categoryTabs.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  triggerHaptic('light');
-                }}
-                className={cn(
-                  'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 shrink-0',
-                  'active:scale-[0.98]',
-                  selectedCategory === cat
-                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md shadow-orange-500/20'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
-                )}
-              >
-                {cat}
-              </button>
-            ))}
+      {/* Main Container - Magazin-Cover Header + Cards */}
+      <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32">
+        {/* Editorial Header: Gradient, Datum, Titel, Super Pills */}
+        <header
+          className={cn(
+            'bg-gradient-to-b from-gray-50/80 to-white',
+            'pt-[max(4rem,env(safe-area-inset-top))] md:pt-12 pb-6',
+            'rounded-b-2xl md:rounded-b-none'
+          )}
+        >
+          {/* Editorial Info: Datum + Titel */}
+          <div className="mb-6">
+            <p className="text-gray-400 font-bold text-xs tracking-widest uppercase">
+              {formatEditorialDate(new Date())}
+            </p>
+            <h1 className="text-gray-900 text-3xl font-black tracking-tight mt-1">
+              Tools
+            </h1>
           </div>
-          <div className="hidden md:flex shrink-0 text-gray-500 bg-gray-50 rounded-full px-3 py-1.5 text-sm">
-            ✨ Premium
+
+          {/* Super Pills: Filter mit Icons */}
+          <div className="flex flex-wrap justify-between items-center gap-3">
+            <div className="flex flex-1 md:flex-initial overflow-x-auto scrollbar-hide min-w-0 gap-4 py-1 pl-2 pr-2">
+              {categoryTabs.map((cat) => {
+                const { icon: Icon } = categoryConfig[cat];
+                const isActive = selectedCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setSelectedCategory(cat);
+                      triggerHaptic('light');
+                    }}
+                    className={cn(
+                      'h-10 px-5 rounded-full border shadow-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 shrink-0',
+                      'active:scale-[0.98]',
+                      isActive
+                        ? 'bg-orange-50 text-orange-600 border-orange-200 font-semibold'
+                        : 'bg-white border-gray-100 text-gray-600 hover:bg-gray-50 hover:border-gray-200 hover:text-gray-800'
+                    )}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{cat}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="hidden md:flex shrink-0 text-gray-500 bg-gray-50 rounded-full px-3 py-1.5 text-sm">
+              ✨ Premium
+            </div>
           </div>
-        </div>
+        </header>
 
         {/* SMART USAGE-BASED CARD HIERARCHY */}
         {sortedAndFilteredTools.length > 0 ? (
