@@ -709,8 +709,8 @@ export default function ChatDetailPage() {
           </div>
         </div>
 
-        {/* Messages Container - EINZIGER SCROLLBARER BEREICH mit pb-32 */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white pt-16 pb-32">
+        {/* Messages Container - EINZIGER SCROLLBARER BEREICH; pb-48 mobil für Navbar + Input */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white pt-16 pb-48 md:pb-32">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8" style={{ maxWidth: '65ch' } as React.CSSProperties}>
             {messages.length === 0 && (
               <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
@@ -945,8 +945,8 @@ export default function ChatDetailPage() {
           </div>
         </div>
 
-        {/* INPUT AREA - Fixed unten mittig */}
-        <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-6 left-4 right-4 z-40 transition-all duration-300 ${
+        {/* INPUT AREA - Mobil: über Navbar (bottom-24); Desktop: bottom-6; z-40 unter Navbar (z-50) */}
+        <div className={`fixed bottom-24 md:bottom-6 left-4 right-4 z-40 transition-all duration-300 ${
           isSidebarCollapsed 
             ? 'md:left-[calc(16rem+3rem)]' 
             : 'md:left-[calc(16rem+20rem)]'
@@ -990,7 +990,7 @@ export default function ChatDetailPage() {
 
         {/* Dokumente Liste (wenn vorhanden) */}
         {documents.length > 0 && (
-          <div className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom)+8rem)] md:bottom-28 left-4 right-4 z-30 flex justify-center px-4 md:px-6 transition-all duration-300 ${
+          <div className={`fixed bottom-44 md:bottom-28 left-4 right-4 z-30 flex justify-center px-4 md:px-6 transition-all duration-300 ${
             isSidebarCollapsed 
               ? 'md:left-[calc(16rem+3rem)]' 
               : 'md:left-[calc(16rem+20rem)]'
