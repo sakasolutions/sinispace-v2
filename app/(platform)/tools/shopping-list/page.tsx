@@ -9,21 +9,112 @@ import {
   Check,
   ListChecks,
   ShoppingCart,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  loadLists,
+  saveLists,
+  generateId,
+  defaultList,
+  type ShoppingItem,
+  type ShoppingList,
+} from '@/lib/shopping-lists-storage';
+import {
+  getCategoryIcon,
+  getCategoryLabel,
+  normalizeItemName,
+  SHOPPING_CATEGORIES,
+} from '@/lib/shopping-list-categories';
+import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
 
-const STORAGE_KEY = 'sinispace-shopping-lists';
-
-type ShoppingItem = { id: string; text: string; checked: boolean };
-type ShoppingList = { id: string; name: string; items: ShoppingItem[] };
-
-function generateId() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+/** Smart Input & Paste Magic: Einzel-Item vs. Liste (Umbrüche/Kommas) */
+function splitInput(raw: string): string[] {
+  return raw
+    .split(/[\n,;]+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 50);
 }
 
-function defaultList(): ShoppingList {
-  return { id: generateId(), name: 'Allgemein', items: [] };
+function processChunk(
+  raw: string,
+  listId: string,
+  setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>
+) {
+  const id = generateId();
+  setLists((prev) =>
+    prev.map((l) =>
+      l.id !== listId
+        ? l
+        : {
+            ...l,
+            items: [
+              ...l.items,
+              {
+                id,
+                text: raw,
+                checked: false,
+                status: 'analyzing' as const,
+                rawInput: raw,
+              },
+            ],
+          }
+    )
+  );
+
+  analyzeShoppingItem(raw).then((res) => {
+    setLists((prev) => {
+      const list = prev.find((l) => l.id === listId);
+      if (!list) return prev;
+      const idx = list.items.findIndex((i) => i.id === id);
+      if (idx < 0) return prev;
+      const item = list.items[idx]!;
+
+      if (res.error) {
+        const done: ShoppingItem =
+          res.error === 'PREMIUM_REQUIRED'
+            ? { ...item, status: 'done', text: item.rawInput ?? item.text }
+            : { ...item, status: 'error' };
+        return prev.map((l) =>
+          l.id !== listId ? l : { ...l, items: list.items.map((it, i) => (i === idx ? done : it)) }
+        );
+      }
+
+      const data = res.data!;
+      const norm = normalizeItemName(data.name);
+      const other = list.items.find(
+        (i) =>
+          !i.checked &&
+          i.status === 'done' &&
+          i.id !== id &&
+          normalizeItemName(i.text) === norm
+      );
+
+      if (other) {
+        const q = (data.quantity ?? 1) + (other.quantity ?? 1);
+        const p = (data.estimatedPrice ?? 0) + (other.estimatedPrice ?? 0);
+        const updated = { ...other, quantity: q, estimatedPrice: p };
+        const items = list.items
+          .filter((it) => it.id !== id)
+          .map((it) => (it.id === other.id ? updated : it));
+        return prev.map((l) => (l.id !== listId ? l : { ...l, items }));
+      }
+
+      const updated: ShoppingItem = {
+        ...item,
+        text: data.name,
+        category: data.category,
+        quantity: data.quantity,
+        unit: data.unit,
+        estimatedPrice: data.estimatedPrice,
+        status: 'done',
+        rawInput: raw,
+      };
+      const items = list.items.map((it, i) => (i === idx ? updated : it));
+      return prev.map((l) => (l.id !== listId ? l : { ...l, items }));
+    });
+  });
 }
 
 export default function ShoppingListPage() {
@@ -38,36 +129,23 @@ export default function ShoppingListPage() {
 
   const activeList = lists.find((l) => l.id === activeListId);
 
-  const save = useCallback((next: ShoppingList[]) => {
-    if (next.length === 0) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch (_) {}
-  }, []);
-
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as ShoppingList[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setLists(parsed);
-          setActiveListId(parsed[0].id);
-          setHydrated(true);
-          return;
-        }
-      }
-    } catch (_) {}
-    const def = defaultList();
-    setLists([def]);
-    setActiveListId(def.id);
+    const loaded = loadLists();
+    if (loaded.length > 0) {
+      setLists(loaded);
+      setActiveListId(loaded[0]!.id);
+    } else {
+      const def = defaultList();
+      setLists([def]);
+      setActiveListId(def.id);
+    }
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!hydrated || lists.length === 0) return;
-    save(lists);
-  }, [lists, hydrated, save]);
+    saveLists(lists);
+  }, [lists, hydrated]);
 
   const addList = (name: string) => {
     const trimmed = (name.trim() || 'Neue Liste').slice(0, 80);
@@ -78,9 +156,10 @@ export default function ShoppingListPage() {
     setPendingName('');
   };
 
-  const renameList = (id: string, name: string) => {
+  const renameList = (name: string) => {
+    if (!modalRename) return;
     const trimmed = (name.trim() || 'Liste').slice(0, 80);
-    setLists((prev) => prev.map((l) => (l.id === id ? { ...l, name: trimmed } : l)));
+    setLists((prev) => prev.map((l) => (l.id === modalRename ? { ...l, name: trimmed } : l)));
     setModalRename(null);
     setPendingName('');
   };
@@ -92,21 +171,18 @@ export default function ShoppingListPage() {
       setLists([def]);
       setActiveListId(def.id);
     } else {
-      if (activeListId === id) setActiveListId(next[0].id);
+      if (activeListId === id) setActiveListId(next[0]!.id);
       setLists(next);
     }
     setModalDeleteList(null);
   };
 
-  const addItem = (listId: string, text: string) => {
-    const trimmed = text.trim().slice(0, 500);
-    if (!trimmed) return;
-    const item: ShoppingItem = { id: generateId(), text: trimmed, checked: false };
-    setLists((prev) =>
-      prev.map((l) => (l.id === listId ? { ...l, items: [...l.items, item] } : l))
-    );
+  const submitSmartInput = useCallback(() => {
+    const chunks = splitInput(newItemInput);
+    if (chunks.length === 0 || !activeListId) return;
     setNewItemInput('');
-  };
+    chunks.forEach((raw) => processChunk(raw, activeListId, setLists));
+  }, [newItemInput, activeListId]);
 
   const toggleItem = (listId: string, itemId: string) => {
     setLists((prev) =>
@@ -124,7 +200,7 @@ export default function ShoppingListPage() {
   const deleteItem = (listId: string, itemId: string) => {
     setLists((prev) =>
       prev.map((l) =>
-        l.id === listId ? { ...l, items: l.items.filter((i) => i.id !== itemId) } : l
+        l.id !== listId ? { ...l, items: l.items.filter((i) => i.id !== itemId) } : l
       )
     );
   };
@@ -137,6 +213,19 @@ export default function ShoppingListPage() {
   const openDelete = (list: ShoppingList) => {
     setModalDeleteList(list.id);
   };
+
+  const unchecked = activeList?.items.filter((i) => !i.checked) ?? [];
+  const checked = activeList?.items.filter((i) => i.checked) ?? [];
+  const totalEstimated = unchecked.reduce((sum, i) => sum + (i.estimatedPrice ?? 0), 0);
+
+  const grouped = unchecked.reduce<Record<string, ShoppingItem[]>>((acc, it) => {
+    const cat = it.category ?? 'sonstiges';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat]!.push(it);
+    return acc;
+  }, {});
+
+  const sortedCategories = [...SHOPPING_CATEGORIES];
 
   if (!hydrated) {
     return (
@@ -159,12 +248,12 @@ export default function ShoppingListPage() {
           SiniSpace Einkaufslisten
         </h1>
         <p className="text-sm sm:text-base text-gray-600 mt-1">
-          Mehrere Listen verwalten – Supermarkt, Drogerie, Geburtstag & mehr.
+          Smart Input, KI-Kategorien & Preis-Schätzung. Einzel-Item oder Liste einfügen (z.B. aus
+          WhatsApp).
         </p>
       </div>
 
       <div className="flex flex-col md:flex-row md:gap-6 md:items-start">
-        {/* Sidebar (Desktop) / Top-Tabs (Mobile) */}
         <div className="md:w-56 lg:w-64 shrink-0 mb-4 md:mb-0">
           <div className="flex md:flex-col gap-2">
             <div className="flex overflow-x-auto scrollbar-hide gap-2 pb-2 md:pb-0 md:overflow-visible md:flex-col md:gap-1">
@@ -237,8 +326,7 @@ export default function ShoppingListPage() {
           </div>
         </div>
 
-        {/* Main Area */}
-        <div className="flex-1 min-w-0 rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="flex-1 min-w-0 rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden flex flex-col">
           {activeList ? (
             <>
               <div className="p-4 sm:p-6 border-b border-gray-100">
@@ -251,83 +339,100 @@ export default function ShoppingListPage() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        addItem(activeList.id, newItemInput);
+                        submitSmartInput();
                       }
                     }}
-                    placeholder="Was brauchst du?"
+                    onPaste={(e) => {
+                      const pasted = (e.clipboardData?.getData?.('text') ?? '').trim();
+                      const chunks = splitInput(pasted);
+                      if (chunks.length > 0 && activeListId) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        chunks.forEach((raw) => processChunk(raw, activeListId, setLists));
+                        setNewItemInput('');
+                      }
+                    }}
+                    placeholder="Was brauchst du? (Einzel-Item oder Liste mit Kommas/Zeilen)"
                     className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
                   />
                   <button
                     type="button"
-                    onClick={() => addItem(activeList.id, newItemInput)}
-                    disabled={!newItemInput.trim()}
+                    onClick={submitSmartInput}
+                    disabled={!splitInput(newItemInput).length}
                     className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center hover:from-orange-600 hover:to-pink-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-orange-500/25"
                     title="Hinzufügen"
                   >
                     <Plus className="w-5 h-5" />
                   </button>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Tipp: Liste aus WhatsApp einfügen → Zeilen/Kommas werden erkannt, jedes Item wird
+                  einzeln analysiert.
+                </p>
               </div>
 
-              <div className="divide-y divide-gray-100">
-                {activeList.items.filter((i) => !i.checked).length === 0 &&
-                activeList.items.filter((i) => i.checked).length === 0 ? (
+              <div className="flex-1 overflow-y-auto">
+                {unchecked.length === 0 && checked.length === 0 ? (
                   <div className="p-8 sm:p-12 text-center">
                     <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
                     <p className="text-gray-500 font-medium">Noch keine Einträge.</p>
                     <p className="text-sm text-gray-400 mt-1">
-                      Tippe oben etwas ein und klicke auf +.
+                      Tippe etwas ein oder füge eine Liste ein (z.B. aus WhatsApp).
                     </p>
                   </div>
                 ) : (
                   <>
-                    {activeList.items
-                      .filter((i) => !i.checked)
-                      .map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-50/50 transition-colors group"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => toggleItem(activeList.id, item.id)}
-                            className="w-6 h-6 rounded-md border-2 border-gray-300 flex items-center justify-center shrink-0 hover:border-orange-400 hover:bg-orange-50 transition-colors"
-                            aria-label="Abhaken"
-                          />
-                          <span className="flex-1 text-gray-900 font-medium">{item.text}</span>
-                          <button
-                            type="button"
-                            onClick={() => deleteItem(activeList.id, item.id)}
-                            className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
-                            title="Entfernen"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    {activeList.items.filter((i) => i.checked).length > 0 && (
-                      <div className="bg-gray-50/80">
-                        <div className="px-4 sm:px-6 py-2">
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Erledigt
-                          </span>
-                        </div>
-                        {activeList.items
-                          .filter((i) => i.checked)
-                          .map((item) => (
+                    {sortedCategories.map((cat) => {
+                      const items = grouped[cat] ?? [];
+                      if (items.length === 0) return null;
+                      const label = getCategoryLabel(cat);
+                      const icon = getCategoryIcon(cat);
+                      return (
+                        <div key={cat} className="border-b border-gray-100 last:border-b-0">
+                          <div className="px-4 sm:px-6 py-2 bg-gray-50/80 flex items-center gap-2">
+                            <span className="text-lg" aria-hidden>
+                              {icon}
+                            </span>
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                              {label}
+                            </span>
+                          </div>
+                          {items.map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-100/80 transition-colors group"
+                              className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-50/50 transition-colors group"
                             >
                               <button
                                 type="button"
                                 onClick={() => toggleItem(activeList.id, item.id)}
-                                className="w-6 h-6 rounded-md border-2 border-orange-500 bg-orange-500 flex items-center justify-center shrink-0 hover:bg-orange-600 hover:border-orange-600 transition-colors"
-                                aria-label="Rückgängig"
-                              >
-                                <Check className="w-3.5 h-3.5 text-white" />
-                              </button>
-                              <span className="flex-1 text-gray-500 line-through">{item.text}</span>
+                                className="w-6 h-6 rounded-md border-2 border-gray-300 flex items-center justify-center shrink-0 hover:border-orange-400 hover:bg-orange-50 transition-colors"
+                                aria-label="Abhaken"
+                              />
+                              <span className="text-lg shrink-0 flex items-center justify-center w-6" aria-hidden>
+                                {item.status === 'analyzing' ? (
+                                  <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
+                                ) : (
+                                  getCategoryIcon(item.category)
+                                )}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                {item.status === 'analyzing' ? (
+                                  <span className="text-gray-500 italic">Analysiere …</span>
+                                ) : item.status === 'error' ? (
+                                  <span className="text-gray-700">{item.text}</span>
+                                ) : (
+                                  <span className="text-gray-900 font-medium">
+                                    {[item.quantity, item.unit].filter(Boolean).length > 0
+                                      ? [item.quantity, item.unit, item.text].filter(Boolean).join(' ')
+                                      : item.text}
+                                  </span>
+                                )}
+                              </div>
+                              {item.status === 'done' && typeof item.estimatedPrice === 'number' && (
+                                <span className="text-sm text-gray-500 shrink-0">
+                                  ca. {item.estimatedPrice.toFixed(2).replace('.', ',')} €
+                                </span>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => deleteItem(activeList.id, item.id)}
@@ -338,11 +443,65 @@ export default function ShoppingListPage() {
                               </button>
                             </div>
                           ))}
+                        </div>
+                      );
+                    })}
+
+                    {checked.length > 0 && (
+                      <div className="bg-gray-50/80">
+                        <div className="px-4 sm:px-6 py-2 flex items-center gap-2">
+                          <span className="text-lg" aria-hidden>
+                            ✓
+                          </span>
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Erledigt
+                          </span>
+                        </div>
+                        {checked.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-100/80 transition-colors group"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => toggleItem(activeList!.id, item.id)}
+                              className="w-6 h-6 rounded-md border-2 border-orange-500 bg-orange-500 flex items-center justify-center shrink-0 hover:bg-orange-600 hover:border-orange-600 transition-colors"
+                              aria-label="Rückgängig"
+                            >
+                              <Check className="w-3.5 h-3.5 text-white" />
+                            </button>
+                            <span className="text-lg shrink-0 opacity-50" aria-hidden>
+                              {getCategoryIcon(item.category)}
+                            </span>
+                            <span className="flex-1 text-gray-500 line-through">{item.text}</span>
+                            <button
+                              type="button"
+                              onClick={() => deleteItem(activeList!.id, item.id)}
+                              className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
+                              title="Entfernen"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </>
                 )}
               </div>
+
+              {unchecked.length > 0 && totalEstimated > 0 && (
+                <div className="p-4 border-t border-gray-100 bg-white flex justify-end">
+                  <div className="text-right">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">
+                      Geschätzt (Summe)
+                    </span>
+                    <p className="text-lg font-bold text-gray-900">
+                      ca. {totalEstimated.toFixed(2).replace('.', ',')} €
+                    </p>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div className="p-8 sm:p-12 text-center">
@@ -356,7 +515,6 @@ export default function ShoppingListPage() {
         </div>
       </div>
 
-      {/* Modal: Neue Liste */}
       {modalNewList && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
@@ -399,7 +557,6 @@ export default function ShoppingListPage() {
         </div>
       )}
 
-      {/* Modal: Umbenennen */}
       {modalRename && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
@@ -415,7 +572,7 @@ export default function ShoppingListPage() {
               value={pendingName}
               onChange={(e) => setPendingName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') renameList(modalRename, pendingName);
+                if (e.key === 'Enter') renameList(pendingName);
                 if (e.key === 'Escape') setModalRename(null);
               }}
               placeholder="Name der Liste"
@@ -432,7 +589,7 @@ export default function ShoppingListPage() {
               </button>
               <button
                 type="button"
-                onClick={() => renameList(modalRename, pendingName)}
+                onClick={() => renameList(pendingName)}
                 className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium text-sm hover:from-orange-600 hover:to-pink-600 transition-colors shadow-md shadow-orange-500/25"
               >
                 Speichern
@@ -442,7 +599,6 @@ export default function ShoppingListPage() {
         </div>
       )}
 
-      {/* Modal: Liste löschen */}
       {modalDeleteList && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"

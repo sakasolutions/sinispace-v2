@@ -223,21 +223,22 @@ export const toolInfoMap: Record<string, ToolInfo> = {
   },
   'shopping-list': {
     title: 'SiniSpace Einkaufslisten',
-    description: 'Verwalte mehrere Einkaufslisten – Supermarkt, Drogerie, Geburtstag, Urlaub. Items hinzufügen, abhaken, Listen erstellen, umbenennen und löschen. Speichert lokal im Browser.',
+    description: 'Smart Einkaufslisten mit KI: Mehrere Listen (Supermarkt, Drogerie, …), Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). KI korrigiert Tippfehler, schätzt Preise (DE), ordnet Kategorien zu. Aggregation: z.B. „Tomaten“ + „Tomaten“ = eine Zeile mit addierter Menge.',
     useCases: [
       'Mehrere Listen für verschiedene Einkäufe (Supermarkt, Drogerie, etc.)',
-      'Geburtstags- oder Party-Einkäufe planen',
-      'Wochenend-Einkauf oder Urlaubs-Checkliste'
+      'Liste aus WhatsApp einfügen – jedes Item wird einzeln analysiert',
+      'Geschätztes Budget live (Summe ca. XX €)',
+      'Kategorien wie Obst & Gemüse, Kühlregal, Fleisch mit Icons'
     ],
     examples: [
-      'Liste "Supermarkt" mit Milch, Brot, Obst',
-      'Liste "Drogerie" mit Shampoo, Zahnpasta',
+      'Einzel-Item: „2 kg Tomaten“ oder „Milch“',
+      'Liste einfügen: Zeilen oder Komma-getrennt wie aus WhatsApp',
       'Liste "Geburtstag" mit Geschenk, Torte, Deko'
     ],
     tips: [
-      'Erledigte Items rutschen in den "Erledigt"-Bereich',
-      'Listen bleiben im Browser gespeichert',
-      'Du kannst Listen umbenennen und löschen'
+      'Paste Magic: Liste einfügen → Zeilen/Kommas werden erkannt',
+      'Erledigte Items rutschen in „Erledigt“',
+      'Premium für KI-Features (Korrektur, Preis, Kategorien)'
     ]
   }
 };
