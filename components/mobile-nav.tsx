@@ -42,11 +42,8 @@ export function MobileNav() {
       {/* Heavy Frosted Glass – iOS-style, Light/Dark kompatibel */}
       <div className="mx-auto max-w-md px-4">
         <div 
-          className="rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border-t border-white/40 dark:border-white/10"
-          style={{
-            WebkitBackdropFilter: 'blur(24px)',
-            boxShadow: '0 -4px 24px rgba(0, 0, 0, 0.06), 0 -2px 12px rgba(0, 0, 0, 0.04)',
-          }}
+          className="rounded-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border-t border-gray-200 dark:border-gray-700 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]"
+          style={{ WebkitBackdropFilter: 'blur(24px)' }}
         >
           {/* SVG Gradient Definition (einmalig für alle Icons) */}
           <svg className="absolute w-0 h-0">
