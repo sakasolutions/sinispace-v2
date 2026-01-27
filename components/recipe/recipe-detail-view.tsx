@@ -292,20 +292,21 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           >
             <Minus className="w-5 h-5" />
           </button>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full">
             <input
               type="range"
               min="1"
               max="8"
+              step={1}
               value={servings}
               onChange={(e) => setServings(parseInt(e.target.value))}
-              className="slider-recipe w-full h-2 cursor-pointer touch-manipulation"
+              className="slider-recipe w-full h-2 cursor-pointer touch-manipulation block"
               style={{ transition: 'none' }}
             />
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>1</span>
-              <span>4</span>
-              <span>8</span>
+            <div className="relative w-full mt-1 h-4 flex items-center" aria-hidden>
+              <span className="absolute text-xs text-gray-400" style={{ left: '0%' }}>1</span>
+              <span className="absolute text-xs text-gray-400 -translate-x-1/2" style={{ left: 'calc(100% * 3 / 7)' }}>4</span>
+              <span className="absolute text-xs text-gray-400" style={{ left: '100%', transform: 'translateX(-100%)' }}>8</span>
             </div>
           </div>
           <button
