@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, CheckCircle2, ListChecks } from 'lucide-react';
+import { CustomSelect } from '@/components/ui/custom-select';
 import {
   loadLists,
   saveLists,
@@ -75,7 +76,10 @@ export function AddToShoppingListModal({
 
   const selectedCount = selected.size;
   const isNewList = selectedListId === NEW_LIST_VALUE;
-  const listOptions = lists.map((l) => ({ value: l.id, label: l.name }));
+  const listOptions: { value: string; label: string }[] = [
+    ...lists.map((l) => ({ value: l.id, label: l.name })),
+    { value: NEW_LIST_VALUE, label: '+ Neue Liste erstellen' },
+  ];
 
   const modalContent = (
     <div
@@ -131,18 +135,16 @@ export function AddToShoppingListModal({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Zu welcher Liste hinzufügen?
             </label>
-            <select
+            <CustomSelect
               value={selectedListId}
-              onChange={(e) => setSelectedListId(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
-            >
-              {listOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-              <option value={NEW_LIST_VALUE}>+ Neue Liste erstellen</option>
-            </select>
+              onChange={(v) => setSelectedListId(v)}
+              options={listOptions}
+              placeholder="Liste wählen…"
+              theme="light"
+              variant="dropdown"
+              dropdownInPortal
+              icon={ListChecks}
+            />
             {isNewList && (
               <input
                 type="text"
