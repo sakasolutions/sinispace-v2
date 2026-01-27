@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Check } from 'lucide-react';
 
 type Option = string | { value: string; label: string };
@@ -15,6 +16,8 @@ interface CustomSelectProps {
   disabled?: boolean;
   variant?: 'dropdown' | 'modal';
   theme?: 'dark' | 'light'; // 'light' = weißes SiniSpace-Design (z.B. Settings)
+  /** Dropdown-Liste per Portal rendern (z.B. in Modals mit overflow), damit nichts abgeschnitten wird */
+  dropdownInPortal?: boolean;
 }
 
 export function CustomSelect({
@@ -27,9 +30,12 @@ export function CustomSelect({
   disabled = false,
   variant = 'dropdown',
   theme = 'dark',
+  dropdownInPortal = false,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [portalRect, setPortalRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Optionen normalisieren
   const normalizedOptions = options.map(opt => 
@@ -43,14 +49,15 @@ export function CustomSelect({
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (variant === 'modal') {
-        // Bei Modal: Backdrop-Klick schließt
         const target = event.target as HTMLElement;
         if (target.classList.contains('custom-select-modal-backdrop')) {
           setIsOpen(false);
         }
       } else {
-        // Bei Dropdown: Klick außerhalb des Containers schließt
-        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        const target = event.target as Node;
+        const inContainer = containerRef.current?.contains(target);
+        const inDropdown = dropdownInPortal && dropdownRef.current?.contains(target);
+        if (!inContainer && !inDropdown) {
           setIsOpen(false);
         }
       }
@@ -66,7 +73,6 @@ export function CustomSelect({
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscape);
-      // Body scroll verhindern bei Modal
       if (variant === 'modal') {
         document.body.style.overflow = 'hidden';
       }
@@ -78,29 +84,88 @@ export function CustomSelect({
         }
       };
     }
-  }, [isOpen, variant]);
+  }, [isOpen, variant, dropdownInPortal]);
 
-  // Hidden input für Form-Integration
   const handleSelect = (optionValue: string) => {
     onChange(optionValue);
     setIsOpen(false);
   };
 
+  // Bei dropdownInPortal: Position messen wenn geöffnet
+  useEffect(() => {
+    if (!isOpen || !dropdownInPortal || variant !== 'dropdown' || !containerRef.current) {
+      setPortalRect(null);
+      return;
+    }
+    const update = () => {
+      const r = containerRef.current?.getBoundingClientRect();
+      if (r) setPortalRect({ top: r.bottom + 8, left: r.left, width: r.width });
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [isOpen, dropdownInPortal, variant]);
+
+  const dropdownList = (
+    <div
+      ref={dropdownRef}
+      className={`custom-select-dropdown rounded-xl z-[100] max-h-[200px] overflow-auto ${
+        theme === 'light'
+          ? 'bg-white border-2 border-orange-200 shadow-lg shadow-orange-500/15 ring-2 ring-orange-100/80'
+          : 'bg-zinc-900 border border-white/10 shadow-xl'
+      } ${dropdownInPortal && portalRect ? 'fixed' : 'absolute top-full left-0 w-full mt-2'}`}
+      style={
+        dropdownInPortal && portalRect
+          ? { top: portalRect.top, left: portalRect.left, width: portalRect.width }
+          : undefined
+      }
+    >
+      {normalizedOptions.map((option) => {
+        const isSelected = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => handleSelect(option.value)}
+            className={`appearance-none w-full p-3 text-left text-sm transition-colors flex items-center justify-between ${
+              theme === 'light'
+                ? isSelected
+                  ? 'bg-orange-50 text-orange-700 font-medium shadow-[inset_4px_0_0_0_#f97316]'
+                  : 'text-gray-700 hover:bg-orange-50/50'
+                : isSelected
+                  ? 'bg-indigo-500/10 text-indigo-400'
+                  : 'text-zinc-300 hover:bg-zinc-800'
+            } ${
+              normalizedOptions.indexOf(option) === 0 ? 'rounded-t-xl' : ''
+            } ${
+              normalizedOptions.indexOf(option) === normalizedOptions.length - 1 ? 'rounded-b-xl' : ''
+            }`}
+          >
+            <span>{option.label}</span>
+            {isSelected && (
+              <Check className={`w-4 h-4 shrink-0 ${theme === 'light' ? 'text-orange-500' : 'text-indigo-400'}`} />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="custom-select relative w-full">
       {/* Hidden Input für Form-Integration */}
       {name && (
         <input type="hidden" name={name} value={value} />
       )}
 
-      {/* Select Button (Closed State) */}
+      {/* Select Button (Closed State) – appearance-none verhindert System-/Mac-Dropdown-Look */}
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full rounded-xl px-4 py-3 text-sm transition-all min-h-[44px] flex justify-between items-center ${
+        className={`appearance-none w-full rounded-xl px-4 py-3 text-sm transition-all min-h-[44px] flex justify-between items-center ${
           theme === 'light'
-            ? `border border-gray-200 bg-white ${value ? 'text-gray-900' : 'text-gray-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500'}`
+            ? `border border-gray-200 bg-white ${value ? 'text-gray-900' : 'text-gray-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-orange-200 hover:bg-orange-50/50 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500'}`
             : `border border-white/10 bg-zinc-900/50 ${value ? 'text-white' : 'text-zinc-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50'}`
         }`}
       >
@@ -118,42 +183,12 @@ export function CustomSelect({
       </button>
 
       {/* Dropdown List (Open State - Variant: dropdown) */}
-      {isOpen && !disabled && variant === 'dropdown' && (
-        <div className={`absolute top-full left-0 w-full mt-2 rounded-xl shadow-xl z-[100] max-h-[200px] overflow-auto ${
-          theme === 'light'
-            ? 'bg-white border border-gray-200'
-            : 'bg-zinc-900 border border-white/10'
-        }`}>
-          {normalizedOptions.map((option) => {
-            const isSelected = option.value === value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => handleSelect(option.value)}
-                className={`w-full p-3 text-left text-sm transition-colors flex items-center justify-between ${
-                  theme === 'light'
-                    ? isSelected
-                      ? 'bg-orange-50 text-orange-600'
-                      : 'text-gray-700 hover:bg-gray-50'
-                    : isSelected
-                      ? 'bg-indigo-500/10 text-indigo-400'
-                      : 'text-zinc-300 hover:bg-zinc-800'
-                } ${
-                  normalizedOptions.indexOf(option) === 0 ? 'rounded-t-xl' : ''
-                } ${
-                  normalizedOptions.indexOf(option) === normalizedOptions.length - 1 ? 'rounded-b-xl' : ''
-                }`}
-              >
-                <span>{option.label}</span>
-                {isSelected && (
-                  <Check className={`w-4 h-4 ${theme === 'light' ? 'text-orange-500' : 'text-indigo-400'}`} />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {isOpen && !disabled && variant === 'dropdown' &&
+        (dropdownInPortal && portalRect
+          ? createPortal(dropdownList, document.body)
+          : !dropdownInPortal
+            ? dropdownList
+            : null)}
 
       {/* Modal Popup (Open State - Variant: modal) */}
       {isOpen && !disabled && variant === 'modal' && (

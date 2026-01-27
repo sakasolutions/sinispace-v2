@@ -161,6 +161,14 @@
     display: none;
   }
 
+  /* CustomSelect: Kein System-/Mac-Dropdown-Look – alle Buttons explizit resetten */
+  .custom-select button,
+  .custom-select-dropdown button {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: none;
+  }
+
   /* Fade-in Animation (nur opacity, kein transform) */
   @keyframes fade-in {
     0% {
