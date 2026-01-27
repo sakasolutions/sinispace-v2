@@ -39,10 +39,10 @@ export function MobileNav() {
         marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
       }}
     >
-      {/* Brand Gradient Glass – schwebende SiniSpace-Insel */}
+      {/* Crystalline Glass – geschliffenes Eis, maximal transparent */}
       <div className="mx-auto max-w-md px-4">
         <div 
-          className="rounded-2xl bg-gradient-to-r from-orange-500/85 to-pink-500/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_rgba(251,146,60,0.25)]"
+          className="rounded-2xl bg-gradient-to-r from-orange-500/40 to-pink-500/40 backdrop-blur-2xl backdrop-saturate-150 border-t-2 border-t-white/50 border-b border-x border-white/20 shadow-[inset_0_1px_2px_rgba(255,255,255,0.3),0_8px_32px_rgba(251,146,60,0.3)]"
           style={{ WebkitBackdropFilter: 'saturate(180%) blur(24px)' }}
         >
           <div className="flex justify-evenly items-center h-16 px-2" style={{
