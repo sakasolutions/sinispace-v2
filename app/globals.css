@@ -626,7 +626,7 @@
     letter-spacing: -0.025em;
   }
 
-  /* Recipe Detail: Modern Range Slider – Track gray-200, Thumb white + shadow */
+  /* Recipe Detail: Modern Range Slider – Track gray-200, Thumb white + shadow, kalibriert mit Ticks */
   input.slider-recipe {
     -webkit-appearance: none;
     appearance: none;
@@ -634,6 +634,10 @@
     border-radius: 9999px;
     background: #e5e7eb;
     accent-color: #f97316;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
   input.slider-recipe::-webkit-slider-thumb {
     -webkit-appearance: none;
