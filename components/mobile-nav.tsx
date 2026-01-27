@@ -62,19 +62,21 @@ export function MobileNav() {
                   <div className="h-10 w-10 flex items-center justify-center transition-all duration-300 ease-out">
                     {isActive ? (
                       <Icon 
-                        className="w-5 h-5 text-gray-900 transition-all duration-300"
+                        className="w-5 h-5 text-orange-500 drop-shadow-[0_2px_6px_rgba(249,115,22,0.4)] transition-all duration-300"
                         strokeWidth={2.5}
                       />
                     ) : (
                       <Icon 
-                        className="w-5 h-5 text-gray-600 transition-all duration-300 group-hover:text-gray-800"
+                        className="w-5 h-5 text-slate-600 transition-all duration-300 group-hover:text-slate-700"
                         strokeWidth={2}
                       />
                     )}
                   </div>
                   <span className={cn(
-                    'text-[11px] font-medium transition-all duration-300',
-                    isActive ? 'text-gray-900 font-semibold' : 'text-gray-600 group-hover:text-gray-800'
+                    'text-[10px] font-medium transition-all duration-300',
+                    isActive
+                      ? 'bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent font-semibold'
+                      : 'text-slate-600 group-hover:text-slate-700'
                   )}>
                     {item.label}
                   </span>
