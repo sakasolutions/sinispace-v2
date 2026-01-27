@@ -3,7 +3,7 @@
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2 } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -13,6 +13,7 @@ import { toolInfoMap } from '@/lib/tool-info';
 import { BackButton } from '@/components/ui/back-button';
 import { getWorkspaceResults, deleteResult, cleanupOldResults } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
+import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { RecipeDetailView } from '@/components/recipe/recipe-detail-view';
 import { WeekPlanner } from '@/components/recipe/week-planner';
 
@@ -135,7 +136,15 @@ export default function RecipePage() {
   const [myRecipes, setMyRecipes] = useState<any[]>([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const [isAddToListOpen, setIsAddToListOpen] = useState(false);
+  const [addToListToast, setAddToListToast] = useState<{ message: string } | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; resultId: string; createdAt: Date } | null>(null);
+
+  useEffect(() => {
+    if (!addToListToast) return;
+    const t = setTimeout(() => setAddToListToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [addToListToast]);
 
   // Parse Recipe aus State
   let recipe: Recipe | null = null;
@@ -575,13 +584,20 @@ export default function RecipePage() {
                   )}
 
                   {recipe.shoppingList && recipe.shoppingList.length > 0 && (
-                    <div className="mt-6 pt-4 border-t border-gray-100">
+                    <div className="mt-6 pt-4 border-t border-gray-100 space-y-2">
                       <button
                         onClick={() => setIsShoppingListOpen(true)}
                         className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white border border-orange-500 rounded-xl font-semibold transition-all"
                       >
                         <ShoppingCart className="w-5 h-5" />
                         Dir fehlen Zutaten? → Einkaufsliste erstellen
+                      </button>
+                      <button
+                        onClick={() => setIsAddToListOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-gray-700 font-medium transition-colors"
+                      >
+                        <ListPlus className="w-5 h-5" />
+                        Auf Einkaufsliste setzen
                       </button>
                     </div>
                   )}
@@ -736,7 +752,7 @@ export default function RecipePage() {
               />
             ) : null}
 
-      {/* Shopping List Modal */}
+      {/* Shopping List Modal (Export) */}
       {recipe && recipe.shoppingList && recipe.shoppingList.length > 0 && (
         <ShoppingListModal
           isOpen={isShoppingListOpen}
@@ -744,6 +760,29 @@ export default function RecipePage() {
           ingredients={recipe.shoppingList}
           recipeName={recipe.recipeName}
         />
+      )}
+
+      {/* Auf Einkaufsliste setzen – Modal + Toast */}
+      {recipe && recipe.shoppingList && recipe.shoppingList.length > 0 && (
+        <AddToShoppingListModal
+          isOpen={isAddToListOpen}
+          onClose={() => setIsAddToListOpen(false)}
+          ingredients={recipe.shoppingList}
+          onAdded={(count, listName) => {
+            setAddToListToast({
+              message: `${count} ${count === 1 ? 'Zutat' : 'Zutaten'} zu „${listName}“ hinzugefügt`,
+            });
+          }}
+        />
+      )}
+
+      {addToListToast && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium shadow-lg animate-in fade-in duration-200"
+          role="status"
+        >
+          {addToListToast.message}
+        </div>
       )}
     </div>
   );
