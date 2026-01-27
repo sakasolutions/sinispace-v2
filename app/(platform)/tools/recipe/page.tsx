@@ -3,7 +3,7 @@
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2 } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -98,13 +98,14 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
   );
 }
 
-function SubmitButton() {
+function SubmitButton({ inspirationMode }: { inspirationMode: boolean }) {
   const { pending } = useFormStatus();
+  const label = inspirationMode ? 'Inspiriere mich ✨' : 'Rezept aus Zutaten zaubern 🍳';
   return (
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3.5 text-sm font-bold text-white hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
+      className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-3.5 text-sm font-bold text-white hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
     >
       {pending ? (
         <>
@@ -114,7 +115,7 @@ function SubmitButton() {
       ) : (
         <>
           <ChefHat className="w-4 h-4" />
-          <span>Rezept zaubern 🍳</span>
+          <span>{label}</span>
         </>
       )}
     </button>
@@ -255,11 +256,42 @@ export default function RecipePage() {
     { id: 'drink', label: '🥤 Drink / Shake', value: 'Drink / Shake' },
   ];
 
-  const filterOptions = [
-    { id: 'vegetarian', label: '🌱 Vegetarisch', value: 'Vegetarisch' },
-    { id: 'high-protein', label: '💪 High Protein', value: 'High Protein' },
-    { id: 'quick', label: '⏱ Schnell', value: 'Schnell' },
-    { id: 'low-carb', label: '📉 Low Carb', value: 'Low Carb' },
+  const filterGroups: { label: string; options: { value: string; label: string }[] }[] = [
+    {
+      label: 'Basis',
+      options: [
+        { value: 'Fleisch & Gemüse', label: 'Fleisch & Gemüse' },
+        { value: 'Vegetarisch', label: 'Vegetarisch 🌱' },
+        { value: 'Vegan', label: 'Vegan 🌿' },
+        { value: 'Pescetarisch', label: 'Pescetarisch 🐟' },
+      ],
+    },
+    {
+      label: 'Lifestyle & Religion',
+      options: [
+        { value: 'Halal', label: 'Halal ☪️' },
+        { value: 'Koscher', label: 'Koscher ✡️' },
+        { value: 'Glutenfrei', label: 'Glutenfrei 🌾' },
+        { value: 'Laktosefrei', label: 'Laktosefrei 🥛' },
+      ],
+    },
+    {
+      label: 'Ziele',
+      options: [
+        { value: 'High Protein', label: 'High Protein 💪' },
+        { value: 'Low Carb', label: 'Low Carb 📉' },
+        { value: 'Keto', label: 'Keto 🥑' },
+        { value: 'Unter 600 kcal', label: 'Unter 600 kcal 🔥' },
+      ],
+    },
+    {
+      label: 'Situation',
+      options: [
+        { value: 'Schnell', label: 'Zeit sparen (Schnell) ⚡' },
+        { value: 'Familienfreundlich', label: 'Familienfreundlich 👨‍👩‍👧‍👦' },
+        { value: 'Date Night', label: 'Date Night 🍷' },
+      ],
+    },
   ];
 
   return (
@@ -297,7 +329,7 @@ export default function RecipePage() {
       {activeTab === 'create' ? (
         <>
           <div className="mt-4 mb-8 p-4 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-900">
-            💡 <strong>Tipp:</strong> Gib einfach ein, was im Kühlschrank ist. Daraus entsteht ein passendes Rezept inkl. Nährwerten.
+            💡 <strong>Tipp:</strong> Gib Zutaten ein → Rezept aus Resten. Oder Feld leer lassen → <strong>Inspiriere mich</strong> für eine Überraschung.
           </div>
 
       {/* Formular direkt auf hellem Hintergrund – keine dunklen Container */}
@@ -355,74 +387,95 @@ export default function RecipePage() {
               <h3 className="text-xl font-bold text-gray-900 mb-4">Was hast du im Kühlschrank?</h3>
               <textarea
                 name="ingredients"
-                required
                 value={ingredients}
                 onChange={(e) => setIngredients(e.target.value)}
-                placeholder="z.B. Eier, Tomaten, Reis..."
+                placeholder="z.B. Eier, Tomaten, Reis... (leer lassen für Überraschung)"
                 className="w-full rounded-2xl border border-gray-200 bg-white px-5 py-4 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 resize-none transition-all min-h-[200px]"
                 rows={6}
               />
             </section>
 
-            <section className="pb-8 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Darf eingekauft werden?</h3>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShoppingMode('strict')}
-                  className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
-                    shoppingMode === 'strict'
-                      ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border border-transparent shadow-lg shadow-orange-500/30'
-                      : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-white hover:-translate-y-0.5'
-                  }`}
-                >
-                  Nein, Reste verwerten 🦊
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShoppingMode('shopping')}
-                  className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
-                    shoppingMode === 'shopping'
-                      ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border border-transparent shadow-lg shadow-orange-500/30'
-                      : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-white hover:-translate-y-0.5'
-                  }`}
-                >
-                  Ja, fehlendes ergänzen 🛒
-                </button>
-              </div>
-              <input type="hidden" name="shoppingMode" value={shoppingMode} />
-              {shoppingMode === 'shopping' && (
-                <p className="text-sm text-gray-500 mt-3">
-                  Es werden fehlende Zutaten für ein besseres Gericht vorgeschlagen.
-                </p>
-              )}
-            </section>
+            {ingredients.trim().length > 0 && (
+              <section
+                className="pb-8 border-b border-gray-100 animate-in fade-in duration-300"
+                key="darf-einkaufen"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Darf eingekauft werden?</h3>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShoppingMode('strict')}
+                    className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
+                      shoppingMode === 'strict'
+                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30'
+                        : 'bg-gray-50 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Nein, Reste verwerten 🦊
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShoppingMode('shopping')}
+                    className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
+                      shoppingMode === 'shopping'
+                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30'
+                        : 'bg-gray-50 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Ja, fehlendes ergänzen 🛒
+                  </button>
+                </div>
+                {shoppingMode === 'shopping' && (
+                  <p className="text-sm text-gray-500 mt-3">
+                    Es werden fehlende Zutaten für ein besseres Gericht vorgeschlagen.
+                  </p>
+                )}
+              </section>
+            )}
+            <input type="hidden" name="shoppingMode" value={shoppingMode} />
 
             <section>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Filter & Präferenzen</h3>
-              <div className="flex flex-wrap gap-3">
-                {filterOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => toggleFilter(option.value)}
-                    className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
-                      filters.includes(option.value)
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border border-transparent shadow-lg shadow-orange-500/30'
-                        : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-white hover:-translate-y-0.5'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
+              <div className="space-y-6">
+                {filterGroups.map((group) => (
+                  <div key={group.label}>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                      {group.label}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {group.options.map((option) => {
+                        const isActive = filters.includes(option.value);
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => toggleFilter(option.value)}
+                            className={`relative h-20 rounded-xl flex items-center justify-start w-full px-4 text-left transition-all duration-200 active:scale-[0.98] ${
+                              isActive
+                                ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md shadow-orange-500/25'
+                                : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <span className="text-sm font-medium pr-8 line-clamp-2">{option.label}</span>
+                            {isActive && (
+                              <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center">
+                                <Check className="w-3 h-3" />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 ))}
               </div>
-              {filters.map((filter) => (
-                <input key={filter} type="hidden" name="filters" value={filter} />
+              {filters.map((f) => (
+                <input key={f} type="hidden" name="filters" value={f} />
               ))}
             </section>
 
             <div className="pt-2">
-              <SubmitButton />
+              <SubmitButton inspirationMode={ingredients.trim().length === 0} />
             </div>
           </form>
           

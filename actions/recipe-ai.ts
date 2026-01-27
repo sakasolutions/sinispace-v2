@@ -19,28 +19,24 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   const isAllowed = await isUserPremium();
   if (!isAllowed) return { result: UPSELL_MESSAGE };
 
-  const ingredients = formData.get('ingredients') as string;
+  const ingredients = (formData.get('ingredients') as string)?.trim() ?? '';
   const mealType = (formData.get('mealType') as string) || 'Hauptgericht';
   const servings = parseInt(formData.get('servings') as string) || 2;
   const filters = formData.getAll('filters') as string[];
   const shoppingMode = (formData.get('shoppingMode') as string) || 'strict';
   const workspaceId = formData.get('workspaceId') as string || undefined;
 
-  if (!ingredients || ingredients.trim().length === 0) {
-    return { error: 'Bitte gib vorhandene Zutaten ein.' };
-  }
+  const isInspiration = ingredients.length === 0;
 
   if (servings < 1 || servings > 20) {
     return { error: 'Die Anzahl der Personen muss zwischen 1 und 20 liegen.' };
   }
 
-  // Baue Filter-String für den Prompt
   let filterText = '';
   if (filters.length > 0) {
     filterText = `\n\nBerücksichtige diese Filter: ${filters.join(', ')}`;
   }
 
-  // Spezielle Instruktionen für Drinks/Shakes
   let categoryInstruction = '';
   if (mealType === 'Drink / Shake') {
     categoryInstruction = `\n\nWICHTIG für Drinks/Shakes:
@@ -49,44 +45,40 @@ export async function generateRecipe(prevState: any, formData: FormData) {
 - Die Schritte sollten einfach und schnell umsetzbar sein`;
   }
 
-  const systemPrompt = `Du bist ein 5-Sterne-Koch. Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'. Nutze primär diese Zutaten: {ingredients}. Berücksichtige diese Filter: {filters}.
-
-Modus: ${shoppingMode}
-WICHTIG:
-- Wenn Modus "strict": Nutze NUR die genannten Zutaten + Standard-Basics (Öl, Salz, Pfeffer, Wasser). Erfinde keine neuen Hauptzutaten dazu.
-- Wenn Modus "shopping": Nutze die Zutaten als Basis. Füge fehlende Zutaten (Gemüse, Kräuter, Beilagen) hinzu, um das Gericht perfekt zu machen.
-
-Du berechnest ein Rezept exakt für die angegebene Personenzahl (${servings}).
-Deine wichtigste Aufgabe ist die präzise Mengenangabe.
-
-Antworte NUR mit validem JSON in diesem Format:
-{
+  const jsonFormat = `{
   "recipeName": "Name des Gerichts",
   "stats": { "time": "z.B. 20 Min", "calories": "z.B. 450 kcal", "difficulty": "Einfach/Mittel/Schwer" },
-  "ingredients": [
-    "2 große Tomaten",
-    "150g Feta-Käse"
-  ],
-  "shoppingList": [
-    "1 Packung Feta-Käse (ca. 150g)",
-    "1 Bund Rucola (ca. 50g)"
-  ],
+  "ingredients": [ "2 große Tomaten", "150g Feta-Käse" ],
+  "shoppingList": [ "1 Packung Feta (ca. 150g)" ],
   "instructions": ["Schritt 1", "Schritt 2"],
   "chefTip": "Ein kurzer Profi-Tipp dazu"
-}
+}`;
 
-WICHTIG:
-- Antworte NUR mit einem gültigen JSON-Objekt (kein Markdown, kein Text davor oder danach)
-- Alle Werte müssen Strings sein (auch Zahlen in Anführungszeichen)
-- "ingredients", "shoppingList" und "instructions" sind Arrays von Strings
-- Die Nährwerte sollten realistisch sein (Kalorien pro Portion, Protein in Gramm)
-- Das Rezept MUSS zur Kategorie '${mealType}' passen (z.B. bei "Soße / Dip" keine Hauptgerichte erstellen)
-- Erstelle das Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Berechne alle Mengenangaben (Gramm, Stückzahl, etc.) passend für diese Anzahl. Wenn für 2 Personen normalerweise "4 Eier" verwendet werden, dann sind es für ${servings} Personen entsprechend mehr/f weniger.
-- Wenn Zutaten keinen Sinn ergeben, erstelle trotzdem ein kreatives, machbares Rezept${categoryInstruction}`;
+  let systemPrompt: string;
+  let userPrompt: string;
 
-  const userPrompt = `Kategorie: ${mealType}\nAnzahl Personen: ${servings}\nZutaten im Kühlschrank: ${ingredients}\nModus: ${shoppingMode}${filterText}
+  if (isInspiration) {
+    systemPrompt = `Du bist ein 5-Sterne-Koch. Der User will eine ÜBERRASCHUNG: Er hat keine Zutaten angegeben (Inspirations-Modus).
+Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'.${filterText ? ` Berücksichtige: ${filters.join(', ')}.` : ''}
+Wähle selbst passende, gut erhältliche Zutaten. Das Gericht soll überraschen und begeistern.
 
-Erstelle ein perfektes Rezept für die Kategorie '${mealType}' für genau ${servings} ${servings === 1 ? 'Person' : 'Personen'} basierend auf diesen Zutaten.`;
+Du berechnest exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
+Antworte NUR mit validem JSON: ${jsonFormat}
+- "shoppingList" kann leer sein [] (alles wird als Zutatenliste betrachtet).
+- Rezept MUSS zur Kategorie '${mealType}' passen.${categoryInstruction}`;
+    userPrompt = `Inspirations-Modus: Überrasch mich!\nKategorie: ${mealType}\nPersonen: ${servings}${filterText}\n\nErstelle ein überraschendes, kreatives Rezept.`;
+  } else {
+    systemPrompt = `Du bist ein 5-Sterne-Koch. Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'. Nutze primär diese Zutaten: ${ingredients}.${filterText ? ` Berücksichtige: ${filters.join(', ')}.` : ''}
+
+Modus: ${shoppingMode}
+- "strict": Nutze NUR die genannten Zutaten + Standard-Basics (Öl, Salz, Pfeffer, Wasser). Keine neuen Hauptzutaten.
+- "shopping": Nutze die Zutaten als Basis. Füge fehlende Zutaten (Gemüse, Kräuter, Beilagen) hinzu.
+
+Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
+Antworte NUR mit validem JSON: ${jsonFormat}
+- Rezept MUSS zur Kategorie '${mealType}' passen. Bei unsinnigen Zutaten trotzdem kreatives, machbares Rezept.${categoryInstruction}`;
+    userPrompt = `Kategorie: ${mealType}\nPersonen: ${servings}\nZutaten: ${ingredients}\nModus: ${shoppingMode}${filterText}\n\nErstelle ein perfektes Rezept basierend auf diesen Zutaten.`;
+  }
 
   try {
     const response = await createChatCompletion({
@@ -133,8 +125,9 @@ ${recipe.instructions.map((step: string, i: number) => `${i + 1}. ${step}`).join
 
 💡 **Profi-Tipp:** ${recipe.chefTip || ''}`;
 
-    // Speichere in Chat (optional, für spätere Bearbeitung)
-    const userInput = `Kategorie: ${mealType}, Personen: ${servings}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
+    const userInput = isInspiration
+      ? `Inspiration · ${mealType}, ${servings} Pers.${filters.length > 0 ? ` · ${filters.join(', ')}` : ''}`
+      : `Kategorie: ${mealType}, Personen: ${servings}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
     await createHelperChat('recipe', userInput, formattedRecipe);
 
     // Result in Workspace speichern
