@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2 } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
+import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 
 type Recipe = {
   recipeName: string;
@@ -31,8 +32,16 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   const originalServings = 2;
   const [servings, setServings] = useState(originalServings);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const [isAddToListOpen, setIsAddToListOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string } | null>(null);
   const [showMissingIngredients, setShowMissingIngredients] = useState(false);
   const [cookingMode, setCookingMode] = useState(false);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
@@ -320,7 +329,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         <p className="mt-2 text-sm font-bold text-gray-900">Anzahl Personen: {servings}</p>
 
         {prioritizedMissingIngredients.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
             <button
               onClick={() => setIsShoppingListOpen(true)}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-xl text-orange-700 font-medium transition-colors"
@@ -329,6 +338,13 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
               {prioritizedMissingIngredients.length <= 3
                 ? `Was fehlt mir? (${prioritizedMissingIngredients.length} wichtige Zutaten)`
                 : `${prioritizedMissingIngredients.length} Zutaten fehlen`}
+            </button>
+            <button
+              onClick={() => setIsAddToListOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-gray-700 font-medium transition-colors"
+            >
+              <ListPlus className="w-5 h-5" />
+              Auf Einkaufsliste setzen
             </button>
           </div>
         )}
@@ -387,7 +403,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         </div>
       )}
 
-      {/* Shopping List Modal - mit "Zurück zum Rezept" */}
+      {/* Export-Modal (WhatsApp/Copy) */}
       {prioritizedMissingIngredients.length > 0 && (
         <ShoppingListModal
           isOpen={isShoppingListOpen}
@@ -397,6 +413,29 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           showBackToRecipe={true}
           onBackToRecipe={() => setIsShoppingListOpen(false)}
         />
+      )}
+
+      {/* Auf Einkaufsliste setzen – Modal + Toast */}
+      {prioritizedMissingIngredients.length > 0 && (
+        <AddToShoppingListModal
+          isOpen={isAddToListOpen}
+          onClose={() => setIsAddToListOpen(false)}
+          ingredients={prioritizedMissingIngredients}
+          onAdded={(count, listName) => {
+            setToast({
+              message: `${count} ${count === 1 ? 'Zutat' : 'Zutaten'} zu „${listName}“ hinzugefügt`,
+            });
+          }}
+        />
+      )}
+
+      {toast && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-3 rounded-xl bg-gray-900 text-white text-sm font-medium shadow-lg animate-in fade-in duration-200"
+          role="status"
+        >
+          {toast.message}
+        </div>
       )}
     </div>
   );
