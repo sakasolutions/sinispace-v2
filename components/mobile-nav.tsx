@@ -39,10 +39,10 @@ export function MobileNav() {
         marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
       }}
     >
-      {/* Apple-style Frosted Glass – neutral, Blur + Specular, kein Farbverlauf */}
+      {/* Apple Glass + Logo-Gradient (Orange → Pink → Lila), nur Hauch Farbe */}
       <div className="mx-auto max-w-md px-4">
         <div 
-          className="rounded-full bg-white/[0.12] backdrop-blur-[20px] backdrop-saturate-200 border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.7),0_8px_32px_rgba(0,0,0,0.08)]"
+          className="rounded-full bg-gradient-to-r from-orange-500/[0.1] via-pink-500/[0.08] to-purple-500/[0.1] backdrop-blur-[20px] backdrop-saturate-200 border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.7),0_8px_32px_rgba(0,0,0,0.08)]"
           style={{ WebkitBackdropFilter: 'blur(20px) saturate(200%)' }}
         >
           <div className="flex justify-evenly items-center h-16 px-2" style={{
