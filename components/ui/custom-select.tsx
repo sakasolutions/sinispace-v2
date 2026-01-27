@@ -13,7 +13,8 @@ interface CustomSelectProps {
   icon?: React.ComponentType<{ className?: string }>;
   name?: string; // Für Form-Integration
   disabled?: boolean;
-  variant?: 'dropdown' | 'modal'; // 'dropdown' = Standard (aktueller Stand), 'modal' = zentriertes Popup
+  variant?: 'dropdown' | 'modal';
+  theme?: 'dark' | 'light'; // 'light' = weißes SiniSpace-Design (z.B. Settings)
 }
 
 export function CustomSelect({
@@ -24,7 +25,8 @@ export function CustomSelect({
   icon: Icon,
   name,
   disabled = false,
-  variant = 'dropdown', // Default: Dropdown (aktueller Stand)
+  variant = 'dropdown',
+  theme = 'dark',
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -96,22 +98,20 @@ export function CustomSelect({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full rounded-xl border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm transition-all min-h-[44px] flex justify-between items-center ${
-          disabled 
-            ? 'opacity-50 cursor-not-allowed' 
-            : 'cursor-pointer hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50'
-        } ${
-          value ? 'text-white' : 'text-zinc-500'
+        className={`w-full rounded-xl px-4 py-3 text-sm transition-all min-h-[44px] flex justify-between items-center ${
+          theme === 'light'
+            ? `border border-gray-200 bg-white ${value ? 'text-gray-900' : 'text-gray-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500'}`
+            : `border border-white/10 bg-zinc-900/50 ${value ? 'text-white' : 'text-zinc-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50'}`
         }`}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
+          {Icon && <Icon className={`w-4 h-4 flex-shrink-0 ${theme === 'light' ? 'text-gray-500' : ''}`} />}
           <span className="truncate">
             {selectedOption?.label || placeholder}
           </span>
         </div>
         <ChevronDown 
-          className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
+          className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${theme === 'light' ? 'text-gray-400' : ''} ${
             isOpen ? 'rotate-180' : ''
           }`} 
         />
@@ -119,7 +119,11 @@ export function CustomSelect({
 
       {/* Dropdown List (Open State - Variant: dropdown) */}
       {isOpen && !disabled && variant === 'dropdown' && (
-        <div className="absolute top-full left-0 w-full mt-2 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-[100] max-h-[200px] overflow-auto">
+        <div className={`absolute top-full left-0 w-full mt-2 rounded-xl shadow-xl z-[100] max-h-[200px] overflow-auto ${
+          theme === 'light'
+            ? 'bg-white border border-gray-200'
+            : 'bg-zinc-900 border border-white/10'
+        }`}>
           {normalizedOptions.map((option) => {
             const isSelected = option.value === value;
             return (
@@ -128,9 +132,13 @@ export function CustomSelect({
                 type="button"
                 onClick={() => handleSelect(option.value)}
                 className={`w-full p-3 text-left text-sm transition-colors flex items-center justify-between ${
-                  isSelected
-                    ? 'bg-indigo-500/10 text-indigo-400'
-                    : 'text-zinc-300 hover:bg-zinc-800'
+                  theme === 'light'
+                    ? isSelected
+                      ? 'bg-orange-50 text-orange-600'
+                      : 'text-gray-700 hover:bg-gray-50'
+                    : isSelected
+                      ? 'bg-indigo-500/10 text-indigo-400'
+                      : 'text-zinc-300 hover:bg-zinc-800'
                 } ${
                   normalizedOptions.indexOf(option) === 0 ? 'rounded-t-xl' : ''
                 } ${
@@ -139,7 +147,7 @@ export function CustomSelect({
               >
                 <span>{option.label}</span>
                 {isSelected && (
-                  <Check className="w-4 h-4 text-indigo-400" />
+                  <Check className={`w-4 h-4 ${theme === 'light' ? 'text-orange-500' : 'text-indigo-400'}`} />
                 )}
               </button>
             );

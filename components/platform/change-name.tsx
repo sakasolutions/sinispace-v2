@@ -27,23 +27,23 @@ export function ChangeName() {
   }, [state?.success, router]);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
-      <h2 className="text-sm sm:text-base font-semibold text-white mb-3 sm:mb-4">Nutzernamen ändern</h2>
-      <p className="text-xs sm:text-sm text-zinc-400 mb-4">
+    <div className="mt-4 sm:mt-6 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm">
+      <h2 className="text-lg font-bold text-gray-900 mb-4">Nutzernamen ändern</h2>
+      <p className="text-sm text-gray-500 mb-4">
         Ändere deinen Anzeigenamen. Dieser wird in deinem Profil und in Chats angezeigt.
       </p>
 
       {!showInput ? (
         <button
           onClick={() => setShowInput(true)}
-          className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-xs sm:text-sm font-medium text-white hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/30"
+          className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-2.5 text-sm font-medium text-white hover:shadow-lg transition-all shadow-sm"
         >
           Nutzernamen ändern
         </button>
       ) : (
         <form action={formAction} className="space-y-4">
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Neuer Nutzernamen
             </label>
             <input
@@ -54,21 +54,21 @@ export function ChangeName() {
               placeholder="z.B. Max Mustermann"
               maxLength={50}
               required
-              className="w-full rounded-md border border-white/10 bg-zinc-800/50 px-4 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all"
             />
-            <p className="text-[10px] sm:text-xs text-zinc-500 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               {newName.length}/50 Zeichen
             </p>
           </div>
 
           {state?.error && (
-            <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
               {state.error}
             </div>
           )}
 
           {state?.success && (
-            <div className="rounded-md border border-green-500/30 bg-green-500/10 p-3 text-sm text-green-400">
+            <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">
               {state.message}
             </div>
           )}
@@ -76,7 +76,7 @@ export function ChangeName() {
           <div className="flex gap-2">
             <button
               type="submit"
-              className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-xs sm:text-sm font-medium text-white hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/30"
+              className="flex-1 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-2.5 text-sm font-medium text-white hover:shadow-lg transition-all shadow-sm"
             >
               Speichern
             </button>
@@ -86,7 +86,7 @@ export function ChangeName() {
                 setShowInput(false);
                 setNewName('');
               }}
-              className="px-4 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white text-xs sm:text-sm font-medium transition-all"
+              className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-all"
             >
               Abbrechen
             </button>
