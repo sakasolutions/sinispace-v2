@@ -5,7 +5,21 @@
 
 export const SHOPPING_LISTS_STORAGE_KEY = 'sinispace-shopping-lists';
 
-export type ShoppingItem = { id: string; text: string; checked: boolean };
+export type ShoppingItem = {
+  id: string;
+  text: string;
+  checked: boolean;
+  /** AI-Kategorie (obst_gemuese, kuhlregal, fleisch, brot, haushalt, tiefkuhl, sonstiges) */
+  category?: string;
+  quantity?: number;
+  unit?: string;
+  /** Geschätzter Preis in Euro (DE, Supermarkt) */
+  estimatedPrice?: number;
+  /** Status bei Smart-Input: analyzing → done | error */
+  status?: 'idle' | 'analyzing' | 'done' | 'error';
+  /** Original-Input vor AI-Verarbeitung */
+  rawInput?: string;
+};
 export type ShoppingList = { id: string; name: string; items: ShoppingItem[] };
 
 export function generateId(): string {
