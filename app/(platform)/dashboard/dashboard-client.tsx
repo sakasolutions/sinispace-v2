@@ -550,11 +550,11 @@ export default function DashboardClient() {
       )}
 
       {/* Main Container - minimalistisch, Cards above the fold */}
-      <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32 pt-[max(1rem,env(safe-area-inset-top))] md:pt-6">
+      <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32 pt-[max(2rem,env(safe-area-inset-top))] md:pt-6">
         
-        {/* Action Header: Tabs links, Status-Badge rechts */}
-        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
-          <div className="flex overflow-x-auto scrollbar-hide min-w-0 rounded-full bg-white border border-gray-200 shadow-sm p-1">
+        {/* Action Header: Tabs (Mobile: full width, kein Badge); Desktop: Tabs + Premium-Badge */}
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+          <div className="flex flex-1 md:flex-initial overflow-x-auto scrollbar-hide min-w-0 rounded-full bg-white border border-gray-200 shadow-sm px-6 py-1 gap-3">
             {categoryTabs.map((cat) => (
               <button
                 key={cat}
@@ -563,18 +563,18 @@ export default function DashboardClient() {
                   triggerHaptic('light');
                 }}
                 className={cn(
-                  'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200',
+                  'px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 shrink-0',
                   'active:scale-[0.98]',
                   selectedCategory === cat
-                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md shadow-orange-500/20'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
                 )}
               >
                 {cat}
               </button>
             ))}
           </div>
-          <div className="shrink-0 text-gray-500 bg-gray-50 rounded-full px-3 py-1.5 text-sm">
+          <div className="hidden md:flex shrink-0 text-gray-500 bg-gray-50 rounded-full px-3 py-1.5 text-sm">
             ✨ Premium
           </div>
         </div>

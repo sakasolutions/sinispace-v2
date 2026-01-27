@@ -152,6 +152,15 @@
     animation: fade-in-up 700ms ease-out both;
   }
 
+  /* Invisible Scroll: Scrollbar ausblenden, Scroll-Funktion bleibt (Firefox + Webkit) */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Fade-in Animation (nur opacity, kein transform) */
   @keyframes fade-in {
     0% {
