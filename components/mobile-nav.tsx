@@ -39,11 +39,11 @@ export function MobileNav() {
         marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
       }}
     >
-      {/* Crystalline Glass – geschliffenes Eis, maximal transparent */}
+      {/* Crystalline Glass – High-Gloss, geschliffene Linse */}
       <div className="mx-auto max-w-md px-4">
         <div 
-          className="rounded-2xl bg-gradient-to-r from-orange-500/40 to-pink-500/40 backdrop-blur-2xl backdrop-saturate-150 border-t-2 border-t-white/50 border-b border-x border-white/20 shadow-[inset_0_1px_2px_rgba(255,255,255,0.3),0_8px_32px_rgba(251,146,60,0.3)]"
-          style={{ WebkitBackdropFilter: 'saturate(180%) blur(24px)' }}
+          className="rounded-full bg-gradient-to-r from-orange-500/[0.15] to-pink-500/[0.15] backdrop-blur-[20px] backdrop-saturate-200 border border-white/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.7),0_10px_40px_-10px_rgba(249,115,22,0.3)]"
+          style={{ WebkitBackdropFilter: 'blur(20px) saturate(200%)' }}
         >
           <div className="flex justify-evenly items-center h-16 px-2" style={{
             paddingBottom: `max(0.5rem, env(safe-area-inset-bottom))`,
@@ -59,22 +59,22 @@ export function MobileNav() {
                   onClick={() => triggerHaptic('light')}
                   className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2 relative group"
                 >
-                  <div className="h-10 w-10 flex items-center justify-center transition-all duration-300 ease-out">
+                  <div className="h-10 w-10 flex items-center justify-center transition-all duration-300 ease-out drop-shadow-md">
                     {isActive ? (
                       <Icon 
-                        className="w-5 h-5 text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.9)] transition-all duration-300"
+                        className="w-5 h-5 text-white drop-shadow-md transition-all duration-300"
                         strokeWidth={2.5}
                       />
                     ) : (
                       <Icon 
-                        className="w-5 h-5 text-white/80 transition-all duration-300 group-hover:text-white"
+                        className="w-5 h-5 text-white/90 transition-all duration-300 group-hover:text-white drop-shadow-md"
                         strokeWidth={2}
                       />
                     )}
                   </div>
                   <span className={cn(
-                    'text-[11px] font-medium transition-all duration-300 text-white',
-                    isActive ? 'font-semibold drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]' : 'text-white/80 group-hover:text-white'
+                    'text-[11px] font-medium transition-all duration-300 text-white drop-shadow-md',
+                    isActive ? 'font-semibold' : 'text-white/90 group-hover:text-white'
                   )}>
                     {item.label}
                   </span>
