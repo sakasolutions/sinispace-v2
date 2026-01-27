@@ -220,5 +220,24 @@ export const toolInfoMap: Record<string, ToolInfo> = {
       'Mehrere Vibes kombinieren erzeugt abwechslungsreiche Tage',
       'Budget beeinflusst Restaurant- und Aktivitätswahl'
     ]
+  },
+  'shopping-list': {
+    title: 'SiniSpace Einkaufslisten',
+    description: 'Verwalte mehrere Einkaufslisten – Supermarkt, Drogerie, Geburtstag, Urlaub. Items hinzufügen, abhaken, Listen erstellen, umbenennen und löschen. Speichert lokal im Browser.',
+    useCases: [
+      'Mehrere Listen für verschiedene Einkäufe (Supermarkt, Drogerie, etc.)',
+      'Geburtstags- oder Party-Einkäufe planen',
+      'Wochenend-Einkauf oder Urlaubs-Checkliste'
+    ],
+    examples: [
+      'Liste "Supermarkt" mit Milch, Brot, Obst',
+      'Liste "Drogerie" mit Shampoo, Zahnpasta',
+      'Liste "Geburtstag" mit Geschenk, Torte, Deko'
+    ],
+    tips: [
+      'Erledigte Items rutschen in den "Erledigt"-Bereich',
+      'Listen bleiben im Browser gespeichert',
+      'Du kannst Listen umbenennen und löschen'
+    ]
   }
 };
