@@ -568,17 +568,16 @@ export default function DashboardClient() {
 
       {/* Main Container - Magazin-Cover Header + Cards */}
       <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32">
-        {/* Editorial Header: Gradient, Datum, Titel, Super Pills */}
+        {/* Editorial Header: Clean White, Datum, Titel, Soft-Fill Pills (Borderless) */}
         <header
           className={cn(
-            'bg-gradient-to-b from-gray-50/80 to-white',
-            'pt-[max(4rem,env(safe-area-inset-top))] md:pt-12 pb-6',
-            'rounded-b-2xl md:rounded-b-none'
+            'bg-white',
+            'pt-[max(4rem,env(safe-area-inset-top))] md:pt-12 pb-6'
           )}
         >
           {/* Editorial Info: Datum + Titel */}
           <div className="mb-6">
-            <p className="text-gray-400 font-bold text-xs tracking-widest uppercase">
+            <p className="text-gray-400 font-medium text-xs tracking-widest uppercase">
               {formatEditorialDate(new Date())}
             </p>
             <h1 className="text-gray-900 text-3xl font-black tracking-tight mt-1">
@@ -586,7 +585,7 @@ export default function DashboardClient() {
             </h1>
           </div>
 
-          {/* Super Pills: Filter mit Icons */}
+          {/* Super Pills: Soft-Fill, keine Borders */}
           <div className="flex flex-wrap justify-between items-center gap-3">
             <div className="flex flex-1 md:flex-initial overflow-x-auto scrollbar-hide min-w-0 gap-4 py-1 pl-2 pr-2">
               {categoryTabs.map((cat) => {
@@ -600,11 +599,11 @@ export default function DashboardClient() {
                       triggerHaptic('light');
                     }}
                     className={cn(
-                      'h-10 px-5 rounded-full border shadow-sm flex items-center gap-2 whitespace-nowrap transition-all duration-200 shrink-0',
+                      'h-10 px-5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all duration-200 shrink-0',
                       'active:scale-[0.98]',
                       isActive
-                        ? 'bg-orange-50 text-orange-600 border-orange-200 font-semibold'
-                        : 'bg-white border-gray-100 text-gray-600 hover:bg-gray-50 hover:border-gray-200 hover:text-gray-800'
+                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     )}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
@@ -613,7 +612,7 @@ export default function DashboardClient() {
                 );
               })}
             </div>
-            <div className="hidden md:flex shrink-0 text-gray-500 bg-gray-50 rounded-full px-3 py-1.5 text-sm">
+            <div className="hidden md:flex shrink-0 text-gray-500 bg-gray-100 rounded-full px-3 py-1.5 text-sm">
               ✨ Premium
             </div>
           </div>
