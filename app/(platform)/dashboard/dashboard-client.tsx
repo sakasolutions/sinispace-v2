@@ -221,11 +221,12 @@ const categoryConfig: Record<(typeof categoryTabs)[number], { icon: React.Compon
   'Tech & Life': { icon: Sparkles },
 };
 
-function formatEditorialDate(date: Date): string {
-  const weekday = date.toLocaleDateString('de-DE', { weekday: 'long' }).toUpperCase();
-  const day = date.getDate();
-  const month = date.toLocaleDateString('de-DE', { month: 'short' }).toUpperCase();
-  return `${weekday}, ${day}. ${month}`;
+function getDailyHeroContent(date: Date): { subline: string; headline: string } {
+  const weekday = date.toLocaleDateString('de-DE', { weekday: 'long' });
+  return {
+    subline: 'HEUTE',
+    headline: `${weekday}.`,
+  };
 }
 
 // PREMIUM HIGH-FIDELITY: Helper-Funktion für Akzentfarben (RGB-Werte)
@@ -535,6 +536,8 @@ export default function DashboardClient() {
   const heroTools = sortedAndFilteredTools.slice(0, 4);
   const secondaryTools = sortedAndFilteredTools.slice(4);
 
+  const dailyHero = getDailyHeroContent(new Date());
+
   return (
     <div
       ref={containerRef}
@@ -568,20 +571,19 @@ export default function DashboardClient() {
 
       {/* Main Container - Magazin-Cover Header + Cards */}
       <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32">
-        {/* Editorial Header: Clean White, Datum, Titel, Soft-Fill Pills (Borderless) */}
+        {/* Daily Hero Header: Kalender-basiert, Subline + Headline, Soft-Fill Pills */}
         <header
           className={cn(
             'bg-white',
             'pt-[max(4rem,env(safe-area-inset-top))] md:pt-12 pb-6'
           )}
         >
-          {/* Editorial Info: Datum + Titel */}
-          <div className="mb-6">
-            <p className="text-gray-400 font-medium text-xs tracking-widest uppercase">
-              {formatEditorialDate(new Date())}
+          <div className="mb-4">
+            <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">
+              {dailyHero.subline}
             </p>
-            <h1 className="text-gray-900 text-3xl font-black tracking-tight mt-1">
-              Tools
+            <h1 className="text-4xl font-black text-gray-900 tracking-tighter mt-1">
+              {dailyHero.headline}
             </h1>
           </div>
 
