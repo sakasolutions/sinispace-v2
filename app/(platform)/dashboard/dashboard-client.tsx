@@ -27,6 +27,7 @@ import {
   TrendingUp,
   LayoutGrid,
   Briefcase,
+  ShoppingCart,
 } from 'lucide-react';
 
 type Tool = {
@@ -149,6 +150,18 @@ const allTools: Tool[] = [
     color: 'blue',
     category: 'lifestyle',
     href: '/tools/travel',
+    available: true,
+    size: 'medium',
+    priority: 'medium',
+  },
+  {
+    id: 'shopping-list',
+    title: 'Einkaufslisten',
+    description: 'Mehrere Listen verwalten – Supermarkt, Drogerie, Geburtstag & mehr.',
+    icon: ShoppingCart,
+    color: 'orange',
+    category: 'lifestyle',
+    href: '/tools/shopping-list',
     available: true,
     size: 'medium',
     priority: 'medium',
