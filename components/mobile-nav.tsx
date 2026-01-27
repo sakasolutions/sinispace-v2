@@ -59,22 +59,22 @@ export function MobileNav() {
                   onClick={() => triggerHaptic('light')}
                   className="flex flex-col items-center justify-center gap-1 min-w-[60px] px-3 py-2 relative group"
                 >
-                  <div className="h-10 w-10 flex items-center justify-center transition-all duration-300 ease-out drop-shadow-md">
+                  <div className="h-10 w-10 flex items-center justify-center transition-all duration-300 ease-out">
                     {isActive ? (
                       <Icon 
-                        className="w-5 h-5 text-white drop-shadow-md transition-all duration-300"
+                        className="w-5 h-5 text-gray-900 transition-all duration-300"
                         strokeWidth={2.5}
                       />
                     ) : (
                       <Icon 
-                        className="w-5 h-5 text-white/90 transition-all duration-300 group-hover:text-white drop-shadow-md"
+                        className="w-5 h-5 text-gray-600 transition-all duration-300 group-hover:text-gray-800"
                         strokeWidth={2}
                       />
                     )}
                   </div>
                   <span className={cn(
-                    'text-[11px] font-medium transition-all duration-300 text-white drop-shadow-md',
-                    isActive ? 'font-semibold' : 'text-white/90 group-hover:text-white'
+                    'text-[11px] font-medium transition-all duration-300',
+                    isActive ? 'text-gray-900 font-semibold' : 'text-gray-600 group-hover:text-gray-800'
                   )}>
                     {item.label}
                   </span>
