@@ -39,10 +39,10 @@ export function MobileNav() {
         marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
       }}
     >
-      {/* Crystalline Glass – High-Gloss, geschliffene Linse */}
+      {/* Apple-style Frosted Glass – neutral, Blur + Specular, kein Farbverlauf */}
       <div className="mx-auto max-w-md px-4">
         <div 
-          className="rounded-full bg-gradient-to-r from-orange-500/[0.15] to-pink-500/[0.15] backdrop-blur-[20px] backdrop-saturate-200 border border-white/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.7),0_10px_40px_-10px_rgba(249,115,22,0.3)]"
+          className="rounded-full bg-white/[0.12] backdrop-blur-[20px] backdrop-saturate-200 border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.7),0_8px_32px_rgba(0,0,0,0.08)]"
           style={{ WebkitBackdropFilter: 'blur(20px) saturate(200%)' }}
         >
           <div className="flex justify-evenly items-center h-16 px-2" style={{
