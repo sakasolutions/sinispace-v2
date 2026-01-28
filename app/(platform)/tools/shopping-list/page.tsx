@@ -149,7 +149,7 @@ export default function ShoppingListPage() {
   const [hydrated, setHydrated] = useState(false);
   const [editingQtyItemId, setEditingQtyItemId] = useState<string | null>(null);
   const [editingQtyValue, setEditingQtyValue] = useState('');
-  const [saveError, setSaveError] = useState(false);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
 
   const activeList = lists.find((l) => l.id === activeListId);
 
@@ -218,8 +218,8 @@ export default function ShoppingListPage() {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(async () => {
       saveTimeoutRef.current = null;
-      const { success } = await saveShoppingLists(lists);
-      setSaveError(!success);
+      const { success, error } = await saveShoppingLists(lists);
+      setSaveErrorMessage(success ? null : (error ?? 'Unbekannter Fehler'));
     }, 400);
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -354,10 +354,29 @@ export default function ShoppingListPage() {
         </p>
       </div>
 
-      {saveError && (
-        <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm flex items-center gap-2">
-          <span className="font-medium">Sync fehlgeschlagen.</span>
-          Listen werden nicht in der Cloud gespeichert. Bitte prüfe die Anmeldung und lade die Seite neu.
+      {saveErrorMessage && (
+        <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm">
+          <div className="font-medium mb-1">Sync fehlgeschlagen.</div>
+          <div className="text-red-700 mb-3">{saveErrorMessage}</div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={async () => {
+                const { success, error } = await saveShoppingLists(lists);
+                setSaveErrorMessage(success ? null : (error ?? 'Unbekannter Fehler'));
+              }}
+              className="px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-medium text-sm transition-colors"
+            >
+              Erneut versuchen
+            </button>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
+            >
+              Seite neu laden
+            </button>
+          </div>
         </div>
       )}
 
