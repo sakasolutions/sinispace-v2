@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BackButton } from '@/components/ui/back-button';
 import {
   Plus,
@@ -13,13 +13,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
-  loadLists,
-  saveLists,
   generateId,
   defaultList,
+  SHOPPING_LISTS_STORAGE_KEY,
   type ShoppingItem,
   type ShoppingList,
 } from '@/lib/shopping-lists-storage';
+import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import {
   getCategoryIcon,
   getCategoryLabel,
@@ -153,22 +153,59 @@ export default function ShoppingListPage() {
 
   const activeList = lists.find((l) => l.id === activeListId);
 
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    const loaded = loadLists();
-    if (loaded.length > 0) {
-      setLists(loaded);
-      setActiveListId(loaded[0]!.id);
-    } else {
+    let cancelled = false;
+    (async () => {
+      const loaded = await getShoppingLists();
+      if (cancelled) return;
+      if (loaded.length > 0) {
+        setLists(loaded);
+        setActiveListId(loaded[0]!.id);
+        setHydrated(true);
+        return;
+      }
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem(SHOPPING_LISTS_STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw) as unknown;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const migrated = parsed as ShoppingList[];
+              const { success } = await saveShoppingLists(migrated);
+              if (success) localStorage.removeItem(SHOPPING_LISTS_STORAGE_KEY);
+              if (!cancelled) {
+                setLists(migrated);
+                setActiveListId(migrated[0]!.id);
+                setHydrated(true);
+                return;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+      if (cancelled) return;
       const def = defaultList();
       setLists([def]);
       setActiveListId(def.id);
-    }
-    setHydrated(true);
+      setHydrated(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!hydrated || lists.length === 0) return;
-    saveLists(lists);
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveTimeoutRef.current = null;
+      saveShoppingLists(lists);
+    }, 400);
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
   }, [lists, hydrated]);
 
   const addList = (name: string) => {
