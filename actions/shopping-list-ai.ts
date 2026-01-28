@@ -18,28 +18,28 @@ const CategoryEnum = z.enum(CATEGORIES);
 
 const AnalysisSchema = z.object({
   name: z.string().min(1),
-  quantity: z.number().optional(),
-  unit: z.string().optional(),
-  estimatedPrice: z.number().min(0),
+  quantity: z.number().nullable().optional(),
+  unit: z.string().nullable().optional(),
   category: CategoryEnum,
 });
 
 export type ShoppingItemAnalysis = z.infer<typeof AnalysisSchema>;
 
 const JSON_FORMAT = `{
-  "name": "Korrigierter Produktname (z.B. Tomaten)",
-  "quantity": 1,
-  "unit": "kg",
-  "estimatedPrice": 2.49,
+  "name": "Korrigierter Produktname",
+  "quantity": null,
+  "unit": null,
   "category": "obst_gemuese"
 }`;
 
 const SYSTEM_PROMPT = `Du bist ein Einkaufs-Assistent für deutsche Supermärkte.
 Analysiere den User-Input. Aufgaben:
 1. Tippfehler korrigieren.
-2. Menge und Einheit extrahieren (quantity: Zahl, unit: z.B. "kg", "g", "Stück", "Packung", "l", "ml" – oder weglassen wenn unklar).
-3. Preis schätzen (DE, typischer Supermarkt), in Euro als Zahl (estimatedPrice).
-4. Kategorie wählen: genau eine von obst_gemuese, kuhlregal, fleisch, brot, haushalt, tiefkuhl, sonstiges.
+2. Menge und Einheit NUR übernehmen, wenn der User sie ausdrücklich angibt:
+   - Beispiel "3 Tomaten" oder "2x Milch" → quantity: 3 bzw. 2, unit: "Stk" oder leer.
+   - Beispiel "500g Hack" → quantity: 500, unit: "g".
+   - Wenn der User KEINE Menge angibt (z.B. nur "Milch", "Brot"), setze quantity: null und unit: null. Erfinde KEINE Standard-Menge wie "1 Liter" oder "1 Stück" – der User bestimmt die Menge.
+3. Kategorie wählen: genau eine von obst_gemuese, kuhlregal, fleisch, brot, haushalt, tiefkuhl, sonstiges.
 
 Antworte NUR mit validem JSON, kein anderer Text. Format: ${JSON_FORMAT}`;
 

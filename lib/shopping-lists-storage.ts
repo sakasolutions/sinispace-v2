@@ -11,10 +11,8 @@ export type ShoppingItem = {
   checked: boolean;
   /** AI-Kategorie (obst_gemuese, kuhlregal, fleisch, brot, haushalt, tiefkuhl, sonstiges) */
   category?: string;
-  quantity?: number;
-  unit?: string;
-  /** Geschätzter Preis in Euro (DE, Supermarkt) */
-  estimatedPrice?: number;
+  quantity?: number | null;
+  unit?: string | null;
   /** Status bei Smart-Input: analyzing → done | error */
   status?: 'idle' | 'analyzing' | 'done' | 'error';
   /** Original-Input vor AI-Verarbeitung */
