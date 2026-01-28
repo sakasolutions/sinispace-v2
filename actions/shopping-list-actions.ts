@@ -15,7 +15,8 @@ export async function getShoppingLists(): Promise<ShoppingList[]> {
     const parsed = JSON.parse(row.listsJson) as unknown;
     if (!Array.isArray(parsed)) return [];
     return parsed as ShoppingList[];
-  } catch {
+  } catch (e) {
+    console.error('[shopping-list-actions] getShoppingLists', e);
     return [];
   }
 }
