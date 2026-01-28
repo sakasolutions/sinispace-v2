@@ -154,12 +154,15 @@ export default function ShoppingListPage() {
   const activeList = lists.find((l) => l.id === activeListId);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasInitiallyLoaded = useRef(false);
+  const activeListIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const loaded = await getShoppingLists();
       if (cancelled) return;
+      hasInitiallyLoaded.current = true;
       if (loaded.length > 0) {
         setLists(loaded);
         setActiveListId(loaded[0]!.id);
@@ -176,6 +179,7 @@ export default function ShoppingListPage() {
               const { success } = await saveShoppingLists(migrated);
               if (success) localStorage.removeItem(SHOPPING_LISTS_STORAGE_KEY);
               if (!cancelled) {
+                hasInitiallyLoaded.current = true;
                 setLists(migrated);
                 setActiveListId(migrated[0]!.id);
                 setHydrated(true);
@@ -186,6 +190,7 @@ export default function ShoppingListPage() {
         } catch (_) {}
       }
       if (cancelled) return;
+      hasInitiallyLoaded.current = true;
       const def = defaultList();
       setLists([def]);
       setActiveListId(def.id);
@@ -195,6 +200,40 @@ export default function ShoppingListPage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    activeListIdRef.current = activeListId;
+  }, [activeListId]);
+
+  const refetchFromServer = useCallback(async () => {
+    if (!hasInitiallyLoaded.current) return;
+    const loaded = await getShoppingLists();
+    if (loaded.length === 0) return;
+    const cur = activeListIdRef.current;
+    const keep = cur && loaded.some((l) => l.id === cur);
+    setLists(loaded);
+    setActiveListId(keep ? cur! : loaded[0]!.id);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || !document.addEventListener) return;
+    const handler = async () => {
+      if (document.visibilityState !== 'visible' || !hasInitiallyLoaded.current) return;
+      await refetchFromServer();
+    };
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, [refetchFromServer]);
+
+  useEffect(() => {
+    if (!hasInitiallyLoaded.current) return;
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        refetchFromServer();
+      }
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [refetchFromServer]);
 
   useEffect(() => {
     if (!hydrated || lists.length === 0) return;
