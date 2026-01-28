@@ -15,7 +15,6 @@ import { cn } from '@/lib/utils';
 import {
   generateId,
   defaultList,
-  SHOPPING_LISTS_STORAGE_KEY,
   type ShoppingItem,
   type ShoppingList,
 } from '@/lib/shopping-lists-storage';
@@ -150,6 +149,7 @@ export default function ShoppingListPage() {
   const [hydrated, setHydrated] = useState(false);
   const [editingQtyItemId, setEditingQtyItemId] = useState<string | null>(null);
   const [editingQtyValue, setEditingQtyValue] = useState('');
+  const [saveError, setSaveError] = useState(false);
 
   const activeList = lists.find((l) => l.id === activeListId);
 
@@ -169,28 +169,6 @@ export default function ShoppingListPage() {
         setHydrated(true);
         return;
       }
-      if (typeof window !== 'undefined') {
-        try {
-          const raw = localStorage.getItem(SHOPPING_LISTS_STORAGE_KEY);
-          if (raw) {
-            const parsed = JSON.parse(raw) as unknown;
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              const migrated = parsed as ShoppingList[];
-              const { success } = await saveShoppingLists(migrated);
-              if (success) localStorage.removeItem(SHOPPING_LISTS_STORAGE_KEY);
-              if (!cancelled) {
-                hasInitiallyLoaded.current = true;
-                setLists(migrated);
-                setActiveListId(migrated[0]!.id);
-                setHydrated(true);
-                return;
-              }
-            }
-          }
-        } catch (_) {}
-      }
-      if (cancelled) return;
-      hasInitiallyLoaded.current = true;
       const def = defaultList();
       setLists([def]);
       setActiveListId(def.id);
@@ -238,9 +216,10 @@ export default function ShoppingListPage() {
   useEffect(() => {
     if (!hydrated || lists.length === 0) return;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => {
+    saveTimeoutRef.current = setTimeout(async () => {
       saveTimeoutRef.current = null;
-      saveShoppingLists(lists);
+      const { success } = await saveShoppingLists(lists);
+      setSaveError(!success);
     }, 400);
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -374,6 +353,13 @@ export default function ShoppingListPage() {
           nur, wenn du sie angibst.
         </p>
       </div>
+
+      {saveError && (
+        <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm flex items-center gap-2">
+          <span className="font-medium">Sync fehlgeschlagen.</span>
+          Listen werden nicht in der Cloud gespeichert. Bitte prüfe die Anmeldung und lade die Seite neu.
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row md:gap-6 md:items-start">
         <div className="md:w-56 lg:w-64 shrink-0 mb-4 md:mb-0">
