@@ -451,18 +451,19 @@ export default function DashboardClient() {
   }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (containerRef.current && containerRef.current.scrollTop === 0) {
-      const touch = e.touches[0];
-      touchStartRef.current = {
-        y: touch.clientY,
-        scrollTop: containerRef.current.scrollTop,
-      };
-    }
+    const root = containerRef.current?.parentElement;
+    if (!root || root.scrollTop !== 0) return;
+    const touch = e.touches[0];
+    touchStartRef.current = {
+      y: touch.clientY,
+      scrollTop: root.scrollTop,
+    };
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchStartRef.current || !containerRef.current) return;
-    if (containerRef.current.scrollTop > 0) {
+    const root = containerRef.current.parentElement;
+    if (!root || root.scrollTop > 0) {
       touchStartRef.current = null;
       return;
     }
@@ -470,18 +471,17 @@ export default function DashboardClient() {
     const touch = e.touches[0];
     const deltaY = touch.clientY - touchStartRef.current.y;
 
-    // WENIGER EMPFINDLICH: Nur bei deutlichem Pull (> 20px) aktivieren
-    if (deltaY > 20) {
+    // Deutlich unempfindlicher: Erst ab 50px Pull reagieren, Reload erst bei 150px
+    if (deltaY > 50) {
       if (e.cancelable) {
         e.preventDefault();
       }
       requestAnimationFrame(() => {
-        const maxPull = 120;
+        const maxPull = 160;
         const limitedDeltaY = Math.min(maxPull, deltaY);
         setPullDistance(limitedDeltaY);
 
-        // WENIGER EMPFINDLICH: Haptic Feedback erst bei 100px (statt 60px)
-        if (limitedDeltaY >= 100 && pullDistance < 100) {
+        if (limitedDeltaY >= 150 && pullDistance < 150) {
           triggerHaptic('light');
         }
       });
@@ -489,8 +489,7 @@ export default function DashboardClient() {
   };
 
   const handleTouchEnd = () => {
-    // WENIGER EMPFINDLICH: Reload erst bei 100px (statt 60px)
-    if (pullDistance >= 100) {
+    if (pullDistance >= 150) {
       triggerHaptic('success');
       setTimeout(() => {
         window.location.reload();
@@ -559,7 +558,7 @@ export default function DashboardClient() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       style={{
-        transform: pullDistance > 0 ? `translateY(${Math.min(pullDistance, 120)}px)` : 'none',
+        transform: pullDistance > 0 ? `translateY(${Math.min(pullDistance, 160)}px)` : 'none',
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
         // FIX: Kein lila Hintergrund beim Reload
         backgroundColor: '#ffffff',
@@ -567,9 +566,9 @@ export default function DashboardClient() {
     >
 
       {/* Pull-to-Refresh Indicator */}
-      {pullDistance > 20 && (
+      {pullDistance > 50 && (
         <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-white z-50">
-          {pullDistance >= 100 ? (
+          {pullDistance >= 150 ? (
             <div className="flex items-center gap-2 text-orange-500">
               <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
               <span className="text-sm font-medium text-gray-700">Loslassen zum Aktualisieren</span>
