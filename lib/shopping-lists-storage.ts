@@ -29,25 +29,6 @@ export function defaultList(): ShoppingList {
   return { id: generateId(), name: 'Allgemein', items: [] };
 }
 
-export function loadLists(): ShoppingList[] {
-  try {
-    const raw = typeof window !== 'undefined' ? localStorage.getItem(SHOPPING_LISTS_STORAGE_KEY) : null;
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed as ShoppingList[];
-  } catch {
-    return [];
-  }
-}
-
-export function saveLists(lists: ShoppingList[]): void {
-  if (lists.length === 0) return;
-  try {
-    localStorage.setItem(SHOPPING_LISTS_STORAGE_KEY, JSON.stringify(lists));
-  } catch (_) {}
-}
-
 /**
  * Append text items to a list (by id). Creates the list if it doesn't exist.
  * If listId is '__new__', creates a new list with `newListName` and appends there.

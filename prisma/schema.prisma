@@ -39,6 +39,7 @@ model User {
   results             Result[]
   mealPreferences     MealPreferences?
   weeklyPlans         WeeklyPlan[]
+  userShoppingLists   UserShoppingLists?
 }
 
 model Account {
@@ -309,4 +310,16 @@ model WeeklyPlan {
   @@index([userId, weekStart])
   @@index([workspaceId, weekStart])
   @@index([createdAt])
+}
+
+// Einkaufslisten pro User – sync über Geräte (wie Gourmet-Planer)
+model UserShoppingLists {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  listsJson String   // JSON: ShoppingList[] (id, name, items)
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

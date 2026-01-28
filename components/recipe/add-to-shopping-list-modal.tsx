@@ -2,15 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, CheckCircle2, ListChecks } from 'lucide-react';
+import { X, CheckCircle2, ListChecks, Loader2 } from 'lucide-react';
 import { CustomSelect } from '@/components/ui/custom-select';
-import {
-  loadLists,
-  saveLists,
-  appendToList,
-  defaultList,
-  type ShoppingList,
-} from '@/lib/shopping-lists-storage';
+import { appendToList, defaultList, type ShoppingList } from '@/lib/shopping-lists-storage';
+import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 
 const NEW_LIST_VALUE = '__new__';
 
@@ -28,23 +23,29 @@ export function AddToShoppingListModal({
   onAdded,
 }: AddToShoppingListModalProps) {
   const [lists, setLists] = useState<ShoppingList[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set(ingredients));
   const [selectedListId, setSelectedListId] = useState<string>(NEW_LIST_VALUE);
   const [newListName, setNewListName] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
-    const loaded = loadLists();
-    if (loaded.length === 0) {
-      const def = defaultList();
-      setLists([def]);
-      setSelectedListId(def.id);
-    } else {
-      setLists(loaded);
-      setSelectedListId(loaded[0].id);
-    }
     setSelected(new Set(ingredients));
     setNewListName('');
+    setLoading(true);
+    getShoppingLists()
+      .then((loaded) => {
+        if (loaded.length === 0) {
+          const def = defaultList();
+          setLists([def]);
+          setSelectedListId(def.id);
+        } else {
+          setLists(loaded);
+          setSelectedListId(loaded[0].id);
+        }
+      })
+      .finally(() => setLoading(false));
   }, [isOpen, ingredients]);
 
   if (!isOpen) return null;
@@ -58,7 +59,7 @@ export function AddToShoppingListModal({
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const toAdd = Array.from(selected);
     if (toAdd.length === 0) return;
 
@@ -69,7 +70,10 @@ export function AddToShoppingListModal({
       toAdd,
       selectedListId === NEW_LIST_VALUE ? newListName || undefined : undefined
     );
-    saveLists(next);
+    setSaving(true);
+    const { success } = await saveShoppingLists(next);
+    setSaving(false);
+    if (!success) return;
     onAdded?.(appendedCount, listName);
     onClose();
   };
@@ -135,17 +139,24 @@ export function AddToShoppingListModal({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Zu welcher Liste hinzufügen?
             </label>
-            <CustomSelect
-              value={selectedListId}
-              onChange={(v) => setSelectedListId(v)}
-              options={listOptions}
-              placeholder="Liste wählen…"
-              theme="light"
-              variant="dropdown"
-              dropdownInPortal
-              icon={ListChecks}
-            />
-            {isNewList && (
+            {loading ? (
+              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-500">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Listen laden …</span>
+              </div>
+            ) : (
+              <CustomSelect
+                value={selectedListId}
+                onChange={(v) => setSelectedListId(v)}
+                options={listOptions}
+                placeholder="Liste wählen…"
+                theme="light"
+                variant="dropdown"
+                dropdownInPortal
+                icon={ListChecks}
+              />
+            )}
+            {!loading && isNewList && (
               <input
                 type="text"
                 value={newListName}
@@ -159,14 +170,20 @@ export function AddToShoppingListModal({
 
         <div className="p-4 border-t border-gray-100">
           <button
-            onClick={handleSubmit}
-            disabled={selectedCount === 0}
+            onClick={() => handleSubmit()}
+            disabled={selectedCount === 0 || saving || loading}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-orange-500/25"
           >
-            <ListChecks className="w-4 h-4" />
-            {selectedCount === 0
-              ? 'Hinzufügen'
-              : `${selectedCount} ${selectedCount === 1 ? 'Zutat' : 'Zutaten'} hinzufügen`}
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <ListChecks className="w-4 h-4" />
+            )}
+            {saving
+              ? 'Wird gespeichert …'
+              : selectedCount === 0
+                ? 'Hinzufügen'
+                : `${selectedCount} ${selectedCount === 1 ? 'Zutat' : 'Zutaten'} hinzufügen`}
           </button>
         </div>
       </div>

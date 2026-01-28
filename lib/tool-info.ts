@@ -223,8 +223,9 @@ export const toolInfoMap: Record<string, ToolInfo> = {
   },
   'shopping-list': {
     title: 'SiniSpace Einkaufslisten',
-    description: 'Smart Einkaufslisten mit KI: Mehrere Listen (Supermarkt, Drogerie, …), Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). KI korrigiert Tippfehler, übernimmt Mengen nur wenn du sie angibst, ordnet Kategorien zu. Aggregation: gleiche Items mit Mengen werden zusammengefasst.',
+    description: 'Smart Einkaufslisten mit KI, Sync über alle Geräte (wie Gourmet-Planer): Mehrere Listen (Supermarkt, Drogerie, …), Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). KI korrigiert Tippfehler, übernimmt Mengen nur wenn du sie angibst, ordnet Kategorien zu. Aggregation: gleiche Items mit Mengen werden zusammengefasst.',
     useCases: [
+      'Sync auf Handy & Laptop – gleicher Account, überall dieselben Listen',
       'Mehrere Listen für verschiedene Einkäufe (Supermarkt, Drogerie, etc.)',
       'Liste aus WhatsApp einfügen – jedes Item wird einzeln analysiert',
       'Mengen nachträglich bearbeiten (Klick auf Zahl/Einheit)',
