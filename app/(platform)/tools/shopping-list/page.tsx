@@ -26,6 +26,7 @@ import {
   sortCategoriesBySupermarktRoute,
 } from '@/lib/shopping-list-categories';
 import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
+import { CustomSelect } from '@/components/ui/custom-select';
 
 /** Smart Input & Paste Magic: Einzel-Item vs. Liste (Umbrüche/Kommas) */
 function splitInput(raw: string): string[] {
@@ -381,14 +382,41 @@ export default function ShoppingListPage() {
       )}
 
       <div className="flex flex-col md:flex-row md:gap-6 md:items-start">
-        <div className="md:w-56 lg:w-64 shrink-0 mb-4 md:mb-0">
-          <div className="flex md:flex-col gap-2">
-            <div className="flex overflow-x-auto scrollbar-hide gap-2 pb-2 md:pb-0 md:overflow-visible md:flex-col md:gap-1">
+        <div className="md:w-56 lg:w-64 shrink-0 mb-4 md:mb-0 w-full md:w-auto">
+          {/* Mobile: Dropdown (SiniSpace-Style) + Neue Liste */}
+          <div className="flex md:hidden gap-2 items-stretch mb-4">
+            <div className="flex-1 min-w-0">
+              <CustomSelect
+                value={activeListId ?? ''}
+                onChange={(v) => setActiveListId(v)}
+                options={lists.map((l) => ({ value: l.id, label: l.name }))}
+                placeholder="Liste wählen…"
+                theme="light"
+                icon={ListChecks}
+                dropdownInPortal
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setPendingName('');
+                setModalNewList(true);
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              Neue Liste
+            </button>
+          </div>
+
+          {/* Desktop: Sidebar mit Listen-Tabs */}
+          <div className="hidden md:flex md:flex-col gap-2">
+            <div className="flex flex-col gap-1">
               {lists.map((list) => (
                 <div
                   key={list.id}
                   className={cn(
-                    'flex items-center gap-2 group shrink-0 md:shrink-0 rounded-xl px-4 py-3 transition-all',
+                    'flex items-center gap-2 group shrink-0 rounded-xl px-4 py-3 transition-all',
                     activeListId === list.id
                       ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md shadow-orange-500/25'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
@@ -445,7 +473,7 @@ export default function ShoppingListPage() {
                 setPendingName('');
                 setModalNewList(true);
               }}
-              className="flex items-center justify-center gap-2 w-full md:w-auto px-4 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors shrink-0"
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors shrink-0"
             >
               <Plus className="w-4 h-4" />
               Neue Liste
@@ -457,7 +485,32 @@ export default function ShoppingListPage() {
           {activeList ? (
             <>
               <div className="p-4 sm:p-6 border-b border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">{activeList.name}</h2>
+                <div className="flex items-center gap-2 mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900 flex-1 min-w-0 truncate">
+                    {activeList.name}
+                  </h2>
+                  {/* Mobile: Umbenennen / Löschen neben der Überschrift */}
+                  <div className="flex md:hidden items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => openRename(activeList)}
+                      className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                      title="Umbenennen"
+                      aria-label="Liste umbenennen"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openDelete(activeList)}
+                      className="p-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      title="Liste löschen"
+                      aria-label="Liste löschen"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
