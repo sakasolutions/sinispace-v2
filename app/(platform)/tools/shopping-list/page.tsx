@@ -24,7 +24,7 @@ import {
   getCategoryIcon,
   getCategoryLabel,
   normalizeItemName,
-  SHOPPING_CATEGORIES,
+  sortCategoriesBySupermarktRoute,
 } from '@/lib/shopping-list-categories';
 import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
 
@@ -271,7 +271,7 @@ export default function ShoppingListPage() {
     return acc;
   }, {});
 
-  const sortedCategories = [...SHOPPING_CATEGORIES];
+  const sortedCategories = sortCategoriesBySupermarktRoute(Object.keys(grouped));
 
   if (!hydrated) {
     return (
