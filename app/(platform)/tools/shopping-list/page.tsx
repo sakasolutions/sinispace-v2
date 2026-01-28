@@ -37,6 +37,26 @@ function splitInput(raw: string): string[] {
     .slice(0, 50);
 }
 
+function formatQtyDisplay(item: ShoppingItem): string {
+  const q = item.quantity;
+  const u = item.unit?.trim() || null;
+  if (q != null && u) return `${q} ${u}`;
+  if (q != null) return `${q}`;
+  if (u) return u;
+  return '';
+}
+
+function parseQtyInput(raw: string): { quantity: number | null; unit: string | null } {
+  const s = raw.trim();
+  if (!s) return { quantity: null, unit: null };
+  const m = s.match(/^(\d+(?:[.,]\d+)?)\s*(\S*)$/);
+  if (!m) return { quantity: null, unit: null };
+  const q = parseFloat(m[1]!.replace(',', '.'));
+  const u = m[2]?.trim() || null;
+  if (Number.isNaN(q)) return { quantity: null, unit: null };
+  return { quantity: q, unit: u || null };
+}
+
 function processChunk(
   raw: string,
   listId: string,
@@ -92,22 +112,24 @@ function processChunk(
       );
 
       if (other) {
-        const q = (data.quantity ?? 1) + (other.quantity ?? 1);
-        const p = (data.estimatedPrice ?? 0) + (other.estimatedPrice ?? 0);
-        const updated = { ...other, quantity: q, estimatedPrice: p };
-        const items = list.items
-          .filter((it) => it.id !== id)
-          .map((it) => (it.id === other.id ? updated : it));
-        return prev.map((l) => (l.id !== listId ? l : { ...l, items }));
+        const qA = data.quantity ?? null;
+        const qO = other.quantity ?? null;
+        if (qA != null && qO != null) {
+          const q = qA + qO;
+          const updated = { ...other, quantity: q, unit: other.unit ?? data.unit ?? null };
+          const items = list.items
+            .filter((it) => it.id !== id)
+            .map((it) => (it.id === other.id ? updated : it));
+          return prev.map((l) => (l.id !== listId ? l : { ...l, items }));
+        }
       }
 
       const updated: ShoppingItem = {
         ...item,
         text: data.name,
         category: data.category,
-        quantity: data.quantity,
-        unit: data.unit,
-        estimatedPrice: data.estimatedPrice,
+        quantity: data.quantity ?? null,
+        unit: data.unit ?? null,
         status: 'done',
         rawInput: raw,
       };
@@ -126,6 +148,8 @@ export default function ShoppingListPage() {
   const [modalDeleteList, setModalDeleteList] = useState<string | null>(null);
   const [pendingName, setPendingName] = useState('');
   const [hydrated, setHydrated] = useState(false);
+  const [editingQtyItemId, setEditingQtyItemId] = useState<string | null>(null);
+  const [editingQtyValue, setEditingQtyValue] = useState('');
 
   const activeList = lists.find((l) => l.id === activeListId);
 
@@ -198,11 +222,34 @@ export default function ShoppingListPage() {
   };
 
   const deleteItem = (listId: string, itemId: string) => {
+    setEditingQtyItemId((id) => (id === itemId ? null : id));
     setLists((prev) =>
       prev.map((l) =>
-        l.id !== listId ? { ...l, items: l.items.filter((i) => i.id !== itemId) } : l
+        l.id !== listId ? l : { ...l, items: l.items.filter((i) => i.id !== itemId) }
       )
     );
+  };
+
+  const updateItemQty = (
+    listId: string,
+    itemId: string,
+    quantity: number | null,
+    unit: string | null
+  ) => {
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id !== listId
+          ? l
+          : {
+              ...l,
+              items: l.items.map((i) =>
+                i.id !== itemId ? i : { ...i, quantity, unit }
+              ),
+            }
+      )
+    );
+    setEditingQtyItemId(null);
+    setEditingQtyValue('');
   };
 
   const openRename = (list: ShoppingList) => {
@@ -216,7 +263,6 @@ export default function ShoppingListPage() {
 
   const unchecked = activeList?.items.filter((i) => !i.checked) ?? [];
   const checked = activeList?.items.filter((i) => i.checked) ?? [];
-  const totalEstimated = unchecked.reduce((sum, i) => sum + (i.estimatedPrice ?? 0), 0);
 
   const grouped = unchecked.reduce<Record<string, ShoppingItem[]>>((acc, it) => {
     const cat = it.category ?? 'sonstiges';
@@ -248,8 +294,8 @@ export default function ShoppingListPage() {
           SiniSpace Einkaufslisten
         </h1>
         <p className="text-sm sm:text-base text-gray-600 mt-1">
-          Smart Input, KI-Kategorien & Preis-Schätzung. Einzel-Item oder Liste einfügen (z.B. aus
-          WhatsApp).
+          Smart Input & KI-Kategorien. Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). Mengen
+          nur, wenn du sie angibst.
         </p>
       </div>
 
@@ -397,52 +443,115 @@ export default function ShoppingListPage() {
                               {label}
                             </span>
                           </div>
-                          {items.map((item) => (
-                            <div
-                              key={item.id}
-                              className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-50/50 transition-colors group"
-                            >
-                              <button
-                                type="button"
-                                onClick={() => toggleItem(activeList.id, item.id)}
-                                className="w-6 h-6 rounded-md border-2 border-gray-300 flex items-center justify-center shrink-0 hover:border-orange-400 hover:bg-orange-50 transition-colors"
-                                aria-label="Abhaken"
-                              />
-                              <span className="text-lg shrink-0 flex items-center justify-center w-6" aria-hidden>
-                                {item.status === 'analyzing' ? (
-                                  <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
-                                ) : (
-                                  getCategoryIcon(item.category)
-                                )}
-                              </span>
-                              <div className="flex-1 min-w-0">
-                                {item.status === 'analyzing' ? (
-                                  <span className="text-gray-500 italic">Analysiere …</span>
-                                ) : item.status === 'error' ? (
-                                  <span className="text-gray-700">{item.text}</span>
-                                ) : (
-                                  <span className="text-gray-900 font-medium">
-                                    {[item.quantity, item.unit].filter(Boolean).length > 0
-                                      ? [item.quantity, item.unit, item.text].filter(Boolean).join(' ')
-                                      : item.text}
-                                  </span>
-                                )}
-                              </div>
-                              {item.status === 'done' && typeof item.estimatedPrice === 'number' && (
-                                <span className="text-sm text-gray-500 shrink-0">
-                                  ca. {item.estimatedPrice.toFixed(2).replace('.', ',')} €
-                                </span>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => deleteItem(activeList.id, item.id)}
-                                className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
-                                title="Entfernen"
+                          {items.map((item) => {
+                            const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
+                            const isEditingQty = editingQtyItemId === item.id;
+                            const qtyDisplay = formatQtyDisplay(item);
+                            const displayLabel =
+                              item.quantity != null && !(item.unit?.trim())
+                                ? `${item.quantity}x ${item.text}`
+                                : hasQty
+                                  ? `${qtyDisplay} ${item.text}`.trim()
+                                  : item.text;
+                            return (
+                              <div
+                                key={item.id}
+                                className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-50/50 transition-colors group"
                               >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
+                                <button
+                                  type="button"
+                                  onClick={() => toggleItem(activeList.id, item.id)}
+                                  className="w-6 h-6 rounded-md border-2 border-gray-300 flex items-center justify-center shrink-0 hover:border-orange-400 hover:bg-orange-50 transition-colors"
+                                  aria-label="Abhaken"
+                                />
+                                <span className="text-lg shrink-0 flex items-center justify-center w-6" aria-hidden>
+                                  {item.status === 'analyzing' ? (
+                                    <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
+                                  ) : (
+                                    getCategoryIcon(item.category)
+                                  )}
+                                </span>
+                                <div className="flex-1 min-w-0 flex items-center gap-2">
+                                  {item.status === 'analyzing' ? (
+                                    <span className="text-gray-500 italic">Analysiere …</span>
+                                  ) : item.status === 'error' ? (
+                                    <span className="text-gray-700">{item.text}</span>
+                                  ) : isEditingQty ? (
+                                    <>
+                                      <input
+                                        type="text"
+                                        value={editingQtyValue}
+                                        onChange={(e) => setEditingQtyValue(e.target.value)}
+                                        onBlur={() => {
+                                          const { quantity, unit } = parseQtyInput(editingQtyValue);
+                                          updateItemQty(activeList.id, item.id, quantity, unit);
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            const { quantity, unit } = parseQtyInput(editingQtyValue);
+                                            updateItemQty(activeList.id, item.id, quantity, unit);
+                                          }
+                                          if (e.key === 'Escape') {
+                                            setEditingQtyItemId(null);
+                                            setEditingQtyValue('');
+                                          }
+                                        }}
+                                        placeholder="z.B. 3 oder 500g"
+                                        className="w-24 rounded-lg border border-gray-200 px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
+                                        autoFocus
+                                      />
+                                      <span className="text-gray-900 font-medium">{item.text}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      {hasQty ? (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setEditingQtyItemId(item.id);
+                                            setEditingQtyValue(qtyDisplay);
+                                          }}
+                                          className="text-gray-500 hover:text-orange-500 hover:underline text-left shrink-0"
+                                        >
+                                          {item.quantity != null && !(item.unit?.trim())
+                                            ? `${item.quantity}x`
+                                            : qtyDisplay}
+                                        </button>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setEditingQtyItemId(item.id);
+                                            setEditingQtyValue('');
+                                          }}
+                                          className="text-gray-400 hover:text-orange-500 text-left text-sm shrink-0"
+                                        >
+                                          + Menge
+                                        </button>
+                                      )}
+                                      <span className="text-gray-900 font-medium">
+                                        {hasQty ? item.text : displayLabel}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    deleteItem(activeList.id, item.id);
+                                  }}
+                                  className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+                                  title="Entfernen"
+                                  aria-label="Entfernen"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            );
+                          })}
                         </div>
                       );
                     })}
@@ -457,51 +566,52 @@ export default function ShoppingListPage() {
                             Erledigt
                           </span>
                         </div>
-                        {checked.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-100/80 transition-colors group"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => toggleItem(activeList!.id, item.id)}
-                              className="w-6 h-6 rounded-md border-2 border-orange-500 bg-orange-500 flex items-center justify-center shrink-0 hover:bg-orange-600 hover:border-orange-600 transition-colors"
-                              aria-label="Rückgängig"
+                        {checked.map((item) => {
+                          const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
+                          const qtyD = formatQtyDisplay(item);
+                          const erledigtLabel = hasQty
+                            ? (item.quantity != null && !(item.unit?.trim())
+                              ? `${item.quantity}x ${item.text}`
+                              : `${qtyD} ${item.text}`.trim())
+                            : item.text;
+                          return (
+                            <div
+                              key={item.id}
+                              className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-100/80 transition-colors group"
                             >
-                              <Check className="w-3.5 h-3.5 text-white" />
-                            </button>
-                            <span className="text-lg shrink-0 opacity-50" aria-hidden>
-                              {getCategoryIcon(item.category)}
-                            </span>
-                            <span className="flex-1 text-gray-500 line-through">{item.text}</span>
-                            <button
-                              type="button"
-                              onClick={() => deleteItem(activeList!.id, item.id)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
-                              title="Entfernen"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
+                              <button
+                                type="button"
+                                onClick={() => toggleItem(activeList!.id, item.id)}
+                                className="w-6 h-6 rounded-md border-2 border-orange-500 bg-orange-500 flex items-center justify-center shrink-0 hover:bg-orange-600 hover:border-orange-600 transition-colors"
+                                aria-label="Rückgängig"
+                              >
+                                <Check className="w-3.5 h-3.5 text-white" />
+                              </button>
+                              <span className="text-lg shrink-0 opacity-50" aria-hidden>
+                                {getCategoryIcon(item.category)}
+                              </span>
+                              <span className="flex-1 text-gray-500 line-through">{erledigtLabel}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  deleteItem(activeList!.id, item.id);
+                                }}
+                                className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+                                title="Entfernen"
+                                aria-label="Entfernen"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </>
                 )}
               </div>
-
-              {unchecked.length > 0 && totalEstimated > 0 && (
-                <div className="p-4 border-t border-gray-100 bg-white flex justify-end">
-                  <div className="text-right">
-                    <span className="text-xs text-gray-500 uppercase tracking-wider">
-                      Geschätzt (Summe)
-                    </span>
-                    <p className="text-lg font-bold text-gray-900">
-                      ca. {totalEstimated.toFixed(2).replace('.', ',')} €
-                    </p>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <div className="p-8 sm:p-12 text-center">

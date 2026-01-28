@@ -223,22 +223,22 @@ export const toolInfoMap: Record<string, ToolInfo> = {
   },
   'shopping-list': {
     title: 'SiniSpace Einkaufslisten',
-    description: 'Smart Einkaufslisten mit KI: Mehrere Listen (Supermarkt, Drogerie, …), Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). KI korrigiert Tippfehler, schätzt Preise (DE), ordnet Kategorien zu. Aggregation: z.B. „Tomaten“ + „Tomaten“ = eine Zeile mit addierter Menge.',
+    description: 'Smart Einkaufslisten mit KI: Mehrere Listen (Supermarkt, Drogerie, …), Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). KI korrigiert Tippfehler, übernimmt Mengen nur wenn du sie angibst, ordnet Kategorien zu. Aggregation: gleiche Items mit Mengen werden zusammengefasst.',
     useCases: [
       'Mehrere Listen für verschiedene Einkäufe (Supermarkt, Drogerie, etc.)',
       'Liste aus WhatsApp einfügen – jedes Item wird einzeln analysiert',
-      'Geschätztes Budget live (Summe ca. XX €)',
+      'Mengen nachträglich bearbeiten (Klick auf Zahl/Einheit)',
       'Kategorien wie Obst & Gemüse, Kühlregal, Fleisch mit Icons'
     ],
     examples: [
-      'Einzel-Item: „2 kg Tomaten“ oder „Milch“',
+      'Einzel-Item: „3 Tomaten“ oder „Milch“ (ohne Menge)',
       'Liste einfügen: Zeilen oder Komma-getrennt wie aus WhatsApp',
       'Liste "Geburtstag" mit Geschenk, Torte, Deko'
     ],
     tips: [
       'Paste Magic: Liste einfügen → Zeilen/Kommas werden erkannt',
       'Erledigte Items rutschen in „Erledigt“',
-      'Premium für KI-Features (Korrektur, Preis, Kategorien)'
+      'Premium für KI-Features (Korrektur, Kategorien, Mengen)'
     ]
   }
 };
