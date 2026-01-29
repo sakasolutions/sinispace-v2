@@ -18,6 +18,8 @@ import {
   Package,
   Home,
   Snowflake,
+  Share2,
+  RotateCcw,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -175,6 +177,15 @@ function capitalizeLabel(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
+function formatItemExport(item: ShoppingItem): string {
+  const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
+  const qtyD = formatQtyDisplay(item);
+  if (item.quantity != null && !(item.unit?.trim()))
+    return `${item.quantity}x ${item.text}`;
+  if (hasQty) return `${qtyD} ${item.text}`.trim();
+  return item.text;
+}
+
 export default function ShoppingListPage() {
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [activeListId, setActiveListId] = useState<string | null>(null);
@@ -196,6 +207,8 @@ export default function ShoppingListPage() {
   const [storeMode, setStoreMode] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItemValue, setEditingItemValue] = useState('');
+  const [toast, setToast] = useState<string | null>(null);
+  const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeList = lists.find((l) => l.id === activeListId);
 
@@ -436,6 +449,10 @@ export default function ShoppingListPage() {
     return () => document.removeEventListener('mousedown', handler);
   }, [editingItemId, cancelEditItem]);
 
+  useEffect(() => () => {
+    if (toastRef.current) clearTimeout(toastRef.current);
+  }, []);
+
   const updateItemQty = (
     listId: string,
     itemId: string,
@@ -466,6 +483,59 @@ export default function ShoppingListPage() {
   const openDelete = (list: ShoppingList) => {
     setModalDeleteList(list.id);
   };
+
+  const resetChecked = (listId: string) => {
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id !== listId
+          ? l
+          : { ...l, items: l.items.map((i) => ({ ...i, checked: false })) }
+      )
+    );
+  };
+
+  const shareList = useCallback(async () => {
+    if (!activeList) return;
+    const items = activeList.items.filter((i) => !i.checked);
+    const lines = items.length
+      ? items.map((i) => `• ${formatItemExport(i)}`)
+      : ['Keine offenen Einträge.'];
+    const text = `${activeList.name}\n\n${lines.join('\n')}`;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({
+          title: activeList.name,
+          text,
+        });
+      } else {
+        await navigator.clipboard?.writeText(text);
+        setToast('Liste in Zwischenablage kopiert!');
+        if (toastRef.current) clearTimeout(toastRef.current);
+        toastRef.current = setTimeout(() => {
+          toastRef.current = null;
+          setToast(null);
+        }, 2200);
+      }
+    } catch (e) {
+      if ((e as Error)?.name === 'AbortError') return;
+      try {
+        await navigator.clipboard?.writeText(text);
+        setToast('Liste in Zwischenablage kopiert!');
+        if (toastRef.current) clearTimeout(toastRef.current);
+        toastRef.current = setTimeout(() => {
+          toastRef.current = null;
+          setToast(null);
+        }, 2200);
+      } catch {
+        setToast('Kopieren fehlgeschlagen.');
+        if (toastRef.current) clearTimeout(toastRef.current);
+        toastRef.current = setTimeout(() => {
+          toastRef.current = null;
+          setToast(null);
+        }, 2200);
+      }
+    }
+  }, [activeList]);
 
   const unchecked = activeList?.items.filter((i) => !i.checked) ?? [];
   const checked = activeList?.items.filter((i) => i.checked) ?? [];
@@ -641,6 +711,15 @@ export default function ShoppingListPage() {
                   <h2 className="text-2xl font-bold text-gray-900 flex-1 min-w-0 truncate">
                     {activeList.name}
                   </h2>
+                  <button
+                    type="button"
+                    onClick={shareList}
+                    className="shrink-0 p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                    title="Liste teilen"
+                    aria-label="Liste teilen"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -1151,6 +1230,19 @@ export default function ShoppingListPage() {
                   </>
                 )}
               </div>
+              {checked.length > 0 && (
+                <div className="shrink-0 border-t border-gray-100 px-4 py-3 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => activeListId && resetChecked(activeListId)}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                    title="Erledigte wiederherstellen"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Erledigte wiederherstellen
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div className="p-8 sm:p-12 text-center">
@@ -1163,6 +1255,16 @@ export default function ShoppingListPage() {
           )}
         </div>
       </div>
+
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium shadow-lg animate-[fade-in_0.2s_ease-out]"
+        >
+          {toast}
+        </div>
+      )}
 
       {modalNewList && (
         <div
