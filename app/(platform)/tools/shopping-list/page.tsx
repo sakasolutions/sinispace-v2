@@ -41,6 +41,8 @@ import {
 } from '@/lib/shopping-list-categories';
 import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
 import { CustomSelect } from '@/components/ui/custom-select';
+import { PageTransition } from '@/components/ui/PageTransition';
+import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList';
 
 const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   Leaf,
@@ -433,7 +435,7 @@ export default function ShoppingListPage() {
   }
 
   return (
-    <div
+    <PageTransition
       className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8 md:pb-12"
       style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
     >
@@ -733,7 +735,7 @@ export default function ShoppingListPage() {
                         <div
                           key={cat}
                           className={cn(
-                            'rounded-xl border overflow-hidden mb-3 last:mb-0',
+                            'rounded-xl border overflow-hidden mb-3 last:mb-0 interactive-lift',
                             theme.bg,
                             theme.border
                           )}
@@ -744,7 +746,7 @@ export default function ShoppingListPage() {
                               {theme.label}
                             </span>
                           </div>
-                          <div className="divide-y divide-gray-100/80">
+                          <AnimatedList as="div" className="divide-y divide-gray-100/80">
                             {items.map((item) => {
                               const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                               const isEditingQty = editingQtyItemId === item.id;
@@ -759,8 +761,10 @@ export default function ShoppingListPage() {
                               const ItemIcon = CATEGORY_ICON_MAP[itemTheme.icon] ?? Package;
                               const isStriking = checkingId === item.id;
                               return (
-                                <div
+                                <AnimatedListItem
                                   key={item.id}
+                                  layout={false}
+                                  as="div"
                                   className={cn(
                                     'flex items-center gap-3 px-4 sm:px-6 py-3 transition-all duration-300 group',
                                     isStriking && 'opacity-70'
@@ -881,23 +885,23 @@ export default function ShoppingListPage() {
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
-                              </div>
+                              </AnimatedListItem>
                             );
                           })}
-                        </div>
+                          </AnimatedList>
                         </div>
                       );
                     })}
 
                     {checked.length > 0 && (
-                      <div className="rounded-xl border border-gray-100 bg-gray-50/50 mt-3 overflow-hidden">
+                      <div className="rounded-xl border border-gray-100 bg-gray-50/50 mt-3 overflow-hidden interactive-lift">
                         <div className="px-4 sm:px-6 py-2 flex items-center gap-2">
                           <Check className="w-4 h-4 text-gray-500 shrink-0" aria-hidden />
                           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Erledigt
                           </span>
                         </div>
-                        <div className="divide-y divide-gray-100/80">
+                        <AnimatedList as="div" className="divide-y divide-gray-100/80">
                           {checked.map((item) => {
                             const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                             const qtyD = formatQtyDisplay(item);
@@ -910,8 +914,10 @@ export default function ShoppingListPage() {
                             const ItemIcon = CATEGORY_ICON_MAP[itemTheme.icon] ?? Package;
                             const justChecked = justCheckedIds.has(item.id);
                             return (
-                              <div
+                              <AnimatedListItem
                                 key={item.id}
+                                layout={false}
+                                as="div"
                                 className={cn(
                                   'flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-100/80 transition-all duration-300 group',
                                   justChecked && 'animate-[slideIn_0.4s_ease-out]'
@@ -945,10 +951,10 @@ export default function ShoppingListPage() {
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
-                              </div>
+                              </AnimatedListItem>
                             );
                           })}
-                        </div>
+                        </AnimatedList>
                       </div>
                     )}
                   </>
@@ -1084,6 +1090,6 @@ export default function ShoppingListPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

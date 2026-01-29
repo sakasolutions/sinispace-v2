@@ -169,6 +169,17 @@
     background-image: none;
   }
 
+  /* Micro-Interactions: Buttons/Kacheln – Hover: Anheben, Tap: Eindrücken */
+  .interactive-lift {
+    transition: transform 0.2s ease-out;
+  }
+  .interactive-lift:hover {
+    transform: translateY(-2px);
+  }
+  .interactive-lift:active {
+    transform: scale(0.98);
+  }
+
   /* Fade-in Animation (nur opacity, kein transform) */
   @keyframes fade-in {
     0% {

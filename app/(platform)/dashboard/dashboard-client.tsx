@@ -29,6 +29,7 @@ import {
   Briefcase,
   ShoppingCart,
 } from 'lucide-react';
+import { PageTransition } from '@/components/ui/PageTransition';
 
 type Tool = {
   id: string;
@@ -582,7 +583,7 @@ export default function DashboardClient() {
       )}
 
       {/* Main Container - Magazin-Cover Header + Cards */}
-      <div className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32">
+      <PageTransition className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32">
         {/* Daily Hero Header: Kalender-basiert, Subline + Headline, Soft-Fill Pills */}
         <header
           className={cn(
@@ -1080,7 +1081,7 @@ export default function DashboardClient() {
             </p>
           </div>
         )}
-      </div>
+      </PageTransition>
     </div>
   );
 }

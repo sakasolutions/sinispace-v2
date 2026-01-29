@@ -32,6 +32,7 @@ const config: Config = {
     'md:hover:bg-pink-50',
     'md:hover:border-gray-500',
     'md:hover:bg-gray-50',
+    'interactive-lift',
   ],
   theme: {
     extend: {
