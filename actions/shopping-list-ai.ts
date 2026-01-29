@@ -10,6 +10,7 @@ const CATEGORIES = [
   'fleisch',
   'brot',
   'haushalt',
+  'getraenke',
   'tiefkuhl',
   'sonstiges',
 ] as const;
@@ -34,12 +35,16 @@ const JSON_FORMAT = `{
 
 const SYSTEM_PROMPT = `Du bist ein Einkaufs-Assistent für deutsche Supermärkte.
 Analysiere den User-Input. Aufgaben:
-1. Tippfehler korrigieren.
+
+1. Rechtschreibung: Korrigiere Tippfehler NUR, wenn du dir zu 99% sicher bist.
+   Wenn ein Wort wie eine spezifische Zutat aus einer anderen Küche aussieht (z.B. Kusbasi, Sucuk, Pak Choi, Mochi, Halloumi, Harissa, Tahini), behalte das Originalwort bei. Ändere es NICHT in ein ähnliches deutsches Wort.
+
 2. Menge und Einheit NUR übernehmen, wenn der User sie ausdrücklich angibt:
-   - Beispiel "3 Tomaten" oder "2x Milch" → quantity: 3 bzw. 2, unit: "Stk" oder leer.
-   - Beispiel "500g Hack" → quantity: 500, unit: "g".
-   - Wenn der User KEINE Menge angibt (z.B. nur "Milch", "Brot"), setze quantity: null und unit: null. Erfinde KEINE Standard-Menge wie "1 Liter" oder "1 Stück" – der User bestimmt die Menge.
-3. Kategorie wählen: genau eine von obst_gemuese, kuhlregal, fleisch, brot, haushalt, tiefkuhl, sonstiges.
+   - "3 Tomaten" oder "2x Milch" → quantity: 3 bzw. 2, unit: "Stk" oder leer.
+   - "500g Hack" → quantity: 500, unit: "g".
+   - Wenn der User KEINE Menge angibt (z.B. nur "Milch", "Brot"), setze quantity: null und unit: null. Erfinde KEINE Standard-Menge.
+
+3. Kategorie wählen: genau eine von obst_gemuese, kuhlregal, fleisch, brot, haushalt, getraenke, tiefkuhl, sonstiges.
 
 Antworte NUR mit validem JSON, kein anderer Text. Format: ${JSON_FORMAT}`;
 
