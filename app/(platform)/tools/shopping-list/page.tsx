@@ -193,6 +193,9 @@ export default function ShoppingListPage() {
   const [typeAheadSuggestions, setTypeAheadSuggestions] = useState<{ itemLabel: string }[]>([]);
   const [inputFocused, setInputFocused] = useState(false);
   const [typeAheadOpen, setTypeAheadOpen] = useState(false);
+  const [storeMode, setStoreMode] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingItemValue, setEditingItemValue] = useState('');
 
   const activeList = lists.find((l) => l.id === activeListId);
 
@@ -375,12 +378,63 @@ export default function ShoppingListPage() {
 
   const deleteItem = (listId: string, itemId: string) => {
     setEditingQtyItemId((id) => (id === itemId ? null : id));
+    setEditingItemId((id) => (id === itemId ? null : id));
     setLists((prev) =>
       prev.map((l) =>
         l.id !== listId ? l : { ...l, items: l.items.filter((i) => i.id !== itemId) }
       )
     );
   };
+
+  const updateItemText = (listId: string, itemId: string, newText: string) => {
+    const t = newText.trim();
+    if (!t) return;
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id !== listId
+          ? l
+          : {
+              ...l,
+              items: l.items.map((i) =>
+                i.id !== itemId
+                  ? i
+                  : { ...i, text: t, rawInput: t, quantity: null, unit: null }
+              ),
+            }
+      )
+    );
+    setEditingItemId(null);
+    setEditingItemValue('');
+  };
+
+  const startEditItem = (item: ShoppingItem, displayLabel: string) => {
+    setEditingQtyItemId(null);
+    setEditingQtyValue('');
+    setEditingItemId(item.id);
+    setEditingItemValue(displayLabel);
+  };
+
+  const saveEditItem = () => {
+    if (!editingItemId || !activeListId) return;
+    updateItemText(activeListId, editingItemId, editingItemValue);
+  };
+
+  const cancelEditItem = useCallback(() => {
+    setEditingItemId(null);
+    setEditingItemValue('');
+  }, []);
+
+  // Edit-Modus: Klick außerhalb → abbrechen
+  useEffect(() => {
+    if (!editingItemId) return;
+    const handler = (e: MouseEvent) => {
+      const el = e.target as Node;
+      if (document.querySelector('[data-item-edit]')?.contains(el)) return;
+      cancelEditItem();
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [editingItemId, cancelEditItem]);
 
   const updateItemQty = (
     listId: string,
@@ -526,40 +580,42 @@ export default function ShoppingListPage() {
                     <ListChecks className="w-4 h-4 shrink-0" />
                     <span className="truncate font-medium text-sm">{list.name}</span>
                   </button>
-                  <div className="flex items-center gap-0.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openRename(list);
-                      }}
-                      className={cn(
-                        'p-1.5 rounded-lg transition-colors',
-                        activeListId === list.id
-                          ? 'hover:bg-white/20 text-white'
-                          : 'hover:bg-gray-200 text-gray-500'
-                      )}
-                      title="Umbenennen"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openDelete(list);
-                      }}
-                      className={cn(
-                        'p-1.5 rounded-lg transition-colors',
-                        activeListId === list.id
-                          ? 'hover:bg-white/20 text-white'
-                          : 'hover:bg-red-50 hover:text-red-600 text-gray-500'
-                      )}
-                      title="Liste löschen"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {!storeMode && (
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openRename(list);
+                        }}
+                        className={cn(
+                          'p-1.5 rounded-lg transition-colors',
+                          activeListId === list.id
+                            ? 'hover:bg-white/20 text-white'
+                            : 'hover:bg-gray-200 text-gray-500'
+                        )}
+                        title="Umbenennen"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDelete(list);
+                        }}
+                        className={cn(
+                          'p-1.5 rounded-lg transition-colors',
+                          activeListId === list.id
+                            ? 'hover:bg-white/20 text-white'
+                            : 'hover:bg-red-50 hover:text-red-600 text-gray-500'
+                        )}
+                        title="Liste löschen"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -585,28 +641,46 @@ export default function ShoppingListPage() {
                   <h2 className="text-2xl font-bold text-gray-900 flex-1 min-w-0 truncate">
                     {activeList.name}
                   </h2>
-                  {/* Mobile: Umbenennen / Löschen neben der Überschrift */}
-                  <div className="flex md:hidden items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => openRename(activeList)}
-                      className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-                      title="Umbenennen"
-                      aria-label="Liste umbenennen"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openDelete(activeList)}
-                      className="p-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
-                      title="Liste löschen"
-                      aria-label="Liste löschen"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStoreMode((m) => !m);
+                      if (!storeMode) { setEditingItemId(null); setEditingQtyItemId(null); }
+                    }}
+                    className={cn(
+                      'shrink-0 rounded-xl px-4 py-2 text-sm font-medium transition-colors',
+                      storeMode
+                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        : 'bg-orange-500 text-white hover:bg-orange-600'
+                    )}
+                  >
+                    {storeMode ? 'Beenden' : 'Einkauf starten 🛒'}
+                  </button>
+                  {!storeMode && (
+                    <div className="flex md:hidden items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => openRename(activeList)}
+                        className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                        title="Umbenennen"
+                        aria-label="Liste umbenennen"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openDelete(activeList)}
+                        className="p-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        title="Liste löschen"
+                        aria-label="Liste löschen"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
+                {!storeMode && (
+                <>
                 <div ref={inputContainerRef} className="relative flex gap-2">
                   <div className="flex-1 relative">
                     <input
@@ -713,6 +787,9 @@ export default function ShoppingListPage() {
                   Tipp: Liste aus WhatsApp einfügen → Zeilen/Kommas werden erkannt, jedes Item wird
                   einzeln analysiert.
                 </p>
+                </>
+                )}
+
               </div>
 
               <div className="flex-1 overflow-y-auto">
@@ -749,7 +826,8 @@ export default function ShoppingListPage() {
                           <AnimatedList as="div" className="divide-y divide-gray-100/80">
                             {items.map((item) => {
                               const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
-                              const isEditingQty = editingQtyItemId === item.id;
+                              const isEditingQty = !storeMode && editingQtyItemId === item.id;
+                              const isEditingText = editingItemId === item.id;
                               const qtyDisplay = formatQtyDisplay(item);
                               const displayLabel =
                                 item.quantity != null && !(item.unit?.trim())
@@ -760,52 +838,84 @@ export default function ShoppingListPage() {
                               const itemTheme = getCategoryTheme(item.category);
                               const ItemIcon = CATEGORY_ICON_MAP[itemTheme.icon] ?? Package;
                               const isStriking = checkingId === item.id;
+                              const showActions = !storeMode && !isEditingText;
+                              const canEdit = item.status !== 'analyzing';
                               return (
                                 <AnimatedListItem
                                   key={item.id}
                                   layout={false}
                                   as="div"
                                   className={cn(
-                                    'flex items-center gap-3 px-4 sm:px-6 py-3 transition-all duration-300 group',
+                                    'px-4 sm:px-6 transition-all duration-300 group',
+                                    storeMode ? 'py-4' : 'py-3',
                                     isStriking && 'opacity-70'
                                   )}
                                 >
-                                  <button
-                                    type="button"
-                                    onClick={() => handleToggleItem(activeList.id, item.id)}
-                                    className={cn(
-                                      'w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-all duration-300',
-                                      isStriking
-                                        ? 'border-orange-400 bg-orange-50'
-                                        : 'border-gray-300 hover:border-orange-400 hover:bg-orange-50'
-                                    )}
-                                    aria-label="Abhaken"
+                                  <div
+                                    className="flex items-center gap-3 w-full"
+                                    {...(isEditingText ? { 'data-item-edit': '' } : {})}
                                   >
-                                    {isStriking && <Check className="w-3.5 h-3.5 text-orange-500" />}
-                                  </button>
-                                  <span
-                                    className={cn(
-                                      'shrink-0 flex items-center justify-center w-6',
-                                      itemTheme.iconColor
-                                    )}
-                                    aria-hidden
-                                  >
-                                    {item.status === 'analyzing' ? (
-                                      <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
-                                    ) : (
-                                      <ItemIcon className="w-4 h-4" />
-                                    )}
-                                  </span>
-                                <div className="flex-1 min-w-0 flex items-center gap-2">
-                                  {item.status === 'analyzing' ? (
-                                    <span className={cn('text-gray-500 italic', isStriking && 'line-through')}>
-                                      Analysiere …
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleItem(activeList.id, item.id)}
+                                      className={cn(
+                                        'rounded-md border-2 flex items-center justify-center shrink-0 transition-all duration-300',
+                                        storeMode ? 'w-8 h-8' : 'w-6 h-6',
+                                        isStriking
+                                          ? 'border-orange-400 bg-orange-50'
+                                          : 'border-gray-300 hover:border-orange-400 hover:bg-orange-50'
+                                      )}
+                                      aria-label="Abhaken"
+                                    >
+                                      {isStriking && <Check className={cn('text-orange-500', storeMode ? 'w-5 h-5' : 'w-3.5 h-3.5')} />}
+                                    </button>
+                                    <span
+                                      className={cn(
+                                        'shrink-0 flex items-center justify-center',
+                                        storeMode ? 'w-8' : 'w-6',
+                                        itemTheme.iconColor
+                                      )}
+                                      aria-hidden
+                                    >
+                                      {item.status === 'analyzing' ? (
+                                        <Loader2 className={cn('text-orange-500 animate-spin', storeMode ? 'w-6 h-6' : 'w-5 h-5')} />
+                                      ) : (
+                                        <ItemIcon className={storeMode ? 'w-5 h-5' : 'w-4 h-4'} />
+                                      )}
                                     </span>
-                                  ) : item.status === 'error' ? (
-                                    <span className={cn('text-gray-700', isStriking && 'line-through')}>
-                                      {item.text}
-                                    </span>
-                                  ) : isEditingQty ? (
+                                    <div className="flex-1 min-w-0 flex items-center gap-2">
+                                      {isEditingText ? (
+                                        <>
+                                          <input
+                                            type="text"
+                                            value={editingItemValue}
+                                            onChange={(e) => setEditingItemValue(e.target.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); }
+                                              if (e.key === 'Escape') cancelEditItem();
+                                            }}
+                                            className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
+                                            autoFocus
+                                          />
+                                          <button
+                                            type="button"
+                                            onClick={saveEditItem}
+                                            className="p-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 shrink-0"
+                                            title="Speichern"
+                                            aria-label="Speichern"
+                                          >
+                                            <Check className="w-4 h-4" />
+                                          </button>
+                                        </>
+                                      ) : item.status === 'analyzing' ? (
+                                        <span className={cn('text-gray-500 italic', storeMode ? 'text-base' : '', isStriking && 'line-through')}>
+                                          Analysiere …
+                                        </span>
+                                      ) : item.status === 'error' ? (
+                                        <span className={cn('text-gray-700', storeMode ? 'text-base font-medium' : '', isStriking && 'line-through')}>
+                                          {item.text}
+                                        </span>
+                                      ) : isEditingQty ? (
                                     <>
                                       <input
                                         type="text"
@@ -834,58 +944,79 @@ export default function ShoppingListPage() {
                                         {item.text}
                                       </span>
                                     </>
-                                  ) : (
-                                    <>
-                                      {hasQty ? (
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            setEditingQtyItemId(item.id);
-                                            setEditingQtyValue(qtyDisplay);
-                                          }}
-                                          className="text-gray-500 hover:text-orange-500 hover:underline text-left shrink-0"
-                                        >
-                                          {item.quantity != null && !(item.unit?.trim())
-                                            ? `${item.quantity}x`
-                                            : qtyDisplay}
-                                        </button>
                                       ) : (
+                                        <>
+                                          {!storeMode && hasQty ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setEditingQtyItemId(item.id);
+                                                setEditingQtyValue(qtyDisplay);
+                                              }}
+                                              className="text-gray-500 hover:text-orange-500 hover:underline text-left shrink-0"
+                                            >
+                                              {item.quantity != null && !(item.unit?.trim())
+                                                ? `${item.quantity}x`
+                                                : qtyDisplay}
+                                            </button>
+                                          ) : !storeMode && !hasQty ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setEditingQtyItemId(item.id);
+                                                setEditingQtyValue('');
+                                              }}
+                                              className="text-gray-400 hover:text-orange-500 text-left text-sm shrink-0"
+                                            >
+                                              + Menge
+                                            </button>
+                                          ) : null}
+                                          <span
+                                            className={cn(
+                                              'text-gray-900 font-medium transition-all duration-300',
+                                              storeMode ? 'text-base' : '',
+                                              isStriking && 'line-through'
+                                            )}
+                                          >
+                                            {hasQty ? item.text : displayLabel}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                    {showActions && (
+                                      <>
+                                        {canEdit && (
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              e.preventDefault();
+                                              startEditItem(item, displayLabel);
+                                            }}
+                                            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all shrink-0"
+                                            title="Bearbeiten"
+                                            aria-label="Bearbeiten"
+                                          >
+                                            <Pencil className="w-4 h-4" />
+                                          </button>
+                                        )}
                                         <button
                                           type="button"
-                                          onClick={() => {
-                                            setEditingQtyItemId(item.id);
-                                            setEditingQtyValue('');
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            deleteItem(activeList.id, item.id);
                                           }}
-                                          className="text-gray-400 hover:text-orange-500 text-left text-sm shrink-0"
+                                          className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+                                          title="Entfernen"
+                                          aria-label="Entfernen"
                                         >
-                                          + Menge
+                                          <Trash2 className="w-4 h-4" />
                                         </button>
-                                      )}
-                                      <span
-                                        className={cn(
-                                          'text-gray-900 font-medium transition-all duration-300',
-                                          isStriking && 'line-through'
-                                        )}
-                                      >
-                                        {hasQty ? item.text : displayLabel}
-                                      </span>
-                                    </>
-                                  )}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    deleteItem(activeList.id, item.id);
-                                  }}
-                                  className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
-                                  title="Entfernen"
-                                  aria-label="Entfernen"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </AnimatedListItem>
+                                      </>
+                                    )}
+                                  </div>
+                                </AnimatedListItem>
                             );
                           })}
                           </AnimatedList>
@@ -913,44 +1044,104 @@ export default function ShoppingListPage() {
                             const itemTheme = getCategoryTheme(item.category);
                             const ItemIcon = CATEGORY_ICON_MAP[itemTheme.icon] ?? Package;
                             const justChecked = justCheckedIds.has(item.id);
+                            const isEditingText = editingItemId === item.id;
+                            const showActions = !storeMode && !isEditingText;
                             return (
                               <AnimatedListItem
                                 key={item.id}
                                 layout={false}
                                 as="div"
                                 className={cn(
-                                  'flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-100/80 transition-all duration-300 group',
+                                  'px-4 sm:px-6 transition-all duration-300 group',
+                                  storeMode ? 'py-4' : 'py-3',
+                                  'hover:bg-gray-100/80',
                                   justChecked && 'animate-[slideIn_0.4s_ease-out]'
                                 )}
                               >
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleItem(activeList!.id, item.id)}
-                                  className="w-6 h-6 rounded-md border-2 border-orange-500 bg-orange-500 flex items-center justify-center shrink-0 hover:bg-orange-600 hover:border-orange-600 transition-colors"
-                                  aria-label="Rückgängig"
+                                <div
+                                  className="flex items-center gap-3 w-full"
+                                  {...(isEditingText ? { 'data-item-edit': '' } : {})}
                                 >
-                                  <Check className="w-3.5 h-3.5 text-white" />
-                                </button>
-                                <span
-                                  className={cn('shrink-0 flex items-center justify-center w-6 opacity-60', itemTheme.iconColor)}
-                                  aria-hidden
-                                >
-                                  <ItemIcon className="w-4 h-4" />
-                                </span>
-                                <span className="flex-1 text-gray-500 line-through">{erledigtLabel}</span>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    deleteItem(activeList!.id, item.id);
-                                  }}
-                                  className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
-                                  title="Entfernen"
-                                  aria-label="Entfernen"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleItem(activeList!.id, item.id)}
+                                    className={cn(
+                                      'rounded-md border-2 border-orange-500 bg-orange-500 flex items-center justify-center shrink-0 hover:bg-orange-600 hover:border-orange-600 transition-colors',
+                                      storeMode ? 'w-8 h-8' : 'w-6 h-6'
+                                    )}
+                                    aria-label="Rückgängig"
+                                  >
+                                    <Check className={cn('text-white', storeMode ? 'w-5 h-5' : 'w-3.5 h-3.5')} />
+                                  </button>
+                                  <span
+                                    className={cn(
+                                      'shrink-0 flex items-center justify-center opacity-60',
+                                      storeMode ? 'w-8' : 'w-6',
+                                      itemTheme.iconColor
+                                    )}
+                                    aria-hidden
+                                  >
+                                    <ItemIcon className={storeMode ? 'w-5 h-5' : 'w-4 h-4'} />
+                                  </span>
+                                  {isEditingText ? (
+                                    <>
+                                      <input
+                                        type="text"
+                                        value={editingItemValue}
+                                        onChange={(e) => setEditingItemValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); }
+                                          if (e.key === 'Escape') cancelEditItem();
+                                        }}
+                                        className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
+                                        autoFocus
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={saveEditItem}
+                                        className="p-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 shrink-0"
+                                        title="Speichern"
+                                        aria-label="Speichern"
+                                      >
+                                        <Check className="w-4 h-4" />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <span className={cn('flex-1 text-gray-500 line-through', storeMode && 'text-base')}>
+                                      {erledigtLabel}
+                                    </span>
+                                  )}
+                                  {showActions && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          startEditItem(item, erledigtLabel);
+                                        }}
+                                        className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all shrink-0"
+                                        title="Bearbeiten"
+                                        aria-label="Bearbeiten"
+                                      >
+                                        <Pencil className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          deleteItem(activeList!.id, item.id);
+                                        }}
+                                        className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+                                        title="Entfernen"
+                                        aria-label="Entfernen"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
                               </AnimatedListItem>
                             );
                           })}
