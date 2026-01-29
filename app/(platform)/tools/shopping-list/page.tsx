@@ -10,7 +10,16 @@ import {
   ListChecks,
   ShoppingCart,
   Loader2,
+  Leaf,
+  Beef,
+  Milk,
+  Croissant,
+  Wine,
+  Package,
+  Home,
+  Snowflake,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   generateId,
@@ -20,13 +29,23 @@ import {
 } from '@/lib/shopping-lists-storage';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import {
-  getCategoryIcon,
-  getCategoryLabel,
+  getCategoryTheme,
   normalizeItemName,
   sortCategoriesBySupermarktRoute,
 } from '@/lib/shopping-list-categories';
 import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
 import { CustomSelect } from '@/components/ui/custom-select';
+
+const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
+  Leaf,
+  Beef,
+  Milk,
+  Croissant,
+  Wine,
+  Package,
+  Home,
+  Snowflake,
+};
 
 /** Smart Input & Paste Magic: Einzel-Item vs. Liste (Umbrüche/Kommas) */
 function splitInput(raw: string): string[] {
@@ -151,6 +170,8 @@ export default function ShoppingListPage() {
   const [editingQtyItemId, setEditingQtyItemId] = useState<string | null>(null);
   const [editingQtyValue, setEditingQtyValue] = useState('');
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const [checkingId, setCheckingId] = useState<string | null>(null);
+  const [justCheckedIds, setJustCheckedIds] = useState<Set<string>>(new Set());
 
   const activeList = lists.find((l) => l.id === activeListId);
 
@@ -275,6 +296,28 @@ export default function ShoppingListPage() {
         return { ...l, items: sorted };
       })
     );
+  };
+
+  const handleToggleItem = (listId: string, itemId: string) => {
+    const item = activeList?.items.find((i) => i.id === itemId);
+    const willCheck = item && !item.checked;
+    if (willCheck) {
+      setCheckingId(itemId);
+      setTimeout(() => {
+        toggleItem(listId, itemId);
+        setCheckingId(null);
+        setJustCheckedIds((s) => new Set(s).add(itemId));
+        setTimeout(() => {
+          setJustCheckedIds((prev) => {
+            const n = new Set(prev);
+            n.delete(itemId);
+            return n;
+          });
+        }, 400);
+      }, 420);
+    } else {
+      toggleItem(listId, itemId);
+    }
   };
 
   const deleteItem = (listId: string, itemId: string) => {
@@ -565,51 +608,80 @@ export default function ShoppingListPage() {
                     {sortedCategories.map((cat) => {
                       const items = grouped[cat] ?? [];
                       if (items.length === 0) return null;
-                      const label = getCategoryLabel(cat);
-                      const icon = getCategoryIcon(cat);
+                      const theme = getCategoryTheme(cat);
+                      const CatIcon = CATEGORY_ICON_MAP[theme.icon] ?? Package;
                       return (
-                        <div key={cat} className="border-b border-gray-100 last:border-b-0">
-                          <div className="px-4 sm:px-6 py-2 bg-gray-50/80 flex items-center gap-2">
-                            <span className="text-lg" aria-hidden>
-                              {icon}
-                            </span>
-                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                              {label}
+                        <div
+                          key={cat}
+                          className={cn(
+                            'rounded-xl border overflow-hidden mb-3 last:mb-0',
+                            theme.bg,
+                            theme.border
+                          )}
+                        >
+                          <div className="px-4 sm:px-6 py-2 flex items-center gap-2">
+                            <CatIcon className={cn('w-4 h-4 shrink-0', theme.iconColor)} aria-hidden />
+                            <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                              {theme.label}
                             </span>
                           </div>
-                          {items.map((item) => {
-                            const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
-                            const isEditingQty = editingQtyItemId === item.id;
-                            const qtyDisplay = formatQtyDisplay(item);
-                            const displayLabel =
-                              item.quantity != null && !(item.unit?.trim())
-                                ? `${item.quantity}x ${item.text}`
-                                : hasQty
-                                  ? `${qtyDisplay} ${item.text}`.trim()
-                                  : item.text;
-                            return (
-                              <div
-                                key={item.id}
-                                className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-50/50 transition-colors group"
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => toggleItem(activeList.id, item.id)}
-                                  className="w-6 h-6 rounded-md border-2 border-gray-300 flex items-center justify-center shrink-0 hover:border-orange-400 hover:bg-orange-50 transition-colors"
-                                  aria-label="Abhaken"
-                                />
-                                <span className="text-lg shrink-0 flex items-center justify-center w-6" aria-hidden>
-                                  {item.status === 'analyzing' ? (
-                                    <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
-                                  ) : (
-                                    getCategoryIcon(item.category)
+                          <div className="divide-y divide-gray-100/80">
+                            {items.map((item) => {
+                              const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
+                              const isEditingQty = editingQtyItemId === item.id;
+                              const qtyDisplay = formatQtyDisplay(item);
+                              const displayLabel =
+                                item.quantity != null && !(item.unit?.trim())
+                                  ? `${item.quantity}x ${item.text}`
+                                  : hasQty
+                                    ? `${qtyDisplay} ${item.text}`.trim()
+                                    : item.text;
+                              const itemTheme = getCategoryTheme(item.category);
+                              const ItemIcon = CATEGORY_ICON_MAP[itemTheme.icon] ?? Package;
+                              const isStriking = checkingId === item.id;
+                              return (
+                                <div
+                                  key={item.id}
+                                  className={cn(
+                                    'flex items-center gap-3 px-4 sm:px-6 py-3 transition-all duration-300 group',
+                                    isStriking && 'opacity-70'
                                   )}
-                                </span>
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleItem(activeList.id, item.id)}
+                                    className={cn(
+                                      'w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-all duration-300',
+                                      isStriking
+                                        ? 'border-orange-400 bg-orange-50'
+                                        : 'border-gray-300 hover:border-orange-400 hover:bg-orange-50'
+                                    )}
+                                    aria-label="Abhaken"
+                                  >
+                                    {isStriking && <Check className="w-3.5 h-3.5 text-orange-500" />}
+                                  </button>
+                                  <span
+                                    className={cn(
+                                      'shrink-0 flex items-center justify-center w-6',
+                                      itemTheme.iconColor
+                                    )}
+                                    aria-hidden
+                                  >
+                                    {item.status === 'analyzing' ? (
+                                      <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
+                                    ) : (
+                                      <ItemIcon className="w-4 h-4" />
+                                    )}
+                                  </span>
                                 <div className="flex-1 min-w-0 flex items-center gap-2">
                                   {item.status === 'analyzing' ? (
-                                    <span className="text-gray-500 italic">Analysiere …</span>
+                                    <span className={cn('text-gray-500 italic', isStriking && 'line-through')}>
+                                      Analysiere …
+                                    </span>
                                   ) : item.status === 'error' ? (
-                                    <span className="text-gray-700">{item.text}</span>
+                                    <span className={cn('text-gray-700', isStriking && 'line-through')}>
+                                      {item.text}
+                                    </span>
                                   ) : isEditingQty ? (
                                     <>
                                       <input
@@ -635,7 +707,9 @@ export default function ShoppingListPage() {
                                         className="w-24 rounded-lg border border-gray-200 px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
                                         autoFocus
                                       />
-                                      <span className="text-gray-900 font-medium">{item.text}</span>
+                                      <span className={cn('text-gray-900 font-medium', isStriking && 'line-through')}>
+                                        {item.text}
+                                      </span>
                                     </>
                                   ) : (
                                     <>
@@ -664,7 +738,12 @@ export default function ShoppingListPage() {
                                           + Menge
                                         </button>
                                       )}
-                                      <span className="text-gray-900 font-medium">
+                                      <span
+                                        className={cn(
+                                          'text-gray-900 font-medium transition-all duration-300',
+                                          isStriking && 'line-through'
+                                        )}
+                                      >
                                         {hasQty ? item.text : displayLabel}
                                       </span>
                                     </>
@@ -687,60 +766,70 @@ export default function ShoppingListPage() {
                             );
                           })}
                         </div>
+                        </div>
                       );
                     })}
 
                     {checked.length > 0 && (
-                      <div className="bg-gray-50/80">
+                      <div className="rounded-xl border border-gray-100 bg-gray-50/50 mt-3 overflow-hidden">
                         <div className="px-4 sm:px-6 py-2 flex items-center gap-2">
-                          <span className="text-lg" aria-hidden>
-                            ✓
-                          </span>
+                          <Check className="w-4 h-4 text-gray-500 shrink-0" aria-hidden />
                           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Erledigt
                           </span>
                         </div>
-                        {checked.map((item) => {
-                          const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
-                          const qtyD = formatQtyDisplay(item);
-                          const erledigtLabel = hasQty
-                            ? (item.quantity != null && !(item.unit?.trim())
-                              ? `${item.quantity}x ${item.text}`
-                              : `${qtyD} ${item.text}`.trim())
-                            : item.text;
-                          return (
-                            <div
-                              key={item.id}
-                              className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-100/80 transition-colors group"
-                            >
-                              <button
-                                type="button"
-                                onClick={() => toggleItem(activeList!.id, item.id)}
-                                className="w-6 h-6 rounded-md border-2 border-orange-500 bg-orange-500 flex items-center justify-center shrink-0 hover:bg-orange-600 hover:border-orange-600 transition-colors"
-                                aria-label="Rückgängig"
+                        <div className="divide-y divide-gray-100/80">
+                          {checked.map((item) => {
+                            const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
+                            const qtyD = formatQtyDisplay(item);
+                            const erledigtLabel = hasQty
+                              ? (item.quantity != null && !(item.unit?.trim())
+                                ? `${item.quantity}x ${item.text}`
+                                : `${qtyD} ${item.text}`.trim())
+                              : item.text;
+                            const itemTheme = getCategoryTheme(item.category);
+                            const ItemIcon = CATEGORY_ICON_MAP[itemTheme.icon] ?? Package;
+                            const justChecked = justCheckedIds.has(item.id);
+                            return (
+                              <div
+                                key={item.id}
+                                className={cn(
+                                  'flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-100/80 transition-all duration-300 group',
+                                  justChecked && 'animate-[slideIn_0.4s_ease-out]'
+                                )}
                               >
-                                <Check className="w-3.5 h-3.5 text-white" />
-                              </button>
-                              <span className="text-lg shrink-0 opacity-50" aria-hidden>
-                                {getCategoryIcon(item.category)}
-                              </span>
-                              <span className="flex-1 text-gray-500 line-through">{erledigtLabel}</span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                  deleteItem(activeList!.id, item.id);
-                                }}
-                                className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
-                                title="Entfernen"
-                                aria-label="Entfernen"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          );
-                        })}
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleItem(activeList!.id, item.id)}
+                                  className="w-6 h-6 rounded-md border-2 border-orange-500 bg-orange-500 flex items-center justify-center shrink-0 hover:bg-orange-600 hover:border-orange-600 transition-colors"
+                                  aria-label="Rückgängig"
+                                >
+                                  <Check className="w-3.5 h-3.5 text-white" />
+                                </button>
+                                <span
+                                  className={cn('shrink-0 flex items-center justify-center w-6 opacity-60', itemTheme.iconColor)}
+                                  aria-hidden
+                                >
+                                  <ItemIcon className="w-4 h-4" />
+                                </span>
+                                <span className="flex-1 text-gray-500 line-through">{erledigtLabel}</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    deleteItem(activeList!.id, item.id);
+                                  }}
+                                  className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
+                                  title="Entfernen"
+                                  aria-label="Entfernen"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </>

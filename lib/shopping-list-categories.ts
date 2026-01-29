@@ -1,5 +1,6 @@
 /**
  * Kategorien für Smart Einkaufslisten (AI-gestützt).
+ * Color-Coded Aisles: bg, border, Lucide-Icon-Name, iconColor pro Kategorie.
  */
 
 export const SHOPPING_CATEGORIES = [
@@ -8,6 +9,7 @@ export const SHOPPING_CATEGORIES = [
   'fleisch',
   'brot',
   'haushalt',
+  'getraenke',
   'tiefkuhl',
   'sonstiges',
 ] as const;
@@ -20,16 +22,97 @@ export type ShoppingCategory = (typeof SHOPPING_CATEGORIES)[number];
  * Unbekannte Kategorien landen vor 'sonstiges'.
  */
 export const CATEGORY_ORDER: readonly string[] = [
-  'obst_gemuese', // 1. Eingang: Frisches
-  'brot',         // 2. Brot & Backwaren (≈ backwaren)
-  'vorrat',       // 3. Trockenes / Dosen / Saucen
-  'fleisch',      // 4. Fleisch & Fisch
-  'kuhlregal',    // 5. Milch & Käse (meist hinten)
-  'haushalt',     // 6. Drogerie & Putzmittel
-  'getraenke',    // 7. Getränke
-  'tiefkuhl',     // 8. TK (ganz am Ende wegen Schmelzgefahr)
-  'sonstiges',    // 9. Der Rest
+  'obst_gemuese',
+  'brot',
+  'vorrat',
+  'fleisch',
+  'kuhlregal',
+  'haushalt',
+  'getraenke',
+  'tiefkuhl',
+  'sonstiges',
 ];
+
+export type CategoryTheme = {
+  icon: string;
+  label: string;
+  bg: string;
+  border: string;
+  iconColor: string;
+};
+
+const THEMES: Record<string, CategoryTheme> = {
+  obst_gemuese: {
+    icon: 'Leaf',
+    label: 'Obst & Gemüse',
+    bg: 'bg-green-50/50',
+    border: 'border-green-100',
+    iconColor: 'text-green-600',
+  },
+  fleisch: {
+    icon: 'Beef',
+    label: 'Fleisch & Fisch',
+    bg: 'bg-rose-50/50',
+    border: 'border-rose-100',
+    iconColor: 'text-rose-600',
+  },
+  kuhlregal: {
+    icon: 'Milk',
+    label: 'Kühlregal',
+    bg: 'bg-sky-50/50',
+    border: 'border-sky-100',
+    iconColor: 'text-sky-600',
+  },
+  brot: {
+    icon: 'Croissant',
+    label: 'Brot & Backwaren',
+    bg: 'bg-amber-50/50',
+    border: 'border-amber-100',
+    iconColor: 'text-amber-600',
+  },
+  backwaren: {
+    icon: 'Croissant',
+    label: 'Brot & Backwaren',
+    bg: 'bg-amber-50/50',
+    border: 'border-amber-100',
+    iconColor: 'text-amber-600',
+  },
+  getraenke: {
+    icon: 'Wine',
+    label: 'Getränke & Party',
+    bg: 'bg-blue-50/50',
+    border: 'border-blue-100',
+    iconColor: 'text-blue-600',
+  },
+  vorrat: {
+    icon: 'Package',
+    label: 'Vorrat',
+    bg: 'bg-orange-50/50',
+    border: 'border-orange-100',
+    iconColor: 'text-orange-600',
+  },
+  haushalt: {
+    icon: 'Home',
+    label: 'Haushalt',
+    bg: 'bg-slate-50/50',
+    border: 'border-slate-100',
+    iconColor: 'text-slate-600',
+  },
+  tiefkuhl: {
+    icon: 'Snowflake',
+    label: 'Tiefkühl',
+    bg: 'bg-cyan-50/50',
+    border: 'border-cyan-100',
+    iconColor: 'text-cyan-600',
+  },
+  sonstiges: {
+    icon: 'Package',
+    label: 'Sonstiges',
+    bg: 'bg-gray-50/50',
+    border: 'border-gray-100',
+    iconColor: 'text-gray-600',
+  },
+};
 
 const ICONS: Record<string, string> = {
   obst_gemuese: '🥬',
@@ -52,13 +135,18 @@ const LABELS: Record<string, string> = {
   backwaren: 'Brot & Backwaren',
   vorrat: 'Vorrat',
   haushalt: 'Haushalt',
-  getraenke: 'Getränke',
+  getraenke: 'Getränke & Party',
   tiefkuhl: 'Tiefkühl',
   sonstiges: 'Sonstiges',
 };
 
 export const CATEGORY_ICONS = ICONS as Record<ShoppingCategory, string>;
 export const CATEGORY_LABELS = LABELS as Record<ShoppingCategory, string>;
+
+export function getCategoryTheme(cat: string | undefined): CategoryTheme {
+  if (!cat) return THEMES.sonstiges;
+  return THEMES[cat] ?? THEMES.sonstiges;
+}
 
 export function getCategoryIcon(cat: string | undefined): string {
   if (!cat) return ICONS.sonstiges;
