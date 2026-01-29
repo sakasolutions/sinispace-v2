@@ -1,65 +1,46 @@
 'use client';
 
-import { generateEmailWithChat } from '@/actions/ai-actions';
+import { generateEmailWithChat, refineEmail } from '@/actions/ai-actions';
 import { useActionState } from 'react';
-import { useState, useEffect, useRef } from 'react';
-import { Mail, MessageSquare, Loader2 } from 'lucide-react';
-import { CopyButton } from '@/components/ui/copy-button';
-import { LabelWithTooltip } from '@/components/ui/tooltip';
-import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
-import { FeedbackButton } from '@/components/ui/feedback-button';
-import { toolInfoMap } from '@/lib/tool-info';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  Mail,
+  Loader2,
+  Copy,
+  ExternalLink,
+  Scissors,
+  Smile,
+  Check,
+  Sparkles,
+} from 'lucide-react';
 import { useFormStatus } from 'react-dom';
-import { CustomSelect } from '@/components/ui/custom-select';
-import { SwipeableResult } from '@/components/platform/swipeable-result';
+import { useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { BackButton } from '@/components/ui/back-button';
-import { WorkspaceSelect } from '@/components/ui/workspace-select';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 
-function ActionButtons({ text, recipientEmail }: { text: string; recipientEmail?: string }) {
-  const router = useRouter();
+const TONE_TILES = [
+  { id: 'Professionell', label: 'Formell', emoji: '👔', value: 'Professionell' },
+  { id: 'Freundlich', label: 'Locker', emoji: '👋', value: 'Freundlich' },
+  { id: 'Einfühlsam', label: 'Empathisch', emoji: '🤝', value: 'Einfühlsam' },
+  { id: 'Bestimmt', label: 'Direkt/Dringend', emoji: '🔥', value: 'Bestimmt' },
+] as const;
 
-  const handleOpenMailto = () => {
-    // Extrahiere Betreff aus dem ersten Zeile, falls vorhanden
-    const lines = text.split('\n');
-    const subject = lines[0]?.replace(/^Betreff:\s*/i, '').trim() || 'E-Mail';
-    const body = text.replace(/^Betreff:.*\n/i, '').trim();
-    
-    const email = recipientEmail ? `mailto:${recipientEmail}?` : 'mailto:?';
-    const mailtoLink = `${email}subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoLink);
-  };
+function parseResult(text: string): { subject: string; body: string } {
+  const t = text?.trim() || '';
+  const m = t.match(/^Betreff:\s*(.+?)(?:\n\n?|$)/i);
+  if (m) {
+    const subject = m[1]!.trim();
+    const body = t.slice(m[0]!.length).trim();
+    return { subject, body };
+  }
+  return { subject: 'E-Mail', body: t };
+}
 
-  const handleGoToChat = () => {
-    router.push('/chat');
-  };
-
-  return (
-    <div className="flex justify-between items-center border-b border-white/5 bg-white/5 p-3 rounded-t-xl mb-4">
-      <span className="text-xs uppercase tracking-wider text-zinc-500 font-medium">Dein Entwurf</span>
-      <div className="flex gap-1.5">
-        <CopyButton text={text} size="sm" variant="default" className="h-8" />
-        
-        <button
-          onClick={handleOpenMailto}
-          className="h-8 px-2 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
-          title="In E-Mail-Client öffnen"
-        >
-          <Mail className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Öffnen</span>
-        </button>
-        
-        <button
-          onClick={handleGoToChat}
-          className="h-8 px-2 rounded-md bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 text-xs font-medium"
-          title="Zu SiniChat"
-        >
-          <MessageSquare className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Zu SiniChat</span>
-        </button>
-      </div>
-    </div>
-  );
+function buildFullText(subject: string, body: string): string {
+  if (!body) return '';
+  return subject ? `Betreff: ${subject}\n\n${body}` : body;
 }
 
 function SubmitButton() {
@@ -68,400 +49,438 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3 text-sm font-semibold text-white hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 min-h-[44px]"
+      className={cn(
+        'w-full rounded-xl py-3.5 font-semibold text-white tracking-tight',
+        'bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600',
+        'disabled:opacity-50 disabled:cursor-not-allowed transition-all',
+        'flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25'
+      )}
     >
       {pending ? (
         <>
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Schreibe E-Mail...</span>
+          Schreibe E-Mail…
         </>
       ) : (
-        <span>E-Mail generieren ✨</span>
+        <>
+          <Sparkles className="w-4 h-4" />
+          E-Mail generieren ✨
+        </>
       )}
     </button>
   );
 }
 
 export default function EmailPage() {
-  // @ts-ignore
   const [state, formAction] = useActionState(generateEmailWithChat, null);
   const searchParams = useSearchParams();
-  
-  // Smart Chain: Lese Query-Params
+
+  const [mode, setMode] = useState<'new' | 'reply'>('new');
+  const [senderName, setSenderName] = useState('');
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [tone, setTone] = useState('Professionell');
+  const [topic, setTopic] = useState('');
+  const [receivedEmail, setReceivedEmail] = useState('');
+
+  const [resultText, setResultText] = useState('');
+  const [editSubject, setEditSubject] = useState('');
+  const [editBody, setEditBody] = useState('');
+  const [refineLoading, setRefineLoading] = useState<'shorten' | 'loosen' | 'grammar' | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const autoGeneratedRef = useRef(false);
+
   const chain = searchParams.get('chain');
   const client = searchParams.get('client');
   const ref = searchParams.get('ref');
   const type = searchParams.get('type');
-  
-  // State für Formularfelder, damit sie nicht geleert werden
-  const [senderName, setSenderName] = useState('');
-  const [recipientName, setRecipientName] = useState('');
-  const [recipientEmail, setRecipientEmail] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const [tone, setTone] = useState('Professionell');
-  const [formality, setFormality] = useState<'Sie' | 'Du'>('Sie');
-  const [language, setLanguage] = useState('Deutsch');
-  const [length, setLength] = useState<'Kurz' | 'Mittel' | 'Ausführlich'>('Mittel');
-  const [topic, setTopic] = useState('');
-  const [workspaceId, setWorkspaceId] = useState<string>('');
-  const [showChainBadge, setShowChainBadge] = useState(false);
-  const [toastMessage, setToastMessage] = useState<{ title: string; description: string } | null>(null);
-  const autoGeneratedRef = useRef(false);
-  const formRef = useRef<HTMLFormElement>(null);
-  
-  // Smart Pre-fill für Invoice Chain (useEffect für Client-Side)
+
   useEffect(() => {
     if (chain === 'invoice' && client && ref && type && !autoGeneratedRef.current) {
-      const prefillText = `Sende dem Kunden '${client}' das Dokument '${ref}' (${type}). Bitte freundlich und professionell formulieren.`;
-      setTopic(prefillText);
+      const prefill = `Sende dem Kunden '${client}' das Dokument '${ref}' (${type}). Bitte freundlich und professionell formulieren.`;
+      setTopic(prefill);
       setTone('Professionell');
-      setShowChainBadge(true);
-      
-      // Automatische Generierung nach kurzer Verzögerung (damit State gesetzt ist)
+      autoGeneratedRef.current = true;
       setTimeout(() => {
-        if (formRef.current && prefillText && !autoGeneratedRef.current) {
-          autoGeneratedRef.current = true;
-          // Stelle sicher, dass alle Input-Felder die aktuellen Werte haben
-          const topicInput = formRef.current.querySelector('[name="topic"]') as HTMLTextAreaElement;
-          const toneInput = formRef.current.querySelector('[name="tone"]') as HTMLSelectElement;
-          if (topicInput) topicInput.value = prefillText;
-          if (toneInput) toneInput.value = 'Professionell';
-          // Programmatisch Formular abschicken
+        if (formRef.current) {
+          const topicEl = formRef.current.querySelector('[name="topic"]') as HTMLTextAreaElement | null;
+          const toneEl = formRef.current.querySelector('[name="tone"]') as HTMLInputElement | null;
+          if (topicEl) topicEl.value = prefill;
+          if (toneEl) toneEl.value = 'Professionell';
           formRef.current.requestSubmit();
         }
-      }, 500); // 500ms Verzögerung für State-Updates und DOM-Updates
+      }, 400);
     }
   }, [chain, client, ref, type]);
 
-  // Auto-Focus auf Generieren-Button bei aktivem Chain
   useEffect(() => {
-    if (!chain || !formRef.current) return;
-    const submitButton = formRef.current.querySelector('button[type="submit"]') as HTMLButtonElement | null;
-    if (submitButton) {
-      submitButton.focus();
-      submitButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (state?.result && !state.error) {
+      const isUpsell = state.result.includes('Premium') || state.result.includes('Freischalten');
+      if (!isUpsell) {
+        const { subject, body } = parseResult(state.result);
+        setResultText(state.result);
+        setEditSubject(subject);
+        setEditBody(body);
+      }
     }
-  }, [chain]);
-
-  // Toast anzeigen wenn Smart Chain aktiv ist
-  useEffect(() => {
-    if (chain === 'invoice') {
-      setToastMessage({
-        title: 'Daten erfolgreich übernommen! 🚀',
-        description: 'Der Entwurf für deine E-Mail wurde vorbereitet.',
-      });
-    } else if (chain === 'legal') {
-      setToastMessage({
-        title: 'Rechts-Kontext geladen! ⚖️',
-        description: 'Deine Begleit-Mail ist startklar.',
-      });
-    } else {
-      setToastMessage(null);
-    }
-  }, [chain]);
+  }, [state?.result, state?.error]);
 
   useEffect(() => {
-    if (!toastMessage) return;
-    const timer = setTimeout(() => setToastMessage(null), 4000);
-    return () => clearTimeout(timer);
-  }, [toastMessage]);
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const syncResultFromEdits = useCallback(() => {
+    const full = buildFullText(editSubject, editBody);
+    setResultText(full);
+  }, [editSubject, editBody]);
+
+  const fullTextForCopy = resultText || buildFullText(editSubject, editBody);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(fullTextForCopy);
+      setToast('In Zwischenablage kopiert!');
+    } catch {
+      setToast('Kopieren fehlgeschlagen.');
+    }
+  };
+
+  const handleGmail = () => {
+    const { subject, body } = parseResult(fullTextForCopy);
+    const mailto = recipientEmail
+      ? `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+      : `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailto);
+  };
+
+  const handleRefine = async (kind: 'shorten' | 'loosen' | 'grammar') => {
+    const text = fullTextForCopy;
+    if (!text.trim()) return;
+    setRefineLoading(kind);
+    try {
+      const res = await refineEmail(text, kind);
+      if (res.error) {
+        setToast(res.error);
+        return;
+      }
+      if (res.result) {
+        const { subject, body } = parseResult(res.result);
+        setResultText(res.result);
+        setEditSubject(subject);
+        setEditBody(body);
+        setToast('Text angepasst.');
+      }
+    } finally {
+      setRefineLoading(null);
+    }
+  };
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8 animate-fade-in-up">
-      <BackButton />
-      
-      {/* Smart Chain Badge */}
-      {showChainBadge && chain === 'invoice' && (
-        <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🔗</span>
-            <span className="text-sm text-blue-300">
-              Workflow aktiv: Daten aus {type || 'Rechnung'} übernommen
-            </span>
+    <div
+      className="flex flex-col mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8"
+      style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
+    >
+      <BackButton href="/dashboard" className="text-gray-600 hover:text-gray-900 mb-3 tracking-tight" />
+
+      <div
+        className={cn(
+          'flex flex-col lg:flex-row border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm',
+          'h-[calc(100vh-120px)] min-h-[520px]'
+        )}
+      >
+        {/* Left: Cockpit (35%) */}
+        <aside className="w-full lg:w-[35%] flex flex-col border-r border-gray-200 bg-white shrink-0">
+          <div className="p-4 sm:p-5 border-b border-gray-100">
+            <div className="flex rounded-lg bg-gray-100 p-0.5">
+              <button
+                type="button"
+                onClick={() => setMode('new')}
+                className={cn(
+                  'flex-1 py-2 text-sm font-medium rounded-md transition-all tracking-tight',
+                  mode === 'new' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                )}
+              >
+                Neue Mail
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('reply')}
+                className={cn(
+                  'flex-1 py-2 text-sm font-medium rounded-md transition-all tracking-tight',
+                  mode === 'reply' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                )}
+              >
+                Antworten
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => setShowChainBadge(false)}
-            className="text-blue-400 hover:text-blue-300 transition-colors text-sm"
+
+          <form
+            ref={formRef}
+            action={formAction}
+            className="flex flex-col flex-1 min-h-0 overflow-y-auto"
           >
-            ✕
-          </button>
-        </div>
-      )}
+            <div className="p-4 sm:p-5 space-y-4">
+              <AnimatePresence mode="wait">
+                {mode === 'reply' ? (
+                  <motion.div
+                    key="reply"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
+                  >
+                    <label className="block text-sm font-medium text-gray-700 tracking-tight">
+                      Erhaltene E-Mail hier einfügen
+                    </label>
+                    <textarea
+                      name="receivedEmail"
+                      value={receivedEmail}
+                      onChange={(e) => setReceivedEmail(e.target.value)}
+                      placeholder="E-Mail-Inhalt einfügen …"
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 resize-none min-h-[140px] tracking-tight"
+                      rows={5}
+                    />
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
 
-      {toastMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-500/90 text-white px-4 py-3 rounded-lg shadow-lg border border-emerald-400/30 backdrop-blur-sm max-w-sm">
-          <div className="font-semibold">{toastMessage.title}</div>
-          <div className="text-sm text-emerald-50/90 mt-0.5">{toastMessage.description}</div>
-        </div>
-      )}
-      
-      <div className="mb-6 sm:mb-8">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">E-Mail Verfasser</h1>
-            <p className="text-sm sm:text-base text-zinc-400 mt-1 sm:mt-2">
-              Wirf mir ein paar Stichpunkte hin, ich mache daraus eine professionelle Mail.
-            </p>
-          </div>
-          <div className="flex-shrink-0">
-            <WhatIsThisModal
-              title={toolInfoMap.email.title}
-              content={toolInfoMap.email.description}
-              useCases={toolInfoMap.email.useCases}
-              examples={toolInfoMap.email.examples}
-              tips={toolInfoMap.email.tips}
-            />
-          </div>
-        </div>
-        <div className="mt-3 p-3 rounded-md bg-blue-500/10 border border-blue-500/20 text-sm text-blue-300">
-          💡 <strong>Tipp:</strong> Der generierte Inhalt wird automatisch in <strong>SiniChat</strong> gespeichert, damit du ihn dort weiter bearbeiten kannst.
-        </div>
-      </div>
-
-      {/* MOBILE FIRST: flex-col auf Mobile, md:grid auf Desktop */}
-      <div className="flex flex-col md:grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-        {/* LINKE SEITE: EINGABE */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 sm:p-5 md:p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] h-fit">
-          <form ref={formRef} action={formAction} className="space-y-4 sm:space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Absender Name <span className="text-zinc-500 text-xs font-normal">(optional)</span>
-              </label>
-              <input
-                name="senderName"
-                type="text"
-                value={senderName}
-                onChange={(e) => setSenderName(e.target.value)}
-                placeholder="z.B. Max Mustermann"
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Empfänger Name <span className="text-zinc-500 text-xs font-normal">(optional)</span>
-              </label>
-              <input
-                name="recipientName"
-                type="text"
-                value={recipientName}
-                onChange={(e) => setRecipientName(e.target.value)}
-                placeholder="z.B. Dr. Anna Schmidt"
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Empfänger E-Mail <span className="text-zinc-500 text-xs font-normal">(optional)</span>
-              </label>
-              <input
-                name="recipientEmail"
-                type="email"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-                placeholder="z.B. anna.schmidt@example.com"
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">An wen geht es?</label>
-              <input
-                name="recipient"
-                type="text"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                placeholder="z.B. Chef, Kunden, Vermieter"
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all min-h-[44px]"
-              />
-            </div>
-
-            <div>
-              <LabelWithTooltip
-                label="Tonfall"
-                tooltip="Wähle den passenden Ton für deine E-Mail. Professionell für Geschäftliches, Freundlich für lockere Kommunikation, Bestimmt für dringende Angelegenheiten."
-                variant="help"
-              />
-              <CustomSelect
-                name="tone"
-                value={tone}
-                onChange={(value) => setTone(value)}
-                options={[
-                  { value: 'Professionell', label: 'Professionell & Sachlich' },
-                  { value: 'Freundlich', label: 'Freundlich & Locker' },
-                  { value: 'Bestimmt', label: 'Bestimmt & Dringend' },
-                  { value: 'Verkaufend', label: 'Verkaufend & Überzeugend' },
-                  { value: 'Einfühlsam', label: 'Einfühlsam & Taktvoll' },
-                  { value: 'Entschuldigend', label: 'Entschuldigend' },
-                ]}
-                placeholder="Tonfall auswählen..."
-              />
-            </div>
-
-            <div>
-              <LabelWithTooltip
-                label="Anrede"
-                tooltip="Sie = formell (Geschäftlich, Unbekannte Personen). Du = informell (Kollegen, Bekannte, Freunde)."
-                variant="help"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFormality('Sie')}
-                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
-                    formality === 'Sie'
-                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
-                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
-                  }`}
-                >
-                  Sie
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormality('Du')}
-                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
-                    formality === 'Du'
-                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
-                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
-                  }`}
-                >
-                  Du
-                </button>
-              </div>
-              <input type="hidden" name="formality" value={formality} />
-            </div>
-
-            <div>
-              <LabelWithTooltip
-                label="Sprache"
-                tooltip="Die E-Mail wird in der gewählten Sprache mit natürlichen, idiomatischen Formulierungen verfasst - keine wörtlichen Übersetzungen!"
-                variant="tip"
-              />
-              <CustomSelect
-                name="language"
-                value={language}
-                onChange={(value) => setLanguage(value)}
-                options={[
-                  'Deutsch',
-                  'Englisch',
-                  'Französisch',
-                  'Italienisch',
-                  'Spanisch',
-                  'Türkisch',
-                ]}
-                placeholder="Sprache auswählen..."
-              />
-            </div>
-
-            <div>
-              <LabelWithTooltip
-                label="Länge"
-                tooltip="Kurz = 2-3 Sätze (Quick Updates). Mittel = 1-2 Absätze (Standard). Ausführlich = Mehrere Absätze (Detaillierte Erklärungen)."
-                variant="help"
-              />
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setLength('Kurz')}
-                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
-                    length === 'Kurz'
-                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
-                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
-                  }`}
-                >
-                  Kurz
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLength('Mittel')}
-                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
-                    length === 'Mittel'
-                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
-                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
-                  }`}
-                >
-                  Mittel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLength('Ausführlich')}
-                  className={`px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
-                    length === 'Ausführlich'
-                      ? 'bg-blue-500/20 border-2 border-blue-500/50 text-blue-300'
-                      : 'bg-zinc-900/50 border border-white/10 text-zinc-400 hover:bg-zinc-800/50 hover:border-white/20'
-                  }`}
-                >
-                  Ausführlich
-                </button>
-              </div>
-              <input type="hidden" name="length" value={length} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Worum geht's? (Stichpunkte reichen)</label>
-              <textarea
-                name="topic"
-                required
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="z.B. Bitte um Meeting nächste Woche, Projekt X ist fertig, brauche Feedback bis Freitag..."
-                className="w-full rounded-md border border-white/10 bg-zinc-900/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none transition-all min-h-[150px]"
-                rows={6}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Workspace <span className="text-zinc-500 text-xs font-normal">(optional)</span>
-              </label>
-              <WorkspaceSelect
-                value={workspaceId}
-                onChange={(value) => setWorkspaceId(value)}
-                name="workspaceId"
-              />
-            </div>
-
-            <SubmitButton />
-          </form>
-          
-          {state?.error && (
-            <p className="mt-4 text-sm text-red-400">{state.error}</p>
-          )}
-        </div>
-
-        {/* RECHTE SEITE: ERGEBNIS */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] min-h-[300px] sm:min-h-[400px] overflow-hidden">
-          {state?.result ? (
-            <SwipeableResult copyText={state.result}>
-              <div className="h-full flex flex-col">
-                {/* HEADER LEISTE OBERHALB DES TEXTES */}
-                <ActionButtons text={state.result} recipientEmail={recipientEmail} />
-                {/* TEXT BEREICH DARUNTER */}
-                <div className="flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto">
-                  <div className="prose prose-sm max-w-none text-white whitespace-pre-wrap leading-relaxed prose-invert">
-                    {state.result}
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+                    Absender
+                  </label>
+                  <input
+                    name="senderName"
+                    type="text"
+                    value={senderName}
+                    onChange={(e) => setSenderName(e.target.value)}
+                    placeholder="z. B. Max M."
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 tracking-tight"
+                  />
                 </div>
-                {/* FEEDBACK BUTTON */}
-                <div className="p-4 sm:p-5 md:p-6 border-t border-white/5">
-                  <FeedbackButton 
-                    toolId="email" 
-                    toolName="E-Mail Verfasser"
-                    resultId={state.result ? `email-${Date.now()}` : undefined}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+                    Empfänger
+                  </label>
+                  <input
+                    name="recipientName"
+                    type="text"
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    placeholder="z. B. Anna S."
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 tracking-tight"
                   />
                 </div>
               </div>
-            </SwipeableResult>
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center text-zinc-500 p-4 sm:p-5 md:p-6">
-              <Mail className="w-12 h-12 mb-3 opacity-50" />
-              <p className="text-sm sm:text-base">Warte auf Input...</p>
-              <p className="text-xs mt-1 text-zinc-600">Die generierte E-Mail erscheint hier</p>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+                  E-Mail Empfänger <span className="font-normal normal-case text-gray-400">(optional, für Gmail-Link)</span>
+                </label>
+                <input
+                  name="recipientEmail"
+                  type="email"
+                  value={recipientEmail}
+                  onChange={(e) => setRecipientEmail(e.target.value)}
+                  placeholder="anna@example.com"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 tracking-tight"
+                />
+              </div>
+              <input name="recipient" type="hidden" value="" />
+
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                  Tonfall
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {TONE_TILES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTone(t.value)}
+                      className={cn(
+                        'rounded-lg border py-2 px-2 text-center text-xs font-medium transition-all tracking-tight',
+                        tone === t.value
+                          ? 'border-orange-400 bg-orange-50 text-orange-700'
+                          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                      )}
+                    >
+                      <span className="block mb-0.5">{t.emoji}</span>
+                      <span className="block truncate">{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <input name="tone" type="hidden" value={tone} />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+                  Worum geht es?
+                </label>
+                <textarea
+                  name="topic"
+                  required
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="Stichpunkte, Anliegen, Kontext …"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 resize-none min-h-[100px] tracking-tight"
+                  rows={4}
+                />
+              </div>
+
+              <input name="formality" type="hidden" value="Sie" />
+              <input name="language" type="hidden" value="Deutsch" />
+              <input name="length" type="hidden" value="Mittel" />
+              <input name="workspaceId" type="hidden" value="" />
+
+              <SubmitButton />
             </div>
-          )}
-        </div>
+
+            {state?.error && (
+              <p className="px-4 pb-4 text-sm text-red-600 tracking-tight">{state.error}</p>
+            )}
+          </form>
+        </aside>
+
+        {/* Right: Das Papier (65%) */}
+        <main className="flex-1 min-w-0 flex flex-col bg-gray-50 lg:bg-gray-50/80">
+          <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 flex items-start justify-center">
+            {state?.result && !state.error && (state.result.includes('Premium') || state.result.includes('Freischalten')) ? (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="w-full max-w-2xl bg-white rounded-xl shadow-lg border border-gray-100 p-6 prose prose-sm max-w-none prose-p:text-gray-700 [&_a]:text-orange-600 [&_a]:underline"
+              >
+                <MarkdownRenderer content={state.result} />
+              </motion.div>
+            ) : state?.result && !state.error ? (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="w-full max-w-2xl bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+              >
+                <div className="border-b border-gray-100 px-4 sm:px-6 py-3">
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                    Betreff
+                  </label>
+                  <input
+                    value={editSubject}
+                    onChange={(e) => setEditSubject(e.target.value)}
+                    onBlur={syncResultFromEdits}
+                    className="w-full text-base font-semibold text-gray-900 bg-transparent border-0 focus:outline-none focus:ring-0 tracking-tight"
+                  />
+                </div>
+                <div className="px-4 sm:px-6 py-4 min-h-[200px]">
+                  <label className="sr-only">E-Mail-Text</label>
+                  <textarea
+                    value={editBody}
+                    onChange={(e) => setEditBody(e.target.value)}
+                    onBlur={syncResultFromEdits}
+                    className="w-full min-h-[180px] text-sm text-gray-700 bg-transparent border-0 focus:outline-none focus:ring-0 resize-none leading-relaxed tracking-tight"
+                    placeholder="E-Mail-Text …"
+                  />
+                </div>
+                <div className="border-t border-gray-100 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleRefine('shorten')}
+                      disabled={!!refineLoading}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                    >
+                      {refineLoading === 'shorten' ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Scissors className="w-3.5 h-3.5" />
+                      )}
+                      Zu lang? Kürzen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRefine('loosen')}
+                      disabled={!!refineLoading}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                    >
+                      {refineLoading === 'loosen' ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Smile className="w-3.5 h-3.5" />
+                      )}
+                      Zu steif? Lockerer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRefine('grammar')}
+                      disabled={!!refineLoading}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                    >
+                      {refineLoading === 'grammar' ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5" />
+                      )}
+                      Grammatik-Check
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Kopieren
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleGmail}
+                      className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      In Gmail öffnen
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="w-full max-w-md flex flex-col items-center justify-center py-16 text-center"
+              >
+                <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                  <Mail className="w-7 h-7 text-gray-400" />
+                </div>
+                <p className="text-gray-500 font-medium tracking-tight">Das Papier</p>
+                <p className="text-sm text-gray-400 mt-1 tracking-tight">
+                  Deine E-Mail erscheint hier – klar, editierbar, bereit zum Versand.
+                </p>
+              </motion.div>
+            )}
+          </div>
+        </main>
       </div>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            key="toast"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium shadow-lg tracking-tight"
+          >
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

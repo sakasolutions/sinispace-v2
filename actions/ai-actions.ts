@@ -31,6 +31,7 @@ export async function generateEmail(prevState: any, formData: FormData) {
   const formality = formData.get('formality') as string || 'Sie'; // Du oder Sie
   const language = formData.get('language') as string || 'Deutsch'; // Sprache
   const length = formData.get('length') as string || 'Mittel'; // Kurz, Mittel, Ausführlich
+  const receivedEmail = (formData.get('receivedEmail') as string)?.trim() || '';
 
   if (!topic) return { error: 'Bitte gib ein Thema ein.' };
 
@@ -69,32 +70,37 @@ export async function generateEmail(prevState: any, formData: FormData) {
   }
 
   // Baue User-Prompt mit optionalen Feldern
-  let userPrompt = `Ton: ${tone}, Sprache: ${language}, Inhalt: ${topic}`;
-  
+  let userPrompt: string;
+  if (receivedEmail) {
+    userPrompt = `Antworte auf folgende E-Mail:\n\n---\n${receivedEmail}\n---\n\nAnweisungen: ${topic}. Ton: ${tone}, Sprache: ${language}.`;
+  } else {
+    userPrompt = `Ton: ${tone}, Sprache: ${language}, Inhalt: ${topic}`;
+  }
+
   if (language === 'Deutsch' && formality) {
-    userPrompt = `${userPrompt}, Anrede: ${formality}`;
+    userPrompt = `${userPrompt} Anrede: ${formality}.`;
   }
-  
+
   if (senderName) {
-    userPrompt = `Absender: ${senderName}, ${userPrompt}`;
+    userPrompt = `Absender: ${senderName}. ${userPrompt}`;
   }
-  
+
   if (recipientName) {
-    userPrompt = `${userPrompt}, Empfänger Name: ${recipientName}`;
+    userPrompt = `${userPrompt} Empfänger Name: ${recipientName}.`;
   }
-  
-  // WICHTIG: recipientEmail wird NICHT im User-Prompt übergeben, 
-  // da sie nur für den mailto: Link verwendet wird, nicht im generierten Text
-  
+
   if (recipient) {
-    userPrompt = `${userPrompt}, Empfänger Kontext: ${recipient}`;
+    userPrompt = `${userPrompt} Empfänger Kontext: ${recipient}.`;
   }
+
+  const replyHint = receivedEmail
+    ? 'Der User hat eine E-Mail eingefügt. Verfasse eine passende Antwort darauf. '
+    : '';
 
   // System-Prompt je nach Sprache anpassen
   let systemPrompt = '';
-  
   if (language === 'Deutsch') {
-    systemPrompt = `Du bist ein E-Mail Profi und Muttersprachler. ${lengthInstruction} ${formalityInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden. WICHTIG: Füge KEINE E-Mail-Adressen in den Text ein - diese werden nur für den mailto: Link verwendet.`;
+    systemPrompt = `Du bist ein E-Mail Profi und Muttersprachler. ${replyHint}${lengthInstruction} ${formalityInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden. WICHTIG: Füge KEINE E-Mail-Adressen in den Text ein - diese werden nur für den mailto: Link verwendet.`;
   } else if (language === 'Englisch') {
     systemPrompt = `You are an email professional and native English speaker. ${lengthInstruction} ${languageInstructions[language]} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text - they are only used for the mailto: link.`;
   } else if (language === 'Französisch') {
@@ -274,6 +280,44 @@ export async function generateEmailWithChat(prevState: any, formData: FormData) 
   }
   
   return result;
+}
+
+// --- E-MAIL REFINE (Kürzen / Lockerer / Grammatik) ---
+export async function refineEmail(
+  text: string,
+  type: 'shorten' | 'loosen' | 'grammar'
+): Promise<{ result?: string; error?: string }> {
+  const allowed = await isUserPremium();
+  if (!allowed) return { error: 'Premium erforderlich.' };
+  const t = text?.trim();
+  if (!t) return { error: 'Kein Text.' };
+
+  const prompts: Record<string, { system: string; user: string }> = {
+    shorten: {
+      system: 'Du bist ein prägnanter Texter. Antworte nur mit dem überarbeiteten Text, sonst nichts.',
+      user: `Kürze die folgende E-Mail deutlich (max. 50% der Länge). Inhalt und Ton beibehalten.\n\n---\n${t}\n---`,
+    },
+    loosen: {
+      system: 'Du bist ein freundlicher E-Mail-Stilberater. Antworte nur mit dem überarbeiteten Text, sonst nichts.',
+      user: `Formuliere die E-Mail lockerer und weniger steif. Im gleichen Kontext, aber freundlicher und ungezwungener.\n\n---\n${t}\n---`,
+    },
+    grammar: {
+      system: 'Du bist ein Lektor für deutsche Texte. Antworte nur mit dem korrigierten Text, sonst nichts.',
+      user: `Korrigiere Rechtschreibung und Grammatik. Stil und Inhalt unverändert lassen.\n\n---\n${t}\n---`,
+    },
+  };
+  const { system, user } = prompts[type] || prompts.grammar;
+
+  try {
+    const res = await createChatCompletion({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+    }, 'email', 'E-Mail Verfasser');
+    const content = res.choices[0]?.message?.content?.trim();
+    return content ? { result: content } : { error: 'Keine Antwort.' };
+  } catch {
+    return { error: 'KI Fehler.' };
+  }
 }
 
 // --- EXCEL MIT CHAT-SPEICHERUNG ---
