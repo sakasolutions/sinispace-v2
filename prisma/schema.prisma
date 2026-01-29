@@ -37,9 +37,10 @@ model User {
   tokenUsages         TokenUsage[]
   workspaces          Workspace[]
   results             Result[]
-  mealPreferences     MealPreferences?
-  weeklyPlans         WeeklyPlan[]
-  userShoppingLists   UserShoppingLists?
+  mealPreferences         MealPreferences?
+  weeklyPlans             WeeklyPlan[]
+  userShoppingLists       UserShoppingLists?
+  shoppingListFrequentItems ShoppingListFrequentItem[]
 }
 
 model Account {
@@ -322,4 +323,19 @@ model UserShoppingLists {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// Smart History: häufig gekaufte Items pro User (Quick-Add & Type-Ahead)
+model ShoppingListFrequentItem {
+  id         String   @id @default(cuid())
+  userId     String
+  itemLabel  String   // normalisierter Anzeigename (z.B. "Milch", "Eier")
+  usageCount Int      @default(1)
+  lastUsedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemLabel])
+  @@index([userId])
+  @@index([userId, usageCount])
 }

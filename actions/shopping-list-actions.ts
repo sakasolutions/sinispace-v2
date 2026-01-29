@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import type { ShoppingList } from '@/lib/shopping-lists-storage';
+import { normalizeItemName } from '@/lib/shopping-list-categories';
 
 export async function getShoppingLists(): Promise<ShoppingList[]> {
   const session = await auth();
@@ -41,5 +42,72 @@ export async function saveShoppingLists(
       success: false,
       error: e instanceof Error ? e.message : 'Fehler beim Speichern',
     };
+  }
+}
+
+/** Smart History: Item beim Hinzufügen oder Abhaken tracken (usageCount hochzählen). */
+export async function recordFrequentItem(itemLabel: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) return;
+  const label = normalizeItemName(itemLabel);
+  if (!label) return;
+  try {
+    await prisma.shoppingListFrequentItem.upsert({
+      where: {
+        userId_itemLabel: { userId: session.user.id, itemLabel: label },
+      },
+      create: {
+        userId: session.user.id,
+        itemLabel: label,
+        usageCount: 1,
+      },
+      update: { usageCount: { increment: 1 } },
+    });
+  } catch (e) {
+    console.error('[shopping-list-actions] recordFrequentItem', e);
+  }
+}
+
+/** Smart History: Top N häufig gekaufte Items (Quick-Add Chips). */
+export async function getFrequentItems(limit = 10): Promise<{ itemLabel: string }[]> {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+  try {
+    const rows = await prisma.shoppingListFrequentItem.findMany({
+      where: { userId: session.user.id },
+      orderBy: [{ usageCount: 'desc' }, { lastUsedAt: 'desc' }],
+      take: limit,
+      select: { itemLabel: true },
+    });
+    return rows;
+  } catch (e) {
+    console.error('[shopping-list-actions] getFrequentItems', e);
+    return [];
+  }
+}
+
+/** Smart History: Type-Ahead – historische Items filtern (query in itemLabel). */
+export async function searchFrequentItems(
+  query: string,
+  limit = 10
+): Promise<{ itemLabel: string }[]> {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+  const q = normalizeItemName(query);
+  if (!q) return [];
+  try {
+    const rows = await prisma.shoppingListFrequentItem.findMany({
+      where: {
+        userId: session.user.id,
+        itemLabel: { contains: q, mode: 'insensitive' },
+      },
+      orderBy: [{ usageCount: 'desc' }, { lastUsedAt: 'desc' }],
+      take: limit,
+      select: { itemLabel: true },
+    });
+    return rows;
+  } catch (e) {
+    console.error('[shopping-list-actions] searchFrequentItems', e);
+    return [];
   }
 }

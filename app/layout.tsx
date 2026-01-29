@@ -10,6 +10,7 @@ const inter = Inter({
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-plus-jakarta-sans',
   display: 'swap',
 });
@@ -59,7 +60,7 @@ export default function RootLayout({
       WebkitTouchCallout: 'none',
       scrollBehavior: 'smooth',
     } as React.CSSProperties}>
-      <body className={`${inter.variable} ${plusJakartaSans.variable} ${inter.className} bg-white text-gray-900 antialiased relative`} style={{ 
+      <body className={`${inter.variable} ${plusJakartaSans.variable} ${plusJakartaSans.className} bg-white text-gray-900 antialiased tracking-tight relative`} style={{ 
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
         WebkitOverflowScrolling: 'touch',

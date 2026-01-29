@@ -27,7 +27,13 @@ import {
   type ShoppingItem,
   type ShoppingList,
 } from '@/lib/shopping-lists-storage';
-import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
+import {
+  getShoppingLists,
+  saveShoppingLists,
+  getFrequentItems,
+  searchFrequentItems,
+  recordFrequentItem,
+} from '@/actions/shopping-list-actions';
 import {
   getCategoryTheme,
   normalizeItemName,
@@ -79,7 +85,8 @@ function parseQtyInput(raw: string): { quantity: number | null; unit: string | n
 function processChunk(
   raw: string,
   listId: string,
-  setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>
+  setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>,
+  onItemDone?: (displayText: string) => void
 ) {
   const id = generateId();
   setLists((prev) =>
@@ -115,6 +122,7 @@ function processChunk(
           res.error === 'PREMIUM_REQUIRED'
             ? { ...item, status: 'done', text: item.rawInput ?? item.text }
             : { ...item, status: 'error' };
+        if (done.status === 'done') onItemDone?.(done.text);
         return prev.map((l) =>
           l.id !== listId ? l : { ...l, items: list.items.map((it, i) => (i === idx ? done : it)) }
         );
@@ -136,6 +144,7 @@ function processChunk(
         if (qA != null && qO != null) {
           const q = qA + qO;
           const updated = { ...other, quantity: q, unit: other.unit ?? data.unit ?? null };
+          onItemDone?.(updated.text);
           const items = list.items
             .filter((it) => it.id !== id)
             .map((it) => (it.id === other.id ? updated : it));
@@ -152,10 +161,16 @@ function processChunk(
         status: 'done',
         rawInput: raw,
       };
+      onItemDone?.(updated.text);
       const items = list.items.map((it, i) => (i === idx ? updated : it));
       return prev.map((l) => (l.id !== listId ? l : { ...l, items }));
     });
   });
+}
+
+function capitalizeLabel(s: string): string {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
 export default function ShoppingListPage() {
@@ -172,12 +187,18 @@ export default function ShoppingListPage() {
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const [checkingId, setCheckingId] = useState<string | null>(null);
   const [justCheckedIds, setJustCheckedIds] = useState<Set<string>>(new Set());
+  const [frequentItems, setFrequentItems] = useState<{ itemLabel: string }[]>([]);
+  const [typeAheadSuggestions, setTypeAheadSuggestions] = useState<{ itemLabel: string }[]>([]);
+  const [inputFocused, setInputFocused] = useState(false);
+  const [typeAheadOpen, setTypeAheadOpen] = useState(false);
 
   const activeList = lists.find((l) => l.id === activeListId);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasInitiallyLoaded = useRef(false);
   const activeListIdRef = useRef<string | null>(null);
+  const typeAheadDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inputContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -248,6 +269,32 @@ export default function ShoppingListPage() {
     };
   }, [lists, hydrated]);
 
+  // Quick-Add: beim Fokussieren des leeren Eingabefelds häufig gekaufte Items laden
+  const loadFrequentItems = useCallback(async () => {
+    const items = await getFrequentItems(10);
+    setFrequentItems(items);
+  }, []);
+
+  // Type-Ahead: bei Eingabe ab 2 Zeichen Vorschläge suchen (debounced)
+  useEffect(() => {
+    const q = newItemInput.trim();
+    if (q.length < 2) {
+      setTypeAheadSuggestions([]);
+      setTypeAheadOpen(false);
+      return;
+    }
+    if (typeAheadDebounceRef.current) clearTimeout(typeAheadDebounceRef.current);
+    typeAheadDebounceRef.current = setTimeout(async () => {
+      typeAheadDebounceRef.current = null;
+      const suggestions = await searchFrequentItems(q, 8);
+      setTypeAheadSuggestions(suggestions);
+      setTypeAheadOpen(suggestions.length > 0);
+    }, 200);
+    return () => {
+      if (typeAheadDebounceRef.current) clearTimeout(typeAheadDebounceRef.current);
+    };
+  }, [newItemInput]);
+
   const addList = (name: string) => {
     const trimmed = (name.trim() || 'Neue Liste').slice(0, 80);
     const next: ShoppingList = { id: generateId(), name: trimmed, items: [] };
@@ -282,7 +329,10 @@ export default function ShoppingListPage() {
     const chunks = splitInput(newItemInput);
     if (chunks.length === 0 || !activeListId) return;
     setNewItemInput('');
-    chunks.forEach((raw) => processChunk(raw, activeListId, setLists));
+    setTypeAheadOpen(false);
+    chunks.forEach((raw) =>
+      processChunk(raw, activeListId, setLists, (text) => recordFrequentItem(text))
+    );
   }, [newItemInput, activeListId]);
 
   const toggleItem = (listId: string, itemId: string) => {
@@ -302,6 +352,7 @@ export default function ShoppingListPage() {
     const item = activeList?.items.find((i) => i.id === itemId);
     const willCheck = item && !item.checked;
     if (willCheck) {
+      recordFrequentItem(item.text);
       setCheckingId(itemId);
       setTimeout(() => {
         toggleItem(listId, itemId);
@@ -554,30 +605,76 @@ export default function ShoppingListPage() {
                     </button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newItemInput}
-                    onChange={(e) => setNewItemInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        submitSmartInput();
-                      }
-                    }}
-                    onPaste={(e) => {
-                      const pasted = (e.clipboardData?.getData?.('text') ?? '').trim();
-                      const chunks = splitInput(pasted);
-                      if (chunks.length > 0 && activeListId) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        chunks.forEach((raw) => processChunk(raw, activeListId, setLists));
-                        setNewItemInput('');
-                      }
-                    }}
-                    placeholder="Was brauchst du? (Einzel-Item oder Liste mit Kommas/Zeilen)"
-                    className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
-                  />
+                <div ref={inputContainerRef} className="relative flex gap-2">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={newItemInput}
+                      onChange={(e) => setNewItemInput(e.target.value)}
+                      onFocus={() => {
+                        setInputFocused(true);
+                        if (!newItemInput.trim()) loadFrequentItems();
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => {
+                          setInputFocused(false);
+                          setTypeAheadOpen(false);
+                        }, 180);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (typeAheadOpen && typeAheadSuggestions.length > 0) {
+                            const first = typeAheadSuggestions[0]!.itemLabel;
+                            processChunk(first, activeList.id, setLists, (t) => recordFrequentItem(t));
+                            setNewItemInput('');
+                            setTypeAheadOpen(false);
+                            return;
+                          }
+                          submitSmartInput();
+                        }
+                        if (e.key === 'Escape') setTypeAheadOpen(false);
+                      }}
+                      onPaste={(e) => {
+                        const pasted = (e.clipboardData?.getData?.('text') ?? '').trim();
+                        const chunks = splitInput(pasted);
+                        if (chunks.length > 0 && activeListId) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          chunks.forEach((raw) =>
+                            processChunk(raw, activeListId, setLists, (text) =>
+                              recordFrequentItem(text)
+                            )
+                          );
+                          setNewItemInput('');
+                          setTypeAheadOpen(false);
+                        }
+                      }}
+                      placeholder="Was brauchst du? (Einzel-Item oder Liste mit Kommas/Zeilen)"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
+                    />
+                    {typeAheadOpen && typeAheadSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
+                        {typeAheadSuggestions.map((s) => (
+                          <button
+                            key={s.itemLabel}
+                            type="button"
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-orange-50 transition-colors"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              processChunk(s.itemLabel, activeList.id, setLists, (t) =>
+                                recordFrequentItem(t)
+                              );
+                              setNewItemInput('');
+                              setTypeAheadOpen(false);
+                            }}
+                          >
+                            {capitalizeLabel(s.itemLabel)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={submitSmartInput}
@@ -588,6 +685,28 @@ export default function ShoppingListPage() {
                     <Plus className="w-5 h-5" />
                   </button>
                 </div>
+                {inputFocused && !newItemInput.trim() && frequentItems.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-medium text-gray-500 mb-2">Oft gekauft ↺</p>
+                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                      {frequentItems.map((f) => (
+                        <button
+                          key={f.itemLabel}
+                          type="button"
+                          onClick={() => {
+                            processChunk(f.itemLabel, activeList.id, setLists, (t) =>
+                              recordFrequentItem(t)
+                            );
+                            loadFrequentItems();
+                          }}
+                          className="shrink-0 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-orange-100 text-gray-800 hover:text-orange-800 text-sm font-medium transition-colors"
+                        >
+                          {capitalizeLabel(f.itemLabel)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <p className="text-xs text-gray-500 mt-2">
                   Tipp: Liste aus WhatsApp einfügen → Zeilen/Kommas werden erkannt, jedes Item wird
                   einzeln analysiert.
