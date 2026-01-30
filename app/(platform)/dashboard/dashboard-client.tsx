@@ -637,7 +637,7 @@ export default function DashboardClient() {
             {/* HERO CARDS: Mobile 2x2 zentriert, Desktop 2x2 Grid */}
             {heroTools.length > 0 && (
               <div 
-                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 w-full max-w-md md:max-w-none mx-auto place-items-center"
+                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 w-full max-w-md md:max-w-none mx-auto justify-items-center items-center"
                 style={{
                   gridAutoRows: 'minmax(auto, auto)',
                 }}
@@ -654,26 +654,24 @@ export default function DashboardClient() {
                   
                   
                   const cardClassName = cn(
-                    'group relative',
-                    // KEIN Container - nur Content
+                    'group relative flex flex-col items-center justify-center w-full',
                     'transition-all duration-200 ease-out',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // Padding - Mobile kompakter
-                    'p-2 sm:p-3 md:p-4 lg:p-6'
+                    'p-3 sm:p-3 md:p-4 lg:p-6',
+                    'min-h-32 sm:min-h-28 md:min-h-0'
                   );
 
                   const content = (
                     <>
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
-                      {/* Icon Container - Mobile größer bei 1-Spalte */}
-                      <div className="mb-3 md:mb-5 lg:mb-6">
+                      {/* Icon Container - Hero-Größe auf Mobile */}
+                      <div className="mb-2 md:mb-5 lg:mb-6 flex justify-center">
                         <div className={cn(
-                          'inline-flex items-center justify-center rounded-xl md:rounded-2xl transition-all duration-200',
+                          'flex items-center justify-center rounded-xl md:rounded-2xl transition-all duration-200',
                           'shadow-lg group-hover:shadow-xl group-hover:scale-[1.02]',
-                          // Farbige Hintergründe
                           tool.color === 'orange' && 'bg-gradient-to-br from-orange-500 to-pink-500',
                           tool.color === 'pink' && 'bg-gradient-to-br from-pink-500 to-orange-500',
                           tool.color === 'rose' && 'bg-gradient-to-br from-rose-500 to-pink-500',
@@ -685,24 +683,24 @@ export default function DashboardClient() {
                           tool.color === 'amber' && 'bg-amber-500',
                           tool.color === 'cyan' && 'bg-cyan-500',
                           tool.color === 'slate' && 'bg-slate-500',
-                          'w-20 h-20 sm:w-16 sm:h-16 md:w-20 lg:w-24 md:h-20 lg:h-24'
+                          'w-24 h-24 sm:w-20 sm:h-20 md:w-20 lg:w-24 md:h-20 lg:h-24'
                         )}>
-                          <Icon className="text-white w-10 h-10 sm:w-8 sm:h-8 md:w-10 lg:w-12 md:h-10 lg:h-12" />
+                          <Icon className="text-white w-12 h-12 sm:w-10 sm:h-10 md:w-10 lg:w-12 md:h-10 lg:h-12 shrink-0" />
                         </div>
                       </div>
 
-                      {/* Title & Description - Mobile: Full Details, Desktop: Full Details */}
-                      <div className="relative z-10 min-w-0">
+                      {/* Title - Hero-Status mit größerer Schrift */}
+                      <div className="relative z-10 min-w-0 text-center md:text-left w-full flex flex-col items-center md:items-start">
                         <h3 className={cn(
-                          'font-bold text-gray-900 mb-0.5 md:mb-2',
-                          'text-sm sm:text-sm md:text-xl lg:text-2xl',
+                          'font-medium md:font-bold text-gray-900 mb-0.5 md:mb-2',
+                          'text-sm md:text-xl lg:text-2xl',
                           'leading-tight line-clamp-2'
                         )}>
                           {tool.title}
                         </h3>
                         <p className={cn(
-                          'text-gray-600 leading-snug line-clamp-2',
-                          'text-sm md:text-sm lg:text-base',
+                          'text-gray-600 leading-snug line-clamp-2 text-center md:text-left',
+                          'text-xs md:text-sm lg:text-base',
                           'hidden sm:block'
                         )}>
                           {tool.description}
