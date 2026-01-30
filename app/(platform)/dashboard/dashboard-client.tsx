@@ -627,8 +627,8 @@ export default function DashboardClient() {
                       'h-10 px-5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all duration-200 shrink-0',
                       'active:scale-[0.98]',
                       isActive
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold shadow-lg shadow-orange-500/30'
+                        : 'bg-white border border-gray-100 text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-200'
                     )}
                   >
                     <Icon className="w-4 h-4 shrink-0" />

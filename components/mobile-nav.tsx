@@ -38,8 +38,8 @@ export function MobileNav() {
       {/* Frosted Glass Navbar - Milchglas-Effekt */}
       <div className="mx-auto max-w-md px-4 pb-2">
         <div 
-          className="rounded-2xl bg-white/80 backdrop-blur-md border-t border-gray-100/50 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"
-          style={{ WebkitBackdropFilter: 'blur(12px)' }}
+          className="rounded-2xl bg-white/80 backdrop-blur-xl border-t border-white/60 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1),0_-5px_20px_rgba(249,115,22,0.08)]"
+          style={{ WebkitBackdropFilter: 'blur(24px)' }}
         >
           <div className="flex justify-evenly items-center h-14 px-2">
             {navItems.map((item) => {
