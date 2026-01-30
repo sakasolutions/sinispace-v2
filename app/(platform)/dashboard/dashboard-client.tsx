@@ -650,111 +650,51 @@ export default function DashboardClient() {
                   const toolStats = usageStats[tool.id];
                   const isTrending = toolStats?.isTrending || false;
                   
-                  // PRIMARY CARDS: Hero Cards (Top 4) - Visuell priorisiert
+                  // PRIMARY CARDS: Hero Cards (Top 4)
                   const desktopColSpan = 'lg:col-span-2';
                   const desktopRowSpan = 'lg:row-span-2';
-                  const isHeroCard = index === 0; // Wichtigste Card (Index 0) bekommt Ambient-Glow
                   
-                  // IDLE ANIMATION: Unterschiedliche Delays für asynchronen Look
-                  const idleDelays = [0, -1.2, -2.8, -1.8]; // Card 1: 0s, Card 2: -1.2s, Card 3: -2.8s, Card 4: -1.8s
-                  const idleDelay = idleDelays[index] || 0;
-                  
-                  // DESKTOP HOVER: Direkte Klassen basierend auf Tool-Farbe (EXPLIZIT für Tailwind)
-                  // WICHTIG: hover: statt group-hover:, da wir direkt auf der Card hovern
-                  const getHoverBorderClass = (color: string) => {
-                    const map: Record<string, string> = {
-                      orange: 'md:hover:border-orange-500',
-                      emerald: 'md:hover:border-emerald-500',
-                      blue: 'md:hover:border-blue-500',
-                      green: 'md:hover:border-green-500',
-                      violet: 'md:hover:border-violet-500',
-                      indigo: 'md:hover:border-indigo-500',
-                      amber: 'md:hover:border-amber-500',
-                      cyan: 'md:hover:border-cyan-500',
-                      rose: 'md:hover:border-rose-500',
-                      pink: 'md:hover:border-pink-500',
-                      slate: 'md:hover:border-gray-500',
-                    };
-                    return map[color] || 'md:hover:border-blue-500';
-                  };
-                  
-                  const getHoverBgClass = (color: string) => {
-                    const map: Record<string, string> = {
-                      orange: 'md:hover:bg-orange-50',
-                      emerald: 'md:hover:bg-emerald-50',
-                      blue: 'md:hover:bg-blue-50',
-                      green: 'md:hover:bg-green-50',
-                      violet: 'md:hover:bg-violet-50',
-                      indigo: 'md:hover:bg-indigo-50',
-                      amber: 'md:hover:bg-amber-50',
-                      cyan: 'md:hover:bg-cyan-50',
-                      rose: 'md:hover:bg-rose-50',
-                      pink: 'md:hover:bg-pink-50',
-                      slate: 'md:hover:bg-gray-50',
-                    };
-                    return map[color] || 'md:hover:bg-blue-50';
-                  };
                   
                   const cardClassName = cn(
-                    'group relative rounded-xl border overflow-hidden',
-                    'rounded-xl',
-                    // ELEVATION SYSTEM: Primary Cards mit höherer Elevation
-                    isHeroCard ? 'card-elevation-primary-hero' : 'card-elevation-primary',
-                    // WICHTIG: Standard Background (weiß) - wird von Hover überschrieben
+                    'group relative rounded-2xl overflow-hidden',
+                    // CONFIDENT MINIMALISM: Clean white surface
                     'bg-white',
-                    // Smooth transitions für Hover-States (inkl. Farben)
-                    'transition-all duration-300 ease-out',
-                    'transition-colors duration-300',
-                    // Border: Subtiler, transparenter Rahmen (NUR Border, nicht Container!)
-                    colors.border,
-                    'border-[0.5px]',
-                    'opacity-30',
-                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (DIREKTE KLASSEN)
-                    // WICHTIG: hover: statt group-hover:, da wir direkt auf der Card hovern
-                    'md:hover:opacity-100',
-                    'md:hover:border-opacity-100',
-                    getHoverBorderClass(tool.color), // Explizite Hover-Border-Klasse
-                    getHoverBgClass(tool.color), // Explizite Hover-Background-Klasse
+                    // Border: Dezent grau, immer sichtbar
+                    'border border-gray-100',
+                    // Shadow: Ein sauberer, weicher Schatten
+                    'shadow-sm',
+                    // Smooth transitions
+                    'transition-all duration-200 ease-out',
+                    // HOVER: Nur Schatten-Lift, keine Farbänderung
+                    'hover:shadow-md hover:-translate-y-0.5',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // PREMIUM DEPTH: Mehr inneres Padding für mehr Weißraum
-                    'p-5 md:p-7 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
+                    // Großzügiges Padding für Weißraum
+                    'p-5 md:p-8 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
                   );
-                  
-                  // Card Styles: Animation Delay
-                  const cardStyle = {
-                    animationDelay: `${idleDelay}s`,
-                  };
 
                   const content = (
                     <>
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
-                      {/* Trending Indicator */}
+                      {/* Trending Indicator - Subtle dot only */}
                       {isTrending && (
-                        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-2 py-1 rounded-full text-[10px] font-semibold shadow-lg animate-pulse">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>Trending</span>
+                        <div className="absolute top-4 right-4 z-10">
+                          <div className="w-2 h-2 rounded-full bg-orange-400" title="Häufig genutzt" />
                         </div>
                       )}
 
-                      {/* Icon Container - Premium: Weißer Hintergrund mit eigenem Schatten für Layering */}
-                      <div className="mb-2 md:mb-4 lg:mb-6">
+                      {/* Icon Container - Clean: Weiß mit sehr dezenter Border */}
+                      <div className="mb-3 md:mb-5 lg:mb-6">
                         <div className={cn(
-                          'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
-                          'ease-out',
-                          'bg-white', // PREMIUM: Weißer Hintergrund für Layering
-                          'shadow-sm', // PREMIUM: Winziger Schlagschatten für Tiefe
-                          colors.border,
-                          'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18',
-                          'group-hover:shadow-md' // Leicht verstärkter Schatten beim Hover
-                          // PERFORMANCE: backdrop-blur entfernt (teuer auf Mobile)
+                          'inline-flex items-center justify-center rounded-2xl transition-all duration-200',
+                          'bg-gray-50/80', // Dezenter grauer Hintergrund
+                          'w-12 h-12 md:w-14 lg:w-16 md:h-14 lg:h-16'
                         )}>
                           <Icon className={cn(
                             colors.text,
-                            'transition-opacity duration-200 ease-out group-hover:opacity-90',
-                            'w-5 h-5 md:w-8 lg:w-9 md:h-8 lg:h-9'
+                            'w-6 h-6 md:w-7 lg:w-8 md:h-7 lg:h-8'
                           )} />
                         </div>
                       </div>
@@ -776,12 +716,10 @@ export default function DashboardClient() {
                         </p>
                       </div>
 
-                      {/* Expand Icon */}
+                      {/* Expand Icon - Subtle, nur bei Hover */}
                       {tool.available && (
-                        <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 lg:bottom-8 lg:right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-white/90 backdrop-blur-sm border border-gray-200/50 flex items-center justify-center shadow-sm">
-                            <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
-                          </div>
+                        <div className="absolute bottom-5 right-5 md:bottom-8 md:right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <ArrowUpRight className="w-5 h-5 text-gray-300 group-hover:text-gray-400" />
                         </div>
                       )}
                     </>
@@ -792,7 +730,6 @@ export default function DashboardClient() {
                       key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
-                      style={cardStyle}
                       onClick={async () => {
                         triggerHaptic('light');
                         // Track tool usage
@@ -812,7 +749,6 @@ export default function DashboardClient() {
                     <div 
                       key={tool.id} 
                       className={cardClassName}
-                      style={cardStyle}
                     >
                       {content}
                     </div>
@@ -845,119 +781,61 @@ export default function DashboardClient() {
                   // Visual Balance: Color-weight distribution
                   const colorWeight = colors.gradient ? 'high' : 'medium';
 
-                  // IDLE ANIMATION: Unterschiedliche Delays für asynchronen Look (Secondary Cards)
-                  const secondaryIdleDelays = [0, -1.5, -3.2, -2.1, -0.8, -2.5, -1.8, -3.5];
-                  const secondaryIdleDelay = secondaryIdleDelays[index] || 0;
                   
-                  // DESKTOP HOVER: Direkte Klassen basierend auf Tool-Farbe (EXPLIZIT für Tailwind)
-                  // WICHTIG: hover: statt group-hover:, da wir direkt auf der Card hovern
-                  const getHoverBorderClass = (color: string) => {
-                    const map: Record<string, string> = {
-                      orange: 'md:hover:border-orange-500',
-                      emerald: 'md:hover:border-emerald-500',
-                      blue: 'md:hover:border-blue-500',
-                      green: 'md:hover:border-green-500',
-                      violet: 'md:hover:border-violet-500',
-                      indigo: 'md:hover:border-indigo-500',
-                      amber: 'md:hover:border-amber-500',
-                      cyan: 'md:hover:border-cyan-500',
-                      rose: 'md:hover:border-rose-500',
-                      pink: 'md:hover:border-pink-500',
-                      slate: 'md:hover:border-gray-500',
-                    };
-                    return map[color] || 'md:hover:border-blue-500';
-                  };
-                  
-                  const getHoverBgClass = (color: string) => {
-                    const map: Record<string, string> = {
-                      orange: 'md:hover:bg-orange-50',
-                      emerald: 'md:hover:bg-emerald-50',
-                      blue: 'md:hover:bg-blue-50',
-                      green: 'md:hover:bg-green-50',
-                      violet: 'md:hover:bg-violet-50',
-                      indigo: 'md:hover:bg-indigo-50',
-                      amber: 'md:hover:bg-amber-50',
-                      cyan: 'md:hover:bg-cyan-50',
-                      rose: 'md:hover:bg-rose-50',
-                      pink: 'md:hover:bg-pink-50',
-                      slate: 'md:hover:bg-gray-50',
-                    };
-                    return map[color] || 'md:hover:bg-blue-50';
-                  };
-                  
-                  // SECONDARY CARDS: Ruhiger, flacher - Niedrigere Elevation
+                  // SECONDARY CARDS: Clean, minimal
                   const cardClassName = cn(
-                    'group relative rounded-xl border overflow-hidden',
-                    'rounded-xl',
-                    // ELEVATION SYSTEM: Secondary Cards mit niedrigerer Elevation
-                    'card-elevation-secondary',
-                    // WICHTIG: Standard Background (weiß) - wird von Hover überschrieben
+                    'group relative rounded-2xl overflow-hidden',
+                    // CONFIDENT MINIMALISM: Clean white surface
                     'bg-white',
-                    // Smooth transitions für Hover-States (inkl. Farben)
-                    'transition-all duration-300 ease-out',
-                    'transition-colors duration-300',
-                    // Border: Subtiler, transparenter Rahmen (NUR Border, nicht Container!)
-                    colors.border,
-                    'border-[0.5px]',
-                    'opacity-30',
-                    // DESKTOP HOVER: Farbiger Rahmen + Hintergrund-Tönung (DIREKTE KLASSEN)
-                    // WICHTIG: hover: statt group-hover:, da wir direkt auf der Card hovern
-                    'md:hover:opacity-100',
-                    'md:hover:border-opacity-100',
-                    getHoverBorderClass(tool.color), // Explizite Hover-Border-Klasse
-                    getHoverBgClass(tool.color), // Explizite Hover-Background-Klasse
+                    // Border: Dezent grau, immer sichtbar
+                    'border border-gray-100',
+                    // Shadow: Sehr dezent
+                    'shadow-sm',
+                    // Smooth transitions
+                    'transition-all duration-200 ease-out',
+                    // HOVER: Nur Schatten-Lift
+                    'hover:shadow-md hover:-translate-y-0.5',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // PREMIUM DEPTH: Mehr inneres Padding für mehr Weißraum
+                    // Padding
                     isLarge ? 'p-4 md:p-7 lg:p-10 h-[100px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
                     isSmall ? 'p-3 md:p-5 lg:p-7 h-[90px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
                     'p-4 md:p-6 lg:p-8 h-[100px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
                   );
-                  
-                  // Card Styles: Animation Delay
-                  const cardStyle = {
-                    animationDelay: `${secondaryIdleDelay}s`,
-                  };
 
                   const content = (
                     <>
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
-                      {/* Trending Indicator for Secondary Cards */}
+                      {/* Trending Indicator - Subtle dot only */}
                       {isTrending && (
-                        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-semibold shadow-lg">
-                          <TrendingUp className="w-2.5 h-2.5" />
+                        <div className="absolute top-3 right-3 z-10">
+                          <div className="w-1.5 h-1.5 rounded-full bg-orange-400" title="Häufig genutzt" />
                         </div>
                       )}
 
                     {/* MOBILE: Compact Layout - Icon & Title Centered, Description Hidden/1 Line */}
                     {/* DESKTOP: Full Layout - Icon, Title, Description */}
                     <div className="flex flex-col items-center justify-center h-full md:items-start md:justify-start">
-                      {/* Icon Container - Mobile: Centered, Desktop: Left */}
+                      {/* Icon Container - Clean: Dezenter grauer Hintergrund */}
                       <div className={cn(
-                        'mb-2 md:mb-4 lg:mb-6',
+                        'mb-2 md:mb-4 lg:mb-5',
                         'flex md:inline-flex items-center justify-center'
                       )}>
                         <div className={cn(
-                          'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
-                          'ease-out',
-                          'bg-white', // PREMIUM: Weißer Hintergrund für Layering
-                          'shadow-sm', // PREMIUM: Winziger Schlagschatten für Tiefe
-                          colors.border,
+                          'inline-flex items-center justify-center rounded-xl transition-all duration-200',
+                          'bg-gray-50/80', // Dezenter grauer Hintergrund
                           // MOBILE: Smaller icons for compact 2-column layout
-                          isLarge ? 'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18' : 
-                          isSmall ? 'w-8 h-8 md:w-13 md:h-13' : 
-                          'w-9 h-9 md:w-14 lg:w-16 md:h-14 lg:h-16',
-                          'group-hover:shadow-md' // Leicht verstärkter Schatten beim Hover
-                          // PERFORMANCE: backdrop-blur entfernt (teuer auf Mobile)
+                          isLarge ? 'w-10 h-10 md:w-14 lg:w-16 md:h-14 lg:h-16' : 
+                          isSmall ? 'w-8 h-8 md:w-11 md:h-11' : 
+                          'w-9 h-9 md:w-12 lg:w-14 md:h-12 lg:h-14'
                         )}>
                           <Icon className={cn(
                             colors.text,
-                            'transition-opacity duration-200 ease-out group-hover:opacity-90',
-                            isLarge ? 'w-5 h-5 md:w-8 lg:w-9 md:h-8 lg:h-9' : 
-                            isSmall ? 'w-4 h-4 md:w-6 md:h-6' : 
-                            'w-4 h-4 md:w-7 lg:w-8 md:h-7 lg:h-8'
+                            isLarge ? 'w-5 h-5 md:w-7 lg:w-8 md:h-7 lg:h-8' : 
+                            isSmall ? 'w-4 h-4 md:w-5 md:h-5' : 
+                            'w-4 h-4 md:w-6 lg:w-7 md:h-6 lg:h-7'
                           )} />
                         </div>
                       </div>
@@ -1001,29 +879,10 @@ export default function DashboardClient() {
                       </p>
                     </div>
 
-                    {/* PREMIUM: Arrow Indicator - MOBILE: Hidden, Desktop: Visible */}
+                    {/* Arrow Indicator - Subtle, nur bei Hover */}
                     {tool.available && (
-                      <div className="absolute top-3 right-3 md:top-6 lg:top-8 md:right-6 lg:right-8">
-                        <div className={cn(
-                          'w-7 h-7 md:w-9 md:h-9 rounded-lg flex items-center justify-center',
-                          'bg-white/90 backdrop-blur-md border border-gray-200/80',
-                          'group-hover:bg-gradient-to-br group-hover:border-orange-300 transition-all duration-500',
-                          'ease-[cubic-bezier(0.34,1.56,0.64,1)]',
-                          'group-active:scale-90',
-                          // PREMIUM: Advanced Shadow Stacks
-                          'shadow-[0_1px_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.02)]',
-                          'group-hover:shadow-[0_2px_2px_rgba(0,0,0,0.04),0_4px_8px_rgba(249,115,22,0.15),0_8px_16px_rgba(244,114,182,0.12)]',
-                          colors.gradient && `group-hover:bg-gradient-to-br group-hover:${colors.gradient}`,
-                          colors.gradient && 'group-hover:animate-glow-pulse',
-                          // PREMIUM: Glass-Edge Effect
-                          'group-hover:glass-edge-brand'
-                        )}>
-                          <ArrowUpRight className={cn(
-                            'w-3 h-3 md:w-4 md:h-4 text-gray-400 group-hover:text-white transition-all duration-500',
-                            'ease-[cubic-bezier(0.34,1.56,0.64,1)]',
-                            'group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-105'
-                          )} />
-                        </div>
+                      <div className="absolute top-3 right-3 md:top-5 md:right-5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400" />
                       </div>
                     )}
 
@@ -1043,7 +902,6 @@ export default function DashboardClient() {
                       key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
-                      style={cardStyle}
                       onClick={async () => {
                         triggerHaptic('light');
                         // Track tool usage
@@ -1063,7 +921,6 @@ export default function DashboardClient() {
                     <div 
                       key={tool.id} 
                       className={cardClassName}
-                      style={cardStyle}
                     >
                       {content}
                     </div>
