@@ -581,7 +581,7 @@ export default function DashboardClient() {
       )}
 
       {/* Main Container - Magazin-Cover Header + Cards */}
-      <PageTransition className="mx-auto max-w-7xl w-full px-2 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32">
+      <PageTransition className="mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32">
         {/* Daily Hero Header: Kalender-basiert, Subline + Headline, Soft-Fill Pills */}
         <header
           className={cn(
@@ -634,15 +634,14 @@ export default function DashboardClient() {
         {/* SMART USAGE-BASED CARD HIERARCHY */}
         {sortedAndFilteredTools.length > 0 ? (
           <div className="space-y-3 md:space-y-6 lg:space-y-8">
-            {/* HERO CARDS: Mobile 2x2 zentriert (flex wrapper), Desktop 2x2 Grid */}
+            {/* HERO CARDS: Mobile 2x2 zentriert, Desktop 2x2 Grid */}
             {heroTools.length > 0 && (
-              <div className="flex justify-center md:block">
-                <div 
-                  className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 w-[300px] sm:w-[340px] md:w-auto md:max-w-none"
-                  style={{
-                    gridAutoRows: 'minmax(auto, auto)',
-                  }}
-                >
+              <div 
+                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 w-full max-w-md md:max-w-none mx-auto place-items-center"
+                style={{
+                  gridAutoRows: 'minmax(auto, auto)',
+                }}
+              >
                 {heroTools.map((tool, index) => {
                   const Icon = tool.icon;
                   const colors = toolColors[tool.color] || toolColors.blue;
@@ -742,7 +741,6 @@ export default function DashboardClient() {
                     </div>
                   );
                 })}
-              </div>
               </div>
             )}
 
