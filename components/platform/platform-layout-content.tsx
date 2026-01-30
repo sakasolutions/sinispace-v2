@@ -99,7 +99,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
       {/* Fine Grain Texture entfernt – hat als Schleier über dem Content gewirkt */}
       
       {/* SIDEBAR (Desktop) - Glassmorphism Modern Redesign */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-white/10 bg-white/80 backdrop-blur-xl md:block z-10 shadow-xl">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-white/10 bg-white/80 backdrop-blur-xl md:block z-20 shadow-xl">
         <div className="flex h-16 items-center border-b border-gray-200/50 px-6">
           <Link href="/dashboard" className="flex items-center group">
             <div className="relative h-10 w-10 rounded-xl overflow-hidden ring-2 ring-transparent group-hover:ring-orange-200 transition-all duration-300">
