@@ -511,31 +511,31 @@ export async function generateTranslate(prevState: any, formData: FormData) {
     vibeDescription = 'neutral und professionell';
   }
 
-  const systemPrompt = `Du bist ein Kultur-Dolmetscher und Übersetzer mit jahrelanger Erfahrung. Übersetze den Text in: ${targetLanguage}.
+  const systemPrompt = `Du bist ein Kultur-Dolmetscher und Sprachlehrer mit jahrelanger Erfahrung. Übersetze den Text in: ${targetLanguage}.
 
 VIBE/STIL: ${mode}
 ${contextInstruction}
 
 WICHTIGE REGELN:
 1. IDIOM-HANDLING: Übersetze NIEMALS wörtlich! Finde das kulturelle Äquivalent.
-   - "Ich glaub mein Schwein pfeift" → NICHT "I think my pig whistles" → SONDERN "I can't believe my eyes" / "Well, I'll be damned"
-   - "Das ist nicht mein Bier" → NICHT "That's not my beer" → SONDERN "That's not my cup of tea" / "That's not my problem"
+   - "Ich glaub mein Schwein pfeift" → NICHT "I think my pig whistles" → SONDERN "I can't believe my eyes"
+   - "Das ist nicht mein Bier" → NICHT "That's not my beer" → SONDERN "That's not my cup of tea"
    - Sprichwörter und Redewendungen IMMER kulturell übersetzen!
 
-2. SAFETY CHECK: Erkläre dem User auf Deutsch, wie die Übersetzung beim Empfänger wirkt.
+2. KONTEXT-HINWEIS (Sprachlehrer-Modus):
+   - Erkläre kulturelle Nuancen auf Deutsch (max 2 Sätze)
+   - Höflichkeitsformen (z.B. Japanisch: keigo, Türkisch: siz/sen, Deutsch: Sie/Du)
+   - Slang-Warnungen (z.B. "Dieser Ausdruck ist sehr umgangssprachlich")
+   - Fallstricke (z.B. "False Friends", kulturelle Fettnäpfchen)
 
-3. ALTERNATIVEN: Gib 2 alternative Übersetzungen (eine formellere, eine lockerere).
+3. ALTERNATIVEN: 2 Varianten (eine formellere, eine kürzere/lockerere)
 
-ANTWORT-FORMAT (EXAKT so!):
----ÜBERSETZUNG---
-[Die Hauptübersetzung hier]
-
----ERKLÄRUNG---
-[Kurze Erklärung auf Deutsch: Warum hast du so übersetzt? Wie wirkt es beim Empfänger? Welche Idiome/Redewendungen hast du angepasst? Der Ton ist ${vibeDescription}.]
-
----ALTERNATIVEN---
-1. [Formellere/andere Variante]
-2. [Lockerere/kürzere Variante]`;
+ANTWORT-FORMAT: Antworte NUR mit einem validen JSON-Objekt, NICHTS ANDERES:
+{
+  "translation": "Die Hauptübersetzung hier...",
+  "context_note": "Kurze Erklärung auf Deutsch (max 2 Sätze): Warum dieser Tonfall? Kulturelle Hinweise? Der gewählte Stil ist ${vibeDescription}.",
+  "alternatives": ["Alternative 1 (formeller/länger)", "Alternative 2 (kürzer/lockerer)"]
+}`;
 
   try {
     const response = await createChatCompletion({
@@ -545,7 +545,37 @@ ANTWORT-FORMAT (EXAKT so!):
         { role: 'user', content: text }
       ],
     }, 'translate', 'Sprachbrücke');
-    return { result: response.choices[0].message.content };
+    
+    const content = response.choices[0].message.content || '';
+    
+    // Versuche JSON zu parsen
+    try {
+      // Entferne mögliche Markdown-Code-Blöcke
+      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(cleanContent);
+      
+      // Validiere das Ergebnis
+      if (parsed.translation && typeof parsed.translation === 'string') {
+        return { 
+          result: JSON.stringify({
+            translation: parsed.translation,
+            context_note: parsed.context_note || '',
+            alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : []
+          })
+        };
+      }
+    } catch (parseError) {
+      // Fallback: Wenn JSON-Parsing fehlschlägt, gib den Text als Translation zurück
+      return { 
+        result: JSON.stringify({
+          translation: content,
+          context_note: '',
+          alternatives: []
+        })
+      };
+    }
+    
+    return { result: content };
   } catch (error) {
     return { error: 'KI Fehler.' };
   }

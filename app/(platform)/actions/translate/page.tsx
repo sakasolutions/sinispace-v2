@@ -11,7 +11,6 @@ import {
   Sparkles,
   Volume2,
   ChevronDown,
-  Lightbulb,
 } from 'lucide-react';
 import { useFormStatus } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -79,35 +78,47 @@ const LANGUAGES = [
   { code: 'vi', name: 'Vietnamesisch', flag: '🇻🇳' },
 ];
 
-function parseResult(text: string): {
+interface TranslationResult {
   translation: string;
-  safetyCheck: string;
+  context_note: string;
   alternatives: string[];
-} {
-  const result = { translation: '', safetyCheck: '', alternatives: [] as string[] };
+}
+
+function parseResult(text: string): TranslationResult {
+  const result: TranslationResult = { translation: '', context_note: '', alternatives: [] };
   if (!text) return result;
 
-  // Parse structured response
-  const translationMatch = text.match(/---ÜBERSETZUNG---\s*([\s\S]*?)\s*(?:---ERKLÄRUNG---|$)/);
-  const explanationMatch = text.match(/---ERKLÄRUNG---\s*([\s\S]*?)\s*(?:---ALTERNATIVEN---|$)/);
-  const alternativesMatch = text.match(/---ALTERNATIVEN---\s*([\s\S]*?)$/);
+  try {
+    // Versuche JSON zu parsen
+    const parsed = JSON.parse(text);
+    if (parsed.translation && typeof parsed.translation === 'string') {
+      return {
+        translation: parsed.translation,
+        context_note: parsed.context_note || '',
+        alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : [],
+      };
+    }
+  } catch {
+    // Fallback: Text-basiertes Parsing (für alte Responses)
+    const translationMatch = text.match(/---ÜBERSETZUNG---\s*([\s\S]*?)\s*(?:---ERKLÄRUNG---|$)/);
+    const explanationMatch = text.match(/---ERKLÄRUNG---\s*([\s\S]*?)\s*(?:---ALTERNATIVEN---|$)/);
+    const alternativesMatch = text.match(/---ALTERNATIVEN---\s*([\s\S]*?)$/);
 
-  if (translationMatch) {
-    result.translation = translationMatch[1]?.trim() || '';
-  } else {
-    // Fallback: entire text is translation
-    result.translation = text.trim();
-  }
+    if (translationMatch) {
+      result.translation = translationMatch[1]?.trim() || '';
+    } else {
+      result.translation = text.trim();
+    }
 
-  if (explanationMatch) {
-    result.safetyCheck = explanationMatch[1]?.trim() || '';
-  }
+    if (explanationMatch) {
+      result.context_note = explanationMatch[1]?.trim() || '';
+    }
 
-  if (alternativesMatch) {
-    const altText = alternativesMatch[1]?.trim() || '';
-    // Split by numbered list or line breaks
-    const alts = altText.split(/\d+\.\s+/).filter(Boolean).map(s => s.trim());
-    result.alternatives = alts.slice(0, 3);
+    if (alternativesMatch) {
+      const altText = alternativesMatch[1]?.trim() || '';
+      const alts = altText.split(/\d+\.\s+/).filter(Boolean).map(s => s.trim());
+      result.alternatives = alts.slice(0, 3);
+    }
   }
 
   return result;
@@ -150,6 +161,7 @@ export default function TranslatePage() {
   const [vibe, setVibe] = useState('Business & Professionell');
   const [toast, setToast] = useState<string | null>(null);
   const [showAlternatives, setShowAlternatives] = useState(false);
+  const [selectedAlternative, setSelectedAlternative] = useState<number | null>(null);
 
   const resultRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -158,9 +170,20 @@ export default function TranslatePage() {
   const targetLanguage = LANGUAGES.find((l) => l.code === targetLang);
 
   const parsed = state?.result ? parseResult(state.result) : null;
+  
+  // Der angezeigte Text: Original oder gewählte Alternative
+  const displayedTranslation = parsed 
+    ? (selectedAlternative !== null && parsed.alternatives[selectedAlternative] 
+        ? parsed.alternatives[selectedAlternative] 
+        : parsed.translation)
+    : '';
 
   useEffect(() => {
     if (state?.result && !state.error) {
+      // Reset Alternative-Auswahl bei neuem Ergebnis
+      setSelectedAlternative(null);
+      setShowAlternatives(false);
+      
       // Auto-scroll on mobile
       if (window.innerWidth < 1024 && resultRef.current) {
         setTimeout(() => {
@@ -183,9 +206,9 @@ export default function TranslatePage() {
   };
 
   const handleCopy = async () => {
-    if (!parsed?.translation) return;
+    if (!displayedTranslation) return;
     try {
-      await navigator.clipboard.writeText(parsed.translation);
+      await navigator.clipboard.writeText(displayedTranslation);
       setToast('In Zwischenablage kopiert!');
     } catch {
       setToast('Kopieren fehlgeschlagen.');
@@ -193,14 +216,25 @@ export default function TranslatePage() {
   };
 
   const handleSpeak = () => {
-    if (!parsed?.translation) return;
+    if (!displayedTranslation) return;
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(parsed.translation);
+      const utterance = new SpeechSynthesisUtterance(displayedTranslation);
       utterance.lang = targetLang === 'en-us' ? 'en-US' : targetLang === 'en-uk' ? 'en-GB' : targetLang;
       window.speechSynthesis.speak(utterance);
       setToast('Vorlesen gestartet...');
     } else {
       setToast('Vorlesen nicht unterstützt.');
+    }
+  };
+  
+  const handleSelectAlternative = (idx: number) => {
+    if (selectedAlternative === idx) {
+      // Deselect: zurück zum Original
+      setSelectedAlternative(null);
+      setToast('Original wiederhergestellt');
+    } else {
+      setSelectedAlternative(idx);
+      setToast(`Variante ${idx + 1} ausgewählt`);
     }
   };
 
@@ -366,6 +400,11 @@ export default function TranslatePage() {
                           🔥 Native Mode
                         </span>
                       )}
+                      {selectedAlternative !== null && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-600 font-medium">
+                          Variante {selectedAlternative + 1}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -388,41 +427,31 @@ export default function TranslatePage() {
                   </div>
                   <div className="px-4 sm:px-6 py-5">
                     <p className="text-lg text-gray-900 leading-relaxed tracking-tight whitespace-pre-wrap">
-                      {parsed.translation}
+                      {displayedTranslation}
                     </p>
                   </div>
-                </motion.div>
-
-                {/* Safety Check */}
-                {parsed.safetyCheck && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeOut', delay: 0.1 }}
-                    className="bg-blue-50 rounded-xl border border-blue-100 p-4 sm:p-5"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                        <Lightbulb className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold text-blue-900 tracking-tight mb-1">
-                          💡 Was ich da eigentlich gesagt habe:
-                        </h3>
-                        <p className="text-sm text-blue-800 leading-relaxed">
-                          {parsed.safetyCheck}
-                        </p>
+                  
+                  {/* Context Note - innerhalb der Karte */}
+                  {parsed.context_note && (
+                    <div className="px-4 sm:px-6 pb-5">
+                      <div className="bg-blue-50/50 rounded-lg border border-blue-100 p-3">
+                        <div className="flex items-start gap-2.5">
+                          <span className="text-base shrink-0">💡</span>
+                          <p className="text-sm text-blue-800 leading-relaxed">
+                            {parsed.context_note}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </motion.div>
-                )}
+                  )}
+                </motion.div>
 
-                {/* Alternativen (Accordion) */}
+                {/* Alternativen (Klickbar!) */}
                 {parsed.alternatives.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeOut', delay: 0.2 }}
+                    transition={{ duration: 0.3, ease: 'easeOut', delay: 0.1 }}
                     className="bg-white rounded-xl border border-gray-200 overflow-hidden"
                   >
                     <button
@@ -431,7 +460,7 @@ export default function TranslatePage() {
                       className="w-full px-4 sm:px-5 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
                     >
                       <span className="text-sm font-medium text-gray-700 tracking-tight">
-                        Andere Möglichkeiten anzeigen ({parsed.alternatives.length})
+                        Andere Möglichkeiten ({parsed.alternatives.length})
                       </span>
                       <ChevronDown
                         className={cn(
@@ -450,29 +479,54 @@ export default function TranslatePage() {
                           className="border-t border-gray-100"
                         >
                           <div className="p-4 sm:p-5 space-y-3">
+                            <p className="text-xs text-gray-500 mb-2">
+                              Klicke auf eine Variante, um sie als Haupttext zu verwenden:
+                            </p>
                             {parsed.alternatives.map((alt, idx) => (
-                              <div
+                              <button
                                 key={idx}
-                                className="p-3 rounded-lg bg-gray-50 border border-gray-100"
+                                type="button"
+                                onClick={() => handleSelectAlternative(idx)}
+                                className={cn(
+                                  'w-full text-left p-3 rounded-lg border transition-all',
+                                  selectedAlternative === idx
+                                    ? 'bg-orange-50 border-orange-300 ring-2 ring-orange-200'
+                                    : 'bg-gray-50 border-gray-100 hover:border-gray-300 hover:bg-gray-100'
+                                )}
                               >
                                 <div className="flex items-center justify-between mb-1">
-                                  <span className="text-xs font-medium text-gray-500">
-                                    Variante {idx + 1}
+                                  <span className={cn(
+                                    'text-xs font-medium',
+                                    selectedAlternative === idx ? 'text-orange-600' : 'text-gray-500'
+                                  )}>
+                                    {selectedAlternative === idx ? '✓ Ausgewählt' : `Variante ${idx + 1}`}
                                   </span>
-                                  <button
-                                    type="button"
-                                    onClick={async () => {
+                                  <span
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
                                       await navigator.clipboard.writeText(alt);
                                       setToast('Variante kopiert!');
                                     }}
-                                    className="text-xs text-gray-500 hover:text-gray-700"
+                                    className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
                                   >
                                     Kopieren
-                                  </button>
+                                  </span>
                                 </div>
                                 <p className="text-sm text-gray-800 leading-relaxed">{alt}</p>
-                              </div>
+                              </button>
                             ))}
+                            {selectedAlternative !== null && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedAlternative(null);
+                                  setToast('Original wiederhergestellt');
+                                }}
+                                className="w-full text-center text-xs text-gray-500 hover:text-gray-700 py-2"
+                              >
+                                ← Zurück zum Original
+                              </button>
+                            )}
                           </div>
                         </motion.div>
                       )}
