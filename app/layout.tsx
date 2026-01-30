@@ -48,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className="h-full bg-white" style={{ 
+    <html lang="de" className="h-full" style={{ 
       margin: 0, 
       padding: 0,
       height: '100%',
@@ -60,7 +60,7 @@ export default function RootLayout({
       WebkitTouchCallout: 'none',
       scrollBehavior: 'smooth',
     } as React.CSSProperties}>
-      <body className={`${inter.variable} ${plusJakartaSans.variable} ${plusJakartaSans.className} bg-white text-gray-900 antialiased tracking-tight relative`} style={{ 
+      <body className={`${inter.variable} ${plusJakartaSans.variable} ${plusJakartaSans.className} text-gray-900 antialiased tracking-tight relative`} style={{ 
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
         WebkitOverflowScrolling: 'touch',
@@ -76,22 +76,21 @@ export default function RootLayout({
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
       } as React.CSSProperties}>
-        {/* Cinematic Background Stack – nur Hintergrund, kein Foreground-Gradient */}
-        {/* Top-Light-Gradient entfernt: 500px weisser Schleier über Tool-Inhalten */}
-        
-        {/* Layer 2: The Fading Grid - Mit Vignette-Maske */}
+        {/* Variante 1+2: Warmverlauf + Noise Texture */}
+        {/* Layer 1: Sanfter Warmverlauf (cremeweiß oben -> warmgrau unten) */}
         <div 
-          className="fixed inset-0 z-[-2] h-full w-full pointer-events-none will-change-transform"
+          className="fixed inset-0 z-[-3] h-full w-full pointer-events-none"
           style={{
-            transform: 'translateZ(0)',
-            backgroundImage: 'linear-gradient(to right, rgba(128,128,128,0.075) 1px, transparent 1px), linear-gradient(to bottom, rgba(128,128,128,0.075) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-            maskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%)',
+            background: 'linear-gradient(180deg, #fffbf7 0%, #faf8f5 50%, #f5f3f0 100%)',
           } as React.CSSProperties}
         />
-        
-        {/* Noise (Körnung) entfernt – hat als Schleier über dem Content gewirkt */}
+        {/* Layer 2: Dezentes Noise-Overlay (Paper-Texture) */}
+        <div 
+          className="fixed inset-0 z-[-2] h-full w-full pointer-events-none opacity-[0.025] mix-blend-multiply"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          } as React.CSSProperties}
+        />
         
         <div className="relative z-10">
           {children}
