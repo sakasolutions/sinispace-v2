@@ -473,7 +473,7 @@ export async function generateSummaryWithChat(prevState: any, formData: FormData
   return result;
 }
 
-// --- ÜBERSETZER ---
+// --- ÜBERSETZER (KULTUR-DOLMETSCHER) ---
 export async function generateTranslate(prevState: any, formData: FormData) {
   const isAllowed = await isUserPremium();
   if (!isAllowed) return { result: UPSELL_MESSAGE };
@@ -484,29 +484,58 @@ export async function generateTranslate(prevState: any, formData: FormData) {
 
   if (!text) return { error: 'Bitte gib einen Text ein.' };
 
-  // Kontext-Instruktion je nach Modus
+  // Kontext-Instruktion je nach Vibe/Modus
   let contextInstruction = '';
+  let vibeDescription = '';
+  
   if (mode === 'Business & Professionell') {
-    contextInstruction = 'Übersetze den Text professionell und geschäftlich angemessen. Verwende eine formelle, aber freundliche Sprache, wie sie in Business-Kommunikation üblich ist.';
+    contextInstruction = 'Übersetze professionell und geschäftlich. Formelle, aber freundliche Sprache. "Sie"-Form wenn passend.';
+    vibeDescription = 'formell und distanziert';
   } else if (mode === 'Wie ein Muttersprachler') {
-    contextInstruction = 'Übersetze den Text so, als wäre er von einem Muttersprachler geschrieben. Nutze typische Redewendungen, natürliche Phrasen und idiomatische Ausdrücke der Zielsprache. KEINE 1:1 Übersetzungen! Passe den Stil kulturell an.';
+    contextInstruction = 'Übersetze wie ein Muttersprachler (Slang/Street-Level). Nutze authentische Redewendungen, Slang und idiomatische Ausdrücke der Zielsprache. KEINE 1:1 Übersetzungen! Klingt wie ein Native Speaker unter Freunden.';
+    vibeDescription = 'authentisch und straßentauglich (Native Speaker)';
   } else if (mode === 'Umgangssprache & Locker') {
-    contextInstruction = 'Übersetze den Text umgangssprachlich und locker. Nutze eine freundliche, informelle Sprache wie sie in Social Media oder bei Freunden verwendet wird.';
+    contextInstruction = 'Übersetze umgangssprachlich und locker. Freundliche, informelle Sprache wie unter Freunden oder in Social Media.';
+    vibeDescription = 'locker und freundschaftlich';
+  } else if (mode === 'Romantisch & Charmant') {
+    contextInstruction = 'Übersetze charmant und romantisch. Nutze warme, einnehmende Formulierungen. Perfekt für Dating, Flirten oder Partner. Sei nicht kitschig, aber herzlich.';
+    vibeDescription = 'charmant und herzlich (romantischer Kontext)';
   } else if (mode === 'Präzise & Wörtlich') {
-    contextInstruction = 'Übersetze den Text präzise und möglichst wörtlich, ideal für technische Dokumentationen oder rechtliche Texte. Behalte die exakte Bedeutung bei.';
+    contextInstruction = 'Übersetze präzise und möglichst wörtlich. Für technische Dokumentationen oder rechtliche Texte.';
+    vibeDescription = 'präzise und wörtlich';
   } else if (mode === 'Einfach & Erklärend') {
-    contextInstruction = 'Übersetze den Text einfach und leicht verständlich. Nutze einfache Worte und kurze Sätze, ideal für Sprachschüler oder wenn der Text verständlich sein soll.';
+    contextInstruction = 'Übersetze einfach und leicht verständlich. Einfache Worte, kurze Sätze.';
+    vibeDescription = 'einfach und verständlich';
   } else {
-    contextInstruction = 'Übersetze den Text professionell und angemessen.';
+    contextInstruction = 'Übersetze professionell und angemessen.';
+    vibeDescription = 'neutral und professionell';
   }
 
-  const systemPrompt = `Du bist ein professioneller Dolmetscher und Übersetzer mit jahrelanger Erfahrung. Übersetze den folgenden Text in die Zielsprache: ${targetLanguage}. 
+  const systemPrompt = `Du bist ein Kultur-Dolmetscher und Übersetzer mit jahrelanger Erfahrung. Übersetze den Text in: ${targetLanguage}.
 
-WICHTIG: Passe den Stil exakt an diesen Kontext an: ${mode}
-
+VIBE/STIL: ${mode}
 ${contextInstruction}
 
-Antworte NUR mit der übersetzten Version des Textes, ohne zusätzliche Erklärungen oder Kommentare.`;
+WICHTIGE REGELN:
+1. IDIOM-HANDLING: Übersetze NIEMALS wörtlich! Finde das kulturelle Äquivalent.
+   - "Ich glaub mein Schwein pfeift" → NICHT "I think my pig whistles" → SONDERN "I can't believe my eyes" / "Well, I'll be damned"
+   - "Das ist nicht mein Bier" → NICHT "That's not my beer" → SONDERN "That's not my cup of tea" / "That's not my problem"
+   - Sprichwörter und Redewendungen IMMER kulturell übersetzen!
+
+2. SAFETY CHECK: Erkläre dem User auf Deutsch, wie die Übersetzung beim Empfänger wirkt.
+
+3. ALTERNATIVEN: Gib 2 alternative Übersetzungen (eine formellere, eine lockerere).
+
+ANTWORT-FORMAT (EXAKT so!):
+---ÜBERSETZUNG---
+[Die Hauptübersetzung hier]
+
+---ERKLÄRUNG---
+[Kurze Erklärung auf Deutsch: Warum hast du so übersetzt? Wie wirkt es beim Empfänger? Welche Idiome/Redewendungen hast du angepasst? Der Ton ist ${vibeDescription}.]
+
+---ALTERNATIVEN---
+1. [Formellere/andere Variante]
+2. [Lockerere/kürzere Variante]`;
 
   try {
     const response = await createChatCompletion({
