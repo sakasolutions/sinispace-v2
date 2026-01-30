@@ -3,6 +3,13 @@
 import { generateTranslateWithChat } from '@/actions/ai-actions';
 import { useActionState } from 'react';
 import { useState, useEffect, useRef } from 'react';
+import { Merriweather } from 'next/font/google';
+
+const merriweather = Merriweather({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  variable: '--font-merriweather',
+});
 import {
   Copy,
   Loader2,
