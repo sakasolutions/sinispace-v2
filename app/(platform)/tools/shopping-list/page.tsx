@@ -45,6 +45,7 @@ import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList';
+import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 
 const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   Leaf,
@@ -565,14 +566,45 @@ export default function ShoppingListPage() {
     >
       <BackButton href="/dashboard" className="text-gray-600 hover:text-gray-900 mb-4" />
 
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-          SiniSpace Einkaufslisten
-        </h1>
-        <p className="text-sm sm:text-base text-gray-600 mt-1">
-          Smart Input & KI-Kategorien. Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). Mengen
-          nur, wenn du sie angibst.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
+            SiniSpace Einkaufslisten
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
+            Smart Input & KI-Kategorien. Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). Mengen
+            nur, wenn du sie angibst.
+          </p>
+        </div>
+        <WhatIsThisModal
+          title="Smart Einkaufsliste"
+          content={
+            <div className="space-y-3 text-gray-700">
+              <p>
+                Deine intelligente Einkaufsliste mit <strong>KI-gestützter Analyse</strong>. Tippe einfach ein Produkt ein – die AI erkennt automatisch Kategorien, korrigiert Tippfehler und sortiert alles nach Supermarkt-Route.
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Keine Mengen?</strong> Kein Problem. Gib nur an, was du brauchst ("Milch") oder mit Mengen ("3 Tomaten"). Die AI passt sich an.
+              </p>
+            </div>
+          }
+          examples={[
+            '3 Tomaten → AI: 3x Tomaten (Obst/Gemüse)',
+            'Milch → AI: Milch (Kühlregal)',
+            'Kusbasi → AI: Kusbasi (Fleisch) - keine Korrektur!',
+          ]}
+          useCases={[
+            'Einzelne Produkte eintippen oder ganze Listen einfügen (z.B. aus WhatsApp)',
+            'AI korrigiert Tippfehler, behält aber kulturelle Begriffe bei',
+            'Automatische Sortierung nach Supermarkt-Gang (Obst/Gemüse → Fleisch → Kühlregal...)',
+            'Store-Modus: Große Checkboxen für einfaches Abhaken beim Einkaufen',
+          ]}
+          tips={[
+            'Füge mehrere Produkte mit Zeilenumbrüchen oder Kommas ein',
+            'Die AI merkt sich häufig gekaufte Artikel (Chips "Oft gekauft")',
+            'Im Store-Modus sind alle Bearbeitungs-Funktionen ausgeblendet',
+          ]}
+        />
       </div>
 
       {saveErrorMessage && (
