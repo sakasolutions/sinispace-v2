@@ -634,10 +634,10 @@ export default function DashboardClient() {
         {/* SMART USAGE-BASED CARD HIERARCHY */}
         {sortedAndFilteredTools.length > 0 ? (
           <div className="space-y-3 md:space-y-6 lg:space-y-8">
-            {/* HERO CARDS: Mobile 2x2 mit großen Icons, Desktop 2x2 Grid */}
+            {/* HERO CARDS: Mobile 2x2 größer & zentriert, Desktop 2x2 Grid */}
             {heroTools.length > 0 && (
               <div 
-                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-4"
+                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 max-w-sm md:max-w-none mx-auto md:mx-0"
                 style={{
                   gridAutoRows: 'minmax(auto, auto)',
                 }}
@@ -685,9 +685,9 @@ export default function DashboardClient() {
                           tool.color === 'amber' && 'bg-amber-500',
                           tool.color === 'cyan' && 'bg-cyan-500',
                           tool.color === 'slate' && 'bg-slate-500',
-                          'w-16 h-16 sm:w-14 sm:h-14 md:w-20 lg:w-24 md:h-20 lg:h-24'
+                          'w-20 h-20 sm:w-16 sm:h-16 md:w-20 lg:w-24 md:h-20 lg:h-24'
                         )}>
-                          <Icon className="text-white w-8 h-8 sm:w-7 sm:h-7 md:w-10 lg:w-12 md:h-10 lg:h-12" />
+                          <Icon className="text-white w-10 h-10 sm:w-8 sm:h-8 md:w-10 lg:w-12 md:h-10 lg:h-12" />
                         </div>
                       </div>
 

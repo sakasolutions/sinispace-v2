@@ -38,8 +38,11 @@ export function MobileNav() {
       {/* Sichtbare Navbar - höherer Kontrast für mobile Sichtbarkeit */}
       <div className="mx-auto max-w-md px-4 pb-2">
         <div 
-          className="rounded-2xl bg-white/95 backdrop-blur-xl border border-gray-200/60 shadow-[0_-4px_24px_rgba(0,0,0,0.08),0_0_40px_rgba(249,115,22,0.12),0_0_80px_rgba(244,114,182,0.08)]"
-          style={{ WebkitBackdropFilter: 'blur(20px)' }}
+          className="rounded-2xl bg-white/95 backdrop-blur-xl border border-gray-200/60"
+          style={{ 
+            WebkitBackdropFilter: 'blur(20px)',
+            boxShadow: '0 -4px 24px rgba(0,0,0,0.08), 0 0 48px rgba(249,115,22,0.28), 0 0 96px rgba(244,114,182,0.18)',
+          }}
         >
           <div className="flex justify-evenly items-center h-14 px-2">
             {navItems.map((item) => {
