@@ -33,9 +33,29 @@ export async function generateEmail(prevState: any, formData: FormData) {
 
   if (!topic) return { error: 'Bitte gib ein Thema ein.' };
 
-  // Sprach-Mapping für professionelle System-Prompts mit natürlichen, idiomatischen Formulierungen
+  // Anti-Cringe Liste & Sprach-Regeln
   const languageInstructions: Record<string, string> = {
-    'Deutsch': 'Die E-Mail muss auf Deutsch verfasst werden. Verwende korrekte deutsche Grammatik und Rechtschreibung. Verwende natürliche, idiomatische deutsche Formulierungen - KEINE wörtlichen Übersetzungen aus anderen Sprachen.',
+    'Deutsch': `Die E-Mail muss auf Deutsch verfasst werden. WICHTIG: Du bist ein deutscher Muttersprachler im Jahr 2026, KEIN amerikanischer KI-Text-Generator.
+
+STRIKT VERBOTEN (Diese Phrasen NIEMALS verwenden):
+- "Ich hoffe, diese Nachricht trifft Sie wohl." (Literal-Übersetzung, klingt lächerlich)
+- "Ich hoffe, es geht Ihnen gut." (Nur bei engen Freunden erlaubt, sonst kitschig)
+- "Tauchen wir ein." (Übersetzt aus "let's dive in", im Deutschen fremd)
+- "Im Folgenden finden Sie..." (Altbacken. Besser: "Hier sind die Details:" oder "Folgende Punkte:")
+
+DEUTSCHE BUSINESS-KOMMUNIKATION:
+1. Forderungen/Beschwerden (Vermieter, Behörde, Anwalt): Starte SOFORT nach der Anrede mit dem Anliegen. KEINE Floskeln.
+   ✓ Gut: "Sehr geehrter Herr Müller,\n\nhiermit fordere ich Sie auf..."
+   ✗ Schlecht: "Sehr geehrter Herr Müller,\n\nich hoffe, es geht Ihnen gut. Ich wende mich heute an Sie wegen..."
+
+2. Business/Kooperation: Wertschätzend aber direkt.
+   ✓ Gut: "vielen Dank für Ihre Anfrage vom 15.01." / "ich melde mich bezüglich Ihres Angebots."
+   
+3. Juristische Kontexte: Nutze präzise Fachbegriffe ("Fristsetzung", "Mängelanzeige", "unter Vorbehalt").
+
+4. Persönlich (Freunde/Familie): Schreibe wie ein echter Mensch 2026. Kurze Sätze, Umgangssprache erlaubt, keine Steifheit.
+
+5. Betreffzeilen: Konkret und informativ. Bei Behörden: Aktenzeichen vorne. Bei Business: Klarer Call-to-Action.`,
     'Englisch': 'The email must be written in English. Use proper English grammar and spelling. Use professional business English with natural, idiomatic expressions. Do NOT use literal translations from other languages. Use native English phrases like "I hope this email finds you well" or "I am writing to you regarding..."',
     'Französisch': 'L\'e-mail doit être rédigé en français. Utilisez une grammaire et une orthographe françaises correctes. Utilisez un français professionnel et poli avec des expressions naturelles et idiomatiques. N\'utilisez PAS de traductions littérales. Utilisez des formules françaises natives comme "Je vous prie d\'agréer l\'expression de mes salutations distinguées" ou "Je me permets de vous contacter concernant..."',
     'Türkisch': 'E-posta Türkçe yazılmalıdır. Doğru Türkçe dilbilgisi ve yazım kullanın. Profesyonel ve nazik bir dil kullanın. ÖNEMLİ: Doğal, yerli Türkçe ifadeler kullanın - ASLA başka dillerden kelime kelime çeviri yapmayın. "Umarım bu e-posta sizi iyi bulur" gibi çeviri kokan ifadeler kullanmayın. Bunun yerine doğal Türkçe başlangıçlar kullanın: "Sayın [İsim]," veya "Merhaba [İsim]," gibi. Türkçe\'de e-postalarda genellikle doğrudan konuya geçilir veya kısa bir selamlama yapılır.',
@@ -86,16 +106,55 @@ export async function generateEmail(prevState: any, formData: FormData) {
   // AI-Instruktion für dynamische Empfänger-Analyse
   const roleAnalysisInstruction = recipientRole
     ? language === 'Deutsch'
-      ? `WICHTIG: Analysiere die Empfänger-Rolle "${recipientRole}". Leite daraus den perfekten Tonfall (formell, freundlich, bestimmt, locker) und die passende Anrede (Sie/Du) ab. Beispiele: "Vermieter" -> Sie, fordernd aber höflich; "Bester Freund" -> Du, sehr locker; "Behörde" -> Sie, keine Floskeln, direkt zum Punkt; "Mathelehrer" -> Sie, respektvoll; "Anwalt der Gegenseite" -> Sie, kühl und extrem formell.`
+      ? `EMPFÄNGER-ANALYSE: Die Rolle ist "${recipientRole}". Leite daraus Tonfall, Anrede (Sie/Du) und STRUKTUR ab:
+
+• "Vermieter" / "Behörde" / "Anwalt" / "Versicherung":
+  - Sie-Form, sachlich, direkt
+  - SOFORT nach Anrede mit Anliegen starten (keine "Wie geht's"-Floskeln!)
+  - Präzise Daten, juristische Sprache ("hiermit fordere ich", "Fristsetzung bis...")
+  - Betreff: Aktenzeichen + Kurzbeschreibung (z.B. "AZ 12345 - Mängelanzeige Heizungsausfall")
+
+• "Chef" / "Geschäftspartner" / "Kunde":
+  - Sie-Form, professionell aber wertschätzend
+  - Einstieg erlaubt: "Vielen Dank für..." / "ich melde mich bezüglich..."
+  - Struktur: Kontext, Anliegen, nächste Schritte
+  - Betreff: Klar und informativ (z.B. "Angebot XY - Rückfragen")
+
+• "Freund" / "Familie" / "Date":
+  - Du-Form, locker, authentisch
+  - Schreibe wie ein echter Mensch 2026 (kurze Sätze, Umgangssprache OK)
+  - Keine Steifheit, keine Business-Floskeln
+  - Betreff: Kurz und persönlich
+
+• "Lehrer" / "Professor":
+  - Sie-Form, respektvoll aber nicht unterwürfig
+  - Höflicher Einstieg: "Vielen Dank für..." oder direkt zum Anliegen
+  - Betreff: Kontext (z.B. "Nachfrage zu Hausaufgabe Mathe Klasse 10b")`
       : `IMPORTANT: Analyze the recipient role "${recipientRole}". Derive the perfect tone (formal, friendly, assertive, casual) and appropriate form of address. Examples: "Landlord" -> formal, assertive but polite; "Best friend" -> casual, relaxed; "Government agency" -> formal, no small talk, get straight to the point; "Math teacher" -> formal, respectful; "Opposing lawyer" -> very formal, cool tone.`
     : language === 'Deutsch'
-    ? 'Nutze einen neutralen, höflichen Standard-Ton mit Sie-Form.'
+    ? 'Nutze einen neutralen, höflichen Standard-Ton mit Sie-Form. Keine kitschigen Floskeln.'
     : 'Use a neutral, polite standard tone.';
 
   // System-Prompt je nach Sprache anpassen
   let systemPrompt = '';
   if (language === 'Deutsch') {
-    systemPrompt = `Du bist ein E-Mail Profi und Muttersprachler. ${replyHint}${lengthInstruction} ${roleAnalysisInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden. WICHTIG: Füge KEINE E-Mail-Adressen in den Text ein - diese werden nur für den mailto: Link verwendet.`;
+    systemPrompt = `Du bist ein deutscher E-Mail-Profi und Muttersprachler im Jahr 2026. Du schreibst wie ein kompetenter Mensch, NICHT wie eine amerikanische KI.
+
+${replyHint}${lengthInstruction}
+
+${roleAnalysisInstruction}
+
+${languageInstructions[language]}
+
+FORMAT:
+- Schreibe IMMER: "Betreff: [Deine Betreffzeile]" als erste Zeile
+- Dann eine Leerzeile
+- Dann die E-Mail (Anrede, Text, Grußformel)
+
+WICHTIG:
+- Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden
+- Füge KEINE E-Mail-Adressen in den Text ein
+- Antworte NUR mit dem E-Mail-Text, keine Erklärungen drumherum`;
   } else if (language === 'Englisch') {
     systemPrompt = `You are an email professional and native English speaker. ${replyHint}${lengthInstruction} ${roleAnalysisInstruction} ${languageInstructions[language]} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text - they are only used for the mailto: link.`;
   } else if (language === 'Französisch') {
