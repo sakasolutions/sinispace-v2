@@ -656,46 +656,40 @@ export default function DashboardClient() {
                   
                   
                   const cardClassName = cn(
-                    'group relative rounded-2xl overflow-hidden',
-                    // CONFIDENT MINIMALISM: Clean white surface
-                    'bg-white',
-                    // Border: Dezent grau, immer sichtbar
-                    'border border-gray-100',
-                    // Shadow: Ein sauberer, weicher Schatten
-                    'shadow-sm',
-                    // Smooth transitions
+                    'group relative',
+                    // KEIN Container - nur Content
                     'transition-all duration-200 ease-out',
-                    // HOVER: Nur Schatten-Lift, keine Farbänderung
-                    'hover:shadow-md hover:-translate-y-0.5',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // Großzügiges Padding für Weißraum
-                    'p-5 md:p-8 lg:p-10 h-[140px] md:h-auto md:min-h-[280px] lg:min-h-[320px]'
+                    // Padding für Layout
+                    'p-2 md:p-4 lg:p-6'
                   );
 
                   const content = (
                     <>
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
-                      {/* Trending Indicator - Subtle dot only */}
-                      {isTrending && (
-                        <div className="absolute top-4 right-4 z-10">
-                          <div className="w-2 h-2 rounded-full bg-orange-400" title="Häufig genutzt" />
-                        </div>
-                      )}
-
-                      {/* Icon Container - Kleine Card mit Border */}
-                      <div className="mb-3 md:mb-4 lg:mb-5">
+                      {/* Icon Container - Große farbige Box */}
+                      <div className="mb-4 md:mb-5 lg:mb-6">
                         <div className={cn(
-                          'inline-flex items-center justify-center rounded-xl border transition-all duration-200',
-                          'bg-white border-gray-100 shadow-sm',
-                          'w-10 h-10 md:w-12 lg:w-14 md:h-12 lg:h-14'
+                          'inline-flex items-center justify-center rounded-2xl transition-all duration-200',
+                          'shadow-lg group-hover:shadow-xl group-hover:scale-[1.02]',
+                          // Farbige Hintergründe
+                          tool.color === 'orange' && 'bg-gradient-to-br from-orange-500 to-pink-500',
+                          tool.color === 'pink' && 'bg-gradient-to-br from-pink-500 to-orange-500',
+                          tool.color === 'rose' && 'bg-gradient-to-br from-rose-500 to-pink-500',
+                          tool.color === 'blue' && 'bg-blue-500',
+                          tool.color === 'emerald' && 'bg-emerald-500',
+                          tool.color === 'green' && 'bg-green-500',
+                          tool.color === 'violet' && 'bg-violet-500',
+                          tool.color === 'indigo' && 'bg-indigo-500',
+                          tool.color === 'amber' && 'bg-amber-500',
+                          tool.color === 'cyan' && 'bg-cyan-500',
+                          tool.color === 'slate' && 'bg-slate-500',
+                          'w-16 h-16 md:w-20 lg:w-24 md:h-20 lg:h-24'
                         )}>
-                          <Icon className={cn(
-                            colors.text,
-                            'w-5 h-5 md:w-6 lg:w-7 md:h-6 lg:h-7'
-                          )} />
+                          <Icon className="text-white w-8 h-8 md:w-10 lg:w-12 md:h-10 lg:h-12" />
                         </div>
                       </div>
 
@@ -716,12 +710,6 @@ export default function DashboardClient() {
                         </p>
                       </div>
 
-                      {/* Expand Icon - Subtle, nur bei Hover */}
-                      {tool.available && (
-                        <div className="absolute bottom-5 right-5 md:bottom-8 md:right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <ArrowUpRight className="w-5 h-5 text-gray-300 group-hover:text-gray-400" />
-                        </div>
-                      )}
                     </>
                   );
 
@@ -782,60 +770,55 @@ export default function DashboardClient() {
                   const colorWeight = colors.gradient ? 'high' : 'medium';
 
                   
-                  // SECONDARY CARDS: Clean, minimal
+                  // SECONDARY CARDS: Kein Container, nur Icon + Text
                   const cardClassName = cn(
-                    'group relative rounded-2xl overflow-hidden',
-                    // CONFIDENT MINIMALISM: Clean white surface
-                    'bg-white',
-                    // Border: Dezent grau, immer sichtbar
-                    'border border-gray-100',
-                    // Shadow: Sehr dezent
-                    'shadow-sm',
-                    // Smooth transitions
+                    'group relative',
+                    // KEIN Container - nur Content
                     'transition-all duration-200 ease-out',
-                    // HOVER: Nur Schatten-Lift
-                    'hover:shadow-md hover:-translate-y-0.5',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // Padding
-                    isLarge ? 'p-4 md:p-7 lg:p-10 h-[100px] md:h-auto md:min-h-[280px] lg:min-h-[320px]' : 
-                    isSmall ? 'p-3 md:p-5 lg:p-7 h-[90px] md:h-auto md:min-h-[160px] lg:min-h-[180px]' : 
-                    'p-4 md:p-6 lg:p-8 h-[100px] md:h-auto md:min-h-[200px] lg:min-h-[220px]'
+                    // Padding für Layout
+                    'p-2 md:p-3 lg:p-4'
                   );
 
                   const content = (
                     <>
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
-                      {/* Trending Indicator - Subtle dot only */}
-                      {isTrending && (
-                        <div className="absolute top-3 right-3 z-10">
-                          <div className="w-1.5 h-1.5 rounded-full bg-orange-400" title="Häufig genutzt" />
-                        </div>
-                      )}
-
                     {/* MOBILE: Compact Layout - Icon & Title Centered, Description Hidden/1 Line */}
                     {/* DESKTOP: Full Layout - Icon, Title, Description */}
                     <div className="flex flex-col items-center justify-center h-full md:items-start md:justify-start">
-                      {/* Icon Container - Kleine Card mit Border */}
+                      {/* Icon Container - Farbige Box */}
                       <div className={cn(
                         'mb-2 md:mb-3 lg:mb-4',
                         'flex md:inline-flex items-center justify-center'
                       )}>
                         <div className={cn(
-                          'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
-                          'bg-white border-gray-100 shadow-sm',
+                          'inline-flex items-center justify-center rounded-xl transition-all duration-200',
+                          'shadow-md group-hover:shadow-lg group-hover:scale-[1.02]',
+                          // Farbige Hintergründe
+                          tool.color === 'orange' && 'bg-gradient-to-br from-orange-500 to-pink-500',
+                          tool.color === 'pink' && 'bg-gradient-to-br from-pink-500 to-orange-500',
+                          tool.color === 'rose' && 'bg-gradient-to-br from-rose-500 to-pink-500',
+                          tool.color === 'blue' && 'bg-blue-500',
+                          tool.color === 'emerald' && 'bg-emerald-500',
+                          tool.color === 'green' && 'bg-green-500',
+                          tool.color === 'violet' && 'bg-violet-500',
+                          tool.color === 'indigo' && 'bg-indigo-500',
+                          tool.color === 'amber' && 'bg-amber-500',
+                          tool.color === 'cyan' && 'bg-cyan-500',
+                          tool.color === 'slate' && 'bg-slate-500',
                           // MOBILE: Smaller icons for compact 2-column layout
-                          isLarge ? 'w-9 h-9 md:w-11 lg:w-12 md:h-11 lg:h-12' : 
-                          isSmall ? 'w-7 h-7 md:w-9 md:h-9' : 
-                          'w-8 h-8 md:w-10 lg:w-11 md:h-10 lg:h-11'
+                          isLarge ? 'w-12 h-12 md:w-16 lg:w-20 md:h-16 lg:h-20' : 
+                          isSmall ? 'w-10 h-10 md:w-12 md:h-12' : 
+                          'w-11 h-11 md:w-14 lg:w-16 md:h-14 lg:h-16'
                         )}>
                           <Icon className={cn(
-                            colors.text,
-                            isLarge ? 'w-4 h-4 md:w-5 lg:w-6 md:h-5 lg:h-6' : 
-                            isSmall ? 'w-3.5 h-3.5 md:w-4 md:h-4' : 
-                            'w-4 h-4 md:w-5 lg:w-5 md:h-5 lg:h-5'
+                            'text-white',
+                            isLarge ? 'w-6 h-6 md:w-8 lg:w-10 md:h-8 lg:h-10' : 
+                            isSmall ? 'w-5 h-5 md:w-6 md:h-6' : 
+                            'w-5 h-5 md:w-7 lg:w-8 md:h-7 lg:h-8'
                           )} />
                         </div>
                       </div>
@@ -878,13 +861,6 @@ export default function DashboardClient() {
                         {tool.description}
                       </p>
                     </div>
-
-                    {/* Arrow Indicator - Subtle, nur bei Hover */}
-                    {tool.available && (
-                      <div className="absolute top-3 right-3 md:top-5 md:right-5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400" />
-                      </div>
-                    )}
 
                     {/* Status badge */}
                     {!tool.available && tool.status === 'soon' && (
