@@ -667,25 +667,38 @@ export default function DashboardClient() {
                     <>
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
-                      {/* Icon Container - Hero-Größe auf Mobile */}
+                      {/* Icon Container - Soft Color Containers mit Tiefe */}
                       <div className="mb-2 md:mb-5 lg:mb-6 flex justify-center">
                         <div className={cn(
-                          'flex items-center justify-center rounded-xl md:rounded-2xl transition-all duration-200',
-                          'shadow-lg group-hover:shadow-xl group-hover:scale-[1.02]',
-                          tool.color === 'orange' && 'bg-gradient-to-br from-orange-500 to-pink-500',
-                          tool.color === 'pink' && 'bg-gradient-to-br from-pink-500 to-orange-500',
-                          tool.color === 'rose' && 'bg-gradient-to-br from-rose-500 to-pink-500',
-                          tool.color === 'blue' && 'bg-blue-500',
-                          tool.color === 'emerald' && 'bg-emerald-500',
-                          tool.color === 'green' && 'bg-green-500',
-                          tool.color === 'violet' && 'bg-violet-500',
-                          tool.color === 'indigo' && 'bg-indigo-500',
-                          tool.color === 'amber' && 'bg-amber-500',
-                          tool.color === 'cyan' && 'bg-cyan-500',
-                          tool.color === 'slate' && 'bg-slate-500',
+                          'flex items-center justify-center rounded-2xl transition-all duration-200 p-3 md:p-4',
+                          'shadow-md group-hover:shadow-lg group-hover:scale-[1.02]',
+                          tool.color === 'orange' && 'bg-orange-100',
+                          tool.color === 'pink' && 'bg-pink-100',
+                          tool.color === 'rose' && 'bg-rose-100',
+                          tool.color === 'blue' && 'bg-blue-100',
+                          tool.color === 'emerald' && 'bg-emerald-100',
+                          tool.color === 'green' && 'bg-green-100',
+                          tool.color === 'violet' && 'bg-violet-100',
+                          tool.color === 'indigo' && 'bg-indigo-100',
+                          tool.color === 'amber' && 'bg-amber-100',
+                          tool.color === 'cyan' && 'bg-cyan-100',
+                          tool.color === 'slate' && 'bg-slate-100',
                           'w-24 h-24 sm:w-20 sm:h-20 md:w-20 lg:w-24 md:h-20 lg:h-24'
                         )}>
-                          <Icon className="text-white w-12 h-12 sm:w-10 sm:h-10 md:w-10 lg:w-12 md:h-10 lg:h-12 shrink-0" />
+                          <Icon className={cn(
+                            'shrink-0 w-12 h-12 sm:w-10 sm:h-10 md:w-10 lg:w-12 md:h-10 lg:h-12',
+                            tool.color === 'orange' && 'text-orange-600',
+                            tool.color === 'pink' && 'text-pink-600',
+                            tool.color === 'rose' && 'text-rose-600',
+                            tool.color === 'blue' && 'text-blue-600',
+                            tool.color === 'emerald' && 'text-emerald-600',
+                            tool.color === 'green' && 'text-green-600',
+                            tool.color === 'violet' && 'text-violet-600',
+                            tool.color === 'indigo' && 'text-indigo-600',
+                            tool.color === 'amber' && 'text-amber-600',
+                            tool.color === 'cyan' && 'text-cyan-600',
+                            tool.color === 'slate' && 'text-slate-600'
+                          )} />
                         </div>
                       </div>
 

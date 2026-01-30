@@ -20,6 +20,11 @@ export function AppBackground() {
           background: 'linear-gradient(180deg, #fffefc 0%, #fcfaf8 50%, #f9f7f5 100%)',
         }}
       />
+      {/* Aurora Glow - weicher Lichtschein von oben */}
+      <div 
+        className="absolute w-[800px] h-[800px] -top-[400px] left-1/2 -translate-x-1/2 rounded-full blur-3xl pointer-events-none"
+        style={{ backgroundColor: 'rgba(254, 215, 170, 0.4)' }}
+      />
       
       {/* Layer 2: Ambient Brand Blobs - DEUTLICH sichtbar (12-18% opacity) */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
