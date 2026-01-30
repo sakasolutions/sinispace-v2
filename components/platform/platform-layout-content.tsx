@@ -92,7 +92,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
 
   // Sonst: Normales Layout mit Sidebar und Header
   return (
-    <div className="flex h-[100dvh] bg-white overflow-x-hidden relative">
+    <div className="flex h-[100dvh] overflow-x-hidden relative">
       {/* PREMIUM: Hero Background mit Radial Gradient & Floating Elements */}
       <HeroBackground showGlows={true} />
       
@@ -148,13 +148,13 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         {/* MOBILE: More breathing room um bottom navigation + Safe Area */}
         {/* WICHTIG: data-no-padding Seiten (Chat) haben eigenen Scroll-Container, hier NICHT scrollbar! */}
         <div 
-          className="flex-1 overflow-hidden bg-white [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-24 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:pt-[max(0.5rem,env(safe-area-inset-top))] [&>*:not([data-no-padding])]:md:pt-0" 
+          className="flex-1 overflow-hidden [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-24 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:pt-[max(0.5rem,env(safe-area-inset-top))] [&>*:not([data-no-padding])]:md:pt-0" 
           data-scroll-container
           style={{
             minHeight: 0,
           } as React.CSSProperties}
         >
-          <div className="h-full bg-white [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
+          <div className="h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
             {children}
           </div>
         </div>

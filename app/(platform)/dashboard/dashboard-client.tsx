@@ -561,8 +561,6 @@ export default function DashboardClient() {
       style={{
         transform: pullDistance > 0 ? `translateY(${Math.min(pullDistance, 160)}px)` : 'none',
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
-        // FIX: Kein lila Hintergrund beim Reload
-        backgroundColor: '#ffffff',
       }}
     >
 

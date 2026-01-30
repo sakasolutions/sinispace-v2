@@ -13,8 +13,8 @@ import { useReducedMotion } from 'framer-motion';
  * Setze USE_HERO_BACKGROUND = false
  */
 
-// 🎛️ EINFACH ZUM EIN/AUSSCHALTEN
-const USE_HERO_BACKGROUND = true; // false = zurück zum alten Stand
+// 🎛️ EINFACH ZUM EIN/AUSSCHALTEN - Deaktiviert: Gradient + Noise kommen jetzt aus layout.tsx
+const USE_HERO_BACKGROUND = false; // false = Warmverlauf + Noise aus Root-Layout
 
 interface HeroBackgroundProps {
   className?: string;
