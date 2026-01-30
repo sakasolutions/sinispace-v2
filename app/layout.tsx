@@ -76,7 +76,7 @@ export default function RootLayout({
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
       } as React.CSSProperties}>
-        {/* Variante 1+2: Warmverlauf + Noise Texture */}
+        {/* Variante 1+3: Warmverlauf + Ambient Brand Blobs */}
         {/* Layer 1: Sanfter Warmverlauf (cremeweiß oben -> warmgrau unten) */}
         <div 
           className="fixed inset-0 z-[-3] h-full w-full pointer-events-none"
@@ -84,13 +84,33 @@ export default function RootLayout({
             background: 'linear-gradient(180deg, #fffbf7 0%, #faf8f5 50%, #f5f3f0 100%)',
           } as React.CSSProperties}
         />
-        {/* Layer 2: Dezentes Noise-Overlay (Paper-Texture) */}
-        <div 
-          className="fixed inset-0 z-[-2] h-full w-full pointer-events-none opacity-[0.025] mix-blend-multiply"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          } as React.CSSProperties}
-        />
+        {/* Layer 2: Ambient Brand Blobs - Orange/Pink Glows in den Ecken */}
+        <div className="fixed inset-0 z-[-2] h-full w-full pointer-events-none overflow-hidden">
+          {/* Orange Blob - Oben Links */}
+          <div 
+            className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-[0.06]"
+            style={{
+              background: 'radial-gradient(circle, rgba(249, 115, 22, 0.8) 0%, rgba(249, 115, 22, 0) 70%)',
+              filter: 'blur(60px)',
+            }}
+          />
+          {/* Pink Blob - Unten Rechts */}
+          <div 
+            className="absolute -bottom-48 -right-48 w-[600px] h-[600px] rounded-full opacity-[0.05]"
+            style={{
+              background: 'radial-gradient(circle, rgba(244, 114, 182, 0.8) 0%, rgba(244, 114, 182, 0) 70%)',
+              filter: 'blur(80px)',
+            }}
+          />
+          {/* Orange/Pink Blob - Mitte Rechts (dezent) */}
+          <div 
+            className="absolute top-1/3 -right-24 w-[400px] h-[400px] rounded-full opacity-[0.04]"
+            style={{
+              background: 'radial-gradient(circle, rgba(251, 146, 60, 0.7) 0%, rgba(251, 146, 60, 0) 70%)',
+              filter: 'blur(50px)',
+            }}
+          />
+        </div>
         
         <div className="relative z-10">
           {children}
