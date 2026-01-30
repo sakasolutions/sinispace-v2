@@ -69,6 +69,9 @@ export async function generateEmail(prevState: any, formData: FormData) {
       : 'WICHTIG: Verwende die Sie-Form (Sie, Ihr, Ihnen, etc.). Bleibe professionell und höflich.';
   }
 
+  // Kontext-Instruktion aus Empfänger-Rolle (z.B. "KEINE Floskeln bei Behörden")
+  const roleInstruction = recipient ? `WICHTIG: ${recipient}` : '';
+
   // Baue User-Prompt mit optionalen Feldern
   let userPrompt: string;
   if (receivedEmail) {
@@ -89,10 +92,6 @@ export async function generateEmail(prevState: any, formData: FormData) {
     userPrompt = `${userPrompt} Empfänger Name: ${recipientName}.`;
   }
 
-  if (recipient) {
-    userPrompt = `${userPrompt} Empfänger Kontext: ${recipient}.`;
-  }
-
   const replyHint = receivedEmail
     ? 'Der User hat eine E-Mail eingefügt. Verfasse eine passende Antwort darauf. '
     : '';
@@ -100,20 +99,20 @@ export async function generateEmail(prevState: any, formData: FormData) {
   // System-Prompt je nach Sprache anpassen
   let systemPrompt = '';
   if (language === 'Deutsch') {
-    systemPrompt = `Du bist ein E-Mail Profi und Muttersprachler. ${replyHint}${lengthInstruction} ${formalityInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden. WICHTIG: Füge KEINE E-Mail-Adressen in den Text ein - diese werden nur für den mailto: Link verwendet.`;
+    systemPrompt = `Du bist ein E-Mail Profi und Muttersprachler. ${replyHint}${lengthInstruction} ${formalityInstruction} ${roleInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden. WICHTIG: Füge KEINE E-Mail-Adressen in den Text ein - diese werden nur für den mailto: Link verwendet.`;
   } else if (language === 'Englisch') {
-    systemPrompt = `You are an email professional and native English speaker. ${lengthInstruction} ${languageInstructions[language]} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text - they are only used for the mailto: link.`;
+    systemPrompt = `You are an email professional and native English speaker. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text - they are only used for the mailto: link.`;
   } else if (language === 'Französisch') {
-    systemPrompt = `Tu es un professionnel de l'email et locuteur natif français. ${lengthInstruction} ${languageInstructions[language]} Réponds uniquement avec le texte. Utilise les noms fournis pour la salutation et la fermeture, s'ils sont disponibles. IMPORTANT: N'inclus PAS d'adresses email dans le texte - elles ne sont utilisées que pour le lien mailto:.`;
+    systemPrompt = `Tu es un professionnel de l'email et locuteur natif français. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Réponds uniquement avec le texte. Utilise les noms fournis pour la salutation et la fermeture, s'ils sont disponibles. IMPORTANT: N'inclus PAS d'adresses email dans le texte - elles ne sont utilisées que pour le lien mailto:.`;
   } else if (language === 'Türkisch') {
-    systemPrompt = `Sen bir e-posta profesyonelisin ve ana dili Türkçe olan birisin. ${lengthInstruction} ${languageInstructions[language]} Sadece metinle cevap ver. Varsa verilen isimleri selamlama ve kapanış için kullan. ÖNEMLİ: Türkçe e-postalarda doğal, yerli ifadeler kullan. "Umarım bu e-posta sizi iyi bulur" gibi çeviri kokan ifadeler ASLA kullanma. Bunun yerine doğrudan "Sayın [İsim]," ile başla veya kısa bir selamlama yap. ÖNEMLİ: E-posta adreslerini metne EKLEME - bunlar sadece mailto: bağlantısı için kullanılır.`;
+    systemPrompt = `Sen bir e-posta profesyonelisin ve ana dili Türkçe olan birisin. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Sadece metinle cevap ver. Varsa verilen isimleri selamlama ve kapanış için kullan. ÖNEMLİ: Türkçe e-postalarda doğal, yerli ifadeler kullan. "Umarım bu e-posta sizi iyi bulur" gibi çeviri kokan ifadeler ASLA kullanma. Bunun yerine doğrudan "Sayın [İsim]," ile başla veya kısa bir selamlama yap. ÖNEMLİ: E-posta adreslerini metne EKLEME - bunlar sadece mailto: bağlantısı için kullanılır.`;
   } else if (language === 'Italienisch') {
-    systemPrompt = `Sei un professionista delle email e madrelingua italiana. ${lengthInstruction} ${languageInstructions[language]} Rispondi solo con il testo. Usa i nomi forniti per il saluto e la chiusura, se disponibili. IMPORTANTE: NON includere indirizzi email nel testo - sono usati solo per il link mailto:.`;
+    systemPrompt = `Sei un professionista delle email e madrelingua italiana. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Rispondi solo con il testo. Usa i nomi forniti per il saluto e la chiusura, se disponibili. IMPORTANTE: NON includere indirizzi email nel testo - sono usati solo per il link mailto:.`;
   } else if (language === 'Spanisch') {
-    systemPrompt = `Eres un profesional del correo electrónico y hablante nativo de español. ${lengthInstruction} ${languageInstructions[language]} Responde solo con el texto. Usa los nombres proporcionados para el saluto y el cierre, si están disponibles. IMPORTANTE: NO incluyas direcciones de correo electrónico en el texto - solo se usan para el enlace mailto:.`;
+    systemPrompt = `Eres un profesional del correo electrónico y hablante nativo de español. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Responde solo con el texto. Usa los nombres proporcionados para el saluto y el cierre, si están disponibles. IMPORTANTE: NO incluyas direcciones de correo electrónico en el texto - solo se usan para el enlace mailto:.`;
   } else {
     // Fallback
-    systemPrompt = `You are an email professional. ${lengthInstruction} ${languageInstructions[language] || ''} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text.`;
+    systemPrompt = `You are an email professional. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language] || ''} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text.`;
   }
 
   try {
