@@ -17,7 +17,7 @@ export function AppBackground() {
       <div 
         className="absolute inset-0 w-full h-full"
         style={{
-          background: 'linear-gradient(180deg, #fffbf7 0%, #faf8f5 50%, #f5f3f0 100%)',
+          background: 'linear-gradient(180deg, #fffefc 0%, #fcfaf8 50%, #f9f7f5 100%)',
         }}
       />
       

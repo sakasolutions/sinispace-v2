@@ -33,21 +33,15 @@ export function MobileNav() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-50 block md:hidden"
-      style={{
-        paddingBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
-        marginBottom: `max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))`,
-      }}
+      className="fixed bottom-0 left-0 right-0 z-[100] block md:hidden pb-[env(safe-area-inset-bottom)]"
     >
-      {/* Apple Glass + Logo-Gradient (Orange → Pink → Lila), nur Hauch Farbe */}
-      <div className="mx-auto max-w-md px-4">
+      {/* Sichtbare Navbar - höherer Kontrast für mobile Sichtbarkeit */}
+      <div className="mx-auto max-w-md px-4 pb-2">
         <div 
-          className="rounded-full bg-gradient-to-r from-orange-500/[0.1] via-pink-500/[0.08] to-purple-500/[0.1] backdrop-blur-[20px] backdrop-saturate-200 border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.7),0_8px_32px_rgba(0,0,0,0.08)]"
-          style={{ WebkitBackdropFilter: 'blur(20px) saturate(200%)' }}
+          className="rounded-2xl bg-white/95 backdrop-blur-xl border border-gray-200/60 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
+          style={{ WebkitBackdropFilter: 'blur(20px)' }}
         >
-          <div className="flex justify-evenly items-center h-16 px-2" style={{
-            paddingBottom: `max(0.5rem, env(safe-area-inset-bottom))`,
-          }}>
+          <div className="flex justify-evenly items-center h-14 px-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = item.active;

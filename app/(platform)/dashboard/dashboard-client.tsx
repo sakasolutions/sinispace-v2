@@ -581,15 +581,14 @@ export default function DashboardClient() {
       )}
 
       {/* Main Container - Magazin-Cover Header + Cards */}
-      <PageTransition className="mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-32">
+      <PageTransition className="mx-auto max-w-7xl w-full px-2 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32">
         {/* Daily Hero Header: Kalender-basiert, Subline + Headline, Soft-Fill Pills */}
         <header
           className={cn(
-            'bg-white',
-            'pt-[max(4rem,env(safe-area-inset-top))] md:pt-12 pb-6'
+            'pt-[max(3rem,env(safe-area-inset-top))] md:pt-12 pb-4 md:pb-6'
           )}
         >
-          <div className="mb-4">
+          <div className="mb-3 md:mb-4">
             <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">
               {dailyHero.subline}
             </p>
@@ -600,7 +599,7 @@ export default function DashboardClient() {
 
           {/* Super Pills: Soft-Fill, keine Borders */}
           <div className="flex flex-wrap justify-between items-center gap-3">
-            <div className="flex flex-1 md:flex-initial overflow-x-auto scrollbar-hide min-w-0 gap-4 py-1 pl-2 pr-2">
+            <div className="flex flex-1 md:flex-initial overflow-x-auto scrollbar-hide min-w-0 gap-3 py-1 pl-1 pr-1">
               {categoryTabs.map((cat) => {
                 const { icon: Icon } = categoryConfig[cat];
                 const isActive = selectedCategory === cat;
@@ -633,11 +632,11 @@ export default function DashboardClient() {
 
         {/* SMART USAGE-BASED CARD HIERARCHY */}
         {sortedAndFilteredTools.length > 0 ? (
-          <div className="space-y-4 md:space-y-6 lg:space-y-8">
-            {/* HERO CARDS: Top 4 Most Used Tools - Mobile: Full Width, Desktop: 2x2 Large Grid */}
+          <div className="space-y-3 md:space-y-6 lg:space-y-8">
+            {/* HERO CARDS: Mobile 2x2 kompakt, Desktop 2x2 Large Grid */}
             {heroTools.length > 0 && (
               <div 
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-4"
+                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-4"
                 style={{
                   gridAutoRows: 'minmax(auto, auto)',
                 }}
@@ -660,18 +659,18 @@ export default function DashboardClient() {
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // Padding für Layout
-                    'p-2 md:p-4 lg:p-6'
+                    // Padding - Mobile kompakter
+                    'p-2 sm:p-3 md:p-4 lg:p-6'
                   );
 
                   const content = (
                     <>
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
-                      {/* Icon Container - Große farbige Box */}
-                      <div className="mb-4 md:mb-5 lg:mb-6">
+                      {/* Icon Container - Mobile kleiner für 2-Spalten */}
+                      <div className="mb-2 md:mb-5 lg:mb-6">
                         <div className={cn(
-                          'inline-flex items-center justify-center rounded-2xl transition-all duration-200',
+                          'inline-flex items-center justify-center rounded-xl md:rounded-2xl transition-all duration-200',
                           'shadow-lg group-hover:shadow-xl group-hover:scale-[1.02]',
                           // Farbige Hintergründe
                           tool.color === 'orange' && 'bg-gradient-to-br from-orange-500 to-pink-500',
@@ -685,24 +684,25 @@ export default function DashboardClient() {
                           tool.color === 'amber' && 'bg-amber-500',
                           tool.color === 'cyan' && 'bg-cyan-500',
                           tool.color === 'slate' && 'bg-slate-500',
-                          'w-16 h-16 md:w-20 lg:w-24 md:h-20 lg:h-24'
+                          'w-12 h-12 sm:w-14 sm:h-14 md:w-20 lg:w-24 md:h-20 lg:h-24'
                         )}>
-                          <Icon className="text-white w-8 h-8 md:w-10 lg:w-12 md:h-10 lg:h-12" />
+                          <Icon className="text-white w-6 h-6 sm:w-7 sm:h-7 md:w-10 lg:w-12 md:h-10 lg:h-12" />
                         </div>
                       </div>
 
                       {/* Title & Description - Mobile: Full Details, Desktop: Full Details */}
-                      <div className="relative z-10">
+                      <div className="relative z-10 min-w-0">
                         <h3 className={cn(
-                          'font-bold text-gray-900 mb-1 md:mb-2',
-                          'text-lg md:text-xl lg:text-2xl',
+                          'font-bold text-gray-900 mb-0.5 md:mb-2',
+                          'text-sm sm:text-base md:text-xl lg:text-2xl',
                           'leading-tight line-clamp-2'
                         )}>
                           {tool.title}
                         </h3>
                         <p className={cn(
-                          'text-gray-600 text-sm md:text-sm lg:text-base',
-                          'leading-snug line-clamp-2'
+                          'text-gray-600 leading-snug line-clamp-2',
+                          'text-xs sm:text-sm md:text-sm lg:text-base',
+                          'hidden sm:block'
                         )}>
                           {tool.description}
                         </p>
@@ -743,7 +743,7 @@ export default function DashboardClient() {
               </div>
             )}
 
-            {/* SECONDARY CARDS: Rest of Tools - Mobile: 2-Column Compact, Desktop: Smaller Grid */}
+            {/* SECONDARY CARDS: Mobile kompakter, Desktop 4-Spalten */}
             {secondaryTools.length > 0 && (
               <div 
                 className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-4"
