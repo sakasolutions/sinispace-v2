@@ -636,7 +636,7 @@ export default function DashboardClient() {
             {/* HERO CARDS: Mobile 2x2 zentriert, Desktop 2x2 Grid */}
             {heroTools.length > 0 && (
               <div 
-                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 w-full max-w-md md:max-w-none mx-auto justify-items-center items-center"
+                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 w-full max-w-md md:max-w-none mx-auto justify-items-center md:justify-items-stretch items-center"
                 style={{
                   gridAutoRows: 'minmax(auto, auto)',
                 }}
@@ -653,7 +653,7 @@ export default function DashboardClient() {
                   
                   
                   const cardClassName = cn(
-                    'group relative flex flex-col items-center justify-center w-full',
+                    'group relative flex flex-col items-center md:items-start justify-center md:justify-start w-full',
                     'transition-all duration-200 ease-out',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
@@ -667,7 +667,7 @@ export default function DashboardClient() {
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
                       {/* Icon Container - Soft Color Containers mit Tiefe */}
-                      <div className="mb-2 md:mb-5 lg:mb-6 flex justify-center">
+                      <div className="mb-2 md:mb-5 lg:mb-6 flex justify-center md:justify-start">
                         <div className={cn(
                           'flex items-center justify-center rounded-2xl transition-all duration-200 p-3 md:p-4',
                           'shadow-md group-hover:shadow-lg group-hover:scale-[1.02]',
