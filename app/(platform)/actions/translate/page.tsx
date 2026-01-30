@@ -257,7 +257,7 @@ export default function TranslatePage() {
   const handleSpeak = () => {
     if (!copyableText) return;
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(displayedTranslation);
+      const utterance = new SpeechSynthesisUtterance(copyableText);
       utterance.lang = targetLang === 'en-us' ? 'en-US' : targetLang === 'en-uk' ? 'en-GB' : targetLang;
       window.speechSynthesis.speak(utterance);
       setToast('Vorlesen gestartet...');
