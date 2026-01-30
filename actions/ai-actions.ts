@@ -488,6 +488,7 @@ export async function generateTranslate(prevState: any, formData: FormData) {
 
   const text = (formData.get('text') as string || '').trim();
   const imageFile = formData.get('image') as File | null;
+  const sourceLang = (formData.get('sourceLang') as string) || 'auto';
   const targetLanguage = formData.get('targetLanguage') as string || 'Englisch (US)';
   const mode = formData.get('mode') as string || 'Business & Professionell';
 
@@ -527,24 +528,30 @@ export async function generateTranslate(prevState: any, formData: FormData) {
   let systemPrompt: string;
 
   if (isImageMode) {
-    systemPrompt = `Du bist ein Kultur-Dolmetscher mit Vision-Fähigkeit. Analysiere das Bild und übersetze in: ${targetLanguage}.
+    systemPrompt = `Du bist ein Kultur-Dolmetscher mit Vision-Fähigkeit.
 
 BILD-ANALYSE:
-1. Erkenne ALLEN Text auf dem Bild (Speisekarte, Schild, Dokument, Verpackung).
-2. Übersetze den Text in die Zielsprache – sinngemäß, nicht wörtlich.
-3. Erkenne den KONTEXT: Ist es ein Gericht? Ein Warnschild? Ein kultureller Hinweis? Ein Straßenschild?
+1. Analysiere das Bild und erkenne AUTOMATISCH die Sprache des Textes auf dem Bild.
+2. Erkenne ALLEN Text (Speisekarte, Schild, Dokument, Verpackung).
+3. Übersetze den erkannten Text in die gewählte Zielsprache: ${targetLanguage} – sinngemäß, nicht wörtlich.
+4. Erkenne den KONTEXT: Ist es ein Gericht? Ein Warnschild? Ein kultureller Hinweis? Ein Straßenschild?
 
 KULTURELLER KONTEXT (cultural_context):
 - Bei SPEISEKARTEN: Erkläre, was man da isst – z.B. "Vorsicht, das Gericht ist sehr scharf" oder "Das ist ein fermentiertes Gemüse mit intensivem Geschmack".
 - Bei WARNUNGEN: Erkläre die Bedeutung.
 - Bei kulturellen Begriffen: Erkläre sie auf Deutsch.
 
-ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt:
+ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt. Gib die erkannte Ausgangssprache zurück:
 {
+  "detected_language": "Türkisch (TR)",
+  "detected_language_code": "tr",
   "translation": "Der vollständig übersetzte Text (oder Zusammenfassung bei viel Text)...",
-  "cultural_context": "Max 2 Sätze auf Deutsch: Was steckt dahinter? Was soll der User wissen? (z.B. Speisekarten-Erklärung, Schärfe-Hinweis, kulturelle Bedeutung)",
+  "cultural_context": "Max 2 Sätze auf Deutsch: Was steckt dahinter? Was soll der User wissen?",
+  "confidence_score": "high",
   "alternatives": []
-}`;
+}
+
+Sprachcodes (detected_language_code): de, en-us, en-uk, tr, es, fr, it, pt, nl, pl, ru, ja, ko, zh, ar, hi, sv, no, da, fi, el, cs, hu, ro, th, vi.`;
   } else {
     systemPrompt = `Du bist ein Kultur-Dolmetscher und Sprachlehrer. Übersetze den Text in: ${targetLanguage}.
 
@@ -591,13 +598,15 @@ ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt:
     try {
       const parsed = JSON.parse(cleanContent);
       if (parsed.translation && typeof parsed.translation === 'string') {
-        return { 
-          result: JSON.stringify({
-            translation: parsed.translation,
-            cultural_context: parsed.cultural_context || parsed.context_note || '',
-            alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : [],
-          })
+        const result: Record<string, unknown> = {
+          translation: parsed.translation,
+          cultural_context: parsed.cultural_context || parsed.context_note || '',
+          alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : [],
         };
+        if (parsed.detected_language) result.detected_language = parsed.detected_language;
+        if (parsed.detected_language_code) result.detected_language_code = parsed.detected_language_code;
+        if (parsed.confidence_score) result.confidence_score = parsed.confidence_score;
+        return { result: JSON.stringify(result) };
       }
     } catch {
       return { 

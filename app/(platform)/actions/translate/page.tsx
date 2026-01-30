@@ -51,6 +51,8 @@ const VIBE_OPTIONS = [
   },
 ] as const;
 
+const SOURCE_AUTO = { code: 'auto', name: 'Sprache erkennen (Auto)', flag: '✨' };
+
 const LANGUAGES = [
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
   { code: 'en-us', name: 'Englisch (US)', flag: '🇺🇸' },
@@ -82,8 +84,11 @@ const LANGUAGES = [
 
 interface TranslationResult {
   translation: string;
-  context_note: string; // cultural_context oder context_note
+  context_note: string;
   alternatives: string[];
+  detected_language?: string;
+  detected_language_code?: string;
+  confidence_score?: string;
 }
 
 function parseResult(text: string): TranslationResult {
@@ -97,6 +102,9 @@ function parseResult(text: string): TranslationResult {
         translation: parsed.translation,
         context_note: parsed.cultural_context || parsed.context_note || '',
         alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : [],
+        detected_language: parsed.detected_language || '',
+        detected_language_code: parsed.detected_language_code || '',
+        confidence_score: parsed.confidence_score || '',
       };
     }
   } catch {
@@ -157,7 +165,7 @@ export default function TranslatePage() {
   const [state, formAction] = useActionState(generateTranslateWithChat, null);
 
   const [text, setText] = useState('');
-  const [sourceLang, setSourceLang] = useState('de');
+  const [sourceLang, setSourceLang] = useState('auto');
   const [targetLang, setTargetLang] = useState('en-us');
   const [vibe, setVibe] = useState('Business & Professionell');
   const [toast, setToast] = useState<string | null>(null);
@@ -169,8 +177,9 @@ export default function TranslatePage() {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const sourceLanguage = LANGUAGES.find((l) => l.code === sourceLang);
+  const sourceLanguage = sourceLang === 'auto' ? SOURCE_AUTO : LANGUAGES.find((l) => l.code === sourceLang);
   const targetLanguage = LANGUAGES.find((l) => l.code === targetLang);
+  const canSwap = sourceLang !== 'auto';
 
   const parsed = state?.result ? parseResult(state.result) : null;
   
@@ -251,6 +260,7 @@ export default function TranslatePage() {
         if (prev) URL.revokeObjectURL(prev);
         return URL.createObjectURL(file);
       });
+      setSourceLang('auto'); // Bei Foto: Auto-Erkennung
     }
   };
 
@@ -320,6 +330,7 @@ export default function TranslatePage() {
                     onChange={(e) => setSourceLang(e.target.value)}
                     className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 tracking-tight"
                   >
+                    <option value="auto">{SOURCE_AUTO.flag} {SOURCE_AUTO.name}</option>
                     {LANGUAGES.map((lang) => (
                       <option key={lang.code} value={lang.code}>
                         {lang.flag} {lang.name}
@@ -329,8 +340,12 @@ export default function TranslatePage() {
                   <button
                     type="button"
                     onClick={handleSwapLanguages}
-                    className="p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
-                    title="Sprachen tauschen"
+                    disabled={!canSwap}
+                    className={cn(
+                      "p-2.5 rounded-lg transition-colors",
+                      canSwap ? "bg-gray-100 hover:bg-gray-200 text-gray-600" : "bg-gray-50 text-gray-300 cursor-not-allowed"
+                    )}
+                    title={canSwap ? "Sprachen tauschen" : "Bei Auto-Erkennung nicht verfügbar"}
                   >
                     <ArrowRightLeft className="w-4 h-4" />
                   </button>
@@ -347,6 +362,7 @@ export default function TranslatePage() {
                   </select>
                 </div>
                 <input type="hidden" name="targetLanguage" value={targetLanguage?.name || 'Englisch (US)'} />
+                <input type="hidden" name="sourceLang" value={sourceLang} />
               </div>
 
               {/* Input-Area: Text + Foto */}
@@ -441,6 +457,22 @@ export default function TranslatePage() {
           <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
             {parsed?.translation ? (
               <div className="space-y-4">
+                {/* Erkannte Sprache (Badge) */}
+                {parsed.detected_language && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 text-green-800 text-sm font-medium border border-green-100">
+                      Erkannt: {parsed.detected_language}
+                      {parsed.detected_language_code && (() => {
+                        const lang = LANGUAGES.find(l => l.code === parsed.detected_language_code);
+                        return lang ? ` ${lang.flag}` : '';
+                      })()}
+                    </span>
+                  </motion.div>
+                )}
                 {/* Haupt-Karte: Übersetzung */}
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
