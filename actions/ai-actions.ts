@@ -100,7 +100,18 @@ DEUTSCHE BUSINESS-KOMMUNIKATION:
   }
 
   const replyHint = receivedEmail
-    ? 'Der User hat eine E-Mail eingefügt. Verfasse eine passende Antwort darauf. '
+    ? language === 'Deutsch'
+      ? `ANTWORT-MODUS AKTIV:
+Der User antwortet auf eine erhaltene E-Mail. Deine Aufgabe:
+1. Analysiere die eingefügte Original-Mail gründlich (Kontext, Ton, Anliegen).
+2. Greife den Kontext auf (z.B. "Vielen Dank für Ihre Anfrage vom 15.01." oder "ich komme auf Ihr Schreiben vom..." zurück).
+3. Formuliere die Antwort basierend auf den Stichpunkten des Users.
+4. Passe den Tonfall an den Empfänger an (siehe Rollen-Analyse).
+5. WICHTIG: Wenn der User nur "Nein" oder "Ablehnen" schreibt, generiere eine höfliche, begründete Absage (z.B. "leider muss ich absagen, da..." oder "leider passt das Angebot nicht, weil..."). KEINE plumpe Ablehnung, es sei denn die Rolle verlangt es (z.B. "Anwalt Gegenseite" -> kühl und knapp).
+6. Bei unklaren Stichpunkten: Interpretiere sinnvoll und formuliere eine vollständige Antwort.
+
+`
+      : 'REPLY MODE ACTIVE: The user is replying to a received email. Analyze the original email, reference its context, and formulate a response based on the user\'s bullet points. '
     : '';
 
   // AI-Instruktion für dynamische Empfänger-Analyse
