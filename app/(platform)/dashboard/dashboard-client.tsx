@@ -24,12 +24,12 @@ import {
   Share2,
   ArrowUpRight,
   Search,
-  TrendingUp,
   LayoutGrid,
   Briefcase,
   ShoppingCart,
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
+import { motion } from 'framer-motion';
 
 type Tool = {
   id: string;
@@ -636,12 +636,16 @@ export default function DashboardClient() {
         {/* SMART USAGE-BASED CARD HIERARCHY */}
         {sortedAndFilteredTools.length > 0 ? (
           <div className="space-y-4 md:space-y-6 lg:space-y-8">
-            {/* HERO CARDS: Top 4 Most Used Tools - Mobile: Full Width, Desktop: 2x2 Large Grid */}
+            {/* HERO CARDS: Top 4 Most Used Tools - Staggered Entrance */}
             {heroTools.length > 0 && (
-              <div 
+              <motion.div
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-4"
-                style={{
-                  gridAutoRows: 'minmax(auto, auto)',
+                style={{ gridAutoRows: 'minmax(auto, auto)' }}
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  visible: { transition: { staggerChildren: 0.08 } },
+                  hidden: {},
                 }}
               >
                 {heroTools.map((tool, index) => {
@@ -731,28 +735,20 @@ export default function DashboardClient() {
                     <>
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
-                      {/* Trending Indicator */}
-                      {isTrending && (
-                        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-2 py-1 rounded-full text-[10px] font-semibold shadow-lg animate-pulse">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>Trending</span>
-                        </div>
-                      )}
+                      {/* Trending Ribbon – Gradient-Ecke statt Badge */}
+                      {isTrending && <div className="trending-ribbon" aria-hidden />}
 
-                      {/* Icon Container - Premium: Weißer Hintergrund mit eigenem Schatten für Layering */}
+                      {/* Icon Container – Brand-Farben: Gradient, sonst farbiger Rahmen */}
                       <div className="mb-2 md:mb-4 lg:mb-6">
                         <div className={cn(
-                          'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
-                          'ease-out',
-                          'bg-white', // PREMIUM: Weißer Hintergrund für Layering
-                          'shadow-sm', // PREMIUM: Winziger Schlagschatten für Tiefe
-                          colors.border,
-                          'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18',
-                          'group-hover:shadow-md' // Leicht verstärkter Schatten beim Hover
-                          // PERFORMANCE: backdrop-blur entfernt (teuer auf Mobile)
+                          'inline-flex items-center justify-center rounded-xl transition-all duration-200',
+                          'ease-out shadow-sm group-hover:shadow-md',
+                          colors.gradient
+                            ? 'bg-gradient-to-br from-orange-500 to-pink-500 border-0 w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18'
+                            : cn('bg-white border', colors.border, 'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18')
                         )}>
                           <Icon className={cn(
-                            colors.text,
+                            colors.gradient ? 'text-white' : colors.text,
                             'transition-opacity duration-200 ease-out group-hover:opacity-90',
                             'w-5 h-5 md:w-8 lg:w-9 md:h-8 lg:h-9'
                           )} />
@@ -788,16 +784,14 @@ export default function DashboardClient() {
                   );
 
                   return tool.available ? (
+                    <motion.div key={tool.id} variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}>
                     <Link 
-                      key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
                       style={cardStyle}
                       onClick={async () => {
                         triggerHaptic('light');
-                        // Track tool usage
                         await trackToolUsage(tool.id, tool.title);
-                        // Refresh stats after a short delay
                         setTimeout(async () => {
                           const result = await getToolUsageStats();
                           if (result.success && result.stats) {
@@ -808,25 +802,28 @@ export default function DashboardClient() {
                     >
                       {content}
                     </Link>
+                    </motion.div>
                   ) : (
-                    <div 
-                      key={tool.id} 
-                      className={cardClassName}
-                      style={cardStyle}
-                    >
+                    <motion.div key={tool.id} variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}>
+                    <div className={cardClassName} style={cardStyle}>
                       {content}
                     </div>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             )}
 
-            {/* SECONDARY CARDS: Rest of Tools - Mobile: 2-Column Compact, Desktop: Smaller Grid */}
+            {/* SECONDARY CARDS: Rest of Tools - Staggered Entrance */}
             {secondaryTools.length > 0 && (
-              <div 
+              <motion.div 
                 className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-4"
-                style={{
-                  gridAutoRows: 'minmax(auto, auto)',
+                style={{ gridAutoRows: 'minmax(auto, auto)' }}
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  visible: { transition: { staggerChildren: 0.05 } },
+                  hidden: {},
                 }}
               >
                 {secondaryTools.map((tool, index) => {
@@ -924,36 +921,29 @@ export default function DashboardClient() {
                     <>
                       {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
 
-                      {/* Trending Indicator for Secondary Cards */}
-                      {isTrending && (
-                        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-1.5 py-0.5 rounded-full text-[9px] font-semibold shadow-lg">
-                          <TrendingUp className="w-2.5 h-2.5" />
-                        </div>
-                      )}
+                      {/* Trending Ribbon – Gradient-Ecke */}
+                      {isTrending && <div className="trending-ribbon" aria-hidden />}
 
                     {/* MOBILE: Compact Layout - Icon & Title Centered, Description Hidden/1 Line */}
                     {/* DESKTOP: Full Layout - Icon, Title, Description */}
                     <div className="flex flex-col items-center justify-center h-full md:items-start md:justify-start">
-                      {/* Icon Container - Mobile: Centered, Desktop: Left */}
+                      {/* Icon Container – Brand-Farben: Gradient */}
                       <div className={cn(
                         'mb-2 md:mb-4 lg:mb-6',
                         'flex md:inline-flex items-center justify-center'
                       )}>
                         <div className={cn(
-                          'inline-flex items-center justify-center rounded-lg border transition-all duration-200',
-                          'ease-out',
-                          'bg-white', // PREMIUM: Weißer Hintergrund für Layering
-                          'shadow-sm', // PREMIUM: Winziger Schlagschatten für Tiefe
-                          colors.border,
-                          // MOBILE: Smaller icons for compact 2-column layout
+                          'inline-flex items-center justify-center rounded-xl transition-all duration-200',
+                          'ease-out shadow-sm group-hover:shadow-md',
+                          colors.gradient
+                            ? 'bg-gradient-to-br from-orange-500 to-pink-500 border-0'
+                            : cn('bg-white border', colors.border),
                           isLarge ? 'w-10 h-10 md:w-16 lg:w-18 md:h-16 lg:h-18' : 
                           isSmall ? 'w-8 h-8 md:w-13 md:h-13' : 
-                          'w-9 h-9 md:w-14 lg:w-16 md:h-14 lg:h-16',
-                          'group-hover:shadow-md' // Leicht verstärkter Schatten beim Hover
-                          // PERFORMANCE: backdrop-blur entfernt (teuer auf Mobile)
+                          'w-9 h-9 md:w-14 lg:w-16 md:h-14 lg:h-16'
                         )}>
                           <Icon className={cn(
-                            colors.text,
+                            colors.gradient ? 'text-white' : colors.text,
                             'transition-opacity duration-200 ease-out group-hover:opacity-90',
                             isLarge ? 'w-5 h-5 md:w-8 lg:w-9 md:h-8 lg:h-9' : 
                             isSmall ? 'w-4 h-4 md:w-6 md:h-6' : 
@@ -1039,16 +1029,14 @@ export default function DashboardClient() {
                 );
 
                   return tool.available ? (
+                    <motion.div key={tool.id} variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}>
                     <Link 
-                      key={tool.id} 
                       href={tool.href} 
                       className={cardClassName}
                       style={cardStyle}
                       onClick={async () => {
                         triggerHaptic('light');
-                        // Track tool usage
                         await trackToolUsage(tool.id, tool.title);
-                        // Refresh stats after a short delay
                         setTimeout(async () => {
                           const result = await getToolUsageStats();
                           if (result.success && result.stats) {
@@ -1059,17 +1047,16 @@ export default function DashboardClient() {
                     >
                       {content}
                     </Link>
+                    </motion.div>
                   ) : (
-                    <div 
-                      key={tool.id} 
-                      className={cardClassName}
-                      style={cardStyle}
-                    >
+                    <motion.div key={tool.id} variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}>
+                    <div className={cardClassName} style={cardStyle}>
                       {content}
                     </div>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             )}
           </div>
         ) : (
