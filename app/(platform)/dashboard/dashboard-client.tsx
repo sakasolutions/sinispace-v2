@@ -563,6 +563,18 @@ export default function DashboardClient() {
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
       }}
     >
+      {/* Dashboard-Hintergrund: Direkt hier für garantierte Sichtbarkeit */}
+      <div 
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(180deg, #ffffff 0%, #fffefc 30%, #fcfaf8 100%)',
+        }}
+      />
+      <div 
+        className="fixed w-[800px] h-[800px] top-[-40vh] left-1/2 -translate-x-1/2 rounded-full blur-3xl pointer-events-none z-0"
+        style={{ backgroundColor: 'rgba(255, 250, 240, 0.25)' }}
+        aria-hidden
+      />
 
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 50 && (
@@ -581,7 +593,7 @@ export default function DashboardClient() {
       )}
 
       {/* Main Container - Magazin-Cover Header + Cards */}
-      <PageTransition className="mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32">
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32">
         {/* Daily Hero Header: Kalender-basiert, Subline + Headline, Soft-Fill Pills */}
         <header
           className={cn(
