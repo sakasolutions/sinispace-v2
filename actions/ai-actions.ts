@@ -23,12 +23,10 @@ export async function generateEmail(prevState: any, formData: FormData) {
   if (!isAllowed) return { result: UPSELL_MESSAGE };
 
   const topic = formData.get('topic') as string;
-  const recipient = formData.get('recipient') as string;
+  const recipientRole = (formData.get('recipientRole') as string)?.trim() || '';
   const senderName = formData.get('senderName') as string || '';
   const recipientName = formData.get('recipientName') as string || '';
   const recipientEmail = formData.get('recipientEmail') as string || '';
-  const tone = formData.get('tone') as string;
-  const formality = formData.get('formality') as string || 'Sie'; // Du oder Sie
   const language = formData.get('language') as string || 'Deutsch'; // Sprache
   const length = formData.get('length') as string || 'Mittel'; // Kurz, Mittel, Ausführlich
   const receivedEmail = (formData.get('receivedEmail') as string)?.trim() || '';
@@ -61,27 +59,16 @@ export async function generateEmail(prevState: any, formData: FormData) {
       : 'The email should have a normal length (5-7 sentences).';
   }
 
-  // Anrede-Instruktion (nur für Deutsch relevant)
-  let formalityInstruction = '';
-  if (language === 'Deutsch') {
-    formalityInstruction = formality === 'Du' 
-      ? 'WICHTIG: Verwende die Du-Form (du, dein, dir, etc.). Sei freundlich aber respektvoll.'
-      : 'WICHTIG: Verwende die Sie-Form (Sie, Ihr, Ihnen, etc.). Bleibe professionell und höflich.';
-  }
-
-  // Kontext-Instruktion aus Empfänger-Rolle (z.B. "KEINE Floskeln bei Behörden")
-  const roleInstruction = recipient ? `WICHTIG: ${recipient}` : '';
-
   // Baue User-Prompt mit optionalen Feldern
   let userPrompt: string;
   if (receivedEmail) {
-    userPrompt = `Antworte auf folgende E-Mail:\n\n---\n${receivedEmail}\n---\n\nAnweisungen: ${topic}. Ton: ${tone}, Sprache: ${language}.`;
+    userPrompt = `Antworte auf folgende E-Mail:\n\n---\n${receivedEmail}\n---\n\nAnweisungen: ${topic}. Sprache: ${language}.`;
   } else {
-    userPrompt = `Ton: ${tone}, Sprache: ${language}, Inhalt: ${topic}`;
+    userPrompt = `Sprache: ${language}, Inhalt: ${topic}`;
   }
 
-  if (language === 'Deutsch' && formality) {
-    userPrompt = `${userPrompt} Anrede: ${formality}.`;
+  if (recipientRole) {
+    userPrompt = `Empfänger Rolle/Beziehung: ${recipientRole}. ${userPrompt}`;
   }
 
   if (senderName) {
@@ -96,23 +83,32 @@ export async function generateEmail(prevState: any, formData: FormData) {
     ? 'Der User hat eine E-Mail eingefügt. Verfasse eine passende Antwort darauf. '
     : '';
 
+  // AI-Instruktion für dynamische Empfänger-Analyse
+  const roleAnalysisInstruction = recipientRole
+    ? language === 'Deutsch'
+      ? `WICHTIG: Analysiere die Empfänger-Rolle "${recipientRole}". Leite daraus den perfekten Tonfall (formell, freundlich, bestimmt, locker) und die passende Anrede (Sie/Du) ab. Beispiele: "Vermieter" -> Sie, fordernd aber höflich; "Bester Freund" -> Du, sehr locker; "Behörde" -> Sie, keine Floskeln, direkt zum Punkt; "Mathelehrer" -> Sie, respektvoll; "Anwalt der Gegenseite" -> Sie, kühl und extrem formell.`
+      : `IMPORTANT: Analyze the recipient role "${recipientRole}". Derive the perfect tone (formal, friendly, assertive, casual) and appropriate form of address. Examples: "Landlord" -> formal, assertive but polite; "Best friend" -> casual, relaxed; "Government agency" -> formal, no small talk, get straight to the point; "Math teacher" -> formal, respectful; "Opposing lawyer" -> very formal, cool tone.`
+    : language === 'Deutsch'
+    ? 'Nutze einen neutralen, höflichen Standard-Ton mit Sie-Form.'
+    : 'Use a neutral, polite standard tone.';
+
   // System-Prompt je nach Sprache anpassen
   let systemPrompt = '';
   if (language === 'Deutsch') {
-    systemPrompt = `Du bist ein E-Mail Profi und Muttersprachler. ${replyHint}${lengthInstruction} ${formalityInstruction} ${roleInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden. WICHTIG: Füge KEINE E-Mail-Adressen in den Text ein - diese werden nur für den mailto: Link verwendet.`;
+    systemPrompt = `Du bist ein E-Mail Profi und Muttersprachler. ${replyHint}${lengthInstruction} ${roleAnalysisInstruction} ${languageInstructions[language]} Antworte nur mit dem Text. Verwende die angegebenen Namen für Anrede und Abschluss, falls vorhanden. WICHTIG: Füge KEINE E-Mail-Adressen in den Text ein - diese werden nur für den mailto: Link verwendet.`;
   } else if (language === 'Englisch') {
-    systemPrompt = `You are an email professional and native English speaker. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text - they are only used for the mailto: link.`;
+    systemPrompt = `You are an email professional and native English speaker. ${replyHint}${lengthInstruction} ${roleAnalysisInstruction} ${languageInstructions[language]} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text - they are only used for the mailto: link.`;
   } else if (language === 'Französisch') {
-    systemPrompt = `Tu es un professionnel de l'email et locuteur natif français. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Réponds uniquement avec le texte. Utilise les noms fournis pour la salutation et la fermeture, s'ils sont disponibles. IMPORTANT: N'inclus PAS d'adresses email dans le texte - elles ne sont utilisées que pour le lien mailto:.`;
+    systemPrompt = `Tu es un professionnel de l'email et locuteur natif français. ${replyHint}${lengthInstruction} ${roleAnalysisInstruction} ${languageInstructions[language]} Réponds uniquement avec le texte. Utilise les noms fournis pour la salutation et la fermeture, s'ils sont disponibles. IMPORTANT: N'inclus PAS d'adresses email dans le texte - elles ne sont utilisées que pour le lien mailto:.`;
   } else if (language === 'Türkisch') {
-    systemPrompt = `Sen bir e-posta profesyonelisin ve ana dili Türkçe olan birisin. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Sadece metinle cevap ver. Varsa verilen isimleri selamlama ve kapanış için kullan. ÖNEMLİ: Türkçe e-postalarda doğal, yerli ifadeler kullan. "Umarım bu e-posta sizi iyi bulur" gibi çeviri kokan ifadeler ASLA kullanma. Bunun yerine doğrudan "Sayın [İsim]," ile başla veya kısa bir selamlama yap. ÖNEMLİ: E-posta adreslerini metne EKLEME - bunlar sadece mailto: bağlantısı için kullanılır.`;
+    systemPrompt = `Sen bir e-posta profesyonelisin ve ana dili Türkçe olan birisin. ${replyHint}${lengthInstruction} ${roleAnalysisInstruction} ${languageInstructions[language]} Sadece metinle cevap ver. Varsa verilen isimleri selamlama ve kapanış için kullan. ÖNEMLİ: Türkçe e-postalarda doğal, yerli ifadeler kullan. "Umarım bu e-posta sizi iyi bulur" gibi çeviri kokan ifadeler ASLA kullanma. Bunun yerine doğrudan "Sayın [İsim]," ile başla veya kısa bir selamlama yap. ÖNEMLİ: E-posta adreslerini metne EKLEME - bunlar sadece mailto: bağlantısı için kullanılır.`;
   } else if (language === 'Italienisch') {
-    systemPrompt = `Sei un professionista delle email e madrelingua italiana. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Rispondi solo con il testo. Usa i nomi forniti per il saluto e la chiusura, se disponibili. IMPORTANTE: NON includere indirizzi email nel testo - sono usati solo per il link mailto:.`;
+    systemPrompt = `Sei un professionista delle email e madrelingua italiana. ${replyHint}${lengthInstruction} ${roleAnalysisInstruction} ${languageInstructions[language]} Rispondi solo con il testo. Usa i nomi forniti per il saluto e la chiusura, se disponibili. IMPORTANTE: NON includere indirizzi email nel testo - sono usati solo per il link mailto:.`;
   } else if (language === 'Spanisch') {
-    systemPrompt = `Eres un profesional del correo electrónico y hablante nativo de español. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language]} Responde solo con el texto. Usa los nombres proporcionados para el saluto y el cierre, si están disponibles. IMPORTANTE: NO incluyas direcciones de correo electrónico en el texto - solo se usan para el enlace mailto:.`;
+    systemPrompt = `Eres un profesional del correo electrónico y hablante nativo de español. ${replyHint}${lengthInstruction} ${roleAnalysisInstruction} ${languageInstructions[language]} Responde solo con el texto. Usa los nombres proporcionados para el saluto y el cierre, si están disponibles. IMPORTANTE: NO incluyas direcciones de correo electrónico en el texto - solo se usan para el enlace mailto:.`;
   } else {
     // Fallback
-    systemPrompt = `You are an email professional. ${replyHint}${lengthInstruction} ${roleInstruction} ${languageInstructions[language] || ''} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text.`;
+    systemPrompt = `You are an email professional. ${replyHint}${lengthInstruction} ${roleAnalysisInstruction} ${languageInstructions[language] || ''} Reply only with the text. Use the provided names for greeting and closing, if available. IMPORTANT: Do NOT include email addresses in the text.`;
   }
 
   try {
@@ -250,20 +246,17 @@ export async function generateEmailWithChat(prevState: any, formData: FormData) 
   
   // Wenn erfolgreich, Chat in DB speichern
   if (result?.result && !result.error) {
-    const recipient = formData.get('recipient') as string || 'Unbekannt';
+    const recipientRole = formData.get('recipientRole') as string || '';
     const senderName = formData.get('senderName') as string || '';
     const recipientName = formData.get('recipientName') as string || '';
-    const tone = formData.get('tone') as string || 'Professionell';
-    const formality = formData.get('formality') as string || 'Sie';
     const language = formData.get('language') as string || 'Deutsch';
     const topic = formData.get('topic') as string || '';
     const workspaceId = formData.get('workspaceId') as string || undefined;
     
-    let userInput = `Ton: ${tone}, Sprache: ${language}, Inhalt: ${topic}`;
-    if (language === 'Deutsch' && formality) userInput = `${userInput}, Anrede: ${formality}`;
+    let userInput = `Sprache: ${language}, Inhalt: ${topic}`;
+    if (recipientRole) userInput = `Empfänger-Rolle: ${recipientRole}, ${userInput}`;
     if (senderName) userInput = `Absender: ${senderName}, ${userInput}`;
     if (recipientName) userInput = `${userInput}, Empfänger: ${recipientName}`;
-    if (recipient) userInput = `${userInput}, Kontext: ${recipient}`;
     
     await createHelperChat('email', userInput, result.result);
     
@@ -274,7 +267,7 @@ export async function generateEmailWithChat(prevState: any, formData: FormData) 
       result.result,
       workspaceId,
       topic.substring(0, 100),
-      JSON.stringify({ tone, language, formality, recipient })
+      JSON.stringify({ recipientRole, language })
     );
   }
   
