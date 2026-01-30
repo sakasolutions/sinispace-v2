@@ -483,7 +483,7 @@ export default function TranslatePage() {
         </aside>
 
         {/* Right: Ergebnis & Analyse (65%) */}
-        <main ref={resultRef} className="flex-1 min-w-0 flex flex-col bg-gray-50 lg:bg-gray-50/80">
+        <main ref={resultRef} className="flex-1 min-w-0 flex flex-col">
           <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
             {parsed && (parsed.content_text || (parsed.layout_type === 'menu' && parsed.menu_items.length > 0)) ? (
               <div className="space-y-4">

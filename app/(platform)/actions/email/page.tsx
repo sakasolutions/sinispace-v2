@@ -563,7 +563,7 @@ export default function EmailPage() {
         </aside>
 
         {/* Right: Das Papier (65%) */}
-        <main ref={resultRef} className="flex-1 min-w-0 flex flex-col bg-gray-50 lg:bg-gray-50/80">
+        <main ref={resultRef} className="flex-1 min-w-0 flex flex-col">
           <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 flex items-start justify-center">
             {state?.result && !state.error && (state.result.includes('Premium') || state.result.includes('Freischalten')) ? (
               <motion.div
