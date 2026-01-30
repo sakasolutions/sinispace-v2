@@ -17,13 +17,13 @@ export function AppBackground() {
       <div 
         className="absolute inset-0 w-full h-full"
         style={{
-          background: 'linear-gradient(180deg, #fffefc 0%, #fcfaf8 50%, #f9f7f5 100%)',
+          background: 'linear-gradient(180deg, #ffffff 0%, #fffefc 30%, #fcfaf8 100%)',
         }}
       />
-      {/* Aurora Glow - weicher Lichtschein von oben */}
+      {/* Aurora Glow - dezenter Morgensonne-Schimmer (sehr subtil) */}
       <div 
-        className="absolute w-[800px] h-[800px] -top-[400px] left-1/2 -translate-x-1/2 rounded-full blur-3xl pointer-events-none"
-        style={{ backgroundColor: 'rgba(254, 215, 170, 0.4)' }}
+        className="absolute w-[800px] h-[800px] top-[-40vh] left-1/2 -translate-x-1/2 rounded-full blur-3xl pointer-events-none"
+        style={{ backgroundColor: 'rgba(255, 250, 240, 0.35)' }}
       />
       
       {/* Layer 2: Ambient Brand Blobs - DEUTLICH sichtbar (12-18% opacity) */}

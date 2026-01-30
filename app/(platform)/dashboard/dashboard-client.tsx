@@ -672,6 +672,7 @@ export default function DashboardClient() {
                         <div className={cn(
                           'flex items-center justify-center rounded-2xl transition-all duration-200 p-3 md:p-4',
                           'shadow-md group-hover:shadow-lg group-hover:scale-[1.02]',
+                          'border border-gray-100',
                           tool.color === 'orange' && 'bg-orange-100',
                           tool.color === 'pink' && 'bg-pink-100',
                           tool.color === 'rose' && 'bg-rose-100',
