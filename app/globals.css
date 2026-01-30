@@ -251,19 +251,19 @@
     }
   }
 
-  /* PRIMARY CARD HOVER: Spürbarer Lift + stärkerer Schatten */
+  /* PRIMARY CARD HOVER: Subtile Translation + Shadow-Anpassung */
   .card-elevation-primary:hover {
-    transform: translateY(-4px);
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease-out;
+    transform: translateY(-2px);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
   }
   
-  /* Desktop: Luxus-Hover-Schatten (stärker für 3D-Feeling) */
+  /* Desktop: Luxus-Hover-Schatten */
   @media (min-width: 768px) {
     .card-elevation-primary:hover {
       box-shadow: 
-        0 4px 6px rgba(0, 0, 0, 0.05),
-        0 10px 20px rgba(0, 0, 0, 0.08),
-        0 20px 40px rgba(0, 0, 0, 0.1);
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        0 8px 16px rgba(0, 0, 0, 0.08),
+        0 16px 32px rgba(0, 0, 0, 0.12);
     }
   }
   
@@ -317,16 +317,16 @@
     
   }
 
-  /* Desktop: Luxus-Hover mit Ambient Glow (stärkerer Lift) */
+  /* Desktop: Luxus-Hover mit Ambient Glow */
   @media (min-width: 768px) {
     .card-elevation-primary-hero:hover {
-      transform: translateY(-4px);
+      transform: translateY(-2px);
       box-shadow: 
-        0 4px 6px rgba(0, 0, 0, 0.05),
-        0 10px 20px rgba(0, 0, 0, 0.08),
-        0 20px 40px rgba(0, 0, 0, 0.1),
-        0 0 0 1px rgba(249, 115, 22, 0.15); /* Verstärkter Glow beim Hover */
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease-out;
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        0 8px 16px rgba(0, 0, 0, 0.08),
+        0 16px 32px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(249, 115, 22, 0.12); /* Leicht verstärkter Glow beim Hover */
+      transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
     }
   }
   
@@ -371,18 +371,18 @@
     
   }
 
-  /* SECONDARY CARD HOVER: Spürbare Translation + Schatten */
+  /* SECONDARY CARD HOVER: Minimale Translation */
   .card-elevation-secondary:hover {
-    transform: translateY(-3px);
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease-out;
+    transform: translateY(-1px);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
   }
   
   /* Desktop: Luxus-Hover-Schatten */
   @media (min-width: 768px) {
     .card-elevation-secondary:hover {
       box-shadow: 
-        0 4px 6px rgba(0, 0, 0, 0.05),
-        0 8px 16px rgba(0, 0, 0, 0.08);
+        0 2px 4px rgba(0, 0, 0, 0.04),
+        0 4px 8px rgba(0, 0, 0, 0.06);
     }
   }
   
@@ -408,29 +408,6 @@
       animation: none !important;
       will-change: auto !important;
     }
-  }
-
-  /* Trending Ribbon – Farbiger Stripe in der Ecke (professioneller als Badge) */
-  .trending-ribbon {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 4rem;
-    height: 4rem;
-    overflow: hidden;
-    z-index: 10;
-    pointer-events: none;
-  }
-  .trending-ribbon::before {
-    content: '';
-    position: absolute;
-    top: -1.5rem;
-    right: -1.5rem;
-    width: 3rem;
-    height: 3rem;
-    background: linear-gradient(135deg, rgb(249, 115, 22), rgb(244, 114, 182));
-    transform: rotate(45deg);
-    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
   }
 
   /* Smooth gradient rendering for category tabs */
