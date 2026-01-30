@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { BackButton } from '@/components/ui/back-button';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
+import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 
 const QUICK_CHIPS = [
   { id: 'authority', label: 'Behörde' },
@@ -206,7 +207,43 @@ export default function EmailPage() {
 
   return (
     <div className="flex flex-col mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-      <BackButton href="/dashboard" className="text-gray-600 hover:text-gray-900 mb-3 tracking-tight" />
+      <div className="flex items-center justify-between mb-3">
+        <BackButton href="/dashboard" className="text-gray-600 hover:text-gray-900 tracking-tight" />
+        <WhatIsThisModal
+          title="Email-Profi"
+          content={
+            <div className="space-y-3 text-gray-700">
+              <p>
+                Dein intelligenter <strong>E-Mail-Ghostwriter</strong> mit KI-gestütztem Kontext-Verständnis. Gib einfach Stichpunkte ein – die AI schreibt professionelle E-Mails in perfektem Deutsch (oder 5 anderen Sprachen).
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>2 Modi:</strong> Neue Mail schreiben oder auf erhaltene E-Mails antworten. Die AI passt Ton, Anrede (Sie/Du) und Struktur automatisch an den Empfänger an.
+              </p>
+            </div>
+          }
+          examples={[
+            '"Vermieter" + "Heizung kaputt" → Mängelanzeige, sachlich, Sie-Form',
+            '"Bester Freund" + "Party absagen" → Locker, Du-Form, kurz',
+            '"Anwalt Gegenseite" + "Angebot ablehnen" → Kühl, formal, präzise',
+          ]}
+          useCases={[
+            'Stichpunkte eingeben, AI schreibt vollständige Mail',
+            'Antwort-Modus: Original-Mail einfügen, AI greift Kontext auf',
+            'Smart Role Input: Beliebige Empfänger-Rolle (Chef, Mathelehrer, Nachbar...)',
+            'Anti-Cringe-Rules: Keine kitschigen US-KI-Phrasen ("Ich hoffe, diese Nachricht trifft Sie wohl")',
+            'Magic-Buttons: Kürzen, Lockerer machen, Grammatik-Check',
+            'Längen-Präferenz: Kurz (2-3 Sätze) / Standard / Ausführlich',
+            'Dringlichkeit: Normal / Dringend / Sehr dringend',
+            'Anhang-Erwähnung: AI formuliert "Im Anhang finden Sie..."',
+          ]}
+          tips={[
+            'Empfänger-Rolle bestimmt Ton & Anrede automatisch (z.B. Behörde → Sie, keine Floskeln)',
+            'Im Antwort-Modus: Paste die erhaltene Mail, AI versteht den Kontext',
+            'Bei "Nein" generiert AI höfliche Absage (nicht plump)',
+            'Betreff wird automatisch erstellt (bei Behörden mit Aktenzeichen)',
+          ]}
+        />
+      </div>
 
       <div
         className={cn(
