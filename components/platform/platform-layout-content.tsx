@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { signOutAction } from '@/actions/auth-actions';
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-import { HeroBackground } from '@/components/ui/hero-background';
+import { AppBackground } from '@/components/ui/app-background';
 import { MobileNav } from '@/components/mobile-nav';
 import { AnalyticsTracker } from '@/components/platform/analytics-tracker';
 import { triggerHaptic } from '@/lib/haptic-feedback';
@@ -93,8 +93,8 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
   // Sonst: Normales Layout mit Sidebar und Header
   return (
     <div className="flex h-[100dvh] overflow-x-hidden relative">
-      {/* PREMIUM: Hero Background mit Radial Gradient & Floating Elements */}
-      <HeroBackground showGlows={true} />
+      {/* App Background: Warmverlauf + Ambient Brand Blobs (Variante 1+3) */}
+      <AppBackground />
       
       {/* Fine Grain Texture entfernt – hat als Schleier über dem Content gewirkt */}
       
