@@ -473,104 +473,138 @@ export async function generateSummaryWithChat(prevState: any, formData: FormData
   return result;
 }
 
-// --- ÜBERSETZER (KULTUR-DOLMETSCHER) ---
+// --- ÜBERSETZER (KULTUR-DOLMETSCHER) mit Vision ---
+async function fileToBase64DataUrl(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+  const base64 = buffer.toString('base64');
+  const mimeType = file.type || 'image/jpeg';
+  return `data:${mimeType};base64,${base64}`;
+}
+
 export async function generateTranslate(prevState: any, formData: FormData) {
   const isAllowed = await isUserPremium();
   if (!isAllowed) return { result: UPSELL_MESSAGE };
 
-  const text = formData.get('text') as string;
+  const text = (formData.get('text') as string || '').trim();
+  const imageFile = formData.get('image') as File | null;
   const targetLanguage = formData.get('targetLanguage') as string || 'Englisch (US)';
   const mode = formData.get('mode') as string || 'Business & Professionell';
 
-  if (!text) return { error: 'Bitte gib einen Text ein.' };
+  const hasImage = imageFile && imageFile.size > 0 && imageFile.type.startsWith('image/');
+  if (!text && !hasImage) {
+    return { error: 'Bitte gib einen Text ein oder nimm ein Foto auf.' };
+  }
 
   // Kontext-Instruktion je nach Vibe/Modus
   let contextInstruction = '';
   let vibeDescription = '';
   
   if (mode === 'Business & Professionell') {
-    contextInstruction = 'Übersetze professionell und geschäftlich. Formelle, aber freundliche Sprache. "Sie"-Form wenn passend.';
+    contextInstruction = 'Übersetze professionell und geschäftlich. Formelle, aber freundliche Sprache.';
     vibeDescription = 'formell und distanziert';
   } else if (mode === 'Wie ein Muttersprachler') {
-    contextInstruction = 'Übersetze wie ein Muttersprachler (Slang/Street-Level). Nutze authentische Redewendungen, Slang und idiomatische Ausdrücke der Zielsprache. KEINE 1:1 Übersetzungen! Klingt wie ein Native Speaker unter Freunden.';
+    contextInstruction = 'Übersetze wie ein Muttersprachler. Nutze idiomatische Ausdrücke der Zielsprache. KEINE 1:1 Übersetzungen!';
     vibeDescription = 'authentisch und straßentauglich (Native Speaker)';
   } else if (mode === 'Umgangssprache & Locker') {
-    contextInstruction = 'Übersetze umgangssprachlich und locker. Freundliche, informelle Sprache wie unter Freunden oder in Social Media.';
+    contextInstruction = 'Übersetze umgangssprachlich und locker. Freundliche, informelle Sprache.';
     vibeDescription = 'locker und freundschaftlich';
   } else if (mode === 'Romantisch & Charmant') {
-    contextInstruction = 'Übersetze charmant und romantisch. Nutze warme, einnehmende Formulierungen. Perfekt für Dating, Flirten oder Partner. Sei nicht kitschig, aber herzlich.';
+    contextInstruction = 'Übersetze charmant und romantisch. Warme, herzliche Formulierungen.';
     vibeDescription = 'charmant und herzlich (romantischer Kontext)';
   } else if (mode === 'Präzise & Wörtlich') {
-    contextInstruction = 'Übersetze präzise und möglichst wörtlich. Für technische Dokumentationen oder rechtliche Texte.';
+    contextInstruction = 'Übersetze präzise und möglichst wörtlich.';
     vibeDescription = 'präzise und wörtlich';
   } else if (mode === 'Einfach & Erklärend') {
-    contextInstruction = 'Übersetze einfach und leicht verständlich. Einfache Worte, kurze Sätze.';
+    contextInstruction = 'Übersetze einfach und leicht verständlich.';
     vibeDescription = 'einfach und verständlich';
   } else {
     contextInstruction = 'Übersetze professionell und angemessen.';
     vibeDescription = 'neutral und professionell';
   }
 
-  const systemPrompt = `Du bist ein Kultur-Dolmetscher und Sprachlehrer mit jahrelanger Erfahrung. Übersetze den Text in: ${targetLanguage}.
+  const isImageMode = hasImage;
+  let systemPrompt: string;
+
+  if (isImageMode) {
+    systemPrompt = `Du bist ein Kultur-Dolmetscher mit Vision-Fähigkeit. Analysiere das Bild und übersetze in: ${targetLanguage}.
+
+BILD-ANALYSE:
+1. Erkenne ALLEN Text auf dem Bild (Speisekarte, Schild, Dokument, Verpackung).
+2. Übersetze den Text in die Zielsprache – sinngemäß, nicht wörtlich.
+3. Erkenne den KONTEXT: Ist es ein Gericht? Ein Warnschild? Ein kultureller Hinweis? Ein Straßenschild?
+
+KULTURELLER KONTEXT (cultural_context):
+- Bei SPEISEKARTEN: Erkläre, was man da isst – z.B. "Vorsicht, das Gericht ist sehr scharf" oder "Das ist ein fermentiertes Gemüse mit intensivem Geschmack".
+- Bei WARNUNGEN: Erkläre die Bedeutung.
+- Bei kulturellen Begriffen: Erkläre sie auf Deutsch.
+
+ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt:
+{
+  "translation": "Der vollständig übersetzte Text (oder Zusammenfassung bei viel Text)...",
+  "cultural_context": "Max 2 Sätze auf Deutsch: Was steckt dahinter? Was soll der User wissen? (z.B. Speisekarten-Erklärung, Schärfe-Hinweis, kulturelle Bedeutung)",
+  "alternatives": []
+}`;
+  } else {
+    systemPrompt = `Du bist ein Kultur-Dolmetscher und Sprachlehrer. Übersetze den Text in: ${targetLanguage}.
 
 VIBE/STIL: ${mode}
 ${contextInstruction}
 
-WICHTIGE REGELN:
-1. IDIOM-HANDLING: Übersetze NIEMALS wörtlich! Finde das kulturelle Äquivalent.
-   - "Ich glaub mein Schwein pfeift" → NICHT "I think my pig whistles" → SONDERN "I can't believe my eyes"
-   - "Das ist nicht mein Bier" → NICHT "That's not my beer" → SONDERN "That's not my cup of tea"
-   - Sprichwörter und Redewendungen IMMER kulturell übersetzen!
+REGELN:
+1. IDIOM-HANDLING: NIEMALS wörtlich! Kulturelles Äquivalent finden.
+2. cultural_context: Kulturelle Nuancen auf Deutsch (max 2 Sätze). Höflichkeitsformen, Slang-Warnungen, False Friends.
+3. ALTERNATIVEN: 2 Varianten (formeller, lockerer).
 
-2. KONTEXT-HINWEIS (Sprachlehrer-Modus):
-   - Erkläre kulturelle Nuancen auf Deutsch (max 2 Sätze)
-   - Höflichkeitsformen (z.B. Japanisch: keigo, Türkisch: siz/sen, Deutsch: Sie/Du)
-   - Slang-Warnungen (z.B. "Dieser Ausdruck ist sehr umgangssprachlich")
-   - Fallstricke (z.B. "False Friends", kulturelle Fettnäpfchen)
-
-3. ALTERNATIVEN: 2 Varianten (eine formellere, eine kürzere/lockerere)
-
-ANTWORT-FORMAT: Antworte NUR mit einem validen JSON-Objekt, NICHTS ANDERES:
+ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt:
 {
-  "translation": "Die Hauptübersetzung hier...",
-  "context_note": "Kurze Erklärung auf Deutsch (max 2 Sätze): Warum dieser Tonfall? Kulturelle Hinweise? Der gewählte Stil ist ${vibeDescription}.",
-  "alternatives": ["Alternative 1 (formeller/länger)", "Alternative 2 (kürzer/lockerer)"]
+  "translation": "Die Hauptübersetzung...",
+  "cultural_context": "Kurze Erklärung auf Deutsch (max 2 Sätze). Der Stil ist ${vibeDescription}.",
+  "alternatives": ["Alternative 1 (formeller)", "Alternative 2 (lockerer)"]
 }`;
+  }
+
+  let userContent: string | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>;
+
+  if (isImageMode && imageFile) {
+    const dataUrl = await fileToBase64DataUrl(imageFile);
+    userContent = [
+      { type: 'text' as const, text: text || 'Erkenne und übersetze den Text auf diesem Bild. Erkläre den kulturellen Kontext.' },
+      { type: 'image_url' as const, image_url: { url: dataUrl } },
+    ];
+  } else {
+    userContent = text;
+  }
 
   try {
     const response = await createChatCompletion({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: text }
+        { role: 'user', content: userContent },
       ],
     }, 'translate', 'Sprachbrücke');
     
     const content = response.choices[0].message.content || '';
+    const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     
-    // Versuche JSON zu parsen
     try {
-      // Entferne mögliche Markdown-Code-Blöcke
-      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       const parsed = JSON.parse(cleanContent);
-      
-      // Validiere das Ergebnis
       if (parsed.translation && typeof parsed.translation === 'string') {
         return { 
           result: JSON.stringify({
             translation: parsed.translation,
-            context_note: parsed.context_note || '',
-            alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : []
+            cultural_context: parsed.cultural_context || parsed.context_note || '',
+            alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : [],
           })
         };
       }
-    } catch (parseError) {
-      // Fallback: Wenn JSON-Parsing fehlschlägt, gib den Text als Translation zurück
+    } catch {
       return { 
         result: JSON.stringify({
           translation: content,
-          context_note: '',
-          alternatives: []
+          cultural_context: '',
+          alternatives: [],
         })
       };
     }
@@ -585,24 +619,25 @@ ANTWORT-FORMAT: Antworte NUR mit einem validen JSON-Objekt, NICHTS ANDERES:
 export async function generateTranslateWithChat(prevState: any, formData: FormData) {
   const result = await generateTranslate(prevState, formData);
   
-  // Wenn erfolgreich, Chat in DB speichern
   if (result?.result && !result.error) {
-    const text = formData.get('text') as string || '';
+    const text = (formData.get('text') as string || '').trim();
+    const hasImage = formData.get('image') instanceof File && (formData.get('image') as File).size > 0;
     const targetLanguage = formData.get('targetLanguage') as string || 'Englisch (US)';
     const mode = formData.get('mode') as string || 'Business & Professionell';
     const workspaceId = formData.get('workspaceId') as string || undefined;
-    const userInput = `Ziel-Sprache: ${targetLanguage}, Modus: ${mode}, Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
+    const userInput = hasImage
+      ? `Ziel: ${targetLanguage}, Modus: ${mode}${text ? `, Kontext: ${text.substring(0, 80)}` : ''}, [Bild]`
+      : `Ziel: ${targetLanguage}, Modus: ${mode}, Text: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`;
     
     await createHelperChat('translate', userInput, result.result);
     
-    // Result in Workspace speichern
     await saveResult(
       'translate',
-      'Kontext Übersetzer',
+      'Sprachbrücke',
       result.result,
       workspaceId,
       `Übersetzung nach ${targetLanguage}`,
-      JSON.stringify({ targetLanguage, mode, textLength: text.length })
+      JSON.stringify({ targetLanguage, mode, textLength: text.length, hasImage })
     );
   }
   

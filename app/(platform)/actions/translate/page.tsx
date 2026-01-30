@@ -11,6 +11,8 @@ import {
   Sparkles,
   Volume2,
   ChevronDown,
+  Camera,
+  X,
 } from 'lucide-react';
 import { useFormStatus } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -80,7 +82,7 @@ const LANGUAGES = [
 
 interface TranslationResult {
   translation: string;
-  context_note: string;
+  context_note: string; // cultural_context oder context_note
   alternatives: string[];
 }
 
@@ -89,12 +91,11 @@ function parseResult(text: string): TranslationResult {
   if (!text) return result;
 
   try {
-    // Versuche JSON zu parsen
     const parsed = JSON.parse(text);
     if (parsed.translation && typeof parsed.translation === 'string') {
       return {
         translation: parsed.translation,
-        context_note: parsed.context_note || '',
+        context_note: parsed.cultural_context || parsed.context_note || '',
         alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : [],
       };
     }
@@ -124,12 +125,12 @@ function parseResult(text: string): TranslationResult {
   return result;
 }
 
-function SubmitButton() {
+function SubmitButton({ canSubmit = true }: { canSubmit?: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || !canSubmit}
       className={cn(
         'w-full rounded-xl py-3.5 font-semibold text-white tracking-tight',
         'bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600',
@@ -162,9 +163,11 @@ export default function TranslatePage() {
   const [toast, setToast] = useState<string | null>(null);
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [selectedAlternative, setSelectedAlternative] = useState<number | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const resultRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sourceLanguage = LANGUAGES.find((l) => l.code === sourceLang);
   const targetLanguage = LANGUAGES.find((l) => l.code === targetLang);
@@ -180,11 +183,15 @@ export default function TranslatePage() {
 
   useEffect(() => {
     if (state?.result && !state.error) {
-      // Reset Alternative-Auswahl bei neuem Ergebnis
       setSelectedAlternative(null);
       setShowAlternatives(false);
+      // Bild nach erfolgreicher Übersetzung zurücksetzen
+      setImagePreview(prev => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
       
-      // Auto-scroll on mobile
       if (window.innerWidth < 1024 && resultRef.current) {
         setTimeout(() => {
           resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -229,7 +236,6 @@ export default function TranslatePage() {
   
   const handleSelectAlternative = (idx: number) => {
     if (selectedAlternative === idx) {
-      // Deselect: zurück zum Original
       setSelectedAlternative(null);
       setToast('Original wiederhergestellt');
     } else {
@@ -237,6 +243,25 @@ export default function TranslatePage() {
       setToast(`Variante ${idx + 1} ausgewählt`);
     }
   };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setImagePreview(prev => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(file);
+      });
+    }
+  };
+
+  const handleClearImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const hasImage = !!imagePreview;
+  const canSubmit = text.trim().length > 0 || hasImage;
 
   return (
     <div className="flex flex-col mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-8">
@@ -261,15 +286,15 @@ export default function TranslatePage() {
           ]}
           useCases={[
             '4 Vibe-Modi: Business, Casual, Slang/Street, Romantisch',
+            'Foto-Funktion: Speisekarte, Schild oder Dokument abfotografieren',
+            'Smart Context: Erklärung, was du da gerade bestellst oder liest',
             'Idiom-Handling: Sprichwörter werden kulturell übersetzt',
-            'Safety Check: Erklärung warum so übersetzt wurde',
-            'Alternativen: 2-3 weitere Varianten zum Vergleich',
             '25+ Sprachen mit Flaggen-Icons',
           ]}
           tips={[
-            'Nutze Slang/Street für authentische Native-Speaker-Formulierungen',
-            'Der Safety Check erklärt, wie der Ton beim Empfänger ankommt',
-            'Alternativen zeigen dir formellere oder lockerere Optionen',
+            'Fotografiere Speisekarten – die AI erklärt dir, was du bestellst',
+            'Bei Bildern: cultural_context erklärt z.B. Schärfe oder Zutaten',
+            'Alternativen nur bei Text-Input (nicht bei Fotos)',
           ]}
         />
       </div>
@@ -324,20 +349,54 @@ export default function TranslatePage() {
                 <input type="hidden" name="targetLanguage" value={targetLanguage?.name || 'Englisch (US)'} />
               </div>
 
-              {/* Input-Area */}
+              {/* Input-Area: Text + Foto */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 tracking-tight mb-2">
-                  Was möchtest du sagen?
+                  Was möchtest du sagen? Oder Foto aufnehmen
                 </label>
-                <textarea
-                  name="text"
-                  required
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Gib hier deinen Text ein oder füge ihn ein..."
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 resize-none min-h-[180px] tracking-tight"
-                  rows={8}
-                />
+                <div className="relative">
+                  <textarea
+                    name="text"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="Text eingeben… oder Foto von Speisekarte, Schild, Dokument machen"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-12 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 resize-none min-h-[160px] tracking-tight"
+                    rows={6}
+                  />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageSelect}
+                    className="absolute right-2 top-2 w-10 h-10 opacity-0 cursor-pointer z-10"
+                    aria-label="Foto aufnehmen oder auswählen"
+                  />
+                  <div
+                    className="absolute right-2 top-2 w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 pointer-events-none"
+                    aria-hidden
+                  >
+                    <Camera className="w-5 h-5" />
+                  </div>
+                </div>
+                {imagePreview && (
+                  <div className="mt-3 relative inline-block">
+                    <img
+                      src={imagePreview}
+                      alt="Vorschau"
+                      className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleClearImage}
+                      className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+                      aria-label="Bild entfernen"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Vibe-Check */}
@@ -368,7 +427,7 @@ export default function TranslatePage() {
                 <input type="hidden" name="workspaceId" value="" />
               </div>
 
-              <SubmitButton />
+              <SubmitButton canSubmit={canSubmit} />
 
               {state?.error && (
                 <p className="text-sm text-red-600 tracking-tight">{state.error}</p>
@@ -431,10 +490,10 @@ export default function TranslatePage() {
                     </p>
                   </div>
                   
-                  {/* Context Note - innerhalb der Karte */}
+                  {/* Context-Box (cultural_context / Smart Context) */}
                   {parsed.context_note && (
                     <div className="px-4 sm:px-6 pb-5">
-                      <div className="bg-blue-50/50 rounded-lg border border-blue-100 p-3">
+                      <div className="bg-blue-50 rounded-lg border border-blue-100 p-3">
                         <div className="flex items-start gap-2.5">
                           <span className="text-base shrink-0">💡</span>
                           <p className="text-sm text-blue-800 leading-relaxed">
