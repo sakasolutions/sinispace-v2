@@ -634,14 +634,15 @@ export default function DashboardClient() {
         {/* SMART USAGE-BASED CARD HIERARCHY */}
         {sortedAndFilteredTools.length > 0 ? (
           <div className="space-y-3 md:space-y-6 lg:space-y-8">
-            {/* HERO CARDS: Mobile 2x2 größer & zentriert, Desktop 2x2 Grid */}
+            {/* HERO CARDS: Mobile 2x2 zentriert (flex wrapper), Desktop 2x2 Grid */}
             {heroTools.length > 0 && (
-              <div 
-                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 max-w-sm md:max-w-none mx-auto md:mx-0"
-                style={{
-                  gridAutoRows: 'minmax(auto, auto)',
-                }}
-              >
+              <div className="flex justify-center md:block">
+                <div 
+                  className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 w-[300px] sm:w-[340px] md:w-auto md:max-w-none"
+                  style={{
+                    gridAutoRows: 'minmax(auto, auto)',
+                  }}
+                >
                 {heroTools.map((tool, index) => {
                   const Icon = tool.icon;
                   const colors = toolColors[tool.color] || toolColors.blue;
@@ -741,6 +742,7 @@ export default function DashboardClient() {
                     </div>
                   );
                 })}
+              </div>
               </div>
             )}
 
