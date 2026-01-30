@@ -30,6 +30,11 @@ export async function generateEmail(prevState: any, formData: FormData) {
   const language = formData.get('language') as string || 'Deutsch'; // Sprache
   const length = formData.get('length') as string || 'Mittel'; // Kurz, Mittel, Ausführlich
   const receivedEmail = (formData.get('receivedEmail') as string)?.trim() || '';
+  
+  // Neue Features
+  const urgency = formData.get('urgency') as string || 'normal'; // normal, urgent, very_urgent
+  const hasAttachment = formData.get('hasAttachment') === 'true';
+  const attachmentDescription = (formData.get('attachmentDescription') as string)?.trim() || '';
 
   if (!topic) return { error: 'Bitte gib ein Thema ein.' };
 
@@ -99,6 +104,21 @@ DEUTSCHE BUSINESS-KOMMUNIKATION:
     userPrompt = `${userPrompt} Empfänger Name: ${recipientName}.`;
   }
 
+  // Dringlichkeit
+  if (urgency === 'urgent') {
+    userPrompt = `${userPrompt} DRINGLICHKEIT: Zeitnahe Rückmeldung erbeten.`;
+  } else if (urgency === 'very_urgent') {
+    userPrompt = `${userPrompt} DRINGLICHKEIT: Sehr dringend! Antwort schnellstmöglich benötigt.`;
+  }
+
+  // Anhang
+  if (hasAttachment) {
+    const attachInfo = attachmentDescription 
+      ? `Ein Anhang wird beigefügt: ${attachmentDescription}` 
+      : 'Ein Anhang wird beigefügt';
+    userPrompt = `${userPrompt} ANHANG: ${attachInfo}.`;
+  }
+
   const replyHint = receivedEmail
     ? language === 'Deutsch'
       ? `ANTWORT-MODUS AKTIV:
@@ -146,6 +166,27 @@ Der User antwortet auf eine erhaltene E-Mail. Deine Aufgabe:
     ? 'Nutze einen neutralen, höflichen Standard-Ton mit Sie-Form. Keine kitschigen Floskeln.'
     : 'Use a neutral, polite standard tone.';
 
+  // Dringlichkeits-Instruktion
+  let urgencyInstruction = '';
+  if (urgency === 'urgent') {
+    urgencyInstruction = language === 'Deutsch'
+      ? `DRINGLICHKEIT: Der User hat die Mail als "Dringend" markiert. Füge am Ende des Haupttexts (vor der Grußformel) einen höflichen, aber klaren Hinweis ein, dass eine zeitnahe Rückmeldung gewünscht ist. Beispiele: "Ich würde mich über eine zeitnahe Rückmeldung freuen." / "Für eine baldige Antwort wäre ich Ihnen sehr dankbar."`
+      : 'URGENCY: The user marked this as "Urgent". Add a polite but clear note requesting a timely response.';
+  } else if (urgency === 'very_urgent') {
+    urgencyInstruction = language === 'Deutsch'
+      ? `DRINGLICHKEIT: SEHR DRINGEND! Füge direkt nach dem Anliegen einen deutlichen Hinweis ein. Beispiele: "Aufgrund der Dringlichkeit bitte ich um Rückmeldung bis [morgen/übermorgen]." / "Da die Frist am [Datum] abläuft, bitte ich um schnellstmögliche Bearbeitung."`
+      : 'URGENCY: VERY URGENT! Add a clear, assertive note requesting immediate response with a deadline if possible.';
+  }
+
+  // Anhang-Instruktion
+  let attachmentInstruction = '';
+  if (hasAttachment) {
+    const attachDetail = attachmentDescription ? ` (${attachmentDescription})` : '';
+    attachmentInstruction = language === 'Deutsch'
+      ? `ANHANG: Der User fügt einen Anhang bei${attachDetail}. Erwähne das im Text passend zur Situation. Beispiele: "Im Anhang finden Sie ${attachmentDescription || 'das Dokument'}." / "Anbei sende ich Ihnen ${attachmentDescription || 'die angeforderten Unterlagen'}." / "Die Details entnehmen Sie bitte dem Anhang."`
+      : `ATTACHMENT: The user is attaching a file${attachDetail}. Mention it appropriately in the email body.`;
+  }
+
   // System-Prompt je nach Sprache anpassen
   let systemPrompt = '';
   if (language === 'Deutsch') {
@@ -154,6 +195,10 @@ Der User antwortet auf eine erhaltene E-Mail. Deine Aufgabe:
 ${replyHint}${lengthInstruction}
 
 ${roleAnalysisInstruction}
+
+${urgencyInstruction}
+
+${attachmentInstruction}
 
 ${languageInstructions[language]}
 

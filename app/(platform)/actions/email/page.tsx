@@ -91,6 +91,12 @@ export default function EmailPage() {
   const [language, setLanguage] = useState('Deutsch');
   const [topic, setTopic] = useState('');
   const [receivedEmail, setReceivedEmail] = useState('');
+  
+  // Neue Features
+  const [emailLength, setEmailLength] = useState<'Kurz' | 'Mittel' | 'Ausführlich'>('Mittel');
+  const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'very_urgent'>('normal');
+  const [hasAttachment, setHasAttachment] = useState(false);
+  const [attachmentDescription, setAttachmentDescription] = useState('');
 
   const [resultText, setResultText] = useState('');
   const [editSubject, setEditSubject] = useState('');
@@ -366,10 +372,142 @@ export default function EmailPage() {
                 </select>
               </div>
 
+              <div className="h-px bg-gray-100" />
+
+              {/* Sektion C: Details & Einstellungen */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                    Länge der Mail
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEmailLength('Kurz')}
+                      className={cn(
+                        'flex-1 py-2.5 px-3 rounded-lg text-xs font-medium transition-all tracking-tight',
+                        emailLength === 'Kurz'
+                          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md'
+                          : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                      )}
+                    >
+                      ⚡ Kurz & Knapp
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEmailLength('Mittel')}
+                      className={cn(
+                        'flex-1 py-2.5 px-3 rounded-lg text-xs font-medium transition-all tracking-tight',
+                        emailLength === 'Mittel'
+                          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md'
+                          : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                      )}
+                    >
+                      📄 Standard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEmailLength('Ausführlich')}
+                      className={cn(
+                        'flex-1 py-2.5 px-3 rounded-lg text-xs font-medium transition-all tracking-tight',
+                        emailLength === 'Ausführlich'
+                          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md'
+                          : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                      )}
+                    >
+                      📚 Ausführlich
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                    Dringlichkeit
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUrgency('normal')}
+                      className={cn(
+                        'flex-1 py-2.5 px-3 rounded-lg text-xs font-medium transition-all tracking-tight',
+                        urgency === 'normal'
+                          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md'
+                          : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                      )}
+                    >
+                      🟢 Normal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUrgency('urgent')}
+                      className={cn(
+                        'flex-1 py-2.5 px-3 rounded-lg text-xs font-medium transition-all tracking-tight',
+                        urgency === 'urgent'
+                          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md'
+                          : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                      )}
+                    >
+                      🟡 Dringend
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUrgency('very_urgent')}
+                      className={cn(
+                        'flex-1 py-2.5 px-3 rounded-lg text-xs font-medium transition-all tracking-tight',
+                        urgency === 'very_urgent'
+                          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md'
+                          : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                      )}
+                    >
+                      🔴 Sehr dringend
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={hasAttachment}
+                      onChange={(e) => {
+                        setHasAttachment(e.target.checked);
+                        if (!e.target.checked) setAttachmentDescription('');
+                      }}
+                      className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-200"
+                    />
+                    <span className="text-sm font-medium text-gray-700 tracking-tight">
+                      📎 Anhang wird beigefügt
+                    </span>
+                  </label>
+                  <AnimatePresence>
+                    {hasAttachment && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="mt-2 ml-6"
+                      >
+                        <input
+                          type="text"
+                          value={attachmentDescription}
+                          onChange={(e) => setAttachmentDescription(e.target.value)}
+                          placeholder="Was ist im Anhang? (z.B. Rechnung, Vertrag, Fotos)"
+                          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 tracking-tight"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
               <input name="senderName" type="hidden" value="" />
               <input name="tone" type="hidden" value="" />
               <input name="formality" type="hidden" value="" />
-              <input name="length" type="hidden" value="Mittel" />
+              <input name="length" type="hidden" value={emailLength} />
+              <input name="urgency" type="hidden" value={urgency} />
+              <input name="hasAttachment" type="hidden" value={hasAttachment ? 'true' : 'false'} />
+              <input name="attachmentDescription" type="hidden" value={attachmentDescription} />
               <input name="workspaceId" type="hidden" value="" />
 
               <SubmitButton />
