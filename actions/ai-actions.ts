@@ -531,27 +531,56 @@ export async function generateTranslate(prevState: any, formData: FormData) {
     systemPrompt = `Du bist ein Kultur-Dolmetscher mit Vision-Fähigkeit.
 
 BILD-ANALYSE:
-1. Analysiere das Bild und erkenne AUTOMATISCH die Sprache des Textes auf dem Bild.
-2. Erkenne ALLEN Text (Speisekarte, Schild, Dokument, Verpackung).
-3. Übersetze den erkannten Text in die gewählte Zielsprache: ${targetLanguage} – sinngemäß, nicht wörtlich.
-4. Erkenne den KONTEXT: Ist es ein Gericht? Ein Warnschild? Ein kultureller Hinweis? Ein Straßenschild?
+1. Analysiere das Bild und erkenne AUTOMATISCH die Sprache des Textes.
+2. Erkenne den INHALTSTYP: Ist es eine STRUKTURIERTE LISTE (Speisekarte, Rechnung, Produktliste) oder FLIESSENDER TEXT?
+3. Übersetze in die Zielsprache: ${targetLanguage} – sinngemäß, nicht wörtlich.
 
-KULTURELLER KONTEXT (cultural_context):
-- Bei SPEISEKARTEN: Erkläre, was man da isst – z.B. "Vorsicht, das Gericht ist sehr scharf" oder "Das ist ein fermentiertes Gemüse mit intensivem Geschmack".
-- Bei WARNUNGEN: Erkläre die Bedeutung.
-- Bei kulturellen Begriffen: Erkläre sie auf Deutsch.
+LAYOUT-ENTSCHEIDUNG:
+- layout_type "menu": Wenn Speisekarte, Rechnung, Getränkekarte, Produktliste – strukturierte Einträge mit Namen/Preisen.
+- layout_type "text": Wenn Fließtext, Schild, Absatz, Dokument ohne Listenstruktur.
 
-ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt. Gib die erkannte Ausgangssprache zurück:
+Bei SPEISEKARTEN/RECHNUNGEN (layout_type: "menu"):
+- Jeder Eintrag in menu_items: original (Quelltext), translated (Übersetzung), price (falls vorhanden, z.B. "15,50 €"), ai_note (kurzer kultureller Hinweis pro Gericht: Schärfe, Zutaten, Warnung).
+- content_text: Einfacher Fallback-Text (z.B. für Kopieren).
+
+Bei FLIESSTEXT (layout_type: "text"):
+- content_text: Die vollständige Übersetzung.
+- menu_items: [] (leeres Array).
+
+KULTURELLER KONTEXT (cultural_context): Max 2 Sätze auf Deutsch – allgemeine Hinweise zum Gesamtinhalt.
+
+ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt:
 {
-  "detected_language": "Türkisch (TR)",
-  "detected_language_code": "tr",
-  "translation": "Der vollständig übersetzte Text (oder Zusammenfassung bei viel Text)...",
-  "cultural_context": "Max 2 Sätze auf Deutsch: Was steckt dahinter? Was soll der User wissen?",
+  "layout_type": "menu",
+  "content_text": "Fallback-Text für Kopieren...",
+  "menu_items": [
+    {
+      "original": "RED TUNA ON TOAST",
+      "translated": "Roter Thunfisch auf Toast",
+      "price": "15,50 €",
+      "ai_note": "Roher Fisch, oft als Vorspeise."
+    }
+  ],
+  "detected_language": "Englisch (US)",
+  "detected_language_code": "en-us",
+  "cultural_context": "Max 2 Sätze: Allgemeiner Hinweis zum Menü.",
   "confidence_score": "high",
   "alternatives": []
 }
 
-Sprachcodes (detected_language_code): de, en-us, en-uk, tr, es, fr, it, pt, nl, pl, ru, ja, ko, zh, ar, hi, sv, no, da, fi, el, cs, hu, ro, th, vi.`;
+ODER bei Fließtext:
+{
+  "layout_type": "text",
+  "content_text": "Die vollständige Übersetzung...",
+  "menu_items": [],
+  "detected_language": "...",
+  "detected_language_code": "...",
+  "cultural_context": "...",
+  "confidence_score": "high",
+  "alternatives": []
+}
+
+Sprachcodes: de, en-us, en-uk, tr, es, fr, it, pt, nl, pl, ru, ja, ko, zh, ar, hi, sv, no, da, fi, el, cs, hu, ro, th, vi.`;
   } else {
     systemPrompt = `Du bist ein Kultur-Dolmetscher und Sprachlehrer. Übersetze den Text in: ${targetLanguage}.
 
@@ -561,13 +590,25 @@ ${contextInstruction}
 REGELN:
 1. IDIOM-HANDLING: NIEMALS wörtlich! Kulturelles Äquivalent finden.
 2. cultural_context: Kulturelle Nuancen auf Deutsch (max 2 Sätze). Höflichkeitsformen, Slang-Warnungen, False Friends.
-3. ALTERNATIVEN: 2 Varianten (formeller, lockerer).
+3. LAYOUT: Ist der Input eine strukturierte Liste (Speisekarte, Rechnung)? Dann layout_type "menu" mit menu_items. Sonst layout_type "text".
+4. ALTERNATIVEN: 2 Varianten (formeller, lockerer) – nur bei layout_type "text".
 
-ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt:
+ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt. Bei Fließtext:
 {
-  "translation": "Die Hauptübersetzung...",
-  "cultural_context": "Kurze Erklärung auf Deutsch (max 2 Sätze). Der Stil ist ${vibeDescription}.",
+  "layout_type": "text",
+  "content_text": "Die Hauptübersetzung...",
+  "menu_items": [],
+  "cultural_context": "Kurze Erklärung (max 2 Sätze). Der Stil ist ${vibeDescription}.",
   "alternatives": ["Alternative 1 (formeller)", "Alternative 2 (lockerer)"]
+}
+
+Bei strukturierter Liste (z.B. eingefügte Speisekarte):
+{
+  "layout_type": "menu",
+  "content_text": "Fallback-Text...",
+  "menu_items": [{"original":"...","translated":"...","price":"...","ai_note":"..."}],
+  "cultural_context": "...",
+  "alternatives": []
 }`;
   }
 
@@ -597,9 +638,13 @@ ANTWORT-FORMAT: NUR ein gültiges JSON-Objekt:
     
     try {
       const parsed = JSON.parse(cleanContent);
-      if (parsed.translation && typeof parsed.translation === 'string') {
+      const hasTranslation = parsed.translation || parsed.content_text;
+      if (hasTranslation || (parsed.layout_type === 'menu' && Array.isArray(parsed.menu_items) && parsed.menu_items.length > 0)) {
         const result: Record<string, unknown> = {
-          translation: parsed.translation,
+          layout_type: parsed.layout_type || 'text',
+          content_text: parsed.content_text || parsed.translation || '',
+          translation: parsed.content_text || parsed.translation || '',
+          menu_items: Array.isArray(parsed.menu_items) ? parsed.menu_items : [],
           cultural_context: parsed.cultural_context || parsed.context_note || '',
           alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : [],
         };

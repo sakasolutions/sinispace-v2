@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Camera,
   X,
+  Info,
 } from 'lucide-react';
 import { useFormStatus } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -82,8 +83,18 @@ const LANGUAGES = [
   { code: 'vi', name: 'Vietnamesisch', flag: '🇻🇳' },
 ];
 
+interface MenuItem {
+  original?: string;
+  translated?: string;
+  price?: string;
+  ai_note?: string;
+}
+
 interface TranslationResult {
+  layout_type: 'menu' | 'text';
   translation: string;
+  content_text: string;
+  menu_items: MenuItem[];
   context_note: string;
   alternatives: string[];
   detected_language?: string;
@@ -91,15 +102,27 @@ interface TranslationResult {
   confidence_score?: string;
 }
 
-function parseResult(text: string): TranslationResult {
-  const result: TranslationResult = { translation: '', context_note: '', alternatives: [] };
-  if (!text) return result;
+function parseResult(text: string): TranslationResult | null {
+  const empty: TranslationResult = {
+    layout_type: 'text',
+    translation: '',
+    content_text: '',
+    menu_items: [],
+    context_note: '',
+    alternatives: [],
+  };
+  if (!text) return null;
 
   try {
     const parsed = JSON.parse(text);
-    if (parsed.translation && typeof parsed.translation === 'string') {
+    const hasContent = parsed.translation || parsed.content_text || (Array.isArray(parsed.menu_items) && parsed.menu_items.length > 0);
+    if (hasContent) {
+      const content = parsed.content_text || parsed.translation || '';
       return {
-        translation: parsed.translation,
+        layout_type: parsed.layout_type === 'menu' ? 'menu' : 'text',
+        translation: content,
+        content_text: content,
+        menu_items: Array.isArray(parsed.menu_items) ? parsed.menu_items : [],
         context_note: parsed.cultural_context || parsed.context_note || '',
         alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : [],
         detected_language: parsed.detected_language || '',
@@ -113,24 +136,19 @@ function parseResult(text: string): TranslationResult {
     const explanationMatch = text.match(/---ERKLÄRUNG---\s*([\s\S]*?)\s*(?:---ALTERNATIVEN---|$)/);
     const alternativesMatch = text.match(/---ALTERNATIVEN---\s*([\s\S]*?)$/);
 
-    if (translationMatch) {
-      result.translation = translationMatch[1]?.trim() || '';
-    } else {
-      result.translation = text.trim();
-    }
-
-    if (explanationMatch) {
-      result.context_note = explanationMatch[1]?.trim() || '';
-    }
-
-    if (alternativesMatch) {
-      const altText = alternativesMatch[1]?.trim() || '';
-      const alts = altText.split(/\d+\.\s+/).filter(Boolean).map(s => s.trim());
-      result.alternatives = alts.slice(0, 3);
-    }
+    const content = translationMatch ? translationMatch[1]?.trim() || '' : text.trim();
+    return {
+      ...empty,
+      translation: content,
+      content_text: content,
+      context_note: explanationMatch ? explanationMatch[1]?.trim() || '' : '',
+      alternatives: alternativesMatch
+        ? alternativesMatch[1]?.trim().split(/\d+\.\s+/).filter(Boolean).map((s: string) => s.trim()).slice(0, 3)
+        : [],
+    };
   }
 
-  return result;
+  return null;
 }
 
 function SubmitButton({ canSubmit = true }: { canSubmit?: boolean }) {
@@ -183,11 +201,16 @@ export default function TranslatePage() {
 
   const parsed = state?.result ? parseResult(state.result) : null;
   
-  // Der angezeigte Text: Original oder gewählte Alternative
-  const displayedTranslation = parsed 
-    ? (selectedAlternative !== null && parsed.alternatives[selectedAlternative] 
-        ? parsed.alternatives[selectedAlternative] 
-        : parsed.translation)
+  // Text zum Kopieren/Vorlesen
+  const copyableText = parsed
+    ? parsed.layout_type === 'menu'
+      ? parsed.menu_items
+          .map((m) => `${m.translated || ''}${m.price ? ` – ${m.price}` : ''}${m.ai_note ? ` (${m.ai_note})` : ''}`)
+          .filter(Boolean)
+          .join('\n') || parsed.content_text
+      : (selectedAlternative !== null && parsed.alternatives[selectedAlternative]
+          ? parsed.alternatives[selectedAlternative]
+          : parsed.content_text)
     : '';
 
   useEffect(() => {
@@ -222,9 +245,9 @@ export default function TranslatePage() {
   };
 
   const handleCopy = async () => {
-    if (!displayedTranslation) return;
+    if (!copyableText) return;
     try {
-      await navigator.clipboard.writeText(displayedTranslation);
+      await navigator.clipboard.writeText(copyableText);
       setToast('In Zwischenablage kopiert!');
     } catch {
       setToast('Kopieren fehlgeschlagen.');
@@ -232,7 +255,7 @@ export default function TranslatePage() {
   };
 
   const handleSpeak = () => {
-    if (!displayedTranslation) return;
+    if (!copyableText) return;
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(displayedTranslation);
       utterance.lang = targetLang === 'en-us' ? 'en-US' : targetLang === 'en-uk' ? 'en-GB' : targetLang;
@@ -455,7 +478,7 @@ export default function TranslatePage() {
         {/* Right: Ergebnis & Analyse (65%) */}
         <main ref={resultRef} className="flex-1 min-w-0 flex flex-col bg-gray-50 lg:bg-gray-50/80">
           <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-            {parsed?.translation ? (
+            {parsed && (parsed.content_text || (parsed.layout_type === 'menu' && parsed.menu_items.length > 0)) ? (
               <div className="space-y-4">
                 {/* Erkannte Sprache (Badge) */}
                 {parsed.detected_language && (
@@ -517,9 +540,54 @@ export default function TranslatePage() {
                     </div>
                   </div>
                   <div className="px-4 sm:px-6 py-5">
-                    <p className="text-lg text-gray-900 leading-relaxed tracking-tight whitespace-pre-wrap">
-                      {displayedTranslation}
-                    </p>
+                    {parsed.layout_type === 'menu' && parsed.menu_items.length > 0 ? (
+                      <div className="space-y-3 -mx-1 px-1">
+                        {parsed.menu_items.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm transition-all"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-gray-900 text-lg">
+                                {item.translated || item.original || '—'}
+                              </p>
+                              {item.original && item.original !== item.translated && (
+                                <p className="text-gray-400 text-sm italic mt-0.5">
+                                  {item.original}
+                                </p>
+                              )}
+                              {item.ai_note && (
+                                <div className="flex items-start gap-1.5 mt-1.5">
+                                  <Info className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                                  <span className="text-blue-600 text-xs leading-relaxed">
+                                    {item.ai_note}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            {item.price && (
+                              <span className="font-mono font-medium text-gray-700 bg-gray-50 px-2.5 py-1 rounded-lg text-sm shrink-0">
+                                {item.price}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={cn(merriweather.className, 'text-gray-900 text-[1.05rem] leading-relaxed')}>
+                        {(selectedAlternative !== null && parsed.alternatives[selectedAlternative]
+                          ? parsed.alternatives[selectedAlternative]
+                          : parsed.content_text)
+                          .split(/\n\n+/)
+                          .map((para) => para.replace(/\n/g, ' ').trim())
+                          .filter(Boolean)
+                          .map((para, i) => (
+                            <p key={i} className="mb-4 last:mb-0" style={{ lineHeight: 1.8 }}>
+                              {para}
+                            </p>
+                          ))}
+                      </div>
+                    )}
                   </div>
                   
                   {/* Context-Box (cultural_context / Smart Context) */}
