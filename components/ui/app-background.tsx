@@ -11,11 +11,11 @@ export function AppBackground() {
       className="fixed inset-0 -z-10 pointer-events-none overflow-hidden" 
       aria-hidden="true"
     >
-      {/* Basis: Warmes Weiß */}
+      {/* Basis: Slate-50/Gray für Kontrast zu weißen Karten (Card-First) */}
       <div 
         className="absolute inset-0 w-full h-full"
         style={{
-          background: 'linear-gradient(180deg, #ffffff 0%, #fffefc 30%, #fcfaf8 100%)',
+          background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #eef2f7 100%)',
         }}
       />
       {/* ULTRA-SOFT ATMOSPHERE - Clip-path, kein Hartkanten-Effekt */}

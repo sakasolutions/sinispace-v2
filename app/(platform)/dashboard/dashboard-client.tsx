@@ -654,12 +654,13 @@ export default function DashboardClient() {
                   
                   const cardClassName = cn(
                     'group relative flex flex-col items-center md:items-start justify-center md:justify-start w-full',
-                    'transition-all duration-200 ease-out',
+                    'bg-white rounded-2xl shadow-md md:shadow-lg shadow-gray-200/50',
+                    'transition-all duration-200 ease-out hover:shadow-xl',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    'p-3 sm:p-3 md:p-4 lg:p-6',
-                    'min-h-32 sm:min-h-28 md:min-h-0'
+                    'p-4 md:p-4 lg:p-6',
+                    'min-h-[120px] sm:min-h-32 md:min-h-0'
                   );
 
                   const content = (
@@ -702,10 +703,10 @@ export default function DashboardClient() {
                         </div>
                       </div>
 
-                      {/* Title - Hero-Status mit größerer Schrift */}
+                      {/* Title - Mobile: kompakt zentriert, Desktop: linksbündig */}
                       <div className="relative z-10 min-w-0 text-center md:text-left w-full flex flex-col items-center md:items-start">
                         <h3 className={cn(
-                          'font-medium md:font-bold text-gray-900 mb-0.5 md:mb-2',
+                          'font-bold text-gray-800 md:text-gray-900 mb-0.5 md:mb-2',
                           'text-sm md:text-xl lg:text-2xl',
                           'leading-tight line-clamp-2'
                         )}>
