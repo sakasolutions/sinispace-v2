@@ -15,6 +15,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import Link from 'next/link';
+import { rrulestr } from 'rrule';
 import {
   getCalendarEvents,
   saveCalendarEvents,
@@ -22,6 +23,7 @@ import {
   type CalendarEvent,
   type CustomEventType,
 } from '@/actions/calendar-actions';
+import { parseNaturalLanguage, getSmartTags, type ParsedEvent, type SmartTag } from '@/lib/parse-natural-language';
 import { EventCreateModal } from './event-create-modal';
 import { RecipePickerModal } from './recipe-picker-modal';
 import { SwipeableEventItem } from './swipeable-event-item';
@@ -38,13 +40,28 @@ function toDateKey(d: Date): string {
 }
 
 type AgendaItem =
-  | { id: string; type: 'event'; time: string; title: string; event: CalendarEvent }
+  | { id: string; type: 'event'; time: string; title: string; subtitle?: string; event: CalendarEvent }
   | { id: string; type: 'meal'; time: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string }
   | { id: string; type: 'workout'; time: string; title: string; event: CalendarEvent };
 
+function eventOccursOnDate(e: CalendarEvent, dateKey: string): boolean {
+  if (e.date === dateKey) return true;
+  if (e.type !== 'custom' || !('rrule' in e) || !e.rrule) return false;
+  try {
+    const rule = rrulestr(e.rrule);
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const dayStart = new Date(y, m - 1, d, 0, 0, 0);
+    const dayEnd = new Date(y, m - 1, d, 23, 59, 59);
+    const occurrences = rule.between(dayStart, dayEnd, true);
+    return occurrences.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
   const dayEvents = events
-    .filter((e) => e.date === dateKey)
+    .filter((e) => eventOccursOnDate(e, dateKey))
     .sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
   const items: AgendaItem[] = dayEvents.map((e) => {
     if (e.type === 'meal') {
@@ -52,54 +69,10 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
       return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle: e.calories ? `${e.calories} kcal` : undefined, event: e, recipeLink: e.resultId ? '/tools/recipe' : undefined };
     }
     if (e.type === 'workout') return { id: e.id, type: 'workout' as const, time: e.time || '08:00', title: e.label || 'Workout', event: e };
-    return { id: e.id, type: 'event' as const, time: e.time || '09:00', title: e.title, event: e };
+    const subtitle = ('rrule' in e && e.rrule) ? '🔄 Wiederkehrend' : undefined;
+    return { id: e.id, type: 'event' as const, time: e.time || '09:00', title: e.title, event: e, subtitle };
   });
   return items.sort((a, b) => a.time.localeCompare(b.time));
-}
-
-function looksLikeFood(text: string): boolean {
-  const t = text.toLowerCase();
-  const keywords = ['essen', 'pizza', 'abendessen', 'mittag', 'frühstück', 'kochen', 'rezept', 'pasta', 'salat', 'suppe', 'brunch'];
-  return keywords.some((k) => t.includes(k));
-}
-
-function toLocalDateString(d: Date): string {
-  const y = d.getFullYear();
-  const m = (d.getMonth() + 1).toString().padStart(2, '0');
-  const day = d.getDate().toString().padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function parseMagicInput(text: string, baseDate: Date): { date: string; time: string; title: string; isMeal: boolean } {
-  const t = text.trim();
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  const today = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 12, 0, 0);
-  let resultDate = new Date(today);
-  let time = '18:00';
-  let title = t;
-  const timeMatch = t.match(/(\d{1,2})[:\s.]*(\d{2})?\s*uhr/i) || t.match(/(\d{1,2})[:\s.](\d{2})\b/);
-  if (timeMatch) {
-    const h = parseInt(timeMatch[1], 10);
-    const m = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
-    time = `${pad(h)}:${pad(m)}`;
-  }
-  const todayDay = today.getDay();
-  const wdays: [number, string][] = [[0, 'sonntag'], [1, 'montag'], [2, 'dienstag'], [3, 'mittwoch'], [4, 'donnerstag'], [5, 'freitag'], [6, 'samstag']];
-  if (t.includes('morgen')) resultDate.setDate(resultDate.getDate() + 1);
-  else if (t.includes('übermorgen')) resultDate.setDate(resultDate.getDate() + 2);
-  else {
-    for (const [targetDay, name] of wdays) {
-      if (t.includes(name)) {
-        let diff = (targetDay - todayDay + 7) % 7;
-        if (diff === 0) diff = 7;
-        resultDate.setDate(resultDate.getDate() + diff);
-        break;
-      }
-    }
-  }
-  title = t.replace(/\b(morgen|übermorgen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/gi, '').replace(/\d{1,2}[:\s.]?\d{0,2}\s*uhr/gi, '').replace(/\d{1,2}[:\s.]\d{2}\b/g, '').replace(/\s+/g, ' ').trim();
-  if (!title) title = t;
-  return { date: toLocalDateString(resultDate), time, title: title.charAt(0).toUpperCase() + title.slice(1), isMeal: looksLikeFood(t) };
 }
 
 /** Monats-Grid für Mini-Kalender (7x5/6) */
@@ -129,6 +102,20 @@ export function CalendarClient() {
   const [magicInput, setMagicInput] = useState('');
   const [mobileMonthOpen, setMobileMonthOpen] = useState(false);
   const agendaRef = useRef<HTMLDivElement>(null);
+
+  const parsedLive = useMemo(() => {
+    if (!magicInput.trim()) return null;
+    try {
+      return parseNaturalLanguage(magicInput, currentDate);
+    } catch {
+      return null;
+    }
+  }, [magicInput, currentDate]);
+
+  const smartTags = useMemo((): SmartTag[] => {
+    if (!parsedLive) return [];
+    return getSmartTags(parsedLive, currentDate);
+  }, [parsedLive, currentDate]);
 
   const [eventModal, setEventModal] = useState<{ open: boolean; date: string; time?: string }>({ open: false, date: '', time: undefined });
   const [recipeModal, setRecipeModal] = useState<{ open: boolean; date: string; slot: 'breakfast' | 'lunch' | 'dinner'; time: string } | null>(null);
@@ -193,17 +180,32 @@ export function CalendarClient() {
   const handleMagicSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!magicInput.trim()) return;
-    const { date, time, title, isMeal } = parseMagicInput(magicInput, currentDate);
+    const parsed = parseNaturalLanguage(magicInput, currentDate);
     setMagicInput('');
-    if (isMeal) {
-      const slot = time < '11:00' ? 'breakfast' : time < '15:00' ? 'lunch' : 'dinner';
-      const newEvent: CalendarEvent = { id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, type: 'meal', slot, date, time, recipeName: title };
-      setEvents((prev) => [...prev, newEvent]);
-      await saveCalendarEvents([...events, newEvent]);
+    if (parsed.isMeal) {
+      const slot = parsed.time < '11:00' ? 'breakfast' : parsed.time < '15:00' ? 'lunch' : 'dinner';
+      const newEvent: CalendarEvent = { id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, type: 'meal', slot, date: parsed.date, time: parsed.time, recipeName: parsed.title };
+      const next = [...events, newEvent];
+      setEvents(next);
+      await saveCalendarEvents(next);
     } else {
-      const newEvent: CalendarEvent = { id: `ev-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, type: 'custom', eventType: 'reminder', title, date, time };
-      setEvents((prev) => [...prev, newEvent]);
-      await saveCalendarEvents([...events, newEvent]);
+      const newEvent: CalendarEvent = {
+        id: `ev-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        type: 'custom',
+        eventType: 'reminder',
+        title: parsed.title,
+        date: parsed.date,
+        time: parsed.time,
+        endTime: parsed.endTime,
+        rrule: parsed.rrule,
+        until: parsed.until,
+        durationMinutes: parsed.durationMinutes,
+        location: parsed.location,
+        withPerson: parsed.withPerson,
+      };
+      const next = [...events, newEvent];
+      setEvents(next);
+      await saveCalendarEvents(next);
     }
   };
 
@@ -227,7 +229,7 @@ export function CalendarClient() {
     await saveCalendarEvents(next);
   };
 
-  const eventCountForDate = (d: Date) => events.filter((e) => e.date === toDateKey(d)).length;
+  const eventCountForDate = (d: Date) => events.filter((e) => eventOccursOnDate(e, toDateKey(d))).length;
 
   return (
     <PageTransition className="flex flex-col lg:flex-row gap-6 lg:gap-8 max-w-6xl mx-auto">
@@ -381,7 +383,10 @@ export function CalendarClient() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold text-gray-900">{item.title}</div>
-                          {'subtitle' in item && item.subtitle && <div className="text-sm text-gray-500">{item.subtitle}</div>}
+                          {('subtitle' in item && item.subtitle) && <div className="text-sm text-gray-500">{item.subtitle}</div>}
+                          {item.type === 'event' && 'location' in item.event && item.event.location && (
+                            <div className="text-xs text-gray-500 mt-0.5">📍 {item.event.location}</div>
+                          )}
                         </div>
                         <div className="shrink-0 text-right">
                           <div className="text-sm font-medium text-gray-600">{item.time}</div>
@@ -460,15 +465,32 @@ export function CalendarClient() {
         </div>
       </main>
 
-      {/* Magic Input – Schwebende Kapsel */}
+      {/* Magic Input – Schwebende Kapsel + Smart Tags */}
       <div className="fixed bottom-24 left-0 right-0 z-40 md:bottom-6 md:left-[calc(16rem+2rem)] md:right-8 pb-[env(safe-area-inset-bottom)] pt-4 pointer-events-none">
-        <div className="max-w-2xl mx-auto px-4 pointer-events-auto">
+        <div className="max-w-2xl mx-auto px-4 pointer-events-auto space-y-2">
+          {parsedLive?.recurrenceLabel && (
+            <p className="text-sm text-orange-600 font-medium animate-in fade-in duration-200">
+              🔄 {parsedLive.recurrenceLabel}
+            </p>
+          )}
+          {smartTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 animate-in fade-in duration-200">
+              {smartTags.map((tag, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100"
+                >
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+          )}
           <form onSubmit={handleMagicSubmit} className="flex gap-2 p-2 bg-white rounded-2xl border border-gray-200 shadow-xl">
             <input
               type="text"
               value={magicInput}
               onChange={(e) => setMagicInput(e.target.value)}
-              placeholder='Neuer Eintrag... (z.B. "Morgen 14 Uhr Meeting")'
+              placeholder='z.B. "Jeden Freitag 18 Uhr Fußball bis Ende Mai" oder "Morgen 14 Uhr Meeting im Vapiano"'
               className="flex-1 min-h-[48px] px-4 rounded-xl bg-gray-50 border-0 focus:ring-2 focus:ring-orange-200 outline-none text-base placeholder:text-gray-400"
             />
             <button type="submit" disabled={!magicInput.trim()} className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-orange-500 text-white disabled:opacity-40 hover:bg-orange-600 transition-colors" aria-label="Hinzufügen">

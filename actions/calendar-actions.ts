@@ -7,9 +7,18 @@ import { getWorkspaceResults } from './workspace-actions';
 /** Custom Event Types */
 export type CustomEventType = 'meeting' | 'reminder' | 'personal' | 'work';
 
+/** Erweiterte Optionen für Custom Events (NL-Parsing) */
+export type CalendarEventExtras = {
+  rrule?: string;
+  until?: string;
+  durationMinutes?: number;
+  location?: string;
+  withPerson?: string;
+};
+
 /** Base Calendar Event */
 export type CalendarEvent =
-  | {
+  | ({
       id: string;
       type: 'custom';
       eventType: CustomEventType;
@@ -17,7 +26,7 @@ export type CalendarEvent =
       date: string; // YYYY-MM-DD
       time: string; // HH:mm
       endTime?: string;
-    }
+    } & Partial<CalendarEventExtras>)
   | {
       id: string;
       type: 'meal';
