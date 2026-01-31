@@ -30,6 +30,7 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
+import { LordIcon } from '@/components/ui/lord-icon';
 
 /** Lordicon (Lottie) – Animierte Icons bei Hover (Top 4) */
 const LORDICON_CONFIG: Record<string, { src: string; color: string }> = {
@@ -713,11 +714,10 @@ export default function DashboardClient() {
                       {/* Icon – Lordicon (Lottie) bei Hover, sonst Lucide-Fallback */}
                       <div className="flex justify-center w-full pt-4 md:pt-6 lg:pt-8">
                         {lordConfig ? (
-                          <lord-icon
+                          <LordIcon
                             src={lordConfig.src}
                             trigger="hover"
                             colors={`primary:${iconHex},secondary:${iconHex}`}
-                            style={{ width: 60, height: 60 }}
                             className="shrink-0"
                           />
                         ) : (
