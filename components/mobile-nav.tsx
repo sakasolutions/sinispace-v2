@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, MessageSquare, Settings } from 'lucide-react';
+import { LayoutGrid, Calendar, MessageSquare, Settings } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { cn } from '@/lib/utils';
 
@@ -10,25 +10,10 @@ export function MobileNav() {
   const pathname = usePathname();
 
   const navItems = [
-    {
-      href: '/dashboard',
-      label: 'Home',
-      icon: LayoutGrid,
-      active: pathname === '/dashboard',
-    },
-    {
-      href: '/chat',
-      label: 'SiniChat',
-      icon: MessageSquare,
-      active: pathname?.startsWith('/chat') ?? false,
-      highlight: true, // Hervorgehoben mit Logo-Gradient!
-    },
-    {
-      href: '/settings',
-      label: 'Profil',
-      icon: Settings,
-      active: pathname === '/settings',
-    },
+    { href: '/dashboard', label: 'Home', icon: LayoutGrid, active: pathname === '/dashboard' },
+    { href: '/calendar', label: 'Kalender', icon: Calendar, active: pathname === '/calendar' },
+    { href: '/chat', label: 'SiniChat', icon: MessageSquare, active: pathname?.startsWith('/chat') ?? false, highlight: true },
+    { href: '/settings', label: 'Profil', icon: Settings, active: pathname === '/settings' },
   ];
 
   return (

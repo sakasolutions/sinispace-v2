@@ -115,6 +115,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         </div>
         <nav className="flex flex-col gap-1 p-4 pt-6">
           <NavItem href="/dashboard" label="Übersicht" pathname={pathname} />
+          <NavItem href="/calendar" label="Kalender" pathname={pathname} />
           <NavItem href="/chat" label="SiniChat" pathname={pathname} />
           <div className="my-4 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
           <NavItem href="/settings" label="Einstellungen" pathname={pathname} />
