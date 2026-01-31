@@ -686,11 +686,11 @@ export default function DashboardClient() {
                         src={heroImage}
                         alt=""
                         loading="lazy"
-                        className="w-full h-32 lg:h-48 object-cover rounded-t-xl lg:rounded-xl mb-2 flex-shrink-0"
+                        className="w-full h-20 object-cover object-center rounded-t-xl lg:rounded-xl flex-shrink-0"
                       />
 
-                      {/* Title – unter dem Bild mit Abstand */}
-                      <div className="p-4 md:p-4 lg:p-6 flex-1 flex flex-col items-center md:items-start justify-center md:justify-start min-w-0 w-full">
+                      {/* Title – unter dem Bild mit Abstand (pt-3 für Teaser-Abstand) */}
+                      <div className="px-4 pt-3 pb-4 md:px-4 md:pt-3 md:pb-4 lg:px-6 lg:pt-4 lg:pb-6 flex-1 flex flex-col items-center md:items-start justify-center md:justify-start min-w-0 w-full">
                         <h3 className={cn(
                           'font-bold text-gray-800 md:text-gray-900 mb-0.5 md:mb-2',
                           'text-sm md:text-xl lg:text-2xl',
