@@ -31,6 +31,22 @@ import {
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
 
+/** Hochwertige Thumbnails pro Tool – Magazin-Look */
+const HERO_IMAGES: Record<string, string> = {
+  recipe: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop',
+  'shopping-list': 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=400&fit=crop',
+  email: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=400&fit=crop',
+  invoice: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&h=400&fit=crop',
+  excel: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
+  legal: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=400&fit=crop',
+  'tough-msg': 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=400&fit=crop',
+  summarize: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&h=400&fit=crop',
+  polish: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=400&fit=crop',
+  travel: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=400&fit=crop',
+  translate: 'https://images.unsplash.com/photo-1516245834210-c4c142787335?w=800&h=400&fit=crop',
+  fitness: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=400&fit=crop',
+};
+
 type Tool = {
   id: string;
   title: string;
@@ -642,7 +658,6 @@ export default function DashboardClient() {
                 }}
               >
                 {heroTools.map((tool, index) => {
-                  const Icon = tool.icon;
                   const colors = toolColors[tool.color] || toolColors.blue;
                   const toolStats = usageStats[tool.id];
                   const isTrending = toolStats?.isTrending || false;
@@ -653,62 +668,33 @@ export default function DashboardClient() {
                   
                   
                   const cardClassName = cn(
-                    'group relative flex flex-col items-center md:items-start justify-center md:justify-start w-full',
+                    'group relative flex flex-col items-center md:items-start justify-center md:justify-start w-full overflow-hidden',
                     'bg-white rounded-2xl shadow-md md:shadow-lg shadow-gray-200/50',
                     'transition-all duration-200 ease-out hover:shadow-xl',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    'p-4 md:p-4 lg:p-6',
-                    'min-h-[120px] sm:min-h-32 md:min-h-0'
+                    'min-h-[120px] sm:min-h-[200px] md:min-h-0'
                   );
+
+                  const heroImage = HERO_IMAGES[tool.id] ?? HERO_IMAGES.recipe;
 
                   const content = (
                     <>
-                      {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
+                      {/* Thumbnail – fotografisch, hochwertig */}
+                      <img
+                        src={heroImage}
+                        alt=""
+                        loading="lazy"
+                        className="w-full h-32 lg:h-48 object-cover rounded-t-xl lg:rounded-xl mb-2 flex-shrink-0"
+                      />
 
-                      {/* Icon Container - Soft Color Containers mit Tiefe */}
-                      <div className="mb-2 md:mb-5 lg:mb-6 flex justify-center md:justify-start">
-                        <div className={cn(
-                          'flex items-center justify-center rounded-2xl transition-all duration-200 p-3 md:p-4',
-                          'shadow-md group-hover:shadow-lg group-hover:scale-[1.02]',
-                          'border border-gray-100',
-                          tool.color === 'orange' && 'bg-orange-100',
-                          tool.color === 'pink' && 'bg-pink-100',
-                          tool.color === 'rose' && 'bg-rose-100',
-                          tool.color === 'blue' && 'bg-blue-100',
-                          tool.color === 'emerald' && 'bg-emerald-100',
-                          tool.color === 'green' && 'bg-green-100',
-                          tool.color === 'violet' && 'bg-violet-100',
-                          tool.color === 'indigo' && 'bg-indigo-100',
-                          tool.color === 'amber' && 'bg-amber-100',
-                          tool.color === 'cyan' && 'bg-cyan-100',
-                          tool.color === 'slate' && 'bg-slate-100',
-                          'w-24 h-24 sm:w-20 sm:h-20 md:w-20 lg:w-24 md:h-20 lg:h-24'
-                        )}>
-                          <Icon className={cn(
-                            'shrink-0 w-12 h-12 sm:w-10 sm:h-10 md:w-10 lg:w-12 md:h-10 lg:h-12',
-                            tool.color === 'orange' && 'text-orange-600',
-                            tool.color === 'pink' && 'text-pink-600',
-                            tool.color === 'rose' && 'text-rose-600',
-                            tool.color === 'blue' && 'text-blue-600',
-                            tool.color === 'emerald' && 'text-emerald-600',
-                            tool.color === 'green' && 'text-green-600',
-                            tool.color === 'violet' && 'text-violet-600',
-                            tool.color === 'indigo' && 'text-indigo-600',
-                            tool.color === 'amber' && 'text-amber-600',
-                            tool.color === 'cyan' && 'text-cyan-600',
-                            tool.color === 'slate' && 'text-slate-600'
-                          )} />
-                        </div>
-                      </div>
-
-                      {/* Title - Mobile: kompakt zentriert, Desktop: linksbündig */}
-                      <div className="relative z-10 min-w-0 text-center md:text-left w-full flex flex-col items-center md:items-start">
+                      {/* Title – unter dem Bild mit Abstand */}
+                      <div className="p-4 md:p-4 lg:p-6 flex-1 flex flex-col items-center md:items-start justify-center md:justify-start min-w-0 w-full">
                         <h3 className={cn(
                           'font-bold text-gray-800 md:text-gray-900 mb-0.5 md:mb-2',
                           'text-sm md:text-xl lg:text-2xl',
-                          'leading-tight line-clamp-2'
+                          'leading-tight line-clamp-2 text-center md:text-left w-full'
                         )}>
                           {tool.title}
                         </h3>
@@ -720,7 +706,6 @@ export default function DashboardClient() {
                           {tool.description}
                         </p>
                       </div>
-
                     </>
                   );
 
