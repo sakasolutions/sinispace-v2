@@ -50,6 +50,24 @@ const TOOL_SUBTITLES: Record<string, string> = {
   social: 'LinkedIn & Social',
 };
 
+/** Hero Glow – farbiger Schatten für Top-4 (Colored Shadow pro Tool) */
+const TOOL_GLOW_SHADOW: Record<string, string> = {
+  recipe: 'shadow-[0_4px_20px_-4px_rgba(249,115,22,0.15)]',
+  'shopping-list': 'shadow-[0_4px_20px_-4px_rgba(239,68,68,0.15)]',
+  email: 'shadow-[0_4px_20px_-4px_rgba(59,130,246,0.15)]',
+  polish: 'shadow-[0_4px_20px_-4px_rgba(20,184,166,0.15)]',
+  invoice: 'shadow-[0_4px_20px_-4px_rgba(16,185,129,0.15)]',
+  excel: 'shadow-[0_4px_20px_-4px_rgba(34,197,94,0.15)]',
+  legal: 'shadow-[0_4px_20px_-4px_rgba(139,92,246,0.15)]',
+  'tough-msg': 'shadow-[0_4px_20px_-4px_rgba(99,102,241,0.15)]',
+  summarize: 'shadow-[0_4px_20px_-4px_rgba(245,158,11,0.15)]',
+  travel: 'shadow-[0_4px_20px_-4px_rgba(14,165,233,0.15)]',
+  translate: 'shadow-[0_4px_20px_-4px_rgba(99,102,241,0.15)]',
+  fitness: 'shadow-[0_4px_20px_-4px_rgba(244,63,94,0.15)]',
+  code: 'shadow-[0_4px_20px_-4px_rgba(100,116,139,0.15)]',
+  social: 'shadow-[0_4px_20px_-4px_rgba(236,72,153,0.15)]',
+};
+
 /** Icon-Bg-Kreis – subtiler Tint pro Farbe */
 const ICON_BG_CLASS: Record<string, string> = {
   orange: 'bg-orange-50',
@@ -711,8 +729,10 @@ export default function DashboardClient() {
         {/* FEATURE CARDS – Einheitliches Grid für alle Tools */}
         {sortedAndFilteredTools.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {sortedAndFilteredTools.map((tool) => {
+            {sortedAndFilteredTools.map((tool, index) => {
               const Icon = tool.icon;
+              const isTop4 = index < 4;
+              const heroGlow = isTop4 && TOOL_GLOW_SHADOW[tool.id];
               const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
               const iconBg = ICON_BG_CLASS[tool.color] ?? 'bg-gray-50';
               const subtitle = TOOL_SUBTITLES[tool.id] ?? tool.category;
@@ -721,7 +741,8 @@ export default function DashboardClient() {
 
               const cardClassName = cn(
                 'group relative flex flex-col items-center text-center',
-                'bg-white rounded-2xl shadow-sm border border-gray-100',
+                'bg-white rounded-2xl border border-gray-100',
+                heroGlow ? heroGlow : 'shadow-sm',
                 'hover:shadow-md hover:border-gray-200 transition-all duration-200',
                 'p-4 min-h-[140px]',
                 tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
