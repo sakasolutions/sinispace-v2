@@ -1,6 +1,5 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import Script from 'next/script';
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 
 const inter = Inter({ 
@@ -86,10 +85,6 @@ export default function RootLayout({
         <div className="relative z-10">
           {children}
         </div>
-        <Script
-          src="https://cdn.lordicon.com/lordicon.js"
-          strategy="lazyOnload"
-        />
       </body>
     </html>
   );

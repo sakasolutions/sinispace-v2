@@ -6,10 +6,12 @@ import { cn } from '@/lib/utils';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { getToolUsageStats, trackToolUsage } from '@/actions/tool-usage-actions';
 
+import { createElement } from 'react';
 import {
   Mail,
   Languages,
   Sparkles,
+  Pencil,
   Scale,
   FileText,
   Table2,
@@ -30,7 +32,6 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
-import { LordIcon } from '@/components/ui/lord-icon';
 
 /** Kurze Untertitel – visuelle Dichte (1–2 Wörter) */
 const TOOL_SUBTITLES: Record<string, string> = {
@@ -86,33 +87,7 @@ const ICON_BG_CLASS: Record<string, string> = {
   sky: 'bg-sky-50',
 };
 
-/** Restliche Icons: Gefüllter Kreis + weißes Icon (wie Solid-Style, konsistent mit Top 4) */
-const ICON_GRADIENT_BG: Record<string, string> = {
-  orange: 'bg-gradient-to-br from-orange-500 to-pink-500',
-  pink: 'bg-gradient-to-br from-pink-500 to-rose-500',
-  blue: 'bg-blue-500',
-  emerald: 'bg-emerald-500',
-  green: 'bg-green-500',
-  violet: 'bg-violet-500',
-  indigo: 'bg-indigo-500',
-  amber: 'bg-amber-500',
-  rose: 'bg-rose-500',
-  cyan: 'bg-cyan-500',
-  slate: 'bg-slate-500',
-  teal: 'bg-teal-500',
-  red: 'bg-red-500',
-  sky: 'bg-sky-500',
-};
-
-/** Lordicon (Lottie) – Animierte Icons bei Hover (Top 4 + weitere) */
-const LORDICON_CONFIG: Record<string, { src: string; color: string }> = {
-  recipe: { src: 'https://cdn.lordicon.com/cauixzla.json', color: '#de561b' },
-  'shopping-list': { src: 'https://cdn.lordicon.com/cosvjkbu.json', color: '#ef4444' },
-  email: { src: 'https://cdn.lordicon.com/aycieyht.json', color: '#3b82f6' },
-  polish: { src: 'https://cdn.lordicon.com/wloilxuq.json', color: '#14b8a6' },
-};
-
-/** Icon-Farben – Brand pro Tool */
+/** Icon-Farben – Brand pro Tool (Solid-Look) */
 const HERO_ICON_COLORS: Record<string, string> = {
   recipe: 'text-orange-500',
   'shopping-list': 'text-red-500',
@@ -251,8 +226,8 @@ const allTools: Tool[] = [
     id: 'polish',
     title: 'Wortschliff',
     description: 'Verwandle Notizen in geschliffene Texte. Korrektur & Stil-Upgrade.',
-    icon: Sparkles,
-    color: 'cyan',
+    icon: Pencil,
+    color: 'teal',
     category: 'writing',
     href: '/actions/polish',
     available: true,
@@ -754,8 +729,6 @@ export default function DashboardClient() {
               const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
               const iconBg = ICON_BG_CLASS[tool.color] ?? 'bg-gray-50';
               const subtitle = TOOL_SUBTITLES[tool.id] ?? tool.category;
-              const lordConfig = LORDICON_CONFIG[tool.id];
-              const iconHex = lordConfig?.color ?? '#6b7280';
 
               const cardClassName = cn(
                 'group relative flex flex-col items-center text-center',
@@ -768,24 +741,16 @@ export default function DashboardClient() {
 
               const content = (
                 <>
-                  {/* Icon – Top 4: Lordicon im zarten Kreis, Rest: Solid-Style (Gradient + weiß) */}
+                  {/* Icon – Solid/Filled Look: bg-{color}-50, text-{color}-500, strokeWidth für Masse */}
                   <div className={cn(
-                    'flex items-center justify-center rounded-full p-3 shrink-0',
-                    lordConfig ? iconBg : ICON_GRADIENT_BG[tool.color] ?? iconBg
+                    'flex items-center justify-center rounded-full p-3 md:p-4 shrink-0',
+                    iconBg
                   )}>
-                    {lordConfig ? (
-                      <LordIcon
-                        src={lordConfig.src}
-                        trigger="hover"
-                        colors={`primary:${iconHex},secondary:${iconHex}`}
-                        className="shrink-0"
-                      />
-                    ) : (
-                      <Icon
-                        className="w-12 h-12 shrink-0 text-white"
-                        aria-hidden
-                      />
-                    )}
+                    {createElement(Icon, {
+                      className: cn('w-8 h-8 shrink-0', iconColor),
+                      strokeWidth: 2.5,
+                      'aria-hidden': true,
+                    } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                   </div>
 
                   {/* Titel */}
