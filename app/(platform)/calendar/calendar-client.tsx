@@ -8,11 +8,10 @@ import {
   ChevronRight,
   UtensilsCrossed,
   Dumbbell,
-  CheckSquare2,
-  Plus,
   Calendar,
   ChefHat,
-  Briefcase,
+  Send,
+  ExternalLink,
 } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -26,114 +25,203 @@ import { EventCreateModal } from './event-create-modal';
 import { RecipePickerModal } from './recipe-picker-modal';
 import { SwipeableEventItem } from './swipeable-event-item';
 
-type ViewMode = 'month' | 'week' | 'day';
-
-const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  meal: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
-  workout: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  task: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  custom: { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' },
-  meeting: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  reminder: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  personal: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-  work: { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' },
-};
-
-const MEAL_SLOTS = [
-  { id: 'breakfast' as const, label: 'Frühstück', time: '08:00' },
-  { id: 'lunch' as const, label: 'Mittagessen', time: '12:30' },
-  { id: 'dinner' as const, label: 'Abendessen', time: '19:00' },
-];
-
-const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const WEEKDAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+const WEEKDAYS_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 
 function toDateKey(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
-function getEventColor(e: CalendarEvent): string {
-  if (e.type === 'custom') return CATEGORY_COLORS[e.eventType]?.bg + ' ' + CATEGORY_COLORS[e.eventType]?.text + ' ' + CATEGORY_COLORS[e.eventType]?.border || '';
-  return CATEGORY_COLORS[e.type]?.bg + ' ' + CATEGORY_COLORS[e.type]?.text + ' ' + CATEGORY_COLORS[e.type]?.border || '';
+/** Aggregierte Agenda-Items für die Timeline (Termin, Meal, Workout) */
+type AgendaItem =
+  | { id: string; type: 'event'; time: string; title: string; event: CalendarEvent }
+  | { id: string; type: 'meal'; time: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string }
+  | { id: string; type: 'workout'; time: string; title: string; event: CalendarEvent };
+
+/** Mock + Real: aggregiert alle Events für einen Tag */
+function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
+  const dayEvents = events
+    .filter((e) => e.date === dateKey)
+    .sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
+
+  const items: AgendaItem[] = dayEvents.map((e) => {
+    if (e.type === 'meal') {
+      const label = e.recipeName ? `${e.slot === 'breakfast' ? 'Frühstück' : e.slot === 'lunch' ? 'Mittagessen' : 'Abendessen'}: ${e.recipeName}` : e.slot;
+      return {
+        id: e.id,
+        type: 'meal' as const,
+        time: e.time || '12:00',
+        title: label,
+        subtitle: e.calories ? `${e.calories} kcal` : undefined,
+        event: e,
+        recipeLink: e.resultId ? `/tools/recipe` : undefined,
+      };
+    }
+    if (e.type === 'workout') {
+      return {
+        id: e.id,
+        type: 'workout' as const,
+        time: e.time || '08:00',
+        title: e.label || 'Workout',
+        event: e,
+      };
+    }
+    return {
+      id: e.id,
+      type: 'event' as const,
+      time: e.time || '09:00',
+      title: e.title,
+      event: e,
+    };
+  });
+
+  return items.sort((a, b) => a.time.localeCompare(b.time));
+}
+
+/** Prüft ob Input nach Essen klingt */
+function looksLikeFood(text: string): boolean {
+  const t = text.toLowerCase();
+  const keywords = ['essen', 'pizza', 'abendessen', 'mittag', 'frühstück', 'kochen', 'rezept', 'pasta', 'salat', 'suppe', 'brunch'];
+  return keywords.some((k) => t.includes(k));
+}
+
+/** Einfaches Parsing für Magic Input */
+function parseMagicInput(text: string, baseDate: Date): { date: string; time: string; title: string; isMeal: boolean } {
+  const t = text.trim();
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const today = new Date(baseDate);
+  today.setHours(0, 0, 0, 0);
+  let date = new Date(today);
+  let time = '18:00';
+  let title = t;
+
+  const timeMatch = t.match(/(\d{1,2})[:\s.]*(\d{2})?\s*uhr/i) || t.match(/(\d{1,2})[:\s.](\d{2})\b/);
+  if (timeMatch) {
+    const h = parseInt(timeMatch[1], 10);
+    const m = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
+    time = `${pad(h)}:${pad(m)}`;
+  }
+
+  if (t.includes('morgen')) {
+    date.setDate(date.getDate() + 1);
+  } else if (t.includes('übermorgen')) {
+    date.setDate(date.getDate() + 2);
+  } else {
+    const wdays = ['sonntag', 'montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag'];
+    for (let i = 0; i < wdays.length; i++) {
+      if (t.includes(wdays[i])) {
+        const todayW = (baseDate.getDay() + 7) % 7;
+        let diff = (i - todayW + 7) % 7;
+        if (diff === 0) diff = 7;
+        date.setDate(date.getDate() + diff);
+        break;
+      }
+    }
+  }
+
+  title = t
+    .replace(/\b(morgen|übermorgen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/gi, '')
+    .replace(/\d{1,2}[:\s.]?\d{0,2}\s*uhr/gi, '')
+    .replace(/\d{1,2}[:\s.]\d{2}\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!title) title = t;
+  return { date: date.toISOString().slice(0, 10), time, title: title.charAt(0).toUpperCase() + title.slice(1), isMeal: looksLikeFood(t) };
 }
 
 export function CalendarClient() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [magicInput, setMagicInput] = useState('');
 
   const [eventModal, setEventModal] = useState<{ open: boolean; date: string; time?: string }>({ open: false, date: '', time: undefined });
   const [recipeModal, setRecipeModal] = useState<{ open: boolean; date: string; slot: 'breakfast' | 'lunch' | 'dinner'; time: string } | null>(null);
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   const loadEvents = useCallback(async () => {
     const res = await getCalendarEvents();
     if (res.success && res.events) setEvents(res.events);
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
 
-  const { weeks } = useMemo(() => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const start = new Date(year, month, 1);
-    const startDay = (start.getDay() + 6) % 7;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days: (Date | null)[] = [];
-    for (let i = 0; i < startDay; i++) days.push(null);
-    for (let d = 1; d <= daysInMonth; d++) days.push(new Date(year, month, d));
-    const totalCells = Math.ceil(days.length / 7) * 7;
-    while (days.length < totalCells) days.push(null);
-    const weeks: (Date | null)[][] = [];
-    for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
-    return { weeks };
-  }, [currentDate]);
-
-  const goPrev = () => {
-    const d = new Date(currentDate);
-    if (viewMode === 'month') d.setMonth(d.getMonth() - 1);
-    else d.setDate(d.getDate() - (viewMode === 'week' ? 7 : 1));
-    setCurrentDate(d);
-  };
-
-  const goNext = () => {
-    const d = new Date(currentDate);
-    if (viewMode === 'month') d.setMonth(d.getMonth() + 1);
-    else d.setDate(d.getDate() + (viewMode === 'week' ? 7 : 1));
-    setCurrentDate(d);
-  };
-
-  const goToday = () => setCurrentDate(new Date());
-
   const dateKey = toDateKey(currentDate);
+  const isToday = dateKey === toDateKey(new Date());
 
-  const dayEvents = useMemo(() => {
-    return events.filter((e) => e.date === dateKey).sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
-  }, [events, dateKey]);
+  const agendaItems = useMemo(() => getDayEvents(dateKey, events), [dateKey, events]);
 
-  const weekDateKeys = useMemo(() => {
+  const summary = useMemo(() => {
+    const terms = agendaItems.filter((i) => i.type === 'event').length;
+    const meals = agendaItems.filter((i) => i.type === 'meal').length;
+    const workouts = agendaItems.filter((i) => i.type === 'workout').length;
+    const parts: string[] = [];
+    if (terms > 0) parts.push(terms === 1 ? '1 Termin' : `${terms} Termine`);
+    if (meals > 0) parts.push(meals === 1 ? 'ein leckeres Essen' : `${meals} Mahlzeiten`);
+    if (workouts > 0) parts.push(workouts === 1 ? 'ein Workout' : `${workouts} Workouts`);
+    if (parts.length === 0) return null;
+    return `Du hast ${parts.join(' und ')} geplant.`;
+  }, [agendaItems]);
+
+  const weekDays = useMemo(() => {
     const d = new Date(currentDate);
-    const wStart = d.getDate() - (d.getDay() + 6) % 7;
+    const start = d.getDate() - ((d.getDay() + 6) % 7);
     return Array.from({ length: 7 }, (_, i) => {
       const x = new Date(d);
-      x.setDate(wStart + i);
-      return toDateKey(x);
+      x.setDate(start + i);
+      return x;
     });
   }, [currentDate]);
 
-  const weekEvents = useMemo(() => {
-    const byDate: Record<string, CalendarEvent[]> = {};
-    weekDateKeys.forEach((k) => (byDate[k] = []));
-    events.forEach((e) => {
-      if (weekDateKeys.includes(e.date)) byDate[e.date].push(e);
-    });
-    Object.keys(byDate).forEach((k) => byDate[k].sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00')));
-    return byDate;
-  }, [events, weekDateKeys]);
+  const goPrevWeek = () => {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() - 7);
+    setCurrentDate(d);
+  };
+
+  const goNextWeek = () => {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() + 7);
+    setCurrentDate(d);
+  };
+
+  const handleMagicSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!magicInput.trim()) return;
+    const { date, time, title, isMeal } = parseMagicInput(magicInput, currentDate);
+    setMagicInput('');
+
+    if (isMeal) {
+      const id = `meal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const slot = time < '11:00' ? 'breakfast' : time < '15:00' ? 'lunch' : 'dinner';
+      const newEvent: CalendarEvent = {
+        id,
+        type: 'meal',
+        slot,
+        date,
+        time,
+        recipeName: title,
+      };
+      const next = [...events, newEvent];
+      setEvents(next);
+      await saveCalendarEvents(next);
+    } else {
+      const id = `ev-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const newEvent: CalendarEvent = {
+        id,
+        type: 'custom',
+        eventType: 'reminder',
+        title,
+        date,
+        time,
+      };
+      const next = [...events, newEvent];
+      setEvents(next);
+      await saveCalendarEvents(next);
+    }
+  };
 
   const handleAddCustomEvent = async (data: { type: CustomEventType; title: string; date: string; time: string; endTime?: string }) => {
     const id = `ev-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -181,320 +269,150 @@ export function CalendarClient() {
     await saveCalendarEvents(next);
   };
 
-  const openEventModal = (date: string, time?: string) => {
-    setEventModal({ open: true, date, time: time || '09:00' });
-    setQuickAddOpen(false);
-  };
-
   const openRecipeModal = (slot: 'breakfast' | 'lunch' | 'dinner', time: string) => {
     setRecipeModal({ open: true, date: dateKey, slot, time });
-    setQuickAddOpen(false);
   };
 
-  const timeSlots = Array.from({ length: 17 }, (_, i) => `${(6 + i).toString().padStart(2, '0')}:00`); // 06:00 - 22:00
-
   return (
-    <PageTransition className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Kalender</h1>
-          <div className="relative">
-            <button
-              onClick={() => setQuickAddOpen(!quickAddOpen)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-medium shadow-md shadow-orange-500/25 hover:shadow-lg transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              Hinzufügen
-            </button>
-            {quickAddOpen && (
-              <>
-                <div className="absolute inset-0 -z-10" onClick={() => setQuickAddOpen(false)} aria-hidden />
-                <div className="absolute right-0 top-full mt-1 py-1 bg-white rounded-xl border border-gray-100 shadow-lg z-10 min-w-[180px]">
-                  <button
-                    onClick={() => openEventModal(dateKey)}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-gray-50 rounded-lg"
-                  >
-                    <Calendar className="w-4 h-4 text-blue-500" />
-                    Termin
-                  </button>
-                  <button
-                    onClick={() => openRecipeModal('lunch', '12:30')}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-gray-50 rounded-lg"
-                  >
-                    <ChefHat className="w-4 h-4 text-orange-500" />
-                    Mahlzeit
-                  </button>
-                  <Link
-                    href="/tools/fitness"
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm hover:bg-gray-50 rounded-lg"
-                  >
-                    <Dumbbell className="w-4 h-4 text-emerald-500" />
-                    Workout
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
+    <PageTransition className="h-full flex flex-col lg:flex-row gap-6 lg:gap-8">
+      {/* LINKS: Wochen-Slider (Desktop) / Oben (Mobile) */}
+      <aside className="shrink-0 lg:w-48">
+        <div className="flex items-center justify-between mb-3">
+          <button onClick={goPrevWeek} className="p-2 rounded-lg hover:bg-gray-100" aria-label="Vorherige Woche">
+            <ChevronLeft className="w-5 h-5 text-gray-600" />
+          </button>
+          <span className="text-sm font-medium text-gray-500">{MONTHS[currentDate.getMonth()].slice(0, 3)}</span>
+          <button onClick={goNextWeek} className="p-2 rounded-lg hover:bg-gray-100" aria-label="Nächste Woche">
+            <ChevronRight className="w-5 h-5 text-gray-600" />
+          </button>
         </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex rounded-xl bg-gray-100 p-1">
-            {(['week', 'month', 'day'] as const).map((mode) => (
+        <div className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
+          {weekDays.map((d) => {
+            const dKey = toDateKey(d);
+            const active = dKey === dateKey;
+            return (
               <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
+                key={dKey}
+                onClick={() => setCurrentDate(d)}
                 className={cn(
-                  'min-h-[44px] px-4 rounded-lg text-sm font-medium transition-all',
-                  viewMode === mode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  'shrink-0 w-12 h-12 lg:w-full lg:py-3 rounded-full lg:rounded-xl flex flex-col lg:flex-row items-center justify-center gap-0.5 lg:gap-2 transition-colors',
+                  active ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
                 )}
               >
-                {mode === 'week' ? 'Woche' : mode === 'month' ? 'Monat' : 'Tag'}
+                <span className="text-[10px] lg:text-xs font-medium opacity-80">{WEEKDAYS_SHORT[d.getDay()]}</span>
+                <span className="text-sm font-bold">{d.getDate()}</span>
               </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={goPrev} className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100" aria-label="Zurück">
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* RECHTS: Agenda Timeline */}
+      <main className="flex-1 min-w-0 flex flex-col">
+        {/* Header: Heute, Datum + Summary */}
+        <div className="mb-6">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+            {isToday ? 'Heute' : WEEKDAYS_LONG[currentDate.getDay()]}, {currentDate.getDate()}. {MONTHS[currentDate.getMonth()]}
+          </h1>
+          {summary && <p className="text-gray-500 mt-1">{summary}</p>}
+        </div>
+
+        {/* Bento Timeline */}
+        <div className="flex-1 space-y-3 pb-32 lg:pb-36">
+          {agendaItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <span className="text-5xl mb-4">☀️</span>
+              <p className="text-xl font-semibold text-gray-900">Der Tag gehört dir!</p>
+              <p className="text-gray-500 mt-1 text-center">Füge Termine, Mahlzeiten oder Workouts hinzu.</p>
+              <button
+                onClick={() => setEventModal({ open: true, date: dateKey, time: '09:00' })}
+                className="mt-6 px-6 py-3 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 transition-colors"
+              >
+                Ersten Eintrag hinzufügen
+              </button>
+            </div>
+          ) : (
+            agendaItems.map((item) => (
+              <SwipeableEventItem
+                key={item.id}
+                event={item.event}
+                onDelete={handleDeleteEvent}
+                colorClass="rounded-2xl overflow-hidden"
+              >
+                <div
+                  className={cn(
+                    'flex items-center gap-4 p-4 bg-white border shadow-sm rounded-2xl',
+                    item.type === 'event' && 'border-blue-100',
+                    item.type === 'meal' && 'border-orange-100',
+                    item.type === 'workout' && 'border-pink-100'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'w-12 h-12 rounded-xl flex items-center justify-center shrink-0',
+                      item.type === 'event' && 'bg-blue-100 text-blue-600',
+                      item.type === 'meal' && 'bg-orange-100 text-orange-600',
+                      item.type === 'workout' && 'bg-pink-100 text-pink-600'
+                    )}
+                  >
+                    {item.type === 'event' && <Calendar className="w-6 h-6" />}
+                    {item.type === 'meal' && <UtensilsCrossed className="w-6 h-6" />}
+                    {item.type === 'workout' && <Dumbbell className="w-6 h-6" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-gray-900">{item.title}</div>
+                    {'subtitle' in item && item.subtitle && <div className="text-sm text-gray-500">{item.subtitle}</div>}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-sm font-medium text-gray-600">{item.time}</div>
+                    {item.type === 'meal' && 'recipeLink' in item && item.recipeLink && (
+                      <Link
+                        href={item.recipeLink}
+                        className="inline-flex items-center gap-1 mt-1 text-xs font-medium text-orange-600 hover:text-orange-700"
+                      >
+                        Zum Rezept <ExternalLink className="w-3 h-3" />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </SwipeableEventItem>
+            ))
+          )}
+        </div>
+      </main>
+
+      {/* MAGIC INPUT BAR – Sticky unten (über Mobile-Nav) */}
+      <div className="fixed bottom-24 left-0 right-0 z-40 md:bottom-4 md:left-64 pb-[env(safe-area-inset-bottom)] md:pb-4 pt-4 bg-gradient-to-t from-white via-white to-transparent pointer-events-none">
+        <div className="max-w-2xl mx-auto px-4 pointer-events-auto">
+          <form onSubmit={handleMagicSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={magicInput}
+              onChange={(e) => setMagicInput(e.target.value)}
+              placeholder='Neuer Eintrag... (z.B. "Morgen 14 Uhr Meeting" oder "Samstag Abend Pizza essen")'
+              className="flex-1 min-h-[52px] px-4 rounded-2xl border border-gray-200 bg-white shadow-lg focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-base placeholder:text-gray-400"
+            />
+            <button
+              type="submit"
+              disabled={!magicInput.trim()}
+              className="min-h-[52px] min-w-[52px] flex items-center justify-center rounded-2xl bg-gray-900 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-800 transition-colors"
+              aria-label="Hinzufügen"
+            >
+              <Send className="w-5 h-5" />
             </button>
-            <button onClick={goToday} className="min-h-[44px] px-4 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-              Heute
-            </button>
-            <button onClick={goNext} className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100" aria-label="Weiter">
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-          <span className="text-lg font-semibold text-gray-900 ml-auto">
-            {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-          </span>
+          </form>
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {viewMode === 'month' && (
-          <div className="p-4">
-            <div className="grid grid-cols-7 gap-px bg-gray-100">
-              {WEEKDAYS.map((d) => (
-                <div key={d} className="bg-white py-2 text-center text-xs font-medium text-gray-500">
-                  {d}
-                </div>
-              ))}
-              {weeks.flat().map((day, i) => {
-                const isCurrentMonth = day && day.getMonth() === currentDate.getMonth();
-                const isToday = day && day.toDateString() === new Date().toDateString();
-                const dKey = day ? toDateKey(day) : '';
-                const count = events.filter((e) => e.date === dKey).length;
-                return (
-                  <div
-                    key={i}
-                    onClick={() => day && (setCurrentDate(day), setViewMode('day'))}
-                    className={cn(
-                      'min-h-[80px] p-2 bg-white cursor-pointer hover:bg-gray-50 transition-colors',
-                      !isCurrentMonth && 'opacity-40'
-                    )}
-                  >
-                    {day && (
-                      <>
-                        <span
-                          className={cn(
-                            'inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium',
-                            isToday ? 'bg-orange-500 text-white' : 'text-gray-700'
-                          )}
-                        >
-                          {day.getDate()}
-                        </span>
-                        {count > 0 && (
-                          <div className="mt-1 flex justify-center gap-0.5">
-                            {Array.from({ length: Math.min(3, count) }).map((_, j) => (
-                              <span key={j} className="w-1 h-1 rounded-full bg-orange-400" />
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {viewMode === 'week' && (
-          <div className="p-4">
-            <div className="grid grid-cols-7 gap-2 mb-4">
-              {weekDateKeys.map((dKey, i) => {
-                const d = new Date(dKey + 'T12:00');
-                const isToday = dKey === toDateKey(new Date());
-                return (
-                  <div key={dKey} className="text-center">
-                    <div className="text-xs font-medium text-gray-500">{WEEKDAYS[i]}</div>
-                    <button
-                      onClick={() => (setCurrentDate(d), setViewMode('day'))}
-                      className={cn(
-                        'w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-semibold transition-colors',
-                        isToday ? 'bg-orange-500 text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                      )}
-                    >
-                      {d.getDate()}
-                    </button>
-                    {weekEvents[dKey]?.length > 0 && (
-                      <div className="mt-1 text-[10px] text-gray-400">{weekEvents[dKey].length} Termine</div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="border-t border-gray-100 pt-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Diese Woche</h3>
-              <div className="space-y-2">
-                {dayEvents.length === 0 ? (
-                  <p className="text-sm text-gray-400 py-4 text-center">Keine Termine. Klicke auf „Hinzufügen“.</p>
-                ) : (
-                  dayEvents.map((e) => (
-                    <SwipeableEventItem key={e.id} event={e} onDelete={handleDeleteEvent} colorClass={cn('p-3 rounded-xl border', getEventColor(e))}>
-                      <span className="flex items-center gap-2">
-                        {e.type === 'custom' && <Briefcase className="w-4 h-4 shrink-0" />}
-                        {e.type === 'meal' && <UtensilsCrossed className="w-4 h-4 shrink-0" />}
-                        {e.type === 'workout' && <Dumbbell className="w-4 h-4 shrink-0" />}
-                        <span className="font-medium truncate">
-                          {e.type === 'custom' ? e.title : e.type === 'meal' ? (e.recipeName || e.slot) : e.label || 'Workout'}
-                        </span>
-                        {e.time && <span className="text-xs opacity-75">· {e.time}</span>}
-                      </span>
-                    </SwipeableEventItem>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {viewMode === 'day' && (
-          <div className="p-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div
-                className={cn(
-                  'w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold',
-                  dateKey === toDateKey(new Date()) ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700'
-                )}
-              >
-                {currentDate.getDate()}
-              </div>
-              <div>
-                <div className="text-sm text-gray-500">{WEEKDAYS[(currentDate.getDay() + 6) % 7]}</div>
-                <div className="font-semibold text-gray-900">
-                  {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-                </div>
-              </div>
-            </div>
-
-            {/* Zeit-Slots klickbar für Custom Events */}
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Termin hinzufügen</h3>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {timeSlots.map((slot) => (
-                  <button
-                    key={slot}
-                    onClick={() => openEventModal(dateKey, slot)}
-                    className="flex items-center gap-2 p-2.5 rounded-xl border border-dashed border-gray-200 hover:border-orange-200 hover:bg-orange-50/30 transition-colors text-left"
-                  >
-                    <span className="text-sm font-medium text-gray-600">{slot}</span>
-                    <Plus className="w-3.5 h-3.5 text-gray-400" />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Mahlzeiten mit Recipe Picker */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <UtensilsCrossed className="w-4 h-4 text-orange-500" />
-                Mahlzeiten
-              </h3>
-              <div className="grid gap-2">
-                {MEAL_SLOTS.map((slot) => {
-                  const assigned = dayEvents.find((e) => e.type === 'meal' && e.slot === slot.id);
-                  const content = (
-                    <button
-                      onClick={() => openRecipeModal(slot.id, slot.time)}
-                      className={cn(
-                        'w-full flex items-center justify-between gap-3 p-4 rounded-xl border text-left transition-colors',
-                        assigned ? 'border-orange-200 bg-orange-50' : 'border-orange-100 bg-orange-50/50 hover:bg-orange-50'
-                      )}
-                    >
-                      <div>
-                        <span className="text-sm font-medium text-orange-700">{slot.label}</span>
-                        {assigned && assigned.type === 'meal' && assigned.recipeName && (
-                          <div className="text-xs text-orange-600 mt-0.5 truncate">
-                            {assigned.recipeName}
-                            {assigned.calories && ` · ${assigned.calories}`}
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-xs text-orange-500 shrink-0">{assigned ? 'Ändern' : 'Aus Rezepten'}</span>
-                    </button>
-                  );
-                  return assigned ? (
-                    <SwipeableEventItem key={slot.id} event={assigned} onDelete={handleDeleteEvent} colorClass="rounded-xl overflow-hidden">
-                      {content}
-                    </SwipeableEventItem>
-                  ) : (
-                    <div key={slot.id}>{content}</div>
-                  );
-                })}
-              </div>
-
-              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mt-6">
-                <Dumbbell className="w-4 h-4 text-emerald-500" />
-                Aktivität
-              </h3>
-              <Link
-                href="/tools/fitness"
-                className="flex items-center gap-3 p-4 rounded-xl border border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50 transition-colors"
-              >
-                <span className="text-sm font-medium text-emerald-700">Workout planen</span>
-              </Link>
-
-              {/* Geplante Termine (Custom + Workout, Mahlzeiten sind oben) */}
-              {dayEvents.filter((e) => e.type !== 'meal').length > 0 && (
-                <>
-                  <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mt-6">
-                    <CheckSquare2 className="w-4 h-4 text-blue-500" />
-                    Geplante Termine
-                  </h3>
-                  <div className="space-y-2">
-                    {dayEvents
-                      .filter((e) => e.type !== 'meal')
-                      .map((e) => (
-                        <SwipeableEventItem key={e.id} event={e} onDelete={handleDeleteEvent} colorClass={cn('p-3 rounded-xl border', getEventColor(e))}>
-                          <span className="flex items-center gap-2">
-                            {e.type === 'custom' && <Briefcase className="w-4 h-4 shrink-0" />}
-                            {e.type === 'workout' && <Dumbbell className="w-4 h-4 shrink-0" />}
-                            <span className="font-medium">{e.type === 'custom' ? e.title : e.label || 'Workout'}</span>
-                            {e.time && <span className="text-xs opacity-75">· {e.time}</span>}
-                          </span>
-                        </SwipeableEventItem>
-                      ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Quick Links */}
-      <div className="flex flex-wrap gap-2">
-        <Link href="/tools/recipe" className="px-4 py-2 rounded-xl bg-orange-50 text-orange-700 text-sm font-medium hover:bg-orange-100 transition-colors">
-          Gourmet-Planer
-        </Link>
-        <Link href="/tools/fitness" className="px-4 py-2 rounded-xl bg-emerald-50 text-emerald-700 text-sm font-medium hover:bg-emerald-100 transition-colors">
-          Fit-Coach
-        </Link>
-        <Link href="/tools/shopping-list" className="px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors">
-          Einkaufsliste
-        </Link>
+      {/* FAB: Mahlzeit aus Rezepten (Schnellzugriff) */}
+      <div className="fixed right-4 bottom-36 md:right-8 md:bottom-24 z-30">
+        <button
+          onClick={() => openRecipeModal('dinner', '18:30')}
+          className="w-14 h-14 rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-500/30 flex items-center justify-center hover:bg-orange-600 transition-colors"
+          aria-label="Rezept hinzufügen"
+        >
+          <ChefHat className="w-6 h-6" />
+        </button>
       </div>
 
       {/* Modals */}
