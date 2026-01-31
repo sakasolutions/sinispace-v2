@@ -755,12 +755,12 @@ export default function DashboardClient() {
               </div>
             )}
 
-            {/* SECONDARY CARDS: Mobile kompakter, Desktop 4-Spalten */}
+            {/* SECONDARY CARDS: Einheitliche Card-Größe, kompaktes Grid */}
             {secondaryTools.length > 0 && (
               <div 
-                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-4"
+                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-4 lg:items-stretch"
                 style={{
-                  gridAutoRows: 'minmax(auto, auto)',
+                  gridAutoRows: 'minmax(160px, auto)',
                 }}
               >
                 {secondaryTools.map((tool, index) => {
@@ -772,24 +772,23 @@ export default function DashboardClient() {
                   const isLarge = size === 'large';
                   const isSmall = size === 'small';
 
-                  // Secondary Cards: Medium or Small based on original size
-                  const desktopColSpan = isLarge ? 'lg:col-span-2' : 'lg:col-span-1';
-                  const desktopRowSpan = isLarge ? 'lg:row-span-2' : size === 'medium' ? 'lg:row-span-1' : 'lg:row-span-1';
+                  // Secondary Cards: Einheitliche Größe (kein 2x2 mehr) – alle gleiche Karten
+                  const desktopColSpan = 'lg:col-span-1';
+                  const desktopRowSpan = 'lg:row-span-1';
                   
                   // Visual Balance: Color-weight distribution
                   const colorWeight = colors.gradient ? 'high' : 'medium';
 
                   
-                  // SECONDARY CARDS: Kein Container, nur Icon + Text
+                  // SECONDARY CARDS: Card-Styling, einheitliche Höhe
                   const cardClassName = cn(
-                    'group relative',
-                    // KEIN Container - nur Content
-                    'transition-all duration-200 ease-out',
+                    'group relative flex flex-col',
+                    'rounded-xl border border-gray-100 bg-white shadow-sm',
+                    'transition-all duration-200 ease-out hover:shadow-md hover:border-gray-200',
                     tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
                     desktopColSpan,
                     desktopRowSpan,
-                    // Padding für Layout
-                    'p-2 md:p-3 lg:p-4'
+                    'p-3 md:p-4 lg:p-5 h-full min-h-[140px] md:min-h-[160px]'
                   );
 
                   const content = (
@@ -853,16 +852,15 @@ export default function DashboardClient() {
                         {tool.title}
                       </h3>
 
-                      {/* Description - Mobile: Hidden or 1 Line with Ellipsis, Desktop: Full */}
+                      {/* Description - 2 Zeilen max, ellipsis */}
                       <p className={cn(
                         'text-gray-600 font-normal text-center md:text-left',
-                        'hidden md:block', // MOBILE: Hidden completely
-                        // Desktop sizes
+                        'hidden md:block',
                         isLarge ? 'md:text-sm lg:text-base' : 
                         isSmall ? 'md:text-xs lg:text-sm' : 
                         'md:text-sm lg:text-base',
                         'group-hover:text-gray-700 transition-colors duration-300',
-                        'md:line-clamp-none'
+                        'line-clamp-2'
                       )} style={{
                         fontWeight: 400,
                         letterSpacing: '0.01em',
