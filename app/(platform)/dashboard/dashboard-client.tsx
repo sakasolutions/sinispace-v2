@@ -31,20 +31,20 @@ import {
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
 
-/** Hochwertige Thumbnails pro Tool – Magazin-Look */
+/** Modern 3D Icons pro Tool – Tech-Startup-Look (Iconscout) */
 const HERO_IMAGES: Record<string, string> = {
-  recipe: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop',
-  'shopping-list': 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=400&fit=crop',
-  email: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=400&fit=crop',
-  invoice: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&h=400&fit=crop',
-  excel: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
-  legal: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=400&fit=crop',
-  'tough-msg': 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=400&fit=crop',
-  summarize: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&h=400&fit=crop',
-  polish: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=400&fit=crop',
-  travel: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=400&fit=crop',
-  translate: 'https://images.unsplash.com/photo-1516245834210-c4c142787335?w=800&h=400&fit=crop',
-  fitness: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=400&fit=crop',
+  recipe: 'https://cdn3d.iconscout.com/3d/premium/thumb/chef-hat-4036034-3342375.png',
+  'shopping-list': 'https://cdn3d.iconscout.com/3d/premium/thumb/shopping-cart-4035942-3342388.png',
+  email: 'https://cdn3d.iconscout.com/3d/premium/thumb/email-message-3026048-2527814.png',
+  polish: 'https://cdn3d.iconscout.com/3d/premium/thumb/pencil-3982464-3297121.png',
+  invoice: 'https://cdn3d.iconscout.com/3d/premium/thumb/invoice-document-4858026-4049141.png',
+  excel: 'https://cdn3d.iconscout.com/3d/premium/thumb/spreadsheet-4035612-3342363.png',
+  legal: 'https://cdn3d.iconscout.com/3d/premium/thumb/law-scale-6024334-4974658.png',
+  'tough-msg': 'https://cdn3d.iconscout.com/3d/premium/thumb/chat-message-3026047-2527813.png',
+  summarize: 'https://cdn3d.iconscout.com/3d/premium/thumb/document-4035611-3342362.png',
+  travel: 'https://cdn3d.iconscout.com/3d/premium/thumb/airplane-3982459-3297116.png',
+  translate: 'https://cdn3d.iconscout.com/3d/premium/thumb/translation-6024336-4974660.png',
+  fitness: 'https://cdn3d.iconscout.com/3d/premium/thumb/dumbbell-3982463-3297120.png',
 };
 
 type Tool = {
@@ -686,7 +686,7 @@ export default function DashboardClient() {
                         src={heroImage}
                         alt=""
                         loading="lazy"
-                        className="w-full h-20 object-cover object-center rounded-t-xl lg:rounded-xl flex-shrink-0"
+                        className="w-full h-16 md:h-20 object-contain object-center rounded-t-xl lg:rounded-xl flex-shrink-0"
                       />
 
                       {/* Title – unter dem Bild mit Abstand (pt-3 für Teaser-Abstand) */}
