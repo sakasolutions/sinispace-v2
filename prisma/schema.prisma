@@ -41,6 +41,7 @@ model User {
   weeklyPlans             WeeklyPlan[]
   userShoppingLists       UserShoppingLists?
   shoppingListFrequentItems ShoppingListFrequentItem[]
+  userCalendar            UserCalendar?
 }
 
 model Account {
@@ -319,6 +320,18 @@ model UserShoppingLists {
   userId    String   @unique
   listsJson String   // JSON: ShoppingList[] (id, name, items)
   updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Kalender: Events (Custom + Meals + Workouts) pro User
+model UserCalendar {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  eventsJson String   @default("[]") // JSON: CalendarEvent[]
+  updatedAt  DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
