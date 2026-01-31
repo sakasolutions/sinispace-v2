@@ -69,7 +69,15 @@ const TOOL_GLOW_SHADOW: Record<string, string> = {
   social: 'shadow-[0_4px_24px_-2px_rgba(236,72,153,0.3)]',
 };
 
-/** Icon-Bg-Kreis – subtiler Tint pro Farbe (Top 4: zart, Rest: gefüllt wie Top 4) */
+/** Section-Backgrounds für Workflow-Trennung */
+const WORKFLOW_SECTION_BG: Record<string, string> = {
+  productivity: 'bg-gradient-to-b from-orange-50/30 to-transparent',
+  communication: 'bg-gradient-to-b from-blue-50/30 to-transparent',
+  personal: 'bg-gradient-to-b from-rose-50/30 to-transparent',
+  professional: 'bg-gradient-to-b from-violet-50/30 to-transparent',
+};
+
+/** Icon-Bg-Kreis – subtiler Tint pro Farbe */
 const ICON_BG_CLASS: Record<string, string> = {
   orange: 'bg-orange-50',
   pink: 'bg-pink-50',
@@ -310,20 +318,30 @@ const allTools: Tool[] = [
   },
 ];
 
-const categoryTabs = ['Alle', 'Business', 'Kommunikation', 'Tech & Life'] as const;
+/** Workflow-basierte Kategorien (nutzerorientiert) */
+const WORKFLOW_CATEGORIES = [
+  { id: 'all', label: 'Alle', icon: LayoutGrid, toolIds: [] as string[] },
+  { id: 'productivity', label: 'Produktivität', icon: ShoppingCart, toolIds: ['recipe', 'shopping-list', 'excel'] },
+  { id: 'communication', label: 'Kommunikation', icon: Mail, toolIds: ['email', 'tough-msg', 'translate'] },
+  { id: 'personal', label: 'Persönlich', icon: Dumbbell, toolIds: ['fitness', 'travel', 'polish'] },
+  { id: 'professional', label: 'Professionell', icon: FileText, toolIds: ['legal', 'invoice', 'summarize', 'code', 'social'] },
+] as const;
 
-const categoryFilterMap: Record<string, string[]> = {
-  Alle: [],
-  Business: ['business'],
-  Kommunikation: ['communication', 'writing'],
-  'Tech & Life': ['dev', 'lifestyle', 'social'],
-};
-
-const categoryConfig: Record<(typeof categoryTabs)[number], { icon: React.ComponentType<{ className?: string }> }> = {
-  Alle: { icon: LayoutGrid },
-  Business: { icon: Briefcase },
-  Kommunikation: { icon: MessageCircle },
-  'Tech & Life': { icon: Sparkles },
+const TOOL_WORKFLOW: Record<string, (typeof WORKFLOW_CATEGORIES)[number]['id']> = {
+  recipe: 'productivity',
+  'shopping-list': 'productivity',
+  excel: 'productivity',
+  email: 'communication',
+  'tough-msg': 'communication',
+  translate: 'communication',
+  fitness: 'personal',
+  travel: 'personal',
+  polish: 'personal',
+  legal: 'professional',
+  invoice: 'professional',
+  summarize: 'professional',
+  code: 'professional',
+  social: 'professional',
 };
 
 function getDailyHeroContent(date: Date): { subline: string; headline: string } {
@@ -515,8 +533,10 @@ const toolColors: Record<string, {
   },
 };
 
+type WorkflowId = (typeof WORKFLOW_CATEGORIES)[number]['id'];
+
 export default function DashboardClient() {
-  const [selectedCategory, setSelectedCategory] = useState<(typeof categoryTabs)[number]>('Alle');
+  const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowId>('all');
   const [pullDistance, setPullDistance] = useState(0);
   const [usageStats, setUsageStats] = useState<Record<string, { count7d: number; count30d: number; isTrending: boolean }>>({});
   const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
@@ -598,9 +618,9 @@ export default function DashboardClient() {
   const sortedAndFilteredTools = useMemo(() => {
     let filtered = allTools;
 
-    if (selectedCategory !== 'Alle') {
-      const allowed = categoryFilterMap[selectedCategory];
-      filtered = filtered.filter((t) => allowed.includes(t.category));
+    if (selectedWorkflow !== 'all') {
+      const allowed = WORKFLOW_CATEGORIES.find((c) => c.id === selectedWorkflow)?.toolIds ?? [];
+      filtered = filtered.filter((t) => allowed.includes(t.id));
     }
 
     // Sort by usage: Top 4 most used tools first
@@ -634,7 +654,7 @@ export default function DashboardClient() {
     });
 
     return sorted;
-  }, [selectedCategory, usageStats]);
+  }, [selectedWorkflow, usageStats]);
 
   // Alle Tools gleichwertig – einheitliches Feature-Card Grid
 
@@ -686,29 +706,29 @@ export default function DashboardClient() {
             </h1>
           </div>
 
-          {/* Super Pills: Soft-Fill, keine Borders */}
-          <div className="flex flex-wrap justify-between items-center gap-3">
-            <div className="flex flex-1 md:flex-initial overflow-x-auto scrollbar-hide min-w-0 gap-3 py-1 pl-1 pr-1">
-              {categoryTabs.map((cat) => {
-                const { icon: Icon } = categoryConfig[cat];
-                const isActive = selectedCategory === cat;
+          {/* Workflow-Pills: 44px min touch, 8px grid */}
+          <div className="flex flex-wrap justify-between items-center gap-2">
+            <div className="flex flex-1 md:flex-initial overflow-x-auto scrollbar-hide min-w-0 gap-2 py-1 pl-1 pr-1">
+              {WORKFLOW_CATEGORIES.map((cat) => {
+                const Icon = cat.icon;
+                const isActive = selectedWorkflow === cat.id;
                 return (
                   <button
-                    key={cat}
+                    key={cat.id}
                     onClick={() => {
-                      setSelectedCategory(cat);
+                      setSelectedWorkflow(cat.id);
                       triggerHaptic('light');
                     }}
                     className={cn(
-                      'h-10 px-5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all duration-200 shrink-0',
-                      'active:scale-[0.98]',
+                      'min-h-[44px] min-w-[44px] px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition-all duration-200 shrink-0',
+                      'active:scale-[0.97]',
                       isActive
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold shadow-lg shadow-orange-500/30'
-                        : 'bg-white border border-gray-100 text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-200'
+                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold shadow-lg shadow-orange-500/25'
+                        : 'bg-white/90 backdrop-blur-sm border border-gray-100 text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-200'
                     )}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
-                    <span>{cat}</span>
+                    <span>{cat.label}</span>
                   </button>
                 );
               })}
@@ -719,80 +739,107 @@ export default function DashboardClient() {
           </div>
         </header>
 
-        {/* FEATURE CARDS – Einheitliches Grid für alle Tools */}
+        {/* Premium Dashboard: Featured + Workflow-Sections */}
         {sortedAndFilteredTools.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {sortedAndFilteredTools.map((tool, index) => {
-              const Icon = tool.icon;
-              const isTop4 = index < 4;
-              const heroGlow = isTop4 && TOOL_GLOW_SHADOW[tool.id];
-              const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
-              const iconBg = ICON_BG_CLASS[tool.color] ?? 'bg-gray-50';
-              const subtitle = TOOL_SUBTITLES[tool.id] ?? tool.category;
+          <div className="space-y-6 md:space-y-8">
+            {/* FEATURED: Top 4 in größeren Cards */}
+            <section>
+              <h2 className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-3">Beliebt</h2>
+              <div className="grid grid-cols-2 gap-4 md:gap-4">
+                {sortedAndFilteredTools.slice(0, 4).map((tool) => {
+                  const Icon = tool.icon;
+                  const heroGlow = TOOL_GLOW_SHADOW[tool.id];
+                  const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
+                  const iconBg = ICON_BG_CLASS[tool.color] ?? 'bg-gray-50';
+                  const subtitle = TOOL_SUBTITLES[tool.id];
+                  const card = (
+                    <div
+                      key={tool.id}
+                      className={cn(
+                        'group relative flex flex-col items-center text-center min-h-[44px]',
+                        'bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-100/80',
+                        heroGlow ?? 'shadow-sm',
+                        'hover:shadow-lg hover:border-gray-200/80 transition-all duration-300',
+                        'p-5 min-h-[160px]',
+                        tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
+                      )}
+                    >
+                      <div className={cn('flex items-center justify-center rounded-full p-4 shrink-0', iconBg)}>
+                        {createElement(Icon, { className: cn('w-10 h-10 shrink-0', iconColor), strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                      </div>
+                      <h3 className="font-bold text-gray-900 mt-4 text-base leading-tight line-clamp-2">{tool.title}</h3>
+                      <p className="text-xs text-gray-500 font-medium mt-1 line-clamp-1">{subtitle}</p>
+                      {!tool.available && tool.status === 'soon' && (
+                        <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Bald</span>
+                      )}
+                    </div>
+                  );
+                  return tool.available ? (
+                    <Link key={tool.id} href={tool.href} onClick={async () => { triggerHaptic('light'); await trackToolUsage(tool.id, tool.title); setTimeout(() => getToolUsageStats().then((r) => r.success && r.stats && setUsageStats(r.stats)), 500); }}>
+                      {card}
+                    </Link>
+                  ) : (
+                    <div key={tool.id}>{card}</div>
+                  );
+                })}
+              </div>
+            </section>
 
-              const cardClassName = cn(
-                'group relative flex flex-col items-center text-center',
-                'bg-white rounded-2xl border border-gray-100',
-                heroGlow ? heroGlow : 'shadow-sm',
-                'hover:shadow-md hover:border-gray-200 transition-all duration-200',
-                'p-4 min-h-[140px]',
-                tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
+            {/* WORKFLOW-SECTIONS: Gruppiert, ohne Duplikate der Featured */}
+            {(['productivity', 'communication', 'personal', 'professional'] as const).map((workflowId) => {
+              const cat = WORKFLOW_CATEGORIES.find((c) => c.id === workflowId);
+              if (!cat || cat.toolIds.length === 0) return null;
+              const featuredIds = sortedAndFilteredTools.slice(0, 4).map((t) => t.id);
+              const tools = sortedAndFilteredTools.filter(
+                (t) => TOOL_WORKFLOW[t.id] === workflowId && !featuredIds.includes(t.id)
               );
-
-              const content = (
-                <>
-                  {/* Icon – Solid/Filled Look: bg-{color}-50, text-{color}-500, strokeWidth für Masse */}
-                  <div className={cn(
-                    'flex items-center justify-center rounded-full p-3 md:p-4 shrink-0',
-                    iconBg
-                  )}>
-                    {createElement(Icon, {
-                      className: cn('w-8 h-8 shrink-0', iconColor),
-                      strokeWidth: 2.5,
-                      'aria-hidden': true,
-                    } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+              if (tools.length === 0) return null;
+              const sectionBg = WORKFLOW_SECTION_BG[workflowId] ?? '';
+              return (
+                <section key={workflowId} className={cn('rounded-2xl p-4 md:p-5 -mx-1', sectionBg)}>
+                  <h2 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <cat.icon className="w-4 h-4 text-gray-500" />
+                    {cat.label}
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {tools.map((tool) => {
+                      const Icon = tool.icon;
+                      const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
+                      const iconBg = ICON_BG_CLASS[tool.color] ?? 'bg-gray-50';
+                      const subtitle = TOOL_SUBTITLES[tool.id];
+                      const card = (
+                        <div
+                          key={tool.id}
+                          className={cn(
+                            'group relative flex flex-col items-center text-center min-h-[44px]',
+                            'bg-white rounded-xl border border-gray-100 shadow-sm',
+                            'hover:shadow-md hover:border-gray-200 transition-all duration-200',
+                            'p-4 min-h-[140px]',
+                            tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
+                          )}
+                        >
+                          <div className={cn('flex items-center justify-center rounded-full p-3 shrink-0', iconBg)}>
+                            {createElement(Icon, { className: cn('w-8 h-8 shrink-0', iconColor), strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                          </div>
+                          <h3 className="font-bold text-gray-900 mt-3 text-sm leading-tight line-clamp-2">{tool.title}</h3>
+                          <p className="text-xs text-gray-400 font-medium mt-1 line-clamp-1">{subtitle}</p>
+                          {!tool.available && tool.status === 'soon' && (
+                            <span className="absolute top-2 right-2 text-[10px] uppercase font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Bald</span>
+                          )}
+                        </div>
+                      );
+                      return tool.available ? (
+                        <Link key={tool.id} href={tool.href} onClick={async () => { triggerHaptic('light'); await trackToolUsage(tool.id, tool.title); setTimeout(() => getToolUsageStats().then((r) => r.success && r.stats && setUsageStats(r.stats)), 500); }}>
+                          {card}
+                        </Link>
+                      ) : (
+                        <div key={tool.id}>{card}</div>
+                      );
+                    })}
                   </div>
-
-                  {/* Titel */}
-                  <h3 className="font-bold text-gray-900 mt-3 text-sm leading-tight line-clamp-2">
-                    {tool.title}
-                  </h3>
-
-                  {/* Untertitel – visuelle Dichte */}
-                  <p className="text-xs text-gray-400 font-medium mt-1 line-clamp-1">
-                    {subtitle}
-                  </p>
-
-                  {!tool.available && tool.status === 'soon' && (
-                    <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-500">
-                      Bald
-                    </span>
-                  )}
-                </>
+                </section>
               );
-
-              return tool.available ? (
-                <Link
-                  key={tool.id}
-                  href={tool.href}
-                  className={cardClassName}
-                  onClick={async () => {
-                    triggerHaptic('light');
-                    await trackToolUsage(tool.id, tool.title);
-                    setTimeout(async () => {
-                      const result = await getToolUsageStats();
-                      if (result.success && result.stats) setUsageStats(result.stats);
-                    }, 500);
-                  }}
-                >
-                  {content}
-                </Link>
-              ) : (
-                <div key={tool.id} className={cardClassName}>
-                  {content}
-                </div>
-              );
-            })}
+            }).filter(Boolean)}
           </div>
         ) : (
           <div className="text-center py-24">
