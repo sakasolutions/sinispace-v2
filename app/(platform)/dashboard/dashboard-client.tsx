@@ -27,7 +27,6 @@ import {
   ArrowUpRight,
   Search,
   TrendingUp,
-  LayoutGrid,
   Briefcase,
   ShoppingCart,
 } from 'lucide-react';
@@ -318,16 +317,15 @@ const allTools: Tool[] = [
   },
 ];
 
-/** Workflow-basierte Kategorien (nutzerorientiert) */
-const WORKFLOW_CATEGORIES = [
-  { id: 'all', label: 'Alle', icon: LayoutGrid, toolIds: [] as string[] },
+/** Workflow-Sektionen (nur Content-Struktur, keine Navigation) */
+const WORKFLOW_SECTIONS = [
   { id: 'productivity', label: 'Produktivität', icon: ShoppingCart, toolIds: ['recipe', 'shopping-list', 'excel'] },
   { id: 'communication', label: 'Kommunikation', icon: Mail, toolIds: ['email', 'tough-msg', 'translate'] },
   { id: 'personal', label: 'Persönlich', icon: Dumbbell, toolIds: ['fitness', 'travel', 'polish'] },
   { id: 'professional', label: 'Professionell', icon: FileText, toolIds: ['legal', 'invoice', 'summarize', 'code', 'social'] },
 ] as const;
 
-const TOOL_WORKFLOW: Record<string, (typeof WORKFLOW_CATEGORIES)[number]['id']> = {
+const TOOL_WORKFLOW: Record<string, (typeof WORKFLOW_SECTIONS)[number]['id']> = {
   recipe: 'productivity',
   'shopping-list': 'productivity',
   excel: 'productivity',
@@ -344,11 +342,12 @@ const TOOL_WORKFLOW: Record<string, (typeof WORKFLOW_CATEGORIES)[number]['id']> 
   social: 'professional',
 };
 
-function getDailyHeroContent(date: Date): { subline: string; headline: string } {
+function getHeaderContent(date: Date): { headline: string; subline: string } {
   const weekday = date.toLocaleDateString('de-DE', { weekday: 'long' });
+  const dateStr = date.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
   return {
-    subline: 'HEUTE',
     headline: `${weekday}.`,
+    subline: dateStr,
   };
 }
 
@@ -533,10 +532,7 @@ const toolColors: Record<string, {
   },
 };
 
-type WorkflowId = (typeof WORKFLOW_CATEGORIES)[number]['id'];
-
 export default function DashboardClient() {
-  const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowId>('all');
   const [pullDistance, setPullDistance] = useState(0);
   const [usageStats, setUsageStats] = useState<Record<string, { count7d: number; count30d: number; isTrending: boolean }>>({});
   const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
@@ -615,17 +611,8 @@ export default function DashboardClient() {
   // Default hierarchy for new users (Top 4)
   const defaultTop4 = ['recipe', 'invoice', 'email', 'tough-msg'];
 
-  const sortedAndFilteredTools = useMemo(() => {
-    let filtered = allTools;
-
-    if (selectedWorkflow !== 'all') {
-      const cat = WORKFLOW_CATEGORIES.find((c) => c.id === selectedWorkflow);
-      const allowed: string[] = cat ? [...cat.toolIds] : [];
-      filtered = filtered.filter((t) => allowed.includes(t.id));
-    }
-
-    // Sort by usage: Top 4 most used tools first
-    const sorted = [...filtered].sort((a, b) => {
+  const sortedTools = useMemo(() => {
+    return [...allTools].sort((a, b) => {
       const aStats = usageStats[a.id];
       const bStats = usageStats[b.id];
       
@@ -653,13 +640,9 @@ export default function DashboardClient() {
       
       return 0;
     });
+  }, [usageStats]);
 
-    return sorted;
-  }, [selectedWorkflow, usageStats]);
-
-  // Alle Tools gleichwertig – einheitliches Feature-Card Grid
-
-  const dailyHero = getDailyHeroContent(new Date());
+  const headerContent = getHeaderContent(new Date());
 
   return (
     <div
@@ -689,65 +672,26 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Main Container - Magazin-Cover Header + Cards */}
+      {/* Main Container: Header + Content */}
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32">
-        {/* Daily Hero Header: Kalender-basiert, Subline + Headline, Soft-Fill Pills */}
-        <header
-          className={cn(
-            'pt-[max(3rem,env(safe-area-inset-top))] md:pt-12 pb-4 md:pb-6',
-            'border-b border-gray-200/50 mb-4 md:mb-6'
-          )}
-        >
-          <div className="mb-3 md:mb-4">
-            <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">
-              {dailyHero.subline}
-            </p>
-            <h1 className="text-4xl font-black text-gray-900 tracking-tighter mt-1">
-              {dailyHero.headline}
-            </h1>
-          </div>
-
-          {/* Workflow-Pills: 44px min touch, 8px grid */}
-          <div className="flex flex-wrap justify-between items-center gap-2">
-            <div className="flex flex-1 md:flex-initial overflow-x-auto scrollbar-hide min-w-0 gap-2 py-1 pl-1 pr-1">
-              {WORKFLOW_CATEGORIES.map((cat) => {
-                const Icon = cat.icon;
-                const isActive = selectedWorkflow === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      setSelectedWorkflow(cat.id);
-                      triggerHaptic('light');
-                    }}
-                    className={cn(
-                      'min-h-[44px] min-w-[44px] px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition-all duration-200 shrink-0',
-                      'active:scale-[0.97]',
-                      isActive
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold shadow-lg shadow-orange-500/25'
-                        : 'bg-white/90 backdrop-blur-sm border border-gray-100 text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-200'
-                    )}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span>{cat.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="hidden md:flex shrink-0 text-gray-500 bg-gray-100 rounded-full px-3 py-1.5 text-sm">
-              ✨ Premium
-            </div>
-          </div>
+        {/* Clean Header: Greeting + Date (keine Navigation hier) */}
+        <header className="pt-[max(3rem,env(safe-area-inset-top))] md:pt-12 pb-6 md:pb-8 border-b border-gray-200/50 mb-6 md:mb-8">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tighter">
+            {headerContent.headline}
+          </h1>
+          <p className="text-sm text-gray-400 font-medium mt-1">
+            {headerContent.subline}
+          </p>
         </header>
 
-        {/* Premium Dashboard: Featured + Workflow-Sections */}
-        {sortedAndFilteredTools.length > 0 ? (
+        {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
+        {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
-            {/* FEATURED: Top 4 in größeren Cards */}
-            <section>
-              <h2 className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-3">Beliebt</h2>
+            {/* Zuletzt verwendet: Top 4 */}
+            <section className="mb-8 md:mb-10">
+              <h2 className="text-sm font-bold text-gray-600 mb-4">Zuletzt verwendet</h2>
               <div className="grid grid-cols-2 gap-4 md:gap-4">
-                {sortedAndFilteredTools.slice(0, 4).map((tool) => {
+                {sortedTools.slice(0, 4).map((tool) => {
                   const Icon = tool.icon;
                   const heroGlow = TOOL_GLOW_SHADOW[tool.id];
                   const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
@@ -786,21 +730,20 @@ export default function DashboardClient() {
               </div>
             </section>
 
-            {/* WORKFLOW-SECTIONS: Gruppiert, ohne Duplikate der Featured */}
-            {(['productivity', 'communication', 'personal', 'professional'] as const).map((workflowId) => {
-              const cat = WORKFLOW_CATEGORIES.find((c) => c.id === workflowId);
-              if (!cat || cat.toolIds.length === 0) return null;
-              const featuredIds = sortedAndFilteredTools.slice(0, 4).map((t) => t.id);
-              const tools = sortedAndFilteredTools.filter(
-                (t) => TOOL_WORKFLOW[t.id] === workflowId && !featuredIds.includes(t.id)
+            {/* Kategorie-Sektionen: Klare Content-Struktur */}
+            {WORKFLOW_SECTIONS.map((section) => {
+              const featuredIds = sortedTools.slice(0, 4).map((t) => t.id);
+              const tools = sortedTools.filter(
+                (t) => TOOL_WORKFLOW[t.id] === section.id && !featuredIds.includes(t.id)
               );
               if (tools.length === 0) return null;
-              const sectionBg = WORKFLOW_SECTION_BG[workflowId] ?? '';
+              const sectionBg = WORKFLOW_SECTION_BG[section.id] ?? '';
+              const Icon = section.icon;
               return (
-                <section key={workflowId} className={cn('rounded-2xl p-4 md:p-5 -mx-1', sectionBg)}>
-                  <h2 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <cat.icon className="w-4 h-4 text-gray-500" />
-                    {cat.label}
+                <section key={section.id} className={cn('rounded-2xl p-4 md:p-5 -mx-1 mb-6 md:mb-8', sectionBg)}>
+                  <h2 className="text-sm font-bold text-gray-600 mb-4 flex items-center gap-2">
+                    <Icon className="w-4 h-4 text-gray-500" />
+                    {section.label}
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {tools.map((tool) => {
