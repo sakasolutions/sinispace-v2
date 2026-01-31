@@ -50,25 +50,25 @@ const TOOL_SUBTITLES: Record<string, string> = {
   social: 'LinkedIn & Social',
 };
 
-/** Hero Glow – farbiger Schatten für Top-4 (Colored Shadow pro Tool) */
+/** Hero Glow – farbiger Schatten für Top-4 (stärkerer Colored Shadow) */
 const TOOL_GLOW_SHADOW: Record<string, string> = {
-  recipe: 'shadow-[0_4px_20px_-4px_rgba(249,115,22,0.15)]',
-  'shopping-list': 'shadow-[0_4px_20px_-4px_rgba(239,68,68,0.15)]',
-  email: 'shadow-[0_4px_20px_-4px_rgba(59,130,246,0.15)]',
-  polish: 'shadow-[0_4px_20px_-4px_rgba(20,184,166,0.15)]',
-  invoice: 'shadow-[0_4px_20px_-4px_rgba(16,185,129,0.15)]',
-  excel: 'shadow-[0_4px_20px_-4px_rgba(34,197,94,0.15)]',
-  legal: 'shadow-[0_4px_20px_-4px_rgba(139,92,246,0.15)]',
-  'tough-msg': 'shadow-[0_4px_20px_-4px_rgba(99,102,241,0.15)]',
-  summarize: 'shadow-[0_4px_20px_-4px_rgba(245,158,11,0.15)]',
-  travel: 'shadow-[0_4px_20px_-4px_rgba(14,165,233,0.15)]',
-  translate: 'shadow-[0_4px_20px_-4px_rgba(99,102,241,0.15)]',
-  fitness: 'shadow-[0_4px_20px_-4px_rgba(244,63,94,0.15)]',
-  code: 'shadow-[0_4px_20px_-4px_rgba(100,116,139,0.15)]',
-  social: 'shadow-[0_4px_20px_-4px_rgba(236,72,153,0.15)]',
+  recipe: 'shadow-[0_4px_24px_-2px_rgba(249,115,22,0.3)]',
+  'shopping-list': 'shadow-[0_4px_24px_-2px_rgba(239,68,68,0.3)]',
+  email: 'shadow-[0_4px_24px_-2px_rgba(59,130,246,0.3)]',
+  polish: 'shadow-[0_4px_24px_-2px_rgba(20,184,166,0.3)]',
+  invoice: 'shadow-[0_4px_24px_-2px_rgba(16,185,129,0.3)]',
+  excel: 'shadow-[0_4px_24px_-2px_rgba(34,197,94,0.3)]',
+  legal: 'shadow-[0_4px_24px_-2px_rgba(139,92,246,0.3)]',
+  'tough-msg': 'shadow-[0_4px_24px_-2px_rgba(99,102,241,0.3)]',
+  summarize: 'shadow-[0_4px_24px_-2px_rgba(245,158,11,0.3)]',
+  travel: 'shadow-[0_4px_24px_-2px_rgba(14,165,233,0.3)]',
+  translate: 'shadow-[0_4px_24px_-2px_rgba(99,102,241,0.3)]',
+  fitness: 'shadow-[0_4px_24px_-2px_rgba(244,63,94,0.3)]',
+  code: 'shadow-[0_4px_24px_-2px_rgba(100,116,139,0.3)]',
+  social: 'shadow-[0_4px_24px_-2px_rgba(236,72,153,0.3)]',
 };
 
-/** Icon-Bg-Kreis – subtiler Tint pro Farbe */
+/** Icon-Bg-Kreis – subtiler Tint pro Farbe (Top 4: zart, Rest: gefüllt wie Top 4) */
 const ICON_BG_CLASS: Record<string, string> = {
   orange: 'bg-orange-50',
   pink: 'bg-pink-50',
@@ -86,7 +86,25 @@ const ICON_BG_CLASS: Record<string, string> = {
   sky: 'bg-sky-50',
 };
 
-/** Lordicon (Lottie) – Animierte Icons bei Hover (Top 4) */
+/** Restliche Icons: Gefüllter Kreis + weißes Icon (wie Solid-Style, konsistent mit Top 4) */
+const ICON_GRADIENT_BG: Record<string, string> = {
+  orange: 'bg-gradient-to-br from-orange-500 to-pink-500',
+  pink: 'bg-gradient-to-br from-pink-500 to-rose-500',
+  blue: 'bg-blue-500',
+  emerald: 'bg-emerald-500',
+  green: 'bg-green-500',
+  violet: 'bg-violet-500',
+  indigo: 'bg-indigo-500',
+  amber: 'bg-amber-500',
+  rose: 'bg-rose-500',
+  cyan: 'bg-cyan-500',
+  slate: 'bg-slate-500',
+  teal: 'bg-teal-500',
+  red: 'bg-red-500',
+  sky: 'bg-sky-500',
+};
+
+/** Lordicon (Lottie) – Animierte Icons bei Hover (Top 4 + weitere) */
 const LORDICON_CONFIG: Record<string, { src: string; color: string }> = {
   recipe: { src: 'https://cdn.lordicon.com/cauixzla.json', color: '#de561b' },
   'shopping-list': { src: 'https://cdn.lordicon.com/cosvjkbu.json', color: '#ef4444' },
@@ -750,10 +768,10 @@ export default function DashboardClient() {
 
               const content = (
                 <>
-                  {/* Icon – mit subtilem Hintergrund-Kreis */}
+                  {/* Icon – Top 4: Lordicon im zarten Kreis, Rest: Solid-Style (Gradient + weiß) */}
                   <div className={cn(
                     'flex items-center justify-center rounded-full p-3 shrink-0',
-                    iconBg
+                    lordConfig ? iconBg : ICON_GRADIENT_BG[tool.color] ?? iconBg
                   )}>
                     {lordConfig ? (
                       <LordIcon
@@ -764,7 +782,7 @@ export default function DashboardClient() {
                       />
                     ) : (
                       <Icon
-                        className={cn('w-12 h-12 shrink-0', iconColor)}
+                        className="w-12 h-12 shrink-0 text-white"
                         aria-hidden
                       />
                     )}
