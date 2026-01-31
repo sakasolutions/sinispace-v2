@@ -31,7 +31,15 @@ import {
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
 
-/** Hero-Icon-Farben – Solid-Style, Apple-App-Store-Look */
+/** Lordicon (Lottie) – Animierte Icons bei Hover (Top 4) */
+const LORDICON_CONFIG: Record<string, { src: string; color: string }> = {
+  recipe: { src: 'https://cdn.lordicon.com/cauixzla.json', color: '#de561b' },
+  'shopping-list': { src: 'https://cdn.lordicon.com/cosvjkbu.json', color: '#ef4444' },
+  email: { src: 'https://cdn.lordicon.com/aycieyht.json', color: '#3b82f6' },
+  polish: { src: 'https://cdn.lordicon.com/wloilxuq.json', color: '#14b8a6' },
+};
+
+/** Hero-Icon-Farben – Fallback für Tools ohne Lordicon */
 const HERO_ICON_COLORS: Record<string, string> = {
   recipe: 'text-orange-500',
   'shopping-list': 'text-red-500',
@@ -697,17 +705,30 @@ export default function DashboardClient() {
                     'min-h-[120px] sm:min-h-[200px] md:min-h-0'
                   );
 
+                  const lordConfig = LORDICON_CONFIG[tool.id];
+                  const iconHex = lordConfig?.color ?? '#6b7280';
+
                   const content = (
                     <>
-                      {/* Icon – Solid-Style, frei auf weißer Karte (Apple-App-Store-Look) */}
+                      {/* Icon – Lordicon (Lottie) bei Hover, sonst Lucide-Fallback */}
                       <div className="flex justify-center w-full pt-4 md:pt-6 lg:pt-8">
-                        <Icon
-                          className={cn(
-                            'w-14 h-14 md:w-16 md:h-16 shrink-0',
-                            iconColor
-                          )}
-                          aria-hidden
-                        />
+                        {lordConfig ? (
+                          <lord-icon
+                            src={lordConfig.src}
+                            trigger="hover"
+                            colors={`primary:${iconHex},secondary:${iconHex}`}
+                            style={{ width: 60, height: 60 }}
+                            className="shrink-0"
+                          />
+                        ) : (
+                          <Icon
+                            className={cn(
+                              'w-14 h-14 md:w-16 md:h-16 shrink-0',
+                              iconColor
+                            )}
+                            aria-hidden
+                          />
+                        )}
                       </div>
 
                       {/* Title – unter dem Icon mit Abstand */}
