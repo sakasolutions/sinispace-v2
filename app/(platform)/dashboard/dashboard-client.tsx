@@ -619,7 +619,8 @@ export default function DashboardClient() {
     let filtered = allTools;
 
     if (selectedWorkflow !== 'all') {
-      const allowed = WORKFLOW_CATEGORIES.find((c) => c.id === selectedWorkflow)?.toolIds ?? [];
+      const cat = WORKFLOW_CATEGORIES.find((c) => c.id === selectedWorkflow);
+      const allowed: string[] = cat ? [...cat.toolIds] : [];
       filtered = filtered.filter((t) => allowed.includes(t.id));
     }
 
