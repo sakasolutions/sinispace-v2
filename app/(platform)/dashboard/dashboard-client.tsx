@@ -32,6 +32,42 @@ import {
 import { PageTransition } from '@/components/ui/PageTransition';
 import { LordIcon } from '@/components/ui/lord-icon';
 
+/** Kurze Untertitel – visuelle Dichte (1–2 Wörter) */
+const TOOL_SUBTITLES: Record<string, string> = {
+  recipe: 'Planer & Rezepte',
+  'shopping-list': 'Smarte Listen',
+  email: 'Vorlagen & Hilfe',
+  polish: 'Korrektur & Stil',
+  invoice: 'Angebote & PDF',
+  excel: 'Formeln & Daten',
+  legal: 'Verträge & Recht',
+  'tough-msg': 'WhatsApp & Dating',
+  summarize: 'Kurzfassungen',
+  travel: 'Routen & Tipps',
+  translate: 'Übersetzer',
+  fitness: 'Workouts',
+  code: 'Code & Debug',
+  social: 'LinkedIn & Social',
+};
+
+/** Icon-Bg-Kreis – subtiler Tint pro Farbe */
+const ICON_BG_CLASS: Record<string, string> = {
+  orange: 'bg-orange-50',
+  pink: 'bg-pink-50',
+  blue: 'bg-blue-50',
+  emerald: 'bg-emerald-50',
+  green: 'bg-green-50',
+  violet: 'bg-violet-50',
+  indigo: 'bg-indigo-50',
+  amber: 'bg-amber-50',
+  rose: 'bg-rose-50',
+  cyan: 'bg-cyan-50',
+  slate: 'bg-slate-50',
+  teal: 'bg-teal-50',
+  red: 'bg-red-50',
+  sky: 'bg-sky-50',
+};
+
 /** Lordicon (Lottie) – Animierte Icons bei Hover (Top 4) */
 const LORDICON_CONFIG: Record<string, { src: string; color: string }> = {
   recipe: { src: 'https://cdn.lordicon.com/cauixzla.json', color: '#de561b' },
@@ -40,7 +76,7 @@ const LORDICON_CONFIG: Record<string, { src: string; color: string }> = {
   polish: { src: 'https://cdn.lordicon.com/wloilxuq.json', color: '#14b8a6' },
 };
 
-/** Hero-Icon-Farben – Fallback für Tools ohne Lordicon */
+/** Icon-Farben – Brand pro Tool */
 const HERO_ICON_COLORS: Record<string, string> = {
   recipe: 'text-orange-500',
   'shopping-list': 'text-red-500',
@@ -589,9 +625,7 @@ export default function DashboardClient() {
     return sorted;
   }, [selectedCategory, usageStats]);
 
-  // Split into Hero Cards (Top 4) and Secondary Cards
-  const heroTools = sortedAndFilteredTools.slice(0, 4);
-  const secondaryTools = sortedAndFilteredTools.slice(4);
+  // Alle Tools gleichwertig – einheitliches Feature-Card Grid
 
   const dailyHero = getDailyHeroContent(new Date());
 
@@ -674,272 +708,87 @@ export default function DashboardClient() {
           </div>
         </header>
 
-        {/* SMART USAGE-BASED CARD HIERARCHY */}
+        {/* FEATURE CARDS – Einheitliches Grid für alle Tools */}
         {sortedAndFilteredTools.length > 0 ? (
-          <div className="space-y-3 md:space-y-6 lg:space-y-8">
-            {/* HERO CARDS: Mobile 2x2 zentriert, Desktop 2x2 Grid */}
-            {heroTools.length > 0 && (
-              <div 
-                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4 lg:gap-4 w-full max-w-md md:max-w-none mx-auto justify-items-center md:justify-items-stretch items-center"
-                style={{
-                  gridAutoRows: 'minmax(auto, auto)',
-                }}
-              >
-                {heroTools.map((tool, index) => {
-                  const Icon = tool.icon;
-                  const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
-                  const toolStats = usageStats[tool.id];
-                  const isTrending = toolStats?.isTrending || false;
-                  
-                  // PRIMARY CARDS: Hero Cards (Top 4)
-                  const desktopColSpan = 'lg:col-span-2';
-                  const desktopRowSpan = 'lg:row-span-2';
-                  
-                  
-                  const cardClassName = cn(
-                    'group relative flex flex-col items-center md:items-start justify-center md:justify-start w-full overflow-hidden',
-                    'bg-white rounded-2xl shadow-md md:shadow-lg shadow-gray-200/50',
-                    'transition-all duration-200 ease-out hover:shadow-xl',
-                    tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
-                    desktopColSpan,
-                    desktopRowSpan,
-                    'min-h-[120px] sm:min-h-[200px] md:min-h-0'
-                  );
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            {sortedAndFilteredTools.map((tool) => {
+              const Icon = tool.icon;
+              const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
+              const iconBg = ICON_BG_CLASS[tool.color] ?? 'bg-gray-50';
+              const subtitle = TOOL_SUBTITLES[tool.id] ?? tool.category;
+              const lordConfig = LORDICON_CONFIG[tool.id];
+              const iconHex = lordConfig?.color ?? '#6b7280';
 
-                  const lordConfig = LORDICON_CONFIG[tool.id];
-                  const iconHex = lordConfig?.color ?? '#6b7280';
+              const cardClassName = cn(
+                'group relative flex flex-col items-center text-center',
+                'bg-white rounded-2xl shadow-sm border border-gray-100',
+                'hover:shadow-md hover:border-gray-200 transition-all duration-200',
+                'p-4 min-h-[140px]',
+                tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
+              );
 
-                  const content = (
-                    <>
-                      {/* Icon – Lordicon (Lottie) bei Hover, sonst Lucide-Fallback */}
-                      <div className="flex justify-center w-full pt-4 md:pt-6 lg:pt-8">
-                        {lordConfig ? (
-                          <LordIcon
-                            src={lordConfig.src}
-                            trigger="hover"
-                            colors={`primary:${iconHex},secondary:${iconHex}`}
-                            className="shrink-0"
-                          />
-                        ) : (
-                          <Icon
-                            className={cn(
-                              'w-14 h-14 md:w-16 md:h-16 shrink-0',
-                              iconColor
-                            )}
-                            aria-hidden
-                          />
-                        )}
-                      </div>
-
-                      {/* Title – unter dem Icon mit Abstand */}
-                      <div className="px-4 pt-3 pb-4 md:px-6 md:pt-4 md:pb-6 lg:p-6 flex-1 flex flex-col items-center md:items-start justify-center md:justify-start min-w-0 w-full">
-                        <h3 className={cn(
-                          'font-bold text-gray-900 mt-3 md:mt-4 mb-0.5 md:mb-2',
-                          'text-sm md:text-xl lg:text-2xl',
-                          'leading-tight line-clamp-2 text-center md:text-left w-full'
-                        )}>
-                          {tool.title}
-                        </h3>
-                        <p className={cn(
-                          'text-gray-600 leading-snug line-clamp-2 text-center md:text-left',
-                          'text-xs md:text-sm lg:text-base',
-                          'hidden sm:block'
-                        )}>
-                          {tool.description}
-                        </p>
-                      </div>
-                    </>
-                  );
-
-                  return tool.available ? (
-                    <Link 
-                      key={tool.id} 
-                      href={tool.href} 
-                      className={cardClassName}
-                      onClick={async () => {
-                        triggerHaptic('light');
-                        // Track tool usage
-                        await trackToolUsage(tool.id, tool.title);
-                        // Refresh stats after a short delay
-                        setTimeout(async () => {
-                          const result = await getToolUsageStats();
-                          if (result.success && result.stats) {
-                            setUsageStats(result.stats);
-                          }
-                        }, 500);
-                      }}
-                    >
-                      {content}
-                    </Link>
-                  ) : (
-                    <div 
-                      key={tool.id} 
-                      className={cardClassName}
-                    >
-                      {content}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* SECONDARY CARDS: Einheitliche Card-Größe, kompaktes Grid */}
-            {secondaryTools.length > 0 && (
-              <div 
-                className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 lg:gap-4 lg:items-stretch"
-                style={{
-                  gridAutoRows: 'minmax(160px, auto)',
-                }}
-              >
-                {secondaryTools.map((tool, index) => {
-                  const Icon = tool.icon;
-                  const colors = toolColors[tool.color] || toolColors.blue;
-                  const toolStats = usageStats[tool.id];
-                  const isTrending = toolStats?.isTrending || false;
-                  const size = tool.size || 'medium';
-                  const isLarge = size === 'large';
-                  const isSmall = size === 'small';
-
-                  // Secondary Cards: Einheitliche Größe (kein 2x2 mehr) – alle gleiche Karten
-                  const desktopColSpan = 'lg:col-span-1';
-                  const desktopRowSpan = 'lg:row-span-1';
-                  
-                  // Visual Balance: Color-weight distribution
-                  const colorWeight = colors.gradient ? 'high' : 'medium';
-
-                  
-                  // SECONDARY CARDS: Card-Styling, einheitliche Höhe
-                  const cardClassName = cn(
-                    'group relative flex flex-col',
-                    'rounded-xl border border-gray-100 bg-white shadow-sm',
-                    'transition-all duration-200 ease-out hover:shadow-md hover:border-gray-200',
-                    tool.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed',
-                    desktopColSpan,
-                    desktopRowSpan,
-                    'p-3 md:p-4 lg:p-5 h-full min-h-[140px] md:min-h-[160px]'
-                  );
-
-                  const content = (
-                    <>
-                      {/* Premium Material Layers - Entfernt, da wir jetzt Gradient im Background haben */}
-
-                    {/* MOBILE: Compact Layout - Icon & Title Centered, Description Hidden/1 Line */}
-                    {/* DESKTOP: Full Layout - Icon, Title, Description */}
-                    <div className="flex flex-col items-center justify-center h-full md:items-start md:justify-start">
-                      {/* Icon Container - Farbige Box */}
-                      <div className={cn(
-                        'mb-2 md:mb-3 lg:mb-4',
-                        'flex md:inline-flex items-center justify-center'
-                      )}>
-                        <div className={cn(
-                          'inline-flex items-center justify-center rounded-xl transition-all duration-200',
-                          'shadow-md group-hover:shadow-lg group-hover:scale-[1.02]',
-                          // Farbige Hintergründe
-                          tool.color === 'orange' && 'bg-gradient-to-br from-orange-500 to-pink-500',
-                          tool.color === 'pink' && 'bg-gradient-to-br from-pink-500 to-orange-500',
-                          tool.color === 'rose' && 'bg-gradient-to-br from-rose-500 to-pink-500',
-                          tool.color === 'blue' && 'bg-blue-500',
-                          tool.color === 'emerald' && 'bg-emerald-500',
-                          tool.color === 'green' && 'bg-green-500',
-                          tool.color === 'violet' && 'bg-violet-500',
-                          tool.color === 'indigo' && 'bg-indigo-500',
-                          tool.color === 'amber' && 'bg-amber-500',
-                          tool.color === 'cyan' && 'bg-cyan-500',
-                          tool.color === 'slate' && 'bg-slate-500',
-                          // MOBILE: Smaller icons for compact 2-column layout
-                          isLarge ? 'w-12 h-12 md:w-16 lg:w-20 md:h-16 lg:h-20' : 
-                          isSmall ? 'w-10 h-10 md:w-12 md:h-12' : 
-                          'w-11 h-11 md:w-14 lg:w-16 md:h-14 lg:h-16'
-                        )}>
-                          <Icon className={cn(
-                            'text-white',
-                            isLarge ? 'w-6 h-6 md:w-8 lg:w-10 md:h-8 lg:h-10' : 
-                            isSmall ? 'w-5 h-5 md:w-6 md:h-6' : 
-                            'w-5 h-5 md:w-7 lg:w-8 md:h-7 lg:h-8'
-                          )} />
-                        </div>
-                      </div>
-
-                      {/* Title - Mobile: Centered, Compact, Desktop: Left, Full */}
-                      <h3 className={cn(
-                        'font-bold text-gray-900 text-center md:text-left',
-                        'mb-0 md:mb-1 lg:mb-3',
-                        'tracking-tight',
-                        'leading-tight',
-                        // MOBILE: Smaller, centered text
-                        isLarge ? 'text-sm md:text-2xl lg:text-3xl' : 
-                        isSmall ? 'text-xs md:text-lg lg:text-xl' : 
-                        'text-xs md:text-xl lg:text-2xl',
-                        'line-clamp-2'
-                      )} style={{ 
-                        fontFamily: 'var(--font-plus-jakarta-sans), sans-serif',
-                        fontWeight: 700,
-                        letterSpacing: '-0.02em',
-                        lineHeight: '1.2'
-                      }}>
-                        {tool.title}
-                      </h3>
-
-                      {/* Description - 2 Zeilen max, ellipsis */}
-                      <p className={cn(
-                        'text-gray-600 font-normal text-center md:text-left',
-                        'hidden md:block',
-                        isLarge ? 'md:text-sm lg:text-base' : 
-                        isSmall ? 'md:text-xs lg:text-sm' : 
-                        'md:text-sm lg:text-base',
-                        'group-hover:text-gray-700 transition-colors duration-300',
-                        'line-clamp-2'
-                      )} style={{
-                        fontWeight: 400,
-                        letterSpacing: '0.01em',
-                        lineHeight: '1.3'
-                      }}>
-                        {tool.description}
-                      </p>
-                    </div>
-
-                    {/* Status badge */}
-                    {!tool.available && tool.status === 'soon' && (
-                      <div className="absolute top-5 right-5 md:top-6 md:right-6">
-                        <span className="text-[10px] uppercase tracking-widest font-medium px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50 text-gray-500">
-                          In Kürze
-                        </span>
-                      </div>
+              const content = (
+                <>
+                  {/* Icon – mit subtilem Hintergrund-Kreis */}
+                  <div className={cn(
+                    'flex items-center justify-center rounded-full p-3 shrink-0',
+                    iconBg
+                  )}>
+                    {lordConfig ? (
+                      <LordIcon
+                        src={lordConfig.src}
+                        trigger="hover"
+                        colors={`primary:${iconHex},secondary:${iconHex}`}
+                        className="shrink-0"
+                      />
+                    ) : (
+                      <Icon
+                        className={cn('w-12 h-12 shrink-0', iconColor)}
+                        aria-hidden
+                      />
                     )}
-                  </>
-                );
+                  </div>
 
-                  return tool.available ? (
-                    <Link 
-                      key={tool.id} 
-                      href={tool.href} 
-                      className={cardClassName}
-                      onClick={async () => {
-                        triggerHaptic('light');
-                        // Track tool usage
-                        await trackToolUsage(tool.id, tool.title);
-                        // Refresh stats after a short delay
-                        setTimeout(async () => {
-                          const result = await getToolUsageStats();
-                          if (result.success && result.stats) {
-                            setUsageStats(result.stats);
-                          }
-                        }, 500);
-                      }}
-                    >
-                      {content}
-                    </Link>
-                  ) : (
-                    <div 
-                      key={tool.id} 
-                      className={cardClassName}
-                    >
-                      {content}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                  {/* Titel */}
+                  <h3 className="font-bold text-gray-900 mt-3 text-sm leading-tight line-clamp-2">
+                    {tool.title}
+                  </h3>
+
+                  {/* Untertitel – visuelle Dichte */}
+                  <p className="text-xs text-gray-400 font-medium mt-1 line-clamp-1">
+                    {subtitle}
+                  </p>
+
+                  {!tool.available && tool.status === 'soon' && (
+                    <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-500">
+                      Bald
+                    </span>
+                  )}
+                </>
+              );
+
+              return tool.available ? (
+                <Link
+                  key={tool.id}
+                  href={tool.href}
+                  className={cardClassName}
+                  onClick={async () => {
+                    triggerHaptic('light');
+                    await trackToolUsage(tool.id, tool.title);
+                    setTimeout(async () => {
+                      const result = await getToolUsageStats();
+                      if (result.success && result.stats) setUsageStats(result.stats);
+                    }, 500);
+                  }}
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div key={tool.id} className={cardClassName}>
+                  {content}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-24">
