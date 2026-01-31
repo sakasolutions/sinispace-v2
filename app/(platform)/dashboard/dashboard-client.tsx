@@ -31,20 +31,39 @@ import {
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
 
-/** Modern 3D Icons pro Tool – Tech-Startup-Look (Iconscout) */
-const HERO_IMAGES: Record<string, string> = {
-  recipe: 'https://cdn3d.iconscout.com/3d/premium/thumb/chef-hat-4036034-3342375.png',
-  'shopping-list': 'https://cdn3d.iconscout.com/3d/premium/thumb/shopping-cart-4035942-3342388.png',
-  email: 'https://cdn3d.iconscout.com/3d/premium/thumb/email-message-3026048-2527814.png',
-  polish: 'https://cdn3d.iconscout.com/3d/premium/thumb/pencil-3982464-3297121.png',
-  invoice: 'https://cdn3d.iconscout.com/3d/premium/thumb/invoice-document-4858026-4049141.png',
-  excel: 'https://cdn3d.iconscout.com/3d/premium/thumb/spreadsheet-4035612-3342363.png',
-  legal: 'https://cdn3d.iconscout.com/3d/premium/thumb/law-scale-6024334-4974658.png',
-  'tough-msg': 'https://cdn3d.iconscout.com/3d/premium/thumb/chat-message-3026047-2527813.png',
-  summarize: 'https://cdn3d.iconscout.com/3d/premium/thumb/document-4035611-3342362.png',
-  travel: 'https://cdn3d.iconscout.com/3d/premium/thumb/airplane-3982459-3297116.png',
-  translate: 'https://cdn3d.iconscout.com/3d/premium/thumb/translation-6024336-4974660.png',
-  fitness: 'https://cdn3d.iconscout.com/3d/premium/thumb/dumbbell-3982463-3297120.png',
+/** Hero-Icon-Farben – Solid-Style, Apple-App-Store-Look */
+const HERO_ICON_COLORS: Record<string, string> = {
+  recipe: 'text-orange-500',
+  'shopping-list': 'text-red-500',
+  email: 'text-blue-500',
+  polish: 'text-teal-500',
+  invoice: 'text-emerald-500',
+  excel: 'text-green-500',
+  legal: 'text-violet-500',
+  'tough-msg': 'text-indigo-500',
+  summarize: 'text-amber-500',
+  travel: 'text-sky-500',
+  translate: 'text-indigo-500',
+  fitness: 'text-rose-500',
+  code: 'text-slate-500',
+  social: 'text-pink-500',
+};
+
+const COLOR_FALLBACK: Record<string, string> = {
+  orange: 'text-orange-500',
+  pink: 'text-pink-500',
+  blue: 'text-blue-500',
+  emerald: 'text-emerald-500',
+  green: 'text-green-500',
+  violet: 'text-violet-500',
+  indigo: 'text-indigo-500',
+  amber: 'text-amber-500',
+  rose: 'text-rose-500',
+  cyan: 'text-cyan-500',
+  slate: 'text-slate-500',
+  teal: 'text-teal-500',
+  red: 'text-red-500',
+  sky: 'text-sky-500',
 };
 
 type Tool = {
@@ -658,7 +677,8 @@ export default function DashboardClient() {
                 }}
               >
                 {heroTools.map((tool, index) => {
-                  const colors = toolColors[tool.color] || toolColors.blue;
+                  const Icon = tool.icon;
+                  const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
                   const toolStats = usageStats[tool.id];
                   const isTrending = toolStats?.isTrending || false;
                   
@@ -677,22 +697,24 @@ export default function DashboardClient() {
                     'min-h-[120px] sm:min-h-[200px] md:min-h-0'
                   );
 
-                  const heroImage = HERO_IMAGES[tool.id] ?? HERO_IMAGES.recipe;
-
                   const content = (
                     <>
-                      {/* Thumbnail – fotografisch, hochwertig */}
-                      <img
-                        src={heroImage}
-                        alt=""
-                        loading="lazy"
-                        className="w-full h-16 md:h-20 object-contain object-center rounded-t-xl lg:rounded-xl flex-shrink-0"
-                      />
+                      {/* Icon – Solid-Style, frei auf weißer Karte (Apple-App-Store-Look) */}
+                      <div className="flex justify-center w-full pt-4 md:pt-6 lg:pt-8">
+                        <Icon
+                          className={cn(
+                            'w-14 h-14 md:w-16 md:h-16 shrink-0',
+                            iconColor
+                          )}
+                          strokeWidth={2.5}
+                          aria-hidden
+                        />
+                      </div>
 
-                      {/* Title – unter dem Bild mit Abstand (pt-3 für Teaser-Abstand) */}
-                      <div className="px-4 pt-3 pb-4 md:px-4 md:pt-3 md:pb-4 lg:px-6 lg:pt-4 lg:pb-6 flex-1 flex flex-col items-center md:items-start justify-center md:justify-start min-w-0 w-full">
+                      {/* Title – unter dem Icon mit Abstand */}
+                      <div className="px-4 pt-3 pb-4 md:px-6 md:pt-4 md:pb-6 lg:p-6 flex-1 flex flex-col items-center md:items-start justify-center md:justify-start min-w-0 w-full">
                         <h3 className={cn(
-                          'font-bold text-gray-800 md:text-gray-900 mb-0.5 md:mb-2',
+                          'font-bold text-gray-900 mt-3 md:mt-4 mb-0.5 md:mb-2',
                           'text-sm md:text-xl lg:text-2xl',
                           'leading-tight line-clamp-2 text-center md:text-left w-full'
                         )}>
