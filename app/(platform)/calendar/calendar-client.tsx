@@ -86,13 +86,20 @@ function looksLikeFood(text: string): boolean {
   return keywords.some((k) => t.includes(k));
 }
 
-/** Einfaches Parsing für Magic Input */
+/** Datum als YYYY-MM-DD in Lokalzeit (vermeidet UTC-Verschiebung durch toISOString) */
+function toLocalDateString(d: Date): string {
+  const y = d.getFullYear();
+  const m = (d.getMonth() + 1).toString().padStart(2, '0');
+  const day = d.getDate().toString().padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** Parsing für Magic Input – robust für Zeitzonen, nächster Wochentag */
 function parseMagicInput(text: string, baseDate: Date): { date: string; time: string; title: string; isMeal: boolean } {
   const t = text.trim();
   const pad = (n: number) => n.toString().padStart(2, '0');
-  const today = new Date(baseDate);
-  today.setHours(0, 0, 0, 0);
-  let date = new Date(today);
+  const today = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 12, 0, 0); // Mittag = keine UTC-Verschiebung
+  let resultDate = new Date(today);
   let time = '18:00';
   let title = t;
 
@@ -103,18 +110,27 @@ function parseMagicInput(text: string, baseDate: Date): { date: string; time: st
     time = `${pad(h)}:${pad(m)}`;
   }
 
+  const todayDay = today.getDay();
+  const wdays: [number, string][] = [
+    [0, 'sonntag'],
+    [1, 'montag'],
+    [2, 'dienstag'],
+    [3, 'mittwoch'],
+    [4, 'donnerstag'],
+    [5, 'freitag'],
+    [6, 'samstag'],
+  ];
+
   if (t.includes('morgen')) {
-    date.setDate(date.getDate() + 1);
+    resultDate.setDate(resultDate.getDate() + 1);
   } else if (t.includes('übermorgen')) {
-    date.setDate(date.getDate() + 2);
+    resultDate.setDate(resultDate.getDate() + 2);
   } else {
-    const wdays = ['sonntag', 'montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag'];
-    for (let i = 0; i < wdays.length; i++) {
-      if (t.includes(wdays[i])) {
-        const todayW = (baseDate.getDay() + 7) % 7;
-        let diff = (i - todayW + 7) % 7;
+    for (const [targetDay, name] of wdays) {
+      if (t.includes(name)) {
+        let diff = (targetDay - todayDay + 7) % 7;
         if (diff === 0) diff = 7;
-        date.setDate(date.getDate() + diff);
+        resultDate.setDate(resultDate.getDate() + diff);
         break;
       }
     }
@@ -128,7 +144,12 @@ function parseMagicInput(text: string, baseDate: Date): { date: string; time: st
     .trim();
 
   if (!title) title = t;
-  return { date: date.toISOString().slice(0, 10), time, title: title.charAt(0).toUpperCase() + title.slice(1), isMeal: looksLikeFood(t) };
+  return {
+    date: toLocalDateString(resultDate),
+    time,
+    title: title.charAt(0).toUpperCase() + title.slice(1),
+    isMeal: looksLikeFood(t),
+  };
 }
 
 export function CalendarClient() {
