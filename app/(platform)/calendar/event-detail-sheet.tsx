@@ -1,9 +1,35 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, MapPin, UtensilsCrossed, Briefcase, Dumbbell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CalendarEvent, CustomEventType } from '@/actions/calendar-actions';
+
+function weatherCodeToEmoji(code: number): string {
+  if (code === 0) return '☀️';
+  if (code <= 3) return code === 1 ? '🌤️' : code === 2 ? '⛅' : '☁️';
+  if (code === 45 || code === 48) return '🌫️';
+  if (code >= 51 && code <= 67) return '🌧️';
+  if (code >= 71 && code <= 77) return '🌨️';
+  if (code >= 80 && code <= 82) return '🌦️';
+  if (code >= 85 && code <= 86) return '🌨️';
+  if (code >= 95 && code <= 99) return '⛈️';
+  return '🌡️';
+}
+
+function weatherCodeToLabel(code: number): string {
+  if (code === 0) return 'Klar';
+  if (code === 1) return 'Heiter';
+  if (code === 2) return 'Bewölkt';
+  if (code === 3) return 'Bedeckt';
+  if (code === 45 || code === 48) return 'Nebel';
+  if (code >= 51 && code <= 67) return 'Regen';
+  if (code >= 71 && code <= 77) return 'Schnee';
+  if (code >= 80 && code <= 82) return 'Schauer';
+  if (code >= 95 && code <= 99) return 'Gewitter';
+  return 'Wechselhaft';
+}
 
 const WEEKDAYS_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 
@@ -224,6 +250,45 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
   const [slot, setSlot] = useState<'breakfast' | 'lunch' | 'dinner'>('lunch');
   const [routine, setRoutine] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [weather, setWeather] = useState<{ code: number; label: string } | null>(null);
+
+  const [coords, setCoords] = useState<{ lat: number; lon: number }>({ lat: 52.52, lon: 13.41 });
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (p) => setCoords({ lat: p.coords.latitude, lon: p.coords.longitude }),
+        () => {},
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    }
+  }, []);
+
+  const fetchWeather = useCallback(async (dateStr: string) => {
+    try {
+      const { lat, lon } = coords;
+      const res = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode&timezone=auto&start_date=${dateStr}&end_date=${dateStr}`
+      );
+      const data = await res.json();
+      const code = data?.daily?.weathercode?.[0] ?? null;
+      if (code != null) {
+        setWeather({ code: Number(code), label: weatherCodeToLabel(Number(code)) });
+      } else {
+        setWeather(null);
+      }
+    } catch {
+      setWeather(null);
+    }
+  }, [coords.lat, coords.lon]);
+
+  useEffect(() => {
+    if (isOpen && formDate) {
+      fetchWeather(formDate);
+    } else {
+      setWeather(null);
+    }
+  }, [isOpen, formDate, fetchWeather]);
 
   useEffect(() => {
     const check = () => setIsMobile(typeof window !== 'undefined' && window.innerWidth < 768);
@@ -253,11 +318,11 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
         setEndTime('');
         setLocation('');
         setRecipeName('');
-        setSlot(time < '11:00' ? 'breakfast' : time < '15:00' ? 'lunch' : 'dinner');
+        setSlot(defaultTime < '11:00' ? 'breakfast' : defaultTime < '15:00' ? 'lunch' : 'dinner');
         setRoutine('');
       }
     }
-  }, [isOpen, editEvent, date, defaultTime, time]);
+  }, [isOpen, editEvent, date, defaultTime]);
 
   const suggestions = useMemo(
     () => getSmartSuggestions(events, title, editEvent?.id),
@@ -333,36 +398,53 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
     onClose();
   };
 
-  if (!isOpen) return null;
-
   const showLocation = category === 'arbeit' || category === 'privat';
   const showRecipe = category === 'essen';
   const showRoutine = category === 'sport';
 
-  const panelClass = cn(
-    'relative w-full max-w-lg bg-white shadow-xl overflow-hidden flex flex-col transition-all duration-300',
-    isMobile ? 'max-h-[90vh] rounded-t-2xl animate-in slide-in-from-bottom duration-300' : 'max-h-[85vh] rounded-2xl animate-in zoom-in-95 fade-in duration-200'
-  );
-
   return (
-    <div className={cn('fixed inset-0 z-50 flex', isMobile ? 'items-end justify-center' : 'items-center justify-center')}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} aria-hidden />
-      <div
-        className={panelClass}
-        role="dialog"
-        aria-labelledby="event-sheet-title"
-      >
-        {/* Header mit Kategorie-Farbe */}
-        <div className={cn('sticky top-0 z-10 px-4 py-3 flex items-center justify-between border-b transition-colors', accentBg, accentBorder)}>
-          <h2 id="event-sheet-title" className={cn('text-lg font-semibold', accentColor)}>
-            {editEvent ? 'Termin bearbeiten' : 'Termin hinzufügen'}
-          </h2>
-          <button onClick={handleClose} className={cn('p-2 rounded-lg hover:bg-black/5 transition-colors', accentColor)} aria-label="Schließen">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <AnimatePresence>
+      {isOpen && (
+        <div className={cn('fixed inset-0 z-50 flex', isMobile ? 'items-end justify-center' : 'items-center justify-center')}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 bg-black backdrop-blur-sm"
+            onClick={handleClose}
+            aria-hidden
+          />
+          <motion.div
+            initial={isMobile ? { y: '100%' } : { scale: 0.95, opacity: 0 }}
+            animate={isMobile ? { y: 0 } : { scale: 1, opacity: 1 }}
+            exit={isMobile ? { y: '100%' } : { scale: 0.95, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className={cn(
+              'relative w-full max-w-lg bg-white shadow-xl flex flex-col z-10',
+              isMobile ? 'max-h-[85vh] rounded-t-2xl' : 'max-h-[85vh] rounded-2xl'
+            )}
+            role="dialog"
+            aria-labelledby="event-sheet-title"
+          >
+            {/* Header mit Kategorie-Farbe + Wetter */}
+            <div className={cn('sticky top-0 z-10 px-4 py-3 flex items-center justify-between border-b transition-colors shrink-0', accentBg, accentBorder)}>
+              <div className="flex items-center gap-3 min-w-0">
+                <h2 id="event-sheet-title" className={cn('text-lg font-semibold', accentColor)}>
+                  {editEvent ? 'Termin bearbeiten' : 'Termin hinzufügen'}
+                </h2>
+                {weather && (
+                  <span className="shrink-0 text-sm text-gray-600" title={weather.label}>
+                    {weatherCodeToEmoji(weather.code)} {weather.label}
+                  </span>
+                )}
+              </div>
+              <button onClick={handleClose} className={cn('p-2 rounded-lg hover:bg-black/5 transition-colors shrink-0', accentColor)} aria-label="Schließen">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto min-h-0 p-4 pb-8 space-y-5">
           {/* Titel – groß oben */}
           <div className="space-y-2">
             <input
@@ -502,44 +584,50 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             </div>
           )}
 
-          {/* Datum & Zeit */}
+          {/* Datum & Zeit – kontrollierte Inputs mit robustem Styling */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="event-date" className="block text-sm font-medium text-gray-600 mb-2">
                 <Calendar className="w-4 h-4 inline mr-1" /> Datum
               </label>
-              <input
-                id="event-date"
-                type="date"
-                value={formDate}
-                onChange={(e) => setFormDate(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all"
-              />
+              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                <input
+                  id="event-date"
+                  type="date"
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
+                  className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
+                />
+              </div>
             </div>
             <div>
               <label htmlFor="event-time" className="block text-sm font-medium text-gray-600 mb-2">
                 <Clock className="w-4 h-4 inline mr-1" /> Von
               </label>
-              <input
-                id="event-time"
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all"
-              />
+              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                <input
+                  id="event-time"
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
+                />
+              </div>
             </div>
           </div>
 
           {category !== 'essen' && (
             <div>
               <label htmlFor="event-end" className="block text-sm font-medium text-gray-600 mb-2">Bis (optional)</label>
-              <input
-                id="event-end"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all"
-              />
+              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                <input
+                  id="event-end"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
+                />
+              </div>
             </div>
           )}
 
@@ -563,7 +651,9 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             </button>
           </div>
         </form>
-      </div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
