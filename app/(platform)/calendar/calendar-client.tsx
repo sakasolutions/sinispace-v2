@@ -297,9 +297,13 @@ export function CalendarClient() {
   };
 
   const handleDeleteEvent = async (eventId: string) => {
-    const next = events.filter((e) => e.id !== eventId);
-    setEvents(next);
-    await saveCalendarEvents(next);
+    const prev = events;
+    setEvents((e) => e.filter((ev) => ev.id !== eventId));
+    const result = await removeCalendarEvent(eventId);
+    if (!result.success) {
+      setEvents(prev);
+      console.error('[Calendar] Delete failed:', result.error);
+    }
   };
 
   const eventCountForDate = (d: Date) => events.filter((e) => eventOccursOnDate(e, toDateKey(d))).length;

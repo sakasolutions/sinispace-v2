@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { getWorkspaceResults } from './workspace-actions';
@@ -91,6 +92,7 @@ export async function saveCalendarEvents(events: CalendarEvent[]) {
       create: { userId: session.user.id, eventsJson: JSON.stringify(events) },
       update: { eventsJson: JSON.stringify(events), updatedAt: new Date() },
     });
+    revalidatePath('/calendar');
     return { success: true };
   } catch (error) {
     console.error('[CALENDAR] saveCalendarEvents:', error);
