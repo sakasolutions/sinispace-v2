@@ -102,21 +102,22 @@ export function CalendarClient() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [magicInput, setMagicInput] = useState('');
   const [mobileMonthOpen, setMobileMonthOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const agendaRef = useRef<HTMLDivElement>(null);
 
   const parsedLive = useMemo(() => {
     if (!magicInput.trim()) return null;
     try {
-      return parseNaturalLanguage(magicInput, currentDate);
+      return parseNaturalLanguage(magicInput, new Date());
     } catch {
       return null;
     }
-  }, [magicInput, currentDate]);
+  }, [magicInput]);
 
   const smartTags = useMemo((): SmartTag[] => {
     if (!parsedLive) return [];
-    return getSmartTags(parsedLive, currentDate);
-  }, [parsedLive, currentDate]);
+    return getSmartTags(parsedLive, new Date());
+  }, [parsedLive]);
 
   const [eventModal, setEventModal] = useState<{ open: boolean; date: string; time?: string }>({ open: false, date: '', time: undefined });
   const [recipeModal, setRecipeModal] = useState<{ open: boolean; date: string; slot: 'breakfast' | 'lunch' | 'dinner'; time: string } | null>(null);
@@ -178,17 +179,23 @@ export function CalendarClient() {
     agendaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handleMagicSubmit = async (e: React.FormEvent) => {
+  const handleMagicSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!magicInput.trim()) return;
-    const parsed = parseNaturalLanguage(magicInput, currentDate);
+    const form = e.currentTarget;
+    const input = form.querySelector<HTMLInputElement>('input[type="text"]');
+    const text = (input?.value ?? magicInput).trim();
+    if (!text) return;
     setMagicInput('');
+
+    const parsed = parseNaturalLanguage(text, new Date());
     if (parsed.isMeal) {
       const slot = parsed.time < '11:00' ? 'breakfast' : parsed.time < '15:00' ? 'lunch' : 'dinner';
       const newEvent: CalendarEvent = { id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, type: 'meal', slot, date: parsed.date, time: parsed.time, recipeName: parsed.title };
       const next = [...events, newEvent];
       setEvents(next);
       await saveCalendarEvents(next);
+      const [, mon, day] = parsed.date.split('-').map(Number);
+      setSuccessMessage(`${parsed.title} am ${day}. ${MONTHS[mon - 1]} um ${parsed.time}`);
     } else {
       let endTime = parsed.endTime;
       if (!endTime && parsed.durationMinutes) {
@@ -213,7 +220,11 @@ export function CalendarClient() {
       const next = [...events, newEvent];
       setEvents(next);
       await saveCalendarEvents(next);
+      const [, mon, day] = parsed.date.split('-').map(Number);
+      const recur = parsed.recurrenceLabel ? ' (wiederkehrend)' : '';
+      setSuccessMessage(`${parsed.title} am ${day}. ${MONTHS[mon - 1]} um ${parsed.time}${recur}`);
     }
+    setTimeout(() => setSuccessMessage(null), 3000);
   };
 
   const handleAddCustomEvent = async (data: { type: CustomEventType; title: string; date: string; time: string; endTime?: string }) => {
@@ -481,12 +492,17 @@ export function CalendarClient() {
       {/* Floating Command Bar – Milchglas + Smart Tags */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-40 pb-[env(safe-area-inset-bottom)] pointer-events-none">
         <div className="pointer-events-auto space-y-2">
-          {parsedLive?.recurrenceLabel && (
+          {successMessage && (
+            <p className="text-sm text-green-600 font-medium animate-in fade-in duration-200 text-center bg-green-50 rounded-full py-2 px-4 border border-green-100">
+              ✓ {successMessage}
+            </p>
+          )}
+          {parsedLive?.recurrenceLabel && !successMessage && (
             <p className="text-sm text-orange-600 font-medium animate-in fade-in duration-200 text-center">
               🔄 {parsedLive.recurrenceLabel}
             </p>
           )}
-          {smartTags.length > 0 && (
+          {smartTags.length > 0 && !successMessage && (
             <div className="flex flex-wrap gap-2 justify-center animate-in fade-in duration-200">
               {smartTags.map((tag, i) => (
                 <span
