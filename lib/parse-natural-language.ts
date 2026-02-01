@@ -97,25 +97,35 @@ function extractAndClean(
     withPerson = personMatch[1].trim();
   }
 
-  // Datum: morgen, übermorgen, Wochentag
-  const todayDay = today.getDay();
-  if (t.includes('morgen') && !t.includes('übermorgen')) {
-    resultDate.setDate(resultDate.getDate() + 1);
-  } else if (t.includes('übermorgen')) {
-    resultDate.setDate(resultDate.getDate() + 2);
+  // Datum: explizit (18.02.2026, 18.2.26, 18/02/2026) ODER morgen, übermorgen, Wochentag
+  const explicitDateMatch = t.match(/\b(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})\b/);
+  if (explicitDateMatch) {
+    const day = parseInt(explicitDateMatch[1], 10);
+    const month = parseInt(explicitDateMatch[2], 10) - 1;
+    let year = parseInt(explicitDateMatch[3], 10);
+    if (year < 100) year += year >= 50 ? 1900 : 2000;
+    resultDate = new Date(year, month, day, 12, 0, 0);
   } else {
-    for (const [targetDay, name] of WEEKDAYS) {
-      if (t.includes(name)) {
-        let diff = (targetDay - todayDay + 7) % 7;
-        if (diff === 0) diff = 7;
-        resultDate.setDate(resultDate.getDate() + diff);
-        break;
+    const todayDay = today.getDay();
+    if (t.includes('morgen') && !t.includes('übermorgen')) {
+      resultDate.setDate(resultDate.getDate() + 1);
+    } else if (t.includes('übermorgen')) {
+      resultDate.setDate(resultDate.getDate() + 2);
+    } else {
+      for (const [targetDay, name] of WEEKDAYS) {
+        if (t.includes(name)) {
+          let diff = (targetDay - todayDay + 7) % 7;
+          if (diff === 0) diff = 7;
+          resultDate.setDate(resultDate.getDate() + diff);
+          break;
+        }
       }
     }
   }
 
   // Titel bereinigen
   let title = t
+    .replace(/\b(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})\b/g, '')
     .replace(/\b(morgen|übermorgen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/gi, '')
     .replace(/\b(jeden|jede|wöchentlich|täglich|daily|weekly)\b/gi, '')
     .replace(/\b(jeden\s+\d+\.?)\s*/gi, '')
