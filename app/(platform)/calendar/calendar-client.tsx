@@ -12,6 +12,7 @@ import {
   Send,
   ExternalLink,
   Plus,
+  Repeat,
 } from 'lucide-react';
 import Link from 'next/link';
 import { rrulestr } from 'rrule';
@@ -42,7 +43,7 @@ function toDateKey(d: Date): string {
 }
 
 type AgendaItem =
-  | { id: string; type: 'event'; time: string; title: string; subtitle?: string; event: CalendarEvent }
+  | { id: string; type: 'event'; time: string; title: string; subtitle?: string; isRecurring?: boolean; event: CalendarEvent }
   | { id: string; type: 'meal'; time: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string }
   | { id: string; type: 'workout'; time: string; title: string; event: CalendarEvent };
 
@@ -72,8 +73,8 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
       return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle: cal, event: e, recipeLink: e.resultId ? '/tools/recipe' : undefined };
     }
     if (e.type === 'workout') return { id: e.id, type: 'workout' as const, time: e.time || '08:00', title: e.label || 'Workout', event: e };
-    const subtitle = ('rrule' in e && e.rrule) ? '🔄 Wiederkehrend' : undefined;
-    return { id: e.id, type: 'event' as const, time: e.time || '09:00', title: e.title, event: e, subtitle };
+    const isRecurring = !!(e.type === 'custom' && 'rrule' in e && e.rrule);
+    return { id: e.id, type: 'event' as const, time: e.time || '09:00', title: e.title, event: e, isRecurring };
   });
   return items.sort((a, b) => a.time.localeCompare(b.time));
 }
@@ -238,6 +239,9 @@ export function CalendarClient() {
     setMagicInput('');
 
     const parsed = parseNaturalLanguage(text, new Date());
+    if (typeof console !== 'undefined' && console.log) {
+      console.log('[Calendar Event]', { text, parsed, creating: parsed.isMeal ? 'meal' : 'event' });
+    }
     if (parsed.isMeal) {
       const slot = parsed.time < '11:00' ? 'breakfast' : parsed.time < '15:00' ? 'lunch' : 'dinner';
       const newEvent: CalendarEvent = { id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, type: 'meal', slot, date: parsed.date, time: parsed.time, recipeName: parsed.title };
@@ -445,11 +449,16 @@ export function CalendarClient() {
                         onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
                         className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all pr-12 cursor-pointer"
                       >
-                        {/* Spalte 1: Zeit */}
-                        <div className="min-w-[60px] text-right border-r border-gray-100 pr-4 shrink-0">
-                          <div className="text-base font-bold text-gray-800">{item.time}</div>
+                        {/* Spalte 1: Zeit + Repeat-Icon */}
+                        <div className="min-w-[60px] text-right border-r border-gray-100 pr-4 shrink-0 flex flex-col items-end gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-base font-bold text-gray-800">{item.time}</span>
+                            {item.type === 'event' && 'isRecurring' in item && item.isRecurring && (
+                              <Repeat className="w-4 h-4 text-violet-500 shrink-0" aria-label="Wiederkehrend" />
+                            )}
+                          </div>
                           {'endTime' in item.event && item.event.endTime && (
-                            <div className="text-xs text-gray-400 mt-0.5">{item.event.endTime}</div>
+                            <div className="text-xs text-gray-400">{item.event.endTime}</div>
                           )}
                         </div>
                         {/* Spalte 2: Icon */}
@@ -461,7 +470,7 @@ export function CalendarClient() {
                         {/* Spalte 3: Inhalt */}
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-gray-800 truncate">{item.title}</div>
-                          {('subtitle' in item && item.subtitle) && <div className="text-sm text-gray-400 truncate">{item.subtitle}</div>}
+                          {item.type === 'meal' && 'subtitle' in item && item.subtitle && <div className="text-sm text-gray-400 truncate">{item.subtitle}</div>}
                           {item.type === 'meal' && 'recipeLink' in item && item.recipeLink && (
                             <Link href={item.recipeLink} className="inline-flex items-center gap-1 mt-0.5 text-xs font-medium text-orange-600 hover:text-orange-700" onClick={(e) => e.stopPropagation()}>
                               Zum Rezept <ExternalLink className="w-3 h-3" />
@@ -521,8 +530,13 @@ export function CalendarClient() {
                                 onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
                                 className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-all pr-12 cursor-pointer"
                               >
-                                <div className="min-w-[48px] text-right border-r border-gray-100 pr-3 shrink-0">
-                                  <div className="text-sm font-bold text-gray-800">{item.time}</div>
+                                <div className="min-w-[48px] text-right border-r border-gray-100 pr-3 shrink-0 flex flex-col items-end gap-0.5">
+                                  <div className="flex items-center gap-1 justify-end">
+                                    <span className="text-sm font-bold text-gray-800">{item.time}</span>
+                                    {item.type === 'event' && 'isRecurring' in item && item.isRecurring && (
+                                      <Repeat className="w-3.5 h-3.5 text-violet-500 shrink-0" aria-label="Wiederkehrend" />
+                                    )}
+                                  </div>
                                 </div>
                                 <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', item.type === 'event' && 'bg-blue-100 text-blue-600', item.type === 'meal' && 'bg-orange-100 text-orange-600', item.type === 'workout' && 'bg-pink-100 text-pink-600')}>
                                   {item.type === 'event' && <Calendar className="w-4 h-4" />}

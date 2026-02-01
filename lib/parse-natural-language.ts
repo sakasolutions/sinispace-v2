@@ -97,14 +97,20 @@ function extractAndClean(
     withPerson = personMatch[1].trim();
   }
 
-  // Datum: explizit (18.02.2026, 18.2.26, 18/02/2026) ODER morgen, übermorgen, Wochentag
-  const explicitDateMatch = t.match(/\b(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})\b/);
-  if (explicitDateMatch) {
-    const day = parseInt(explicitDateMatch[1], 10);
-    const month = parseInt(explicitDateMatch[2], 10) - 1;
-    let year = parseInt(explicitDateMatch[3], 10);
+  // Datum: Explizite Angaben haben IMMER Priorität (vor relativen wie morgen/Wochentag)
+  // Formate: 16.02.2026, 16.02.26, 16.2.26, 16.02., 16/02/2026, 16-02-2026
+  const explicitFullMatch = t.match(/\b(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})\b/);
+  const explicitShortMatch = t.match(/\b(\d{1,2})[.\-/](\d{1,2})(?=[.\-/]|\s|$)/);
+  if (explicitFullMatch) {
+    const day = parseInt(explicitFullMatch[1], 10);
+    const month = parseInt(explicitFullMatch[2], 10) - 1;
+    let year = parseInt(explicitFullMatch[3], 10);
     if (year < 100) year += year >= 50 ? 1900 : 2000;
     resultDate = new Date(year, month, day, 12, 0, 0);
+  } else if (explicitShortMatch) {
+    const day = parseInt(explicitShortMatch[1], 10);
+    const month = parseInt(explicitShortMatch[2], 10) - 1;
+    resultDate = new Date(today.getFullYear(), month, day, 12, 0, 0);
   } else {
     const todayDay = today.getDay();
     if (t.includes('morgen') && !t.includes('übermorgen')) {
@@ -123,9 +129,9 @@ function extractAndClean(
     }
   }
 
-  // Titel bereinigen
+  // Titel bereinigen (explizite Daten entfernen)
   let title = t
-    .replace(/\b(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})\b/g, '')
+    .replace(/\b(\d{1,2})[.\-/](\d{1,2})(?:[.\-/](\d{2,4})?)?\s*/g, '')
     .replace(/\b(morgen|übermorgen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/gi, '')
     .replace(/\b(jeden|jede|wöchentlich|täglich|daily|weekly)\b/gi, '')
     .replace(/\b(jeden\s+\d+\.?)\s*/gi, '')
@@ -142,8 +148,13 @@ function extractAndClean(
   if (!title) title = t;
   title = title.charAt(0).toUpperCase() + title.slice(1);
 
+  const dateStr = toLocalDateString(resultDate);
+  if (typeof console !== 'undefined' && console.log) {
+    console.log('[Calendar Parse]', { input: text, parsedDate: dateStr, time });
+  }
+
   return {
-    date: toLocalDateString(resultDate),
+    date: dateStr,
     time,
     endTime,
     title,
@@ -250,7 +261,7 @@ function parseRecurrence(
 /** Prüft ob Input nach Essen klingt */
 function looksLikeFood(text: string): boolean {
   const t = text.toLowerCase();
-  const keywords = ['essen', 'pizza', 'abendessen', 'mittag', 'frühstück', 'kochen', 'rezept', 'pasta', 'salat', 'suppe', 'brunch'];
+  const keywords = ['essen', 'pizza', 'abendessen', 'mittag', 'mittagessen', 'frühstück', 'kochen', 'rezept', 'pasta', 'salat', 'suppe', 'brunch', 'essen gehen', 'restaurant', 'mahlzeit'];
   return keywords.some((k) => t.includes(k));
 }
 
