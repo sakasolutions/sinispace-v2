@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Calendar, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CustomEventType } from '@/actions/calendar-actions';
@@ -12,32 +12,53 @@ const EVENT_TYPES: { id: CustomEventType; label: string; icon: string; color: st
   { id: 'work', label: 'Arbeit', icon: '💼', color: 'bg-slate-100 text-slate-700 border-slate-200' },
 ];
 
+type SubmitPayload = { type: CustomEventType; title: string; date: string; time: string; endTime?: string };
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   date: string; // YYYY-MM-DD
   defaultTime?: string;
-  onSubmit: (event: { type: CustomEventType; title: string; date: string; time: string; endTime?: string }) => void;
+  editEvent?: { id: string; eventType: CustomEventType; title: string; date: string; time: string; endTime?: string };
+  onSubmit: (event: SubmitPayload & { id?: string }) => void;
 };
 
-export function EventCreateModal({ isOpen, onClose, date, defaultTime = '09:00', onSubmit }: Props) {
+export function EventCreateModal({ isOpen, onClose, date, defaultTime = '09:00', editEvent, onSubmit }: Props) {
   const [eventType, setEventType] = useState<CustomEventType>('meeting');
   const [title, setTitle] = useState('');
   const [time, setTime] = useState(defaultTime);
   const [endTime, setEndTime] = useState('');
 
+  useEffect(() => {
+    if (isOpen) {
+      if (editEvent) {
+        setEventType(editEvent.eventType);
+        setTitle(editEvent.title);
+        setTime(editEvent.time);
+        setEndTime(editEvent.endTime ?? '');
+      } else {
+        setEventType('meeting');
+        setTitle('');
+        setTime(defaultTime);
+        setEndTime('');
+      }
+    }
+  }, [isOpen, editEvent, defaultTime]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    onSubmit({ type: eventType, title: title.trim(), date, time, endTime: endTime || undefined });
+    onSubmit({ type: eventType, title: title.trim(), date: editEvent?.date ?? date, time, endTime: endTime || undefined, id: editEvent?.id });
     setTitle('');
     setTime(defaultTime);
     setEndTime('');
+    setEventType('meeting');
     onClose();
   };
 
   const handleClose = () => {
     setTitle('');
+    setEventType('meeting');
     onClose();
   };
 
@@ -53,7 +74,7 @@ export function EventCreateModal({ isOpen, onClose, date, defaultTime = '09:00',
       >
         <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between rounded-t-2xl">
           <h2 id="event-modal-title" className="text-lg font-semibold text-gray-900">
-            Termin erstellen
+            {editEvent ? 'Termin bearbeiten' : 'Termin erstellen'}
           </h2>
           <button
             onClick={handleClose}
@@ -112,7 +133,7 @@ export function EventCreateModal({ isOpen, onClose, date, defaultTime = '09:00',
               <input
                 id="event-date"
                 type="date"
-                value={date}
+                value={editEvent?.date ?? date}
                 readOnly
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-700"
               />
@@ -157,7 +178,7 @@ export function EventCreateModal({ isOpen, onClose, date, defaultTime = '09:00',
               disabled={!title.trim()}
               className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium hover:shadow-lg hover:shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              Speichern
+              {editEvent ? 'Speichern' : 'Erstellen'}
             </button>
           </div>
         </form>
