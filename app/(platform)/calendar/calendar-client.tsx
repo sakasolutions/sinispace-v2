@@ -378,7 +378,7 @@ export function CalendarClient() {
           </div>
 
           {/* Content */}
-          <div ref={agendaRef} className="p-4 sm:p-6 pb-32">
+          <div ref={agendaRef} className="p-4 sm:p-6 pb-40 md:pb-32">
             {viewMode === 'agenda' && (
               <div className="space-y-3">
                 {agendaItems.length === 0 ? (
@@ -490,7 +490,7 @@ export function CalendarClient() {
       </main>
 
       {/* Floating Command Bar – Milchglas + Smart Tags */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-40 pb-[env(safe-area-inset-bottom)] pointer-events-none">
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 md:bottom-8 z-[110] pb-[env(safe-area-inset-bottom)] pointer-events-none">
         <div className="pointer-events-auto space-y-2">
           {successMessage && (
             <p className="text-sm text-green-600 font-medium animate-in fade-in duration-200 text-center bg-green-50 rounded-full py-2 px-4 border border-green-100">
@@ -537,7 +537,7 @@ export function CalendarClient() {
         </div>
       </div>
 
-      <div className="fixed right-4 bottom-[5.5rem] md:right-8 md:bottom-24 z-30">
+      <div className="fixed right-4 bottom-[7.5rem] md:right-8 md:bottom-24 z-[105]">
         <button onClick={() => setRecipeModal({ open: true, date: dateKey, slot: 'dinner', time: '18:30' })} className="w-14 h-14 rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-500/30 flex items-center justify-center hover:bg-orange-600 transition-colors" aria-label="Rezept hinzufügen">
           <ChefHat className="w-6 h-6" />
         </button>
