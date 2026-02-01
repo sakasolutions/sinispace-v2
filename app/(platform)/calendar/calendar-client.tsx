@@ -66,7 +66,8 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
   const items: AgendaItem[] = dayEvents.map((e) => {
     if (e.type === 'meal') {
       const label = e.recipeName ? `${e.slot === 'breakfast' ? 'Frühstück' : e.slot === 'lunch' ? 'Mittagessen' : 'Abendessen'}: ${e.recipeName}` : e.slot;
-      return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle: e.calories ? `${e.calories} kcal` : undefined, event: e, recipeLink: e.resultId ? '/tools/recipe' : undefined };
+      const cal = e.calories ? (String(e.calories).toLowerCase().includes('kcal') ? e.calories : `${e.calories} kcal`) : undefined;
+      return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle: cal, event: e, recipeLink: e.resultId ? '/tools/recipe' : undefined };
     }
     if (e.type === 'workout') return { id: e.id, type: 'workout' as const, time: e.time || '08:00', title: e.label || 'Workout', event: e };
     const subtitle = ('rrule' in e && e.rrule) ? '🔄 Wiederkehrend' : undefined;
@@ -189,6 +190,12 @@ export function CalendarClient() {
       setEvents(next);
       await saveCalendarEvents(next);
     } else {
+      let endTime = parsed.endTime;
+      if (!endTime && parsed.durationMinutes) {
+        const [h, m] = parsed.time.split(':').map(Number);
+        const endM = h * 60 + m + parsed.durationMinutes;
+        endTime = `${String(Math.floor(endM / 60) % 24).padStart(2, '0')}:${String(endM % 60).padStart(2, '0')}`;
+      }
       const newEvent: CalendarEvent = {
         id: `ev-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         type: 'custom',
@@ -196,7 +203,7 @@ export function CalendarClient() {
         title: parsed.title,
         date: parsed.date,
         time: parsed.time,
-        endTime: parsed.endTime,
+        endTime,
         rrule: parsed.rrule,
         until: parsed.until,
         durationMinutes: parsed.durationMinutes,
@@ -360,7 +367,7 @@ export function CalendarClient() {
           </div>
 
           {/* Content */}
-          <div ref={agendaRef} className="p-4 sm:p-6 pb-36 lg:pb-40">
+          <div ref={agendaRef} className="p-4 sm:p-6 pb-32">
             {viewMode === 'agenda' && (
               <div className="space-y-3">
                 {agendaItems.length === 0 ? (
@@ -374,26 +381,32 @@ export function CalendarClient() {
                   </div>
                 ) : (
                   agendaItems.map((item) => (
-                    <SwipeableEventItem key={item.id} event={item.event} onDelete={handleDeleteEvent} colorClass="rounded-2xl overflow-hidden">
-                      <div className={cn('flex items-center gap-4 p-4 border shadow-sm rounded-2xl', item.type === 'event' && 'border-blue-100', item.type === 'meal' && 'border-orange-100', item.type === 'workout' && 'border-pink-100')}>
-                        <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center shrink-0', item.type === 'event' && 'bg-blue-100 text-blue-600', item.type === 'meal' && 'bg-orange-100 text-orange-600', item.type === 'workout' && 'bg-pink-100 text-pink-600')}>
-                          {item.type === 'event' && <Calendar className="w-6 h-6" />}
-                          {item.type === 'meal' && <UtensilsCrossed className="w-6 h-6" />}
-                          {item.type === 'workout' && <Dumbbell className="w-6 h-6" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900">{item.title}</div>
-                          {('subtitle' in item && item.subtitle) && <div className="text-sm text-gray-500">{item.subtitle}</div>}
-                          {item.type === 'event' && 'location' in item.event && item.event.location && (
-                            <div className="text-xs text-gray-500 mt-0.5">📍 {item.event.location}</div>
+                    <SwipeableEventItem key={item.id} event={item.event} onDelete={handleDeleteEvent}>
+                      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all pr-12">
+                        {/* Spalte 1: Zeit */}
+                        <div className="min-w-[60px] text-right border-r border-gray-100 pr-4 shrink-0">
+                          <div className="text-base font-bold text-gray-800">{item.time}</div>
+                          {'endTime' in item.event && item.event.endTime && (
+                            <div className="text-xs text-gray-400 mt-0.5">{item.event.endTime}</div>
                           )}
                         </div>
-                        <div className="shrink-0 text-right">
-                          <div className="text-sm font-medium text-gray-600">{item.time}</div>
+                        {/* Spalte 2: Icon */}
+                        <div className={cn('w-10 h-10 rounded-full flex items-center justify-center shrink-0', item.type === 'event' && 'bg-blue-100 text-blue-600', item.type === 'meal' && 'bg-orange-100 text-orange-600', item.type === 'workout' && 'bg-pink-100 text-pink-600')}>
+                          {item.type === 'event' && <Calendar className="w-5 h-5" />}
+                          {item.type === 'meal' && <UtensilsCrossed className="w-5 h-5" />}
+                          {item.type === 'workout' && <Dumbbell className="w-5 h-5" />}
+                        </div>
+                        {/* Spalte 3: Inhalt */}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-gray-800 truncate">{item.title}</div>
+                          {('subtitle' in item && item.subtitle) && <div className="text-sm text-gray-400 truncate">{item.subtitle}</div>}
                           {item.type === 'meal' && 'recipeLink' in item && item.recipeLink && (
-                            <Link href={item.recipeLink} className="inline-flex items-center gap-1 mt-1 text-xs font-medium text-orange-600 hover:text-orange-700">
+                            <Link href={item.recipeLink} className="inline-flex items-center gap-1 mt-0.5 text-xs font-medium text-orange-600 hover:text-orange-700">
                               Zum Rezept <ExternalLink className="w-3 h-3" />
                             </Link>
+                          )}
+                          {item.type === 'event' && 'location' in item.event && item.event.location && (
+                            <div className="text-xs text-gray-400 truncate">📍 {item.event.location}</div>
                           )}
                         </div>
                       </div>
@@ -465,16 +478,16 @@ export function CalendarClient() {
         </div>
       </main>
 
-      {/* Magic Input – Schwebende Kapsel + Smart Tags */}
-      <div className="fixed bottom-24 left-0 right-0 z-40 md:bottom-6 md:left-[calc(16rem+2rem)] md:right-8 pb-[env(safe-area-inset-bottom)] pt-4 pointer-events-none">
-        <div className="max-w-2xl mx-auto px-4 pointer-events-auto space-y-2">
+      {/* Floating Command Bar – Milchglas + Smart Tags */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-40 pb-[env(safe-area-inset-bottom)] pointer-events-none">
+        <div className="pointer-events-auto space-y-2">
           {parsedLive?.recurrenceLabel && (
-            <p className="text-sm text-orange-600 font-medium animate-in fade-in duration-200">
+            <p className="text-sm text-orange-600 font-medium animate-in fade-in duration-200 text-center">
               🔄 {parsedLive.recurrenceLabel}
             </p>
           )}
           {smartTags.length > 0 && (
-            <div className="flex flex-wrap gap-2 animate-in fade-in duration-200">
+            <div className="flex flex-wrap gap-2 justify-center animate-in fade-in duration-200">
               {smartTags.map((tag, i) => (
                 <span
                   key={i}
@@ -485,22 +498,30 @@ export function CalendarClient() {
               ))}
             </div>
           )}
-          <form onSubmit={handleMagicSubmit} className="flex gap-2 p-2 bg-white rounded-2xl border border-gray-200 shadow-xl">
+          <form
+            onSubmit={handleMagicSubmit}
+            className="flex items-center gap-2 p-2 bg-white/90 backdrop-blur-xl shadow-2xl border border-white/50 rounded-full"
+          >
             <input
               type="text"
               value={magicInput}
               onChange={(e) => setMagicInput(e.target.value)}
-              placeholder='z.B. "Jeden Freitag 18 Uhr Fußball bis Ende Mai" oder "Morgen 14 Uhr Meeting im Vapiano"'
-              className="flex-1 min-h-[48px] px-4 rounded-xl bg-gray-50 border-0 focus:ring-2 focus:ring-orange-200 outline-none text-base placeholder:text-gray-400"
+              placeholder='z.B. "Jeden Freitag 18 Uhr Fußball" oder "Morgen 14 Uhr Meeting im Vapiano"'
+              className="flex-1 min-h-[44px] px-5 rounded-full bg-transparent border-none focus:ring-0 outline-none text-base placeholder:text-gray-400"
             />
-            <button type="submit" disabled={!magicInput.trim()} className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl bg-orange-500 text-white disabled:opacity-40 hover:bg-orange-600 transition-colors" aria-label="Hinzufügen">
+            <button
+              type="submit"
+              disabled={!magicInput.trim()}
+              className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center bg-orange-500 text-white disabled:opacity-40 hover:bg-orange-600 transition-colors"
+              aria-label="Hinzufügen"
+            >
               <Send className="w-5 h-5" />
             </button>
           </form>
         </div>
       </div>
 
-      <div className="fixed right-4 bottom-36 md:right-8 md:bottom-24 z-30">
+      <div className="fixed right-4 bottom-[5.5rem] md:right-8 md:bottom-24 z-30">
         <button onClick={() => setRecipeModal({ open: true, date: dateKey, slot: 'dinner', time: '18:30' })} className="w-14 h-14 rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-500/30 flex items-center justify-center hover:bg-orange-600 transition-colors" aria-label="Rezept hinzufügen">
           <ChefHat className="w-6 h-6" />
         </button>
