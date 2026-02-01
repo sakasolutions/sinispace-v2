@@ -76,6 +76,49 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
   return items.sort((a, b) => a.time.localeCompare(b.time));
 }
 
+/** Kategorien pro Datum (max 4, Reihenfolge: Termin, Essen, Sport) */
+type CategoryColor = 'blue' | 'orange' | 'pink';
+
+function getCategoryDotsForDate(dateKey: string, events: CalendarEvent[]): CategoryColor[] {
+  const dayEvents = events.filter((e) => eventOccursOnDate(e, dateKey));
+  const categories = new Set<CategoryColor>();
+  for (const e of dayEvents) {
+    if (e.type === 'custom') categories.add('blue');
+    else if (e.type === 'meal') categories.add('orange');
+    else if (e.type === 'workout') categories.add('pink');
+  }
+  const order: CategoryColor[] = ['blue', 'orange', 'pink'];
+  return order.filter((c) => categories.has(c)).slice(0, 4);
+}
+
+function CategoryDots({
+  dateKey,
+  events,
+  size = 'sm',
+  selected,
+}: {
+  dateKey: string;
+  events: CalendarEvent[];
+  size?: 'sm' | 'md';
+  selected?: boolean;
+}) {
+  const dots = getCategoryDotsForDate(dateKey, events);
+  if (dots.length === 0) return null;
+  const dotSize = size === 'sm' ? 'w-1.5 h-1.5' : 'w-2 h-2';
+  const colors: Record<CategoryColor, string> = {
+    blue: selected ? 'bg-white' : 'bg-blue-500',
+    orange: selected ? 'bg-white' : 'bg-orange-500',
+    pink: selected ? 'bg-white' : 'bg-pink-500',
+  };
+  return (
+    <div className={cn('flex gap-0.5 justify-center mt-1', size === 'md' && 'gap-1 mt-1.5')}>
+      {dots.map((c, i) => (
+        <span key={i} className={cn('rounded-full', dotSize, colors[c])} />
+      ))}
+    </div>
+  );
+}
+
 /** Monats-Grid für Mini-Kalender (7x5/6) */
 function getMonthGrid(year: number, month: number): (Date | null)[][] {
   const first = new Date(year, month, 1);
@@ -271,23 +314,25 @@ export function CalendarClient() {
                 <div key={w} className="text-[10px] font-medium text-gray-400 py-1">{w}</div>
               ))}
               {monthGrid.flat().map((d, i) => {
-                if (!d) return <div key={`empty-${i}`} className="h-8" />;
+                if (!d) return <div key={`empty-${i}`} className="min-h-[2.5rem]" />;
                 const dKey = toDateKey(d);
                 const selected = dKey === dateKey;
                 const isTodayDate = dKey === todayKey;
-                const count = eventCountForDate(d);
                 return (
                   <button
                     key={dKey}
                     onClick={() => selectDay(d)}
                     className={cn(
-                      'h-8 w-8 mx-auto rounded-full text-sm font-medium flex items-center justify-center relative transition-colors',
+                      'min-h-[2.5rem] py-1 w-full rounded-full text-sm font-medium flex flex-col items-center justify-center transition-colors group',
                       selected ? 'bg-orange-500 text-white' : 'text-gray-700 hover:bg-gray-100',
                       d.getMonth() !== viewDate.getMonth() && 'text-gray-300'
                     )}
                   >
-                    {d.getDate()}
-                    {isTodayDate && !selected && <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-orange-500" />}
+                    <span>{d.getDate()}</span>
+                    {isTodayDate && !selected && events.filter((e) => eventOccursOnDate(e, dKey)).length === 0 && (
+                      <span className="mt-0.5 w-1 h-1 rounded-full bg-orange-500" />
+                    )}
+                    <CategoryDots dateKey={dKey} events={events} size="sm" selected={selected} />
                   </button>
                 );
               })}
@@ -312,7 +357,10 @@ export function CalendarClient() {
                   >
                     <span className="text-[10px] font-medium opacity-80">{WEEKDAYS_SHORT[d.getDay()]}</span>
                     <span className="text-sm font-bold">{d.getDate()}</span>
-                    {isTodayDate && !active && <span className="w-1 h-1 rounded-full bg-orange-500" />}
+                    {isTodayDate && !active && events.filter((e) => eventOccursOnDate(e, dKey)).length === 0 && (
+                      <span className="w-1 h-1 rounded-full bg-orange-500" />
+                    )}
+                    <CategoryDots dateKey={dKey} events={events} size="sm" selected={active} />
                   </button>
                 );
               })}
@@ -327,7 +375,7 @@ export function CalendarClient() {
                   <div key={w} className="text-[10px] font-medium text-gray-400 py-1">{w}</div>
                 ))}
                 {monthGrid.flat().map((d, i) => {
-                  if (!d) return <div key={`m-${i}`} className="h-8" />;
+                  if (!d) return <div key={`m-${i}`} className="min-h-[2.5rem]" />;
                   const dKey = toDateKey(d);
                   const selected = dKey === dateKey;
                   const isTodayDate = dKey === todayKey;
@@ -336,13 +384,16 @@ export function CalendarClient() {
                       key={dKey}
                       onClick={() => selectDay(d)}
                       className={cn(
-                        'h-8 w-8 mx-auto rounded-full text-sm font-medium flex items-center justify-center relative',
+                        'min-h-[2.5rem] py-1 w-full rounded-full text-sm font-medium flex flex-col items-center justify-center',
                         selected ? 'bg-orange-500 text-white' : 'text-gray-700 hover:bg-gray-100',
                         d.getMonth() !== viewDate.getMonth() && 'text-gray-300'
                       )}
                     >
-                      {d.getDate()}
-                      {isTodayDate && !selected && <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-orange-500" />}
+                      <span>{d.getDate()}</span>
+                      {isTodayDate && !selected && events.filter((e) => eventOccursOnDate(e, dKey)).length === 0 && (
+                        <span className="mt-0.5 w-1 h-1 rounded-full bg-orange-500" />
+                      )}
+                      <CategoryDots dateKey={dKey} events={events} size="sm" selected={selected} />
                     </button>
                   );
                 })}
@@ -471,15 +522,22 @@ export function CalendarClient() {
                     <button
                       key={dKey}
                       onClick={() => selectDay(d)}
+                      title={items.length > 0 ? `${items.length} Einträge` : undefined}
                       className={cn(
-                        'min-h-[60px] p-2 rounded-xl text-left transition-colors',
+                        'min-h-[60px] p-2 rounded-xl text-left transition-all group',
                         selected ? 'bg-orange-500 text-white' : 'hover:bg-gray-50',
                         d.getMonth() !== viewDate.getMonth() && 'opacity-40'
                       )}
                     >
                       <span className={cn('text-sm font-medium', selected ? 'text-white' : 'text-gray-700')}>{d.getDate()}</span>
-                      {isTodayDate && !selected && <span className="block w-1 h-1 rounded-full bg-orange-500 mt-0.5" />}
-                      {items.length > 0 && <span className="block text-[10px] mt-1 opacity-75">{items.length} Einträge</span>}
+                      {isTodayDate && !selected && items.length === 0 && <span className="block w-1 h-1 rounded-full bg-orange-500 mt-0.5" />}
+                      {getCategoryDotsForDate(dKey, events).length > 0 ? (
+                        <div className="mt-1 group-hover:scale-110 transition-transform origin-center">
+                          <CategoryDots dateKey={dKey} events={events} size="md" selected={selected} />
+                        </div>
+                      ) : (
+                        <div className="mt-1 min-h-[0.5rem]" />
+                      )}
                     </button>
                   );
                 })}
