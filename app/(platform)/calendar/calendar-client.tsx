@@ -671,6 +671,7 @@ export function CalendarClient() {
         date={eventModal.editEvent?.date ?? eventModal.date}
         defaultTime={eventModal.editEvent?.time ?? eventModal.time ?? '09:00'}
         editEvent={eventModal.editEvent}
+        events={events}
         onSubmit={handleEventSheetSubmit}
       />
       {recipeModal && <RecipePickerModal isOpen={recipeModal.open} onClose={() => setRecipeModal(null)} date={recipeModal.date} slot={recipeModal.slot} defaultTime={recipeModal.time} onSelect={handleAddMealFromRecipe} />}

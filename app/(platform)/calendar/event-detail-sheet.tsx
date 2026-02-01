@@ -1,9 +1,145 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X, Calendar, Clock, MapPin, UtensilsCrossed, Briefcase, Dumbbell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CalendarEvent, CustomEventType } from '@/actions/calendar-actions';
+
+const WEEKDAYS_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+function getEventTitle(e: CalendarEvent): string {
+  if (e.type === 'meal') return (e.recipeName || e.slot).toLowerCase();
+  if (e.type === 'workout') return (e.label || 'workout').toLowerCase();
+  return (e.title || '').toLowerCase();
+}
+
+function normalizeForMatch(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9äöüß\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isSimilar(query: string, eventTitle: string): boolean {
+  if (!query || query.length < 2) return false;
+  const q = normalizeForMatch(query);
+  const t = normalizeForMatch(eventTitle);
+  if (!q || !t) return false;
+  if (t.includes(q) || q.includes(t)) return true;
+  const qWords = q.split(/\s+/).filter((w) => w.length >= 2);
+  const tWords = t.split(/\s+/).filter((w) => w.length >= 2);
+  const overlap = qWords.filter((w) => tWords.some((tw) => tw.includes(w) || w.includes(tw))).length;
+  return overlap >= Math.min(1, qWords.length);
+}
+
+export type SmartSuggestion =
+  | { type: 'time'; label: string; value: string }
+  | { type: 'location'; label: string; value: string }
+  | { type: 'duration'; label: string; durationMinutes: number }
+  | { type: 'recipe'; label: string; value: string }
+  | { type: 'weekday'; label: string; weekday: number };
+
+function getNextWeekdayDate(currentDateStr: string, targetWeekday: number): string {
+  const [y, m, d] = currentDateStr.split('-').map(Number);
+  const current = new Date(y, m - 1, d);
+  const currentWd = current.getDay();
+  let diff = (targetWeekday - currentWd + 7) % 7;
+  if (diff === 0) diff = 7;
+  const next = new Date(current);
+  next.setDate(current.getDate() + diff);
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
+}
+
+function getSmartSuggestions(events: CalendarEvent[], query: string, excludeId?: string): SmartSuggestion[] {
+  if (!query || query.trim().length < 2) return [];
+  const similar = events.filter((e) => e.id !== excludeId && isSimilar(query.trim(), getEventTitle(e)));
+  if (similar.length === 0) return [];
+
+  const suggestions: SmartSuggestion[] = [];
+
+  const weekdays = similar.map((e) => {
+    const [y, m, d] = e.date.split('-').map(Number);
+    return new Date(y, m - 1, d).getDay();
+  });
+  if (weekdays.length > 0) {
+    const counts = new Map<number, number>();
+    weekdays.forEach((wd) => counts.set(wd, (counts.get(wd) || 0) + 1));
+    const mostWd = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (mostWd && mostWd[1] >= 2) {
+      suggestions.push({
+        type: 'weekday',
+        label: `📅 Wie immer ${WEEKDAYS_SHORT[mostWd[0]]}?`,
+        weekday: mostWd[0],
+      });
+    }
+  }
+
+  const times = similar.map((e) => e.time || '09:00').filter(Boolean);
+  if (times.length > 0) {
+    const counts = new Map<string, number>();
+    times.forEach((t) => counts.set(t, (counts.get(t) || 0) + 1));
+    const mostTime = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (mostTime && mostTime[1] >= 1) {
+      suggestions.push({ type: 'time', label: `🕒 Wie immer: ${mostTime[0]} Uhr?`, value: mostTime[0] });
+    }
+  }
+
+  const locations = similar
+    .filter((e) => e.type === 'custom' && 'location' in e && e.location && e.location.trim())
+    .map((e) => ('location' in e ? e.location! : ''))
+    .filter(Boolean);
+  if (locations.length > 0) {
+    const counts = new Map<string, number>();
+    locations.forEach((l) => counts.set(l, (counts.get(l) || 0) + 1));
+    const mostLoc = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (mostLoc && mostLoc[1] >= 1) {
+      suggestions.push({ type: 'location', label: `📍 Wie immer: ${mostLoc[0]}?`, value: mostLoc[0] });
+    }
+  }
+
+  const recipes = similar
+    .filter((e): e is Extract<CalendarEvent, { type: 'meal' }> => e.type === 'meal' && !!e.recipeName)
+    .map((e) => e.recipeName as string);
+  if (recipes.length > 0) {
+    const counts = new Map<string, number>();
+    recipes.forEach((r) => counts.set(r, (counts.get(r) || 0) + 1));
+    const mostRecipe = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (mostRecipe && mostRecipe[1] >= 1) {
+      suggestions.push({ type: 'recipe', label: `🍽️ Wie immer: ${mostRecipe[0]}?`, value: mostRecipe[0] });
+    }
+  }
+
+  const withEnd = similar.filter((e) => 'endTime' in e && e.endTime);
+  if (withEnd.length > 0) {
+    const durations: number[] = [];
+    withEnd.forEach((e) => {
+      const t = e.time || '09:00';
+      const end = 'endTime' in e ? e.endTime! : '';
+      if (!end) return;
+      const [h1, m1] = t.split(':').map(Number);
+      const [h2, m2] = end.split(':').map(Number);
+      const mins = (h2 - h1) * 60 + (m2 - m1);
+      if (mins > 0 && mins <= 480) durations.push(mins);
+    });
+    if (durations.length > 0) {
+      const counts = new Map<number, number>();
+      durations.forEach((d) => counts.set(d, (counts.get(d) || 0) + 1));
+      const mostDur = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+      if (mostDur && mostDur[1] >= 1) {
+        suggestions.push({
+          type: 'duration',
+          label: `⏱️ Wie immer: ${mostDur[0]} min?`,
+          durationMinutes: mostDur[0],
+        });
+      }
+    }
+  }
+
+  return suggestions;
+}
 
 export type EventCategory = 'arbeit' | 'essen' | 'sport' | 'privat';
 
@@ -65,10 +201,19 @@ type Props = {
   date: string;
   defaultTime?: string;
   editEvent?: CalendarEvent;
+  events?: CalendarEvent[];
   onSubmit: (event: CalendarEvent) => void | Promise<void>;
 };
 
-export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00', editEvent, onSubmit }: Props) {
+function computeEndTime(time: string, durationMinutes: number): string {
+  const [h, m] = time.split(':').map(Number);
+  const total = h * 60 + m + durationMinutes;
+  const endH = Math.floor(total / 60) % 24;
+  const endM = total % 60;
+  return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+}
+
+export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00', editEvent, events = [], onSubmit }: Props) {
   const [category, setCategory] = useState<EventCategory>('privat');
   const [title, setTitle] = useState('');
   const [formDate, setFormDate] = useState(date);
@@ -113,6 +258,25 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
       }
     }
   }, [isOpen, editEvent, date, defaultTime, time]);
+
+  const suggestions = useMemo(
+    () => getSmartSuggestions(events, title, editEvent?.id),
+    [events, title, editEvent?.id]
+  );
+
+  const applySuggestion = (s: SmartSuggestion) => {
+    if (s.type === 'time') {
+      setTime(s.value);
+    } else if (s.type === 'location') {
+      setLocation(s.value);
+    } else if (s.type === 'duration') {
+      setEndTime(computeEndTime(time, s.durationMinutes));
+    } else if (s.type === 'recipe') {
+      setRecipeName(s.value);
+    } else if (s.type === 'weekday') {
+      setFormDate(getNextWeekdayDate(formDate, s.weekday));
+    }
+  };
 
   const catConfig = CATEGORIES.find((c) => c.id === category) || CATEGORIES[0];
   const accentBg = catConfig.bg;
@@ -200,7 +364,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 space-y-5">
           {/* Titel – groß oben */}
-          <div>
+          <div className="space-y-2">
             <input
               type="text"
               value={title}
@@ -215,6 +379,29 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               )}
               autoFocus
             />
+            {/* Smart Suggestions – aus Historie ähnlicher Events */}
+            {suggestions.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {suggestions
+                  .filter((s) => {
+                    if (s.type === 'location' && category !== 'arbeit' && category !== 'privat') return false;
+                    if (s.type === 'duration' && category === 'essen') return false;
+                    if (s.type === 'recipe' && category !== 'essen') return false;
+                    return true;
+                  })
+                  .slice(0, 4)
+                  .map((s, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => applySuggestion(s)}
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 transition-colors"
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+              </div>
+            )}
           </div>
 
           {/* Kategorie-Picker */}
