@@ -21,12 +21,10 @@ import {
   getCalendarEvents,
   saveCalendarEvents,
   removeCalendarEvent,
-  updateCalendarEvent,
   type CalendarEvent,
-  type CustomEventType,
 } from '@/actions/calendar-actions';
 import { parseNaturalLanguage, getSmartTags, type ParsedEvent, type SmartTag } from '@/lib/parse-natural-language';
-import { EventCreateModal } from './event-create-modal';
+import { EventDetailSheet } from './event-detail-sheet';
 import { RecipePickerModal } from './recipe-picker-modal';
 import { SwipeableEventItem } from './swipeable-event-item';
 
@@ -279,17 +277,12 @@ export function CalendarClient() {
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
-  const handleAddCustomEvent = async (data: { type: CustomEventType; title: string; date: string; time: string; endTime?: string; id?: string }) => {
-    if (data.id) {
-      await updateCalendarEvent(data.id, { eventType: data.type, title: data.title, date: data.date, time: data.time, endTime: data.endTime });
-      setEvents((prev) => prev.map((e) => (e.id === data.id ? { ...e, eventType: data.type, title: data.title, date: data.date, time: data.time, endTime: data.endTime } : e)) as CalendarEvent[]);
-      setEventModal({ open: false, date: '', time: undefined });
-    } else {
-      const newEvent: CalendarEvent = { id: `ev-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, type: 'custom', eventType: data.type, title: data.title, date: data.date, time: data.time, endTime: data.endTime };
-      const next = [...events, newEvent];
-      setEvents(next);
-      await saveCalendarEvents(next);
-    }
+  const handleEventSheetSubmit = async (event: CalendarEvent) => {
+    const existing = events.find((e) => e.id === event.id);
+    const next = existing ? events.map((e) => (e.id === event.id ? event : e)) : [...events, event];
+    setEvents(next as CalendarEvent[]);
+    await saveCalendarEvents(next as CalendarEvent[]);
+    setEventModal({ open: false, date: '', time: undefined });
   };
 
   const handleAddMealFromRecipe = async (recipe: { id: string; resultId: string; recipeName: string; stats?: { time?: string; calories?: string } }, slot: 'breakfast' | 'lunch' | 'dinner', date: string, time: string) => {
@@ -462,10 +455,16 @@ export function CalendarClient() {
                       key={item.id}
                       event={item.event}
                       onDelete={handleDeleteEvent}
-                      onEdit={(e) => e.type === 'custom' && setEventModal({ open: true, date: e.date, time: e.time, editEvent: e })}
+                      onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
                       enableSwipe={isMobile}
                     >
-                      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all pr-12">
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                        onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                        className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all pr-12 cursor-pointer"
+                      >
                         {/* Spalte 1: Zeit */}
                         <div className="min-w-[60px] text-right border-r border-gray-100 pr-4 shrink-0">
                           <div className="text-base font-bold text-gray-800">{item.time}</div>
@@ -484,7 +483,7 @@ export function CalendarClient() {
                           <div className="font-bold text-gray-800 truncate">{item.title}</div>
                           {('subtitle' in item && item.subtitle) && <div className="text-sm text-gray-400 truncate">{item.subtitle}</div>}
                           {item.type === 'meal' && 'recipeLink' in item && item.recipeLink && (
-                            <Link href={item.recipeLink} className="inline-flex items-center gap-1 mt-0.5 text-xs font-medium text-orange-600 hover:text-orange-700">
+                            <Link href={item.recipeLink} className="inline-flex items-center gap-1 mt-0.5 text-xs font-medium text-orange-600 hover:text-orange-700" onClick={(e) => e.stopPropagation()}>
                               Zum Rezept <ExternalLink className="w-3 h-3" />
                             </Link>
                           )}
@@ -532,10 +531,16 @@ export function CalendarClient() {
                               key={item.id}
                               event={item.event}
                               onDelete={handleDeleteEvent}
-                              onEdit={(e) => e.type === 'custom' && setEventModal({ open: true, date: e.date, time: e.time, editEvent: e })}
+                              onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
                               enableSwipe={isMobile}
                             >
-                              <div className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-all pr-12">
+                              <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                                onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                                className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-all pr-12 cursor-pointer"
+                              >
                                 <div className="min-w-[48px] text-right border-r border-gray-100 pr-3 shrink-0">
                                   <div className="text-sm font-bold text-gray-800">{item.time}</div>
                                 </div>
@@ -660,13 +665,13 @@ export function CalendarClient() {
         </button>
       </div>
 
-      <EventCreateModal
+      <EventDetailSheet
         isOpen={eventModal.open}
         onClose={() => setEventModal({ open: false, date: '', time: undefined })}
         date={eventModal.editEvent?.date ?? eventModal.date}
-        defaultTime={eventModal.editEvent?.time ?? eventModal.time}
-        editEvent={eventModal.editEvent && eventModal.editEvent.type === 'custom' ? { id: eventModal.editEvent.id, eventType: eventModal.editEvent.eventType, title: eventModal.editEvent.title, date: eventModal.editEvent.date, time: eventModal.editEvent.time, endTime: ('endTime' in eventModal.editEvent ? eventModal.editEvent.endTime : undefined) } : undefined}
-        onSubmit={handleAddCustomEvent}
+        defaultTime={eventModal.editEvent?.time ?? eventModal.time ?? '09:00'}
+        editEvent={eventModal.editEvent}
+        onSubmit={handleEventSheetSubmit}
       />
       {recipeModal && <RecipePickerModal isOpen={recipeModal.open} onClose={() => setRecipeModal(null)} date={recipeModal.date} slot={recipeModal.slot} defaultTime={recipeModal.time} onSelect={handleAddMealFromRecipe} />}
     </PageTransition>

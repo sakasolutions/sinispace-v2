@@ -44,6 +44,7 @@ export type CalendarEvent =
       type: 'workout';
       date: string;
       time: string;
+      endTime?: string;
       label?: string;
       routine?: string;
     };
