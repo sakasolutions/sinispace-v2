@@ -29,6 +29,7 @@ import { SwipeableEventItem } from './swipeable-event-item';
 
 const WEEKDAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 const WEEKDAYS_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const WEEKDAYS_HEADER = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 
 const BRAND_GRADIENT = 'bg-gradient-to-r from-violet-600 to-pink-500';
@@ -126,7 +127,7 @@ function CategoryDots({
 function getMonthGrid(year: number, month: number): (Date | null)[][] {
   const first = new Date(year, month, 1);
   const last = new Date(year, month + 1, 0);
-  const startPad = (first.getDay() + 7) % 7;
+  const startPad = (first.getDay() + 6) % 7;
   const daysInMonth = last.getDate();
   const total = startPad + daysInMonth;
   const rows = Math.ceil(total / 7);
@@ -326,7 +327,7 @@ export function CalendarClient() {
           {/* Desktop: Monats-Grid */}
           <div className="hidden lg:block">
             <div className="grid grid-cols-7 gap-0.5 text-center">
-              {WEEKDAYS_SHORT.map((w) => (
+              {WEEKDAYS_HEADER.map((w) => (
                 <div key={w} className="text-[10px] font-medium text-gray-400 py-1">{w}</div>
               ))}
               {monthGrid.flat().map((d, i) => {
@@ -358,7 +359,7 @@ export function CalendarClient() {
           {/* Mobile: Kompakte Monatsansicht (immer sichtbar) */}
           <div className="lg:hidden">
             <div className="grid grid-cols-7 gap-0.5 text-center">
-              {WEEKDAYS_SHORT.map((w) => (
+              {WEEKDAYS_HEADER.map((w) => (
                 <div key={w} className="text-[10px] font-medium text-gray-400 py-0.5">{w}</div>
               ))}
               {monthGrid.flat().map((d, i) => {
@@ -568,7 +569,7 @@ export function CalendarClient() {
 
             {viewMode === 'monat' && (
               <div className="grid grid-cols-7 gap-1">
-                {WEEKDAYS_SHORT.map((w) => (
+                {WEEKDAYS_HEADER.map((w) => (
                   <div key={w} className="text-center text-xs font-medium text-gray-400 py-2">{w}</div>
                 ))}
                 {monthGrid.flat().map((d, i) => {
