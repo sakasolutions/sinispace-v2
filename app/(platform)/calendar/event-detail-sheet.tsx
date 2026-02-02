@@ -509,7 +509,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
           />
           <div
             className={cn(
-              'relative w-full max-w-lg bg-white shadow-xl flex flex-col',
+              'event-sheet relative w-full max-w-lg bg-white shadow-xl flex flex-col',
               isMobile ? 'min-h-[100dvh] max-h-[100dvh] rounded-t-3xl' : 'max-h-[85vh] rounded-2xl min-h-0'
             )}
             role="dialog"
@@ -533,7 +533,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             </div>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto min-h-0 p-4 pb-32 space-y-5">
+          <div className="flex-1 overflow-y-auto min-h-0 p-4 pb-40 space-y-5">
           {/* Titel – groß oben */}
           <div className="space-y-2">
             <input
@@ -541,7 +541,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder={category === 'essen' ? 'z.B. Pasta Carbonara' : category === 'sport' ? 'z.B. Joggen, Yoga' : category === 'gesundheit' ? 'z.B. Zahnarzt, Arzttermin' : 'z.B. Team Call, Zahnarzt'}
-              className="w-full p-4 text-lg font-medium rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400"
+              className="w-full p-4 pl-4 pr-4 text-left indent-0 text-lg font-medium rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
+              style={{ textIndent: 0 }}
               autoFocus
             />
             {/* Smart Suggestions – aus Historie ähnlicher Events */}
@@ -632,7 +633,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 }
               }}
               placeholder="z.B. Zahnarzt Herbrechtingen, Büro, Vapiano"
-              className="w-full p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400"
+              className="w-full p-4 pl-4 pr-4 text-left indent-0 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
             />
           )}
 
@@ -647,7 +648,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Weitere Infos..."
               rows={2}
-              className="w-full p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors resize-none min-h-[80px] placeholder:text-gray-400"
+              className="w-full p-4 pl-4 pr-4 text-left indent-0 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors resize-none min-h-[80px] placeholder:text-gray-400 [text-indent:0]"
+              style={{ textIndent: 0 }}
             />
           </div>
 
@@ -687,7 +689,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 value={recipeName}
                 onChange={(e) => setRecipeName(e.target.value)}
                 placeholder="z.B. Pasta, Salat"
-                className="w-full p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400"
+                className="w-full p-4 pl-4 pr-4 text-left indent-0 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
               />
             </div>
           )}
@@ -704,7 +706,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 value={routine}
                 onChange={(e) => setRoutine(e.target.value)}
                 placeholder="z.B. 30 min Joggen"
-                className="w-full p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400"
+                className="w-full p-4 pl-4 pr-4 text-left indent-0 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
               />
             </div>
           )}

@@ -693,3 +693,16 @@
   input.slider-recipe::-moz-range-track { background: #e5e7eb; height: 8px; border-radius: 9999px; }
   input.slider-recipe::-moz-range-progress { background: #f97316; height: 8px; border-radius: 9999px; }
 }
+
+/* Termin-Modal: Text in Inputs/Textarea immer linksbündig, kein Einzug */
+.event-sheet input[type="text"],
+.event-sheet input[type="date"],
+.event-sheet input[type="time"],
+.event-sheet textarea {
+  text-align: left;
+  text-indent: 0;
+}
+.event-sheet input::placeholder,
+.event-sheet textarea::placeholder {
+  text-align: left;
+}
