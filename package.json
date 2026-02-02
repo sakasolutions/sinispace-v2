@@ -27,6 +27,7 @@
     "cookie-parser": "^1.4.6",
     "express": "^4.18.2",
     "framer-motion": "^12.23.26",
+    "jspdf": "^4.1.0",
     "lucide-react": "^0.562.0",
     "next": "16.1.0",
     "next-auth": "^5.0.0-beta.30",

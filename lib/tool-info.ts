@@ -241,5 +241,22 @@ export const toolInfoMap: Record<string, ToolInfo> = {
       'Erledigte Items rutschen in „Erledigt“',
       'Premium für KI-Features (Korrektur, Kategorien, Mengen)'
     ]
+  },
+  pdf: {
+    title: 'SiniSpace PDF Creator',
+    description: 'Bilder (JPEG, PNG, WebP) zu einer PDF-Datei zusammenfügen. Reihenfolge bestimmt die Seiten. Ein Klick erstellt dein PDF zum Download.',
+    useCases: [
+      'Fotos oder Screenshots zu einem PDF bündeln',
+      'Reihenfolge per Hoch/Runter-Buttons anpassen',
+      'Ein Bild pro Seite, zentriert auf A4'
+    ],
+    examples: [
+      'Mehrere JPEGs hochladen → PDF erstellen & herunterladen',
+      'Bilder per Pfeile sortieren vor dem Erstellen'
+    ],
+    tips: [
+      'JPEG, PNG und WebP werden unterstützt',
+      'PDF wird im Browser erstellt, keine Server-Uploads'
+    ]
   }
 };

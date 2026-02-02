@@ -29,6 +29,7 @@ import {
   TrendingUp,
   Briefcase,
   ShoppingCart,
+  FileImage,
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
 
@@ -36,6 +37,7 @@ import { PageTransition } from '@/components/ui/PageTransition';
 const TOOL_SUBTITLES: Record<string, string> = {
   recipe: 'Planer & Rezepte',
   'shopping-list': 'Smarte Listen',
+  pdf: 'Bilder zu PDF',
   email: 'Vorlagen & Hilfe',
   polish: 'Korrektur & Stil',
   invoice: 'Angebote & PDF',
@@ -54,6 +56,7 @@ const TOOL_SUBTITLES: Record<string, string> = {
 const TOOL_GLOW_SHADOW: Record<string, string> = {
   recipe: 'shadow-[0_4px_24px_-2px_rgba(249,115,22,0.3)]',
   'shopping-list': 'shadow-[0_4px_24px_-2px_rgba(239,68,68,0.3)]',
+  pdf: 'shadow-[0_4px_24px_-2px_rgba(239,68,68,0.3)]',
   email: 'shadow-[0_4px_24px_-2px_rgba(59,130,246,0.3)]',
   polish: 'shadow-[0_4px_24px_-2px_rgba(20,184,166,0.3)]',
   invoice: 'shadow-[0_4px_24px_-2px_rgba(16,185,129,0.3)]',
@@ -98,6 +101,7 @@ const ICON_BG_CLASS: Record<string, string> = {
 const HERO_ICON_COLORS: Record<string, string> = {
   recipe: 'text-orange-500',
   'shopping-list': 'text-red-500',
+  pdf: 'text-red-500',
   email: 'text-blue-500',
   polish: 'text-teal-500',
   invoice: 'text-emerald-500',
@@ -266,6 +270,18 @@ const allTools: Tool[] = [
     priority: 'medium',
   },
   {
+    id: 'pdf',
+    title: 'PDF Creator',
+    description: 'Bilder (JPEG, PNG, WebP) zu einer PDF-Datei zusammenfügen.',
+    icon: FileImage,
+    color: 'red',
+    category: 'professional',
+    href: '/tools/pdf',
+    available: true,
+    size: 'medium',
+    priority: 'medium',
+  },
+  {
     id: 'translate',
     title: 'Sprachbrücke',
     description: 'Übersetze nicht nur Wörter, sondern die Bedeutung.',
@@ -322,12 +338,13 @@ const WORKFLOW_SECTIONS = [
   { id: 'productivity', label: 'Produktivität', icon: ShoppingCart, toolIds: ['recipe', 'shopping-list', 'excel'] },
   { id: 'communication', label: 'Kommunikation', icon: Mail, toolIds: ['email', 'tough-msg', 'translate'] },
   { id: 'personal', label: 'Persönlich', icon: Dumbbell, toolIds: ['fitness', 'travel', 'polish'] },
-  { id: 'professional', label: 'Professionell', icon: FileText, toolIds: ['legal', 'invoice', 'summarize', 'code', 'social'] },
+  { id: 'professional', label: 'Professionell', icon: FileText, toolIds: ['legal', 'invoice', 'pdf', 'summarize', 'code', 'social'] },
 ] as const;
 
 const TOOL_WORKFLOW: Record<string, (typeof WORKFLOW_SECTIONS)[number]['id']> = {
   recipe: 'productivity',
   'shopping-list': 'productivity',
+  pdf: 'professional',
   excel: 'productivity',
   email: 'communication',
   'tough-msg': 'communication',
@@ -364,6 +381,7 @@ const getAccentColorRGB = (accentColor: string): { r: number; g: number; b: numb
     amber: { r: 245, g: 158, b: 11 },
     cyan: { r: 6, g: 182, b: 212 },
     rose: { r: 244, g: 63, b: 94 },
+    red: { r: 239, g: 68, b: 68 },
     slate: { r: 100, g: 116, b: 139 },
   };
   return colorMap[accentColor] || colorMap.blue;
@@ -414,6 +432,10 @@ const desktopHoverClasses: Record<string, { border: string; bg: string }> = {
   slate: {
     border: 'md:group-hover:border-gray-500',
     bg: 'md:group-hover:bg-gray-50',
+  },
+  red: {
+    border: 'md:group-hover:border-red-500',
+    bg: 'md:group-hover:bg-red-50',
   },
 };
 
@@ -529,6 +551,15 @@ const toolColors: Record<string, {
     hoverBg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-pink-50 md:group-hover:to-orange-50', // Nur Desktop
     gradient: 'from-pink-500 to-orange-500',
     accentColor: 'pink',
+  },
+  red: {
+    bg: 'bg-white',
+    border: 'border-red-300',
+    text: 'text-red-600',
+    iconBg: 'bg-red-50',
+    hoverBorder: 'md:group-hover:border-red-400', // Nur Desktop
+    hoverBg: 'md:group-hover:bg-red-50', // Nur Desktop
+    accentColor: 'red',
   },
 };
 
