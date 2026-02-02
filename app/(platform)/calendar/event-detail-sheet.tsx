@@ -402,27 +402,29 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
   const showRecipe = category === 'essen';
   const showRoutine = category === 'sport';
 
+  const springTransition = { type: 'spring' as const, stiffness: 300, damping: 25 };
+
   return (
     <AnimatePresence>
       {isOpen && (
         <div className={cn('fixed inset-0 z-50 flex', isMobile ? 'items-end justify-center' : 'items-center justify-center')}>
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-black backdrop-blur-sm"
+            transition={{ duration: 0.25 }}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={handleClose}
             aria-hidden
           />
           <motion.div
-            initial={isMobile ? { y: '100%' } : { scale: 0.95, opacity: 0 }}
-            animate={isMobile ? { y: 0 } : { scale: 1, opacity: 1 }}
-            exit={isMobile ? { y: '100%' } : { scale: 0.95, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            initial={isMobile ? { y: '100%' } : { y: 20, opacity: 0 }}
+            animate={isMobile ? { y: 0 } : { y: 0, opacity: 1 }}
+            exit={isMobile ? { y: '100%' } : { y: 20, opacity: 0 }}
+            transition={springTransition}
             className={cn(
               'relative w-full max-w-lg bg-white shadow-xl flex flex-col z-10',
-              isMobile ? 'max-h-[85vh] rounded-t-2xl' : 'max-h-[85vh] rounded-2xl'
+              isMobile ? 'max-h-[85vh] rounded-t-3xl' : 'max-h-[85vh] rounded-2xl'
             )}
             role="dialog"
             aria-labelledby="event-sheet-title"

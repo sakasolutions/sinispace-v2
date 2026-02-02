@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { PageTransition } from '@/components/ui/PageTransition';
 import {
@@ -607,9 +608,17 @@ export function CalendarClient() {
         </div>
       </main>
 
-      {/* Floating Command Bar – über Navbar */}
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 md:bottom-8 z-[110] pb-[env(safe-area-inset-bottom)] pointer-events-none">
-        <div className="pointer-events-auto space-y-2">
+      {/* Floating Command Bar – wegfahren wenn Modal offen (Focus Mode) */}
+      <motion.div
+        className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 md:bottom-8 z-[110] pb-[env(safe-area-inset-bottom)] pointer-events-none"
+        initial={false}
+        animate={{
+          y: eventModal.open ? '100%' : 0,
+          opacity: eventModal.open ? 0 : 1,
+        }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      >
+        <div className={cn('space-y-2', eventModal.open ? 'pointer-events-none' : 'pointer-events-auto')}>
           {successMessage && (
             <p className="text-sm text-green-600 font-medium animate-in fade-in duration-200 text-center bg-green-50 rounded-full py-2 px-4 border border-green-100">
               ✓ {successMessage}
@@ -661,8 +670,7 @@ export function CalendarClient() {
             </button>
           </form>
         </div>
-      </div>
-
+      </motion.div>
 
       <EventDetailSheet
         isOpen={eventModal.open}
