@@ -14,6 +14,8 @@ export type CalendarEventExtras = {
   until?: string;
   durationMinutes?: number;
   location?: string;
+  locationLat?: number;
+  locationLon?: number;
   withPerson?: string;
   notes?: string;
   reminderMinutes?: number;

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, MapPin, UtensilsCrossed, Briefcase, Dumbbell, User, Stethoscope, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CalendarEvent, CustomEventType } from '@/actions/calendar-actions';
+import { LocationPicker } from '@/components/ui/location-picker';
 
 function weatherCodeToEmoji(code: number): string {
   if (code === 0) return '☀️';
@@ -220,7 +221,7 @@ function detectCategoryFromTitle(title: string): EventCategory | null {
   return null;
 }
 
-function eventToForm(e: CalendarEvent): { category: EventCategory; title: string; date: string; time: string; endTime: string; location: string; recipeName: string; slot: 'breakfast' | 'lunch' | 'dinner'; routine: string; isAllDay: boolean; notes: string; reminderMinutes: number } {
+function eventToForm(e: CalendarEvent): { category: EventCategory; title: string; date: string; time: string; endTime: string; location: string; locationLat?: number; locationLon?: number; recipeName: string; slot: 'breakfast' | 'lunch' | 'dinner'; routine: string; isAllDay: boolean; notes: string; reminderMinutes: number } {
   const category = eventToCategory(e);
   let title = '';
   let recipeName = '';
@@ -243,6 +244,8 @@ function eventToForm(e: CalendarEvent): { category: EventCategory; title: string
     time: e.time || '09:00',
     endTime: ('endTime' in e ? e.endTime : '') || '',
     location: ('location' in e ? e.location : '') || '',
+    locationLat: ('locationLat' in e ? e.locationLat : undefined),
+    locationLon: ('locationLon' in e ? e.locationLon : undefined),
     recipeName,
     slot,
     routine,
@@ -279,6 +282,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
   const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [isAllDay, setIsAllDay] = useState(false);
   const [location, setLocation] = useState('');
+  const [locationLat, setLocationLat] = useState<number | undefined>(undefined);
+  const [locationLon, setLocationLon] = useState<number | undefined>(undefined);
   const [notes, setNotes] = useState('');
   const [reminderMinutes, setReminderMinutes] = useState(15);
   const [recipeName, setRecipeName] = useState('');
@@ -349,6 +354,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
         })() : 60);
         setIsAllDay(f.isAllDay);
         setLocation(f.location);
+        setLocationLat(f.locationLat);
+        setLocationLon(f.locationLon);
         setNotes(f.notes);
         setReminderMinutes(f.reminderMinutes);
         setRecipeName(f.recipeName);
@@ -363,6 +370,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
         setDurationMinutes(60);
         setIsAllDay(false);
         setLocation('');
+        setLocationLat(undefined);
+        setLocationLon(undefined);
         setNotes('');
         setReminderMinutes(15);
         setRecipeName('');
@@ -382,6 +391,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
       setTime(s.value);
     } else if (s.type === 'location') {
       setLocation(s.value);
+      setLocationLat(undefined);
+      setLocationLon(undefined);
     } else if (s.type === 'duration') {
       setDurationMinutes(s.durationMinutes);
       setEndTime(computeEndTime(time, s.durationMinutes));
@@ -452,6 +463,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
         time: isAllDay ? '00:00' : time,
         endTime: isAllDay ? '23:59' : (endTime || undefined),
         location: location || undefined,
+        locationLat: locationLat,
+        locationLon: locationLon,
         notes: notes.trim() || undefined,
         reminderMinutes: reminderMinutes || undefined,
         isAllDay: isAllDay || undefined,
@@ -608,21 +621,24 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             </div>
           )}
 
-          {/* Ort (bei Arbeit / Privat / Gesundheit) */}
+          {/* Ort (bei Arbeit / Privat / Gesundheit) – intelligente Suche via OpenStreetMap Nominatim */}
           {showLocation && (
-            <div>
-              <label htmlFor="event-location" className="block text-sm font-medium text-gray-600 mb-2">
-                <MapPin className="w-4 h-4 inline mr-1" /> Ort (optional)
-              </label>
-              <input
-                id="event-location"
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="z.B. Büro, Vapiano, Praxis"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all"
-              />
-            </div>
+            <LocationPicker
+              id="event-location"
+              value={location}
+              onChange={(name, coords) => {
+                setLocation(name);
+                if (coords) {
+                  setLocationLat(coords.lat);
+                  setLocationLon(coords.lon);
+                } else {
+                  setLocationLat(undefined);
+                  setLocationLon(undefined);
+                }
+              }}
+              placeholder="z.B. Zahnarzt Herbrechtingen, Büro, Vapiano"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all"
+            />
           )}
 
           {/* Notizen (auto-growing) */}
