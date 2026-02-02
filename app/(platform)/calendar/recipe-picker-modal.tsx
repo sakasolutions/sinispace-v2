@@ -5,12 +5,13 @@ import { X, Loader2, ChefHat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getCalendarRecipes, type CalendarRecipe } from '@/actions/calendar-actions';
 
-type MealSlot = 'breakfast' | 'lunch' | 'dinner';
+type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 const SLOT_LABELS: Record<MealSlot, string> = {
   breakfast: 'Frühstück',
   lunch: 'Mittagessen',
   dinner: 'Abendessen',
+  snack: 'Snack',
 };
 
 type Props = {

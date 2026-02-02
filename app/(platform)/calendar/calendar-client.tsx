@@ -70,7 +70,7 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
     .sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
   const items: AgendaItem[] = dayEvents.map((e) => {
     if (e.type === 'meal') {
-      const label = e.recipeName ? `${e.slot === 'breakfast' ? 'Frühstück' : e.slot === 'lunch' ? 'Mittagessen' : 'Abendessen'}: ${e.recipeName}` : e.slot;
+      const label = e.recipeName ? `${e.slot === 'breakfast' ? 'Frühstück' : e.slot === 'lunch' ? 'Mittagessen' : e.slot === 'dinner' ? 'Abendessen' : 'Snack'}: ${e.recipeName}` : e.slot;
       const cal = e.calories ? (String(e.calories).toLowerCase().includes('kcal') ? e.calories : `${e.calories} kcal`) : undefined;
       return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle: cal, event: e, recipeLink: e.resultId ? '/tools/recipe' : undefined };
     }
@@ -176,7 +176,7 @@ export function CalendarClient() {
   }, [parsedLive]);
 
   const [eventModal, setEventModal] = useState<{ open: boolean; date: string; time?: string; editEvent?: CalendarEvent }>({ open: false, date: '', time: undefined });
-  const [recipeModal, setRecipeModal] = useState<{ open: boolean; date: string; slot: 'breakfast' | 'lunch' | 'dinner'; time: string } | null>(null);
+  const [recipeModal, setRecipeModal] = useState<{ open: boolean; date: string; slot: 'breakfast' | 'lunch' | 'dinner' | 'snack'; time: string } | null>(null);
 
   const loadEvents = useCallback(async () => {
     const res = await getCalendarEvents();
@@ -247,7 +247,7 @@ export function CalendarClient() {
       console.log('[Calendar Event]', { text, parsed, creating: parsed.isMeal ? 'meal' : 'event' });
     }
     if (parsed.isMeal) {
-      const slot = parsed.time < '11:00' ? 'breakfast' : parsed.time < '15:00' ? 'lunch' : 'dinner';
+      const slot = parsed.time < '11:00' ? 'breakfast' : parsed.time < '15:00' ? 'lunch' : parsed.time < '17:00' ? 'snack' : 'dinner';
       const newEvent: CalendarEvent = { id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, type: 'meal', slot, date: parsed.date, time: parsed.time, recipeName: parsed.title };
       const next = [...events, newEvent];
       setEvents(next);
@@ -293,7 +293,7 @@ export function CalendarClient() {
     setEventModal({ open: false, date: '', time: undefined });
   };
 
-  const handleAddMealFromRecipe = async (recipe: { id: string; resultId: string; recipeName: string; stats?: { time?: string; calories?: string } }, slot: 'breakfast' | 'lunch' | 'dinner', date: string, time: string) => {
+  const handleAddMealFromRecipe = async (recipe: { id: string; resultId: string; recipeName: string; stats?: { time?: string; calories?: string } }, slot: 'breakfast' | 'lunch' | 'dinner' | 'snack', date: string, time: string) => {
     const newEvent: CalendarEvent = { id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, type: 'meal', slot, date, time, resultId: recipe.resultId, recipeId: recipe.id, recipeName: recipe.recipeName, calories: recipe.stats?.calories, prepTime: recipe.stats?.time };
     const next = [...events, newEvent];
     setEvents(next);

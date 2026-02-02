@@ -195,10 +195,13 @@ const REMINDER_OPTIONS = [
   { label: '1 Tag vorher', minutes: 24 * 60 },
 ];
 
-const MEAL_SLOTS = [
-  { id: 'breakfast' as const, label: 'Frühstück', defaultTime: '08:00' },
-  { id: 'lunch' as const, label: 'Mittagessen', defaultTime: '12:30' },
-  { id: 'dinner' as const, label: 'Abendessen', defaultTime: '18:30' },
+type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+const MEAL_SLOTS: { id: MealSlot; label: string; defaultTime: string }[] = [
+  { id: 'breakfast', label: 'Frühstück', defaultTime: '08:00' },
+  { id: 'lunch', label: 'Mittagessen', defaultTime: '12:30' },
+  { id: 'dinner', label: 'Abendessen', defaultTime: '18:30' },
+  { id: 'snack', label: 'Snack', defaultTime: '15:00' },
 ];
 
 function eventToCategory(e: CalendarEvent): EventCategory {
@@ -222,14 +225,14 @@ function detectCategoryFromTitle(title: string): EventCategory | null {
   return null;
 }
 
-function eventToForm(e: CalendarEvent): { category: EventCategory; title: string; date: string; time: string; endTime: string; location: string; locationLat?: number; locationLon?: number; recipeName: string; slot: 'breakfast' | 'lunch' | 'dinner'; routine: string; isAllDay: boolean; notes: string; reminderMinutes: number } {
+function eventToForm(e: CalendarEvent): { category: EventCategory; title: string; date: string; time: string; endTime: string; location: string; locationLat?: number; locationLon?: number; recipeName: string; slot: MealSlot; routine: string; isAllDay: boolean; notes: string; reminderMinutes: number } {
   const category = eventToCategory(e);
   let title = '';
   let recipeName = '';
-  let slot: 'breakfast' | 'lunch' | 'dinner' = 'lunch';
+  let slot: MealSlot = 'lunch';
   let routine = '';
   if (e.type === 'meal') {
-    title = e.recipeName || `${e.slot === 'breakfast' ? 'Frühstück' : e.slot === 'lunch' ? 'Mittagessen' : 'Abendessen'}`;
+    title = e.recipeName || (e.slot === 'breakfast' ? 'Frühstück' : e.slot === 'lunch' ? 'Mittagessen' : e.slot === 'dinner' ? 'Abendessen' : 'Snack');
     recipeName = e.recipeName || '';
     slot = e.slot;
   } else if (e.type === 'workout') {
@@ -288,7 +291,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
   const [notes, setNotes] = useState('');
   const [reminderMinutes, setReminderMinutes] = useState(15);
   const [recipeName, setRecipeName] = useState('');
-  const [slot, setSlot] = useState<'breakfast' | 'lunch' | 'dinner'>('lunch');
+  const [slot, setSlot] = useState<MealSlot>('lunch');
   const [routine, setRoutine] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [weather, setWeather] = useState<{ code: number; label: string } | null>(null);
@@ -376,7 +379,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
         setNotes('');
         setReminderMinutes(15);
         setRecipeName('');
-        setSlot(defaultTime < '11:00' ? 'breakfast' : defaultTime < '15:00' ? 'lunch' : 'dinner');
+        setSlot(defaultTime < '11:00' ? 'breakfast' : defaultTime < '15:00' ? 'lunch' : defaultTime < '17:00' ? 'snack' : 'dinner');
         setRoutine('');
       }
     }
@@ -429,7 +432,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
     e.preventDefault();
     const trimmedTitle = title.trim();
     if (!trimmedTitle && category !== 'essen') return;
-    const displayTitle = trimmedTitle || (slot === 'breakfast' ? 'Frühstück' : slot === 'lunch' ? 'Mittagessen' : 'Abendessen');
+    const displayTitle = trimmedTitle || (slot === 'breakfast' ? 'Frühstück' : slot === 'lunch' ? 'Mittagessen' : slot === 'dinner' ? 'Abendessen' : 'Snack');
 
     const buildEvent = (): CalendarEvent => {
       if (category === 'essen') {
