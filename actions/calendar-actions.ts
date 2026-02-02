@@ -116,6 +116,7 @@ export async function getCalendarEvents() {
           // ignore
         }
       }
+      const dbEvent = e as { resultId?: string | null };
       return {
         id: e.id,
         type: 'meal' as const,
@@ -123,7 +124,7 @@ export async function getCalendarEvents() {
         date: e.date,
         time: e.time,
         recipeId: e.recipeId ?? undefined,
-        resultId: e.resultId ?? undefined,
+        resultId: dbEvent.resultId ?? undefined,
         recipeName: e.title ?? recipe?.title ?? undefined,
         mealType,
         servings: e.servings ?? undefined,
