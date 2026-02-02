@@ -620,9 +620,9 @@ export function CalendarClient() {
         </div>
       </main>
 
-      {/* Floating Command Bar – wegfahren wenn Modal offen (Focus Mode) */}
+      {/* Floating Command Bar – Mobile: zentriert über Navbar, Desktop: im Content-Bereich (rechts der Sidebar) */}
       <motion.div
-        className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 md:bottom-8 z-[100] pb-[env(safe-area-inset-bottom)] pointer-events-none"
+        className="fixed bottom-24 left-0 right-0 px-4 md:bottom-8 md:left-64 md:right-0 md:px-6 z-[100] pb-[env(safe-area-inset-bottom)] pointer-events-none"
         initial={false}
         animate={{
           y: eventModal.open ? '100%' : 0,
@@ -630,7 +630,7 @@ export function CalendarClient() {
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
-        <div className={cn('space-y-2', eventModal.open ? 'pointer-events-none' : 'pointer-events-auto')}>
+        <div className={cn('space-y-2 max-w-2xl mx-auto', eventModal.open ? 'pointer-events-none' : 'pointer-events-auto')}>
           {successMessage && (
             <p className="text-sm text-green-600 font-medium animate-in fade-in duration-200 text-center bg-green-50 rounded-full py-2 px-4 border border-green-100">
               ✓ {successMessage}
