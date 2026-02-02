@@ -655,7 +655,7 @@ export function CalendarClient() {
           )}
           <form
             onSubmit={handleMagicSubmit}
-            className="flex items-center gap-2 p-2 bg-white/80 backdrop-blur-md shadow-xl border border-gray-100 rounded-full"
+            className="flex items-center gap-2 p-2 bg-white/80 backdrop-blur-md shadow-xl border border-gray-100 rounded-full min-w-0 w-full"
           >
             <button
               type="button"
@@ -670,7 +670,7 @@ export function CalendarClient() {
               value={magicInput}
               onChange={(e) => setMagicInput(e.target.value)}
               placeholder='z.B. "Jeden Freitag 18 Uhr Fußball" oder "Morgen 14 Uhr Meeting"'
-              className="flex-1 min-h-[44px] px-4 rounded-full bg-transparent border-none focus:ring-0 outline-none text-base placeholder:text-gray-400"
+              className="flex-1 min-w-0 min-h-[44px] px-4 rounded-full bg-transparent border-none focus:ring-0 outline-none text-base placeholder:text-gray-400"
             />
             <button
               type="submit"
