@@ -710,7 +710,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 placeholder={category === 'sport' ? 'z.B. Joggen, Yoga' : category === 'gesundheit' ? 'z.B. Zahnarzt, Arzttermin' : 'z.B. Team Call, Zahnarzt'}
                 className="w-full p-4 pl-4 pr-4 text-left indent-0 text-lg font-medium rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
                 style={{ textIndent: 0 }}
-                autoFocus={category !== 'essen'}
+                autoFocus
               />
             )}
             {/* Smart Suggestions – aus Historie ähnlicher Events */}
