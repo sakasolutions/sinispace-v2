@@ -15,6 +15,7 @@ import {
   getPremiumStatus,
   getMealPreferences
 } from '@/actions/meal-planning-actions';
+import { saveWeeklyPlan as saveWeeklyPlanToCalendar } from '@/actions/calendar-actions';
 import { saveResult } from '@/actions/workspace-actions';
 import { saveRecipeToCollection } from '@/actions/recipe-collection-actions';
 import { useRouter } from 'next/navigation';
@@ -249,6 +250,13 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       if (result.error) {
         alert(`Fehler beim Speichern: ${result.error}`);
       } else {
+        const calendarEntries = Object.entries(planDataForDB).map(([date, data]) => ({
+          date,
+          resultId: data.resultId,
+          title: (data.recipe?.recipeName ?? data.recipe?.title) || 'Rezept',
+          mealType: 'dinner' as const,
+        }));
+        await saveWeeklyPlanToCalendar(calendarEntries);
         alert('✅ Wochenplan erfolgreich gespeichert!');
         await loadPlan();
       }

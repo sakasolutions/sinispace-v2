@@ -360,7 +360,7 @@ model Recipe {
   @@index([resultId])
 }
 
-// Kalender-Event (DB-Modell) – optional für Gourmet-Integration (recipeId, mealType, servings)
+// Kalender-Event (DB-Modell) – Gourmet + Kalender nutzen dieselben Daten
 model CalendarEvent {
   id         String   @id @default(cuid())
   userId     String
@@ -369,8 +369,10 @@ model CalendarEvent {
   eventType  String   // 'custom' | 'meal' | 'workout'
   title      String?
   recipeId   String?  // Optional: Relation zu Recipe
+  isMeal     Boolean  @default(false) // true = Essen-Event (Kategorie Orange)
   mealType   String?  // 'breakfast' | 'lunch' | 'dinner' | 'snack'
   servings   Int?     // Geplante Portionen
+  resultId   String?  // Optional: Verweis auf Result (Gourmet/Wochenplaner)
   dataJson   String?  // Restliche Event-Daten als JSON
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -381,6 +383,7 @@ model CalendarEvent {
   @@index([userId])
   @@index([userId, date])
   @@index([recipeId])
+  @@index([resultId])
 }
 
 // Einkaufsliste (Tabelle) – pro User mehrere Listen

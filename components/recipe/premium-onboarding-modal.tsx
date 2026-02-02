@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Sparkles, Check, ArrowRight } from 'lucide-react';
+import { X, Sparkles, Check, ArrowRight, Loader2 } from 'lucide-react';
 import { saveMealPreferences } from '@/actions/meal-planning-actions';
+import { generateMealPlan } from '@/actions/week-planning-ai';
 import { useRouter } from 'next/navigation';
 
 interface PremiumOnboardingModalProps {
@@ -53,12 +54,34 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
         meatSelection,
         cookingTime,
       });
-      // onComplete wird vom Parent aufgerufen, der dann Auto-Planning startet
+
+      const result = await generateMealPlan({
+        dietType,
+        allergies,
+        householdSize,
+        budgetRange,
+        cookingTime,
+        preferredCuisines,
+        dislikedIngredients,
+        meatSelection,
+      });
+
+      if (!result.success) {
+        if (result.error === 'PREMIUM_REQUIRED') {
+          onClose();
+          router.push('/settings');
+          return;
+        }
+        alert(result.message ?? result.error ?? 'Plan konnte nicht erstellt werden.');
+        return;
+      }
+
       onComplete();
       onClose();
+      router.push('/calendar?plan=success');
     } catch (error) {
-      console.error('Error saving preferences:', error);
-      alert('Fehler beim Speichern der Präferenzen');
+      console.error('Error saving preferences / generating plan:', error);
+      alert('Fehler beim Speichern oder bei der Planerstellung.');
     } finally {
       setLoading(false);
     }
@@ -338,7 +361,14 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
               disabled={loading}
               className="px-6 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
             >
-              {loading ? 'Speichere...' : 'Fertig & Starten'}
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generiere Plan...
+                </>
+              ) : (
+                'Fertig & Starten'
+              )}
             </button>
           )}
         </div>

@@ -16,7 +16,9 @@ import {
   Repeat,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { rrulestr } from 'rrule';
+import confetti from 'canvas-confetti';
 import {
   getCalendarEvents,
   saveCalendarEvents,
@@ -46,8 +48,15 @@ function toDateKey(d: Date): string {
 
 type AgendaItem =
   | { id: string; type: 'event'; time: string; title: string; subtitle?: string; isRecurring?: boolean; event: CalendarEvent }
-  | { id: string; type: 'meal'; time: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string }
+  | { id: string; type: 'meal'; time: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string; mealIcon?: string }
   | { id: string; type: 'workout'; time: string; title: string; event: CalendarEvent };
+
+const MEAL_ICONS: Record<string, string> = {
+  breakfast: '🍳',
+  lunch: '🥗',
+  dinner: '🍝',
+  snack: '🍎',
+};
 
 function eventOccursOnDate(e: CalendarEvent, dateKey: string): boolean {
   if (e.date === dateKey) return true;
@@ -72,7 +81,15 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
     if (e.type === 'meal') {
       const label = e.recipeName ? `${e.slot === 'breakfast' ? 'Frühstück' : e.slot === 'lunch' ? 'Mittagessen' : e.slot === 'dinner' ? 'Abendessen' : 'Snack'}: ${e.recipeName}` : e.slot;
       const cal = e.calories ? (String(e.calories).toLowerCase().includes('kcal') ? e.calories : `${e.calories} kcal`) : undefined;
-      return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle: cal, event: e, recipeLink: e.resultId ? '/tools/recipe' : undefined };
+      const servings = 'servings' in e ? e.servings : undefined;
+      const subtitleParts: string[] = [];
+      if (servings != null) subtitleParts.push(`${servings} Portionen`);
+      if (cal) subtitleParts.push(cal);
+      const subtitle = subtitleParts.length > 0 ? subtitleParts.join(' • ') : cal;
+      const hasRecipe = !!(e.recipeId || e.resultId);
+      const mealIcon = hasRecipe ? (MEAL_ICONS[e.slot] ?? '🍽️') : undefined;
+      const recipeLink = e.resultId ? `/tools/recipe?open=${encodeURIComponent(e.resultId)}` : undefined;
+      return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle, event: e, recipeLink, mealIcon };
     }
     if (e.type === 'workout') return { id: e.id, type: 'workout' as const, time: e.time || '08:00', title: e.label || 'Workout', event: e };
     const isRecurring = !!(e.type === 'custom' && 'rrule' in e && e.rrule);
@@ -146,6 +163,8 @@ function getMonthGrid(year: number, month: number): (Date | null)[][] {
 type ViewMode = 'agenda' | 'woche' | 'monat';
 
 export function CalendarClient() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewDate, setViewDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('agenda');
@@ -154,6 +173,22 @@ export function CalendarClient() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const agendaRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('plan') !== 'success') return;
+    const fire = () => {
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      setTimeout(() => confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 } }), 200);
+      setTimeout(() => confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } }), 400);
+    };
+    fire();
+    setSuccessMessage('Wochenplan erstellt! 🎉');
+    loadEvents();
+    router.replace('/calendar', { scroll: false });
+    const t = setTimeout(() => setSuccessMessage(null), 5000);
+    return () => clearTimeout(t);
+  }, [searchParams, router, loadEvents]);
+
   useEffect(() => {
     const check = () => setIsMobile(typeof window !== 'undefined' && window.innerWidth < 768);
     check();
@@ -455,7 +490,10 @@ export function CalendarClient() {
                         tabIndex={0}
                         onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
                         onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                        className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all pr-12 cursor-pointer"
+                        className={cn(
+                          'bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all pr-12 cursor-pointer',
+                          item.type === 'meal' && item.recipeLink && 'border-l-4 border-l-orange-500'
+                        )}
                       >
                         {/* Spalte 1: Zeit + Repeat-Icon */}
                         <div className="min-w-[60px] text-right border-r border-gray-100 pr-4 shrink-0 flex flex-col items-end gap-1">
@@ -469,15 +507,15 @@ export function CalendarClient() {
                             <div className="text-xs text-gray-400">{item.event.endTime}</div>
                           )}
                         </div>
-                        {/* Spalte 2: Icon */}
+                        {/* Spalte 2: Icon (Meal = Emoji oder UtensilsCrossed, Orange) */}
                         <div className={cn(
-                          'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
+                          'w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-xl',
                           item.type === 'event' && ('eventType' in item.event && item.event.eventType === 'health' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'),
-                          item.type === 'meal' && 'bg-orange-100 text-orange-600',
+                          item.type === 'meal' && 'bg-orange-50 text-orange-500',
                           item.type === 'workout' && 'bg-pink-100 text-pink-600'
                         )}>
                           {item.type === 'event' && <Calendar className="w-5 h-5" />}
-                          {item.type === 'meal' && <UtensilsCrossed className="w-5 h-5" />}
+                          {item.type === 'meal' && ('mealIcon' in item && item.mealIcon ? <span aria-hidden>{item.mealIcon}</span> : <UtensilsCrossed className="w-5 h-5" />)}
                           {item.type === 'workout' && <Dumbbell className="w-5 h-5" />}
                         </div>
                         {/* Spalte 3: Inhalt */}
@@ -541,7 +579,10 @@ export function CalendarClient() {
                                 tabIndex={0}
                                 onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
                                 onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                                className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-all pr-12 cursor-pointer"
+                                className={cn(
+                                  'bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-all pr-12 cursor-pointer',
+                                  item.type === 'meal' && item.recipeLink && 'border-l-4 border-l-orange-500'
+                                )}
                               >
                                 <div className="min-w-[48px] text-right border-r border-gray-100 pr-3 shrink-0 flex flex-col items-end gap-0.5">
                                   <div className="flex items-center gap-1 justify-end">
@@ -552,20 +593,21 @@ export function CalendarClient() {
                                   </div>
                                 </div>
                                 <div className={cn(
-                                  'w-8 h-8 rounded-full flex items-center justify-center shrink-0',
+                                  'w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-lg',
                                   item.type === 'event' && ('eventType' in item.event && item.event.eventType === 'health' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'),
-                                  item.type === 'meal' && 'bg-orange-100 text-orange-600',
+                                  item.type === 'meal' && 'bg-orange-50 text-orange-500',
                                   item.type === 'workout' && 'bg-pink-100 text-pink-600'
                                 )}>
                                   {item.type === 'event' && <Calendar className="w-4 h-4" />}
-                                  {item.type === 'meal' && <UtensilsCrossed className="w-4 h-4" />}
+                                  {item.type === 'meal' && ('mealIcon' in item && item.mealIcon ? <span aria-hidden>{item.mealIcon}</span> : <UtensilsCrossed className="w-4 h-4" />)}
                                   {item.type === 'workout' && <Dumbbell className="w-4 h-4" />}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="font-semibold text-gray-800 truncate text-sm md:text-base">{item.title}</div>
+                                  {item.type === 'meal' && 'subtitle' in item && item.subtitle && <div className="text-xs text-gray-400 truncate">{item.subtitle}</div>}
                                   {item.type === 'meal' && 'recipeLink' in item && item.recipeLink && (
-                                    <Link href={item.recipeLink} className="text-xs text-orange-600 hover:text-orange-700" onClick={(e) => e.stopPropagation()}>
-                                      Zum Rezept →
+                                    <Link href={item.recipeLink} className="text-xs font-medium text-orange-600 hover:text-orange-700" onClick={(e) => e.stopPropagation()}>
+                                      Zum Rezept <ExternalLink className="w-3 h-3 inline" />
                                     </Link>
                                   )}
                                 </div>

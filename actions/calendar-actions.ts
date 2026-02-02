@@ -69,22 +69,72 @@ export type CalendarRecipe = {
   recipe: { recipeName: string; stats?: { time?: string; calories?: string }; ingredients?: string[] };
 };
 
-/** Kalender-Events laden */
+/** Ein Eintrag für saveWeeklyPlan: ein Tag + Rezept (aus AI/Wochenplaner) */
+export type WeeklyPlanEntry = {
+  date: string; // YYYY-MM-DD
+  recipeId?: string | null;
+  resultId: string;
+  title: string;
+  mealType?: 'breakfast' | 'lunch' | 'dinner';
+};
+
+/** Kalender-Events laden: JSON (UserCalendar) + DB (CalendarEvent mit Recipe) */
 export async function getCalendarEvents() {
   const session = await auth();
   if (!session?.user?.id) return { success: false as const, error: 'Nicht angemeldet', events: [] };
 
   try {
+    const userId = session.user.id;
+
+    // 1) Events aus JSON (Legacy / manuell angelegt)
     let record = await prisma.userCalendar.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
     });
     if (!record) {
       record = await prisma.userCalendar.create({
-        data: { userId: session.user.id, eventsJson: '[]' },
+        data: { userId, eventsJson: '[]' },
       });
     }
-    const events: CalendarEvent[] = JSON.parse(record.eventsJson || '[]');
-    return { success: true as const, events };
+    const jsonEvents: CalendarEvent[] = JSON.parse(record.eventsJson || '[]');
+
+    // 2) Events aus DB (Wochenplaner/Gourmet) inkl. Rezept-Daten
+    const dbEvents = await prisma.calendarEvent.findMany({
+      where: { userId },
+      include: { recipe: true },
+      orderBy: [{ date: 'asc' }, { time: 'asc' }],
+    });
+
+    const mappedDb: CalendarEvent[] = dbEvents.map((e) => {
+      const mealType = (e.mealType as 'breakfast' | 'lunch' | 'dinner' | 'snack') || 'dinner';
+      const recipe = e.recipe;
+      let calories: string | undefined;
+      if (recipe?.content) {
+        try {
+          const c = JSON.parse(recipe.content) as { stats?: { calories?: string } };
+          calories = c?.stats?.calories;
+        } catch {
+          // ignore
+        }
+      }
+      return {
+        id: e.id,
+        type: 'meal' as const,
+        slot: mealType,
+        date: e.date,
+        time: e.time,
+        recipeId: e.recipeId ?? undefined,
+        resultId: e.resultId ?? undefined,
+        recipeName: e.title ?? recipe?.title ?? undefined,
+        mealType,
+        servings: e.servings ?? undefined,
+        calories,
+      };
+    });
+
+    const combined = [...jsonEvents, ...mappedDb].sort(
+      (a, b) => (a.date === b.date ? (a.time || '').localeCompare(b.time || '') : a.date.localeCompare(b.date))
+    );
+    return { success: true as const, events: combined };
   } catch (error) {
     console.error('[CALENDAR] getCalendarEvents:', error);
     return { success: false as const, error: 'Fehler beim Laden', events: [] };
@@ -122,22 +172,85 @@ export async function addCalendarEvent(event: CalendarEvent) {
   return saveCalendarEvents(events);
 }
 
-/** Event entfernen */
+/** Event entfernen (JSON + DB: CalendarEvent) */
 export async function removeCalendarEvent(eventId: string) {
-  const result = await getCalendarEvents();
-  if (!result.success || !result.events) return { success: false, error: result.error };
-  const events = result.events.filter((e) => e.id !== eventId);
-  return saveCalendarEvents(events);
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Nicht angemeldet' };
+  try {
+    await prisma.calendarEvent.deleteMany({ where: { id: eventId, userId: session.user.id } });
+  } catch {
+    // kein DB-Event mit dieser ID
+  }
+  const record = await prisma.userCalendar.findUnique({ where: { userId: session.user.id } });
+  const jsonEvents: CalendarEvent[] = record ? JSON.parse(record.eventsJson || '[]') : [];
+  const filtered = jsonEvents.filter((e) => e.id !== eventId);
+  return saveCalendarEvents(filtered);
 }
 
-/** Event aktualisieren */
+/** Event aktualisieren (nur JSON-Events; DB-Events werden nicht geändert) */
 export async function updateCalendarEvent(eventId: string, updates: Partial<CalendarEvent>) {
-  const result = await getCalendarEvents();
-  if (!result.success || !result.events) return { success: false, error: result.error };
-  const events = result.events.map((e) =>
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Nicht angemeldet' };
+  const record = await prisma.userCalendar.findUnique({ where: { userId: session.user.id } });
+  const jsonEvents: CalendarEvent[] = record ? JSON.parse(record.eventsJson || '[]') : [];
+  const events = jsonEvents.map((e) =>
     e.id === eventId ? { ...e, ...updates } : e
   ) as CalendarEvent[];
   return saveCalendarEvents(events);
+}
+
+/**
+ * Wochenplan als Kalender-Events speichern (Sync: Wochenplaner + Kalender nutzen dieselben Daten).
+ * Erstellt für jeden Eintrag ein CalendarEvent in der DB (Kategorie Essen, Orange).
+ */
+export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false as const, error: 'Nicht angemeldet' };
+
+  if (!planData?.length) return { success: true as const };
+
+  try {
+    const userId = session.user.id;
+    const dates = planData.map((p) => p.date);
+    const minDate = dates.reduce((a, b) => (a <= b ? a : b));
+    const maxDate = dates.reduce((a, b) => (a >= b ? a : b));
+
+    await prisma.calendarEvent.deleteMany({
+      where: {
+        userId,
+        eventType: 'meal',
+        isMeal: true,
+        date: { gte: minDate, lte: maxDate },
+      },
+    });
+
+    const defaultTimes: Record<string, string> = {
+      breakfast: '08:00',
+      lunch: '12:00',
+      dinner: '19:00',
+    };
+
+    await prisma.calendarEvent.createMany({
+      data: planData.map((entry) => ({
+        userId,
+        date: entry.date,
+        time: entry.mealType ? defaultTimes[entry.mealType] ?? '12:00' : '12:00',
+        eventType: 'meal',
+        title: entry.title,
+        recipeId: entry.recipeId ?? null,
+        resultId: entry.resultId,
+        isMeal: true,
+        mealType: entry.mealType ?? 'dinner',
+      })),
+    });
+
+    revalidatePath('/calendar');
+    revalidatePath('/tools/recipe');
+    return { success: true as const };
+  } catch (error) {
+    console.error('[CALENDAR] saveWeeklyPlan:', error);
+    return { success: false as const, error: 'Fehler beim Speichern des Wochenplans' };
+  }
 }
 
 /** Rezepte des Users (für Recipe Picker) */

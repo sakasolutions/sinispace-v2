@@ -4,7 +4,7 @@ import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect } from 'react';
 import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
@@ -126,7 +126,9 @@ function SubmitButton({ inspirationMode }: { inspirationMode: boolean }) {
 export default function RecipePage() {
   // @ts-ignore
   const [state, formAction] = useActionState(generateRecipe, null);
-  
+  const searchParams = useSearchParams();
+  const openResultId = searchParams.get('open');
+
   const [activeTab, setActiveTab] = useState<'create' | 'my-recipes' | 'week-planner'>('create');
   const [ingredients, setIngredients] = useState('');
   const [shoppingMode, setShoppingMode] = useState<'strict' | 'shopping'>('strict');
@@ -185,12 +187,36 @@ export default function RecipePage() {
     }
   }
 
+  // Kalender-Link: ?open=resultId → Tab "Meine Rezepte" und Rezept öffnen
+  useEffect(() => {
+    if (openResultId) setActiveTab('my-recipes');
+  }, [openResultId]);
+
   // Lade "Meine Rezepte" wenn Tab gewechselt wird (auch für Wochenplaner)
   useEffect(() => {
     if (activeTab === 'my-recipes' || activeTab === 'week-planner') {
       loadMyRecipes();
     }
   }, [activeTab]);
+
+  // Nach Laden: Rezept mit open=resultId auswählen (Zum Rezept aus Kalender)
+  useEffect(() => {
+    if (!openResultId || myRecipes.length === 0 || isLoadingRecipes) return;
+    const result = myRecipes.find((r: { id: string }) => r.id === openResultId);
+    if (result && result.recipe) {
+      setSelectedRecipe({
+        recipe: result.recipe as Recipe,
+        resultId: result.id,
+        createdAt: new Date(result.createdAt),
+      });
+      // URL bereinigen (optional), damit Reload nicht wieder öffnet
+      if (typeof window !== 'undefined' && window.history.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('open');
+        window.history.replaceState({}, '', url.pathname + url.search);
+      }
+    }
+  }, [openResultId, myRecipes, isLoadingRecipes]);
 
   const loadMyRecipes = async () => {
     setIsLoadingRecipes(true);

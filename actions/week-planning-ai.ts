@@ -6,6 +6,19 @@ import { isUserPremium } from '@/lib/subscription';
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { getMealPreferences } from './meal-planning-actions';
 import { saveResult } from './workspace-actions';
+import { saveWeeklyPlan } from './calendar-actions';
+
+/** Präferenzen aus dem Wizard (Diät, Budget, Kochzeit, Allergien) */
+export type MealPlanPreferences = {
+  dietType?: string;
+  allergies?: string[];
+  householdSize?: number;
+  budgetRange?: string;
+  cookingTime?: string;
+  preferredCuisines?: string[];
+  dislikedIngredients?: string[];
+  meatSelection?: string[];
+};
 
 // Generiere 7 neue Rezepte für eine Woche basierend auf Präferenzen
 export async function generateWeekRecipes(workspaceId?: string) {
@@ -308,5 +321,182 @@ Die Alternativen sollten anders sein als "${currentRecipe.recipeName}", aber gen
   } catch (error) {
     console.error('[WEEK-PLANNING-AI] ❌ Fehler bei Alternative-Generierung:', error);
     return { error: 'Fehler bei der Generierung von Alternativen' };
+  }
+}
+
+const DAY_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+
+/**
+ * Erstellt einen Wochenplan (Mo–So) per AI und speichert ihn als Draft-Rezepte + Kalender-Events (nächste Woche).
+ * Nutzt Präferenzen aus dem Wizard (Diät, Budget, Kochzeit, Allergien).
+ */
+export async function generateMealPlan(preferences: MealPlanPreferences) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false as const, error: 'Nicht angemeldet' };
+  }
+
+  const isPremium = await isUserPremium();
+  if (!isPremium) {
+    return { success: false as const, error: 'PREMIUM_REQUIRED', message: 'Premium-Feature. Bitte upgrade deinen Account.' };
+  }
+
+  const dietType = preferences.dietType ?? 'alles';
+  const householdSize = preferences.householdSize ?? 2;
+  const allergies = preferences.allergies ?? [];
+  const meatSelection = preferences.meatSelection ?? [];
+  const cookingTime = preferences.cookingTime ?? 'normal';
+  const preferredCuisines = preferences.preferredCuisines ?? [];
+  const dislikedIngredients = preferences.dislikedIngredients ?? [];
+
+  const dietText = dietType === 'alles' ? 'Alle Diät-Typen erlaubt' : dietType === 'vegetarisch' ? 'Vegetarisch' : dietType === 'vegan' ? 'Vegan' : dietType;
+  const meatText = meatSelection.length > 0 ? `Bevorzugte Fleischsorten: ${meatSelection.join(', ')}` : dietType === 'alles' ? 'Alle Fleischsorten erlaubt' : 'Kein Fleisch';
+  const cookingTimeText = cookingTime === 'schnell' ? 'Schnelle Gerichte (<30 Min)' : cookingTime === 'normal' ? 'Normale Kochzeit (30-60 Min)' : 'Aufwendige Gerichte (>60 Min)';
+  const allergiesText = allergies.length > 0 ? `WICHTIG - Diese Allergien MÜSSEN vermieden werden: ${allergies.join(', ')}` : 'Keine Allergien';
+  const dislikedText = dislikedIngredients.length > 0 ? `Diese Zutaten vermeiden: ${dislikedIngredients.join(', ')}` : '';
+  const cuisinesText = preferredCuisines.length > 0 ? preferredCuisines.join(', ') : 'Alle Küchen-Stile erlaubt';
+
+  const systemPrompt = `Du bist ein professioneller Meal-Planning-Experte und Muttersprachler Deutsch.
+Erstelle einen Wochenplan (Montag bis Sonntag) basierend auf diesen Präferenzen.
+Gib JSON zurück mit: Tag (monday–sunday), Gericht-Name, Kurzbeschreibung, geschätzte Kalorien – und für jedes Gericht ein vollständiges Rezept (Zutaten, Zubereitung), damit es als Draft gespeichert werden kann.
+
+REGELN:
+- Diät: ${dietText}
+- Fleisch: ${meatText}
+- Kochzeit: ${cookingTimeText}
+- ${allergiesText}
+${dislikedText ? `- Vermeide: ${dislikedText}` : ''}
+- Küchen: ${cuisinesText}
+- Portionen: ${householdSize} ${householdSize === 1 ? 'Person' : 'Personen'}
+
+Antworte NUR mit einem gültigen JSON-Objekt in diesem Format:
+{
+  "recipes": [
+    {
+      "day": "monday",
+      "recipeName": "Name des Gerichts",
+      "shortDescription": "Eine kurze Beschreibung in 1–2 Sätzen",
+      "stats": { "time": "z.B. 25 Min", "calories": "z.B. 450 kcal", "difficulty": "Einfach/Mittel/Schwer" },
+      "ingredients": ["2 große Tomaten", "150g Feta-Käse"],
+      "shoppingList": ["1 Packung Feta-Käse (ca. 150g)"],
+      "instructions": ["Schritt 1", "Schritt 2"],
+      "chefTip": "Ein kurzer Profi-Tipp",
+      "cuisine": "Italienisch",
+      "proteinType": "vegetarisch"
+    },
+    ... (weitere 6 Rezepte für tuesday bis sunday)
+  ]
+}
+
+WICHTIG: Genau 7 Rezepte, eines pro Tag (monday bis sunday). Realistische Kalorien und Mengen für ${householdSize} Personen.`;
+
+  const userPrompt = `Erstelle einen Wochenplan (Mo–So) basierend auf:
+- Diät: ${dietText}
+- Fleisch: ${meatText}
+- Kochzeit: ${cookingTimeText}
+- Personen: ${householdSize}
+- Allergien: ${allergies.join(', ') || 'Keine'}
+${dislikedText ? `- Vermeide: ${dislikedIngredients.join(', ')}` : ''}
+- Küchen: ${cuisinesText}
+
+Gib 7 Rezepte zurück (Tag, Gericht-Name, Kurzbeschreibung, Kalorien, Zutaten, Zubereitung).`;
+
+  try {
+    console.log('[WEEK-PLANNING-AI] generateMealPlan: Generiere 7 Gerichte...');
+    const response = await createChatCompletion(
+      {
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
+      },
+      'recipe',
+      'Wochenplaner Wizard'
+    );
+
+    const content = response.choices[0]?.message?.content?.trim();
+    if (!content) {
+      return { success: false as const, error: 'Keine Antwort von der KI erhalten.' };
+    }
+
+    let weekData: { recipes: Array<{ day: string; recipeName: string; shortDescription?: string; stats?: { time?: string; calories?: string }; ingredients?: string[]; instructions?: string[]; [key: string]: unknown }> };
+    try {
+      weekData = JSON.parse(content);
+    } catch {
+      return { success: false as const, error: 'Ungültiges Format von der KI. Bitte erneut versuchen.' };
+    }
+
+    if (!weekData?.recipes || !Array.isArray(weekData.recipes) || weekData.recipes.length < 7) {
+      return { success: false as const, error: 'Die KI hat nicht 7 Rezepte zurückgegeben.' };
+    }
+
+    const savedRecipes: Array<{ day: string; resultId: string; title: string }> = [];
+    for (const recipeData of weekData.recipes) {
+      if (!recipeData.recipeName) continue;
+      const result = await saveResult(
+        'recipe',
+        'Gourmet-Planer',
+        JSON.stringify({
+          ...recipeData,
+          recipeName: recipeData.recipeName,
+          stats: recipeData.stats ?? { time: '30 Min', calories: '400 kcal', difficulty: 'Einfach' },
+          ingredients: recipeData.ingredients ?? [],
+          instructions: recipeData.instructions ?? [],
+        }),
+        undefined,
+        recipeData.recipeName,
+        JSON.stringify({ source: 'wizard-meal-plan', day: recipeData.day, isDraft: true })
+      );
+      if (result.success && result.result) {
+        savedRecipes.push({
+          day: recipeData.day,
+          resultId: result.result.id,
+          title: recipeData.recipeName,
+        });
+      }
+    }
+
+    if (savedRecipes.length === 0) {
+      return { success: false as const, error: 'Keine Rezepte konnten gespeichert werden.' };
+    }
+
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek;
+    const nextMonday = new Date(now);
+    nextMonday.setDate(now.getDate() + daysUntilMonday);
+    const weekDates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(nextMonday);
+      d.setDate(nextMonday.getDate() + i);
+      weekDates.push(d.toISOString().split('T')[0]);
+    }
+
+    const sorted = [...savedRecipes].sort(
+      (a, b) => DAY_ORDER.indexOf(a.day as (typeof DAY_ORDER)[number]) - DAY_ORDER.indexOf(b.day as (typeof DAY_ORDER)[number])
+    );
+    const entries = sorted.slice(0, 7).map((r, i) => ({
+      date: weekDates[i]!,
+      resultId: r.resultId,
+      title: r.title,
+      mealType: 'dinner' as const,
+    }));
+
+    const saveResult_ = await saveWeeklyPlan(entries);
+    if (!saveResult_.success) {
+      return { success: false as const, error: saveResult_.error ?? 'Kalender konnte nicht aktualisiert werden.' };
+    }
+
+    console.log('[WEEK-PLANNING-AI] generateMealPlan: Plan erstellt und im Kalender gespeichert.');
+    return { success: true as const };
+  } catch (error) {
+    console.error('[WEEK-PLANNING-AI] generateMealPlan:', error);
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : 'Fehler bei der Planerstellung.',
+    };
   }
 }
