@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, UtensilsCrossed, Briefcase, Dumbbell, User } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, UtensilsCrossed, Briefcase, Dumbbell, User, Stethoscope, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CalendarEvent, CustomEventType } from '@/actions/calendar-actions';
 
@@ -167,13 +167,30 @@ function getSmartSuggestions(events: CalendarEvent[], query: string, excludeId?:
   return suggestions;
 }
 
-export type EventCategory = 'arbeit' | 'essen' | 'sport' | 'privat';
+export type EventCategory = 'arbeit' | 'essen' | 'sport' | 'privat' | 'gesundheit';
 
 const CATEGORIES: { id: EventCategory; label: string; icon: typeof Briefcase; color: string; bg: string; border: string }[] = [
+  { id: 'gesundheit', label: 'Gesundheit', icon: Stethoscope, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   { id: 'arbeit', label: 'Arbeit', icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
   { id: 'essen', label: 'Essen', icon: UtensilsCrossed, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' },
   { id: 'sport', label: 'Sport', icon: Dumbbell, color: 'text-pink-600', bg: 'bg-pink-50', border: 'border-pink-200' },
   { id: 'privat', label: 'Privat', icon: User, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+];
+
+const DURATION_CHIPS = [
+  { label: '30 min', minutes: 30 },
+  { label: '1 h', minutes: 60 },
+  { label: '2 h', minutes: 120 },
+  { label: '4 h', minutes: 240 },
+];
+
+const REMINDER_OPTIONS = [
+  { label: 'Keine', minutes: 0 },
+  { label: '5 min vorher', minutes: 5 },
+  { label: '15 min vorher', minutes: 15 },
+  { label: '30 min vorher', minutes: 30 },
+  { label: '1 Stunde vorher', minutes: 60 },
+  { label: '1 Tag vorher', minutes: 24 * 60 },
 ];
 
 const MEAL_SLOTS = [
@@ -186,13 +203,24 @@ function eventToCategory(e: CalendarEvent): EventCategory {
   if (e.type === 'meal') return 'essen';
   if (e.type === 'workout') return 'sport';
   if (e.type === 'custom') {
+    if (e.eventType === 'health') return 'gesundheit';
     if (e.eventType === 'work' || e.eventType === 'meeting') return 'arbeit';
     return 'privat';
   }
   return 'privat';
 }
 
-function eventToForm(e: CalendarEvent): { category: EventCategory; title: string; date: string; time: string; endTime: string; location: string; recipeName: string; slot: 'breakfast' | 'lunch' | 'dinner'; routine: string } {
+/** AI-Kategorie-Erkennung: Heuristik basierend auf Titel */
+function detectCategoryFromTitle(title: string): EventCategory | null {
+  const t = title.toLowerCase();
+  if (/\b(arzt|praxis|zahn|ärztin|termin)\b/.test(t)) return 'gesundheit';
+  if (/\b(meeting|call|büro|office|konferenz)\b/.test(t)) return 'arbeit';
+  if (/\b(essen|dinner|lunch|mittag|frühstück|abendessen)\b/.test(t)) return 'essen';
+  if (/\b(gym|sport|training|joggen|yoga|fitness)\b/.test(t)) return 'sport';
+  return null;
+}
+
+function eventToForm(e: CalendarEvent): { category: EventCategory; title: string; date: string; time: string; endTime: string; location: string; recipeName: string; slot: 'breakfast' | 'lunch' | 'dinner'; routine: string; isAllDay: boolean; notes: string; reminderMinutes: number } {
   const category = eventToCategory(e);
   let title = '';
   let recipeName = '';
@@ -218,6 +246,9 @@ function eventToForm(e: CalendarEvent): { category: EventCategory; title: string
     recipeName,
     slot,
     routine,
+    isAllDay: ('isAllDay' in e ? e.isAllDay : false) || false,
+    notes: ('notes' in e ? e.notes : '') || '',
+    reminderMinutes: ('reminderMinutes' in e ? e.reminderMinutes : 15) ?? 15,
   };
 }
 
@@ -245,7 +276,11 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
   const [formDate, setFormDate] = useState(date);
   const [time, setTime] = useState(defaultTime);
   const [endTime, setEndTime] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState<number>(60);
+  const [isAllDay, setIsAllDay] = useState(false);
   const [location, setLocation] = useState('');
+  const [notes, setNotes] = useState('');
+  const [reminderMinutes, setReminderMinutes] = useState(15);
   const [recipeName, setRecipeName] = useState('');
   const [slot, setSlot] = useState<'breakfast' | 'lunch' | 'dinner'>('lunch');
   const [routine, setRoutine] = useState('');
@@ -306,7 +341,16 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
         setFormDate(f.date);
         setTime(f.time);
         setEndTime(f.endTime);
+        setDurationMinutes(f.endTime ? (() => {
+          const [h1, m1] = f.time.split(':').map(Number);
+          const [h2, m2] = f.endTime.split(':').map(Number);
+          const mins = (h2 - h1) * 60 + (m2 - m1);
+          return DURATION_CHIPS.find((c) => c.minutes === mins)?.minutes ?? mins;
+        })() : 60);
+        setIsAllDay(f.isAllDay);
         setLocation(f.location);
+        setNotes(f.notes);
+        setReminderMinutes(f.reminderMinutes);
         setRecipeName(f.recipeName);
         setSlot(f.slot);
         setRoutine(f.routine);
@@ -315,8 +359,12 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
         setTitle('');
         setFormDate(date);
         setTime(defaultTime);
-        setEndTime('');
+        setEndTime(computeEndTime(defaultTime, 60));
+        setDurationMinutes(60);
+        setIsAllDay(false);
         setLocation('');
+        setNotes('');
+        setReminderMinutes(15);
         setRecipeName('');
         setSlot(defaultTime < '11:00' ? 'breakfast' : defaultTime < '15:00' ? 'lunch' : 'dinner');
         setRoutine('');
@@ -335,12 +383,29 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
     } else if (s.type === 'location') {
       setLocation(s.value);
     } else if (s.type === 'duration') {
+      setDurationMinutes(s.durationMinutes);
       setEndTime(computeEndTime(time, s.durationMinutes));
     } else if (s.type === 'recipe') {
       setRecipeName(s.value);
     } else if (s.type === 'weekday') {
       setFormDate(getNextWeekdayDate(formDate, s.weekday));
     }
+  };
+
+  const handleTitleChange = (value: string) => {
+    setTitle(value);
+    const detected = detectCategoryFromTitle(value);
+    if (detected) setCategory(detected);
+  };
+
+  const handleDurationChip = (minutes: number) => {
+    setDurationMinutes(minutes);
+    setEndTime(computeEndTime(time, minutes));
+  };
+
+  const handleTimeChange = (newTime: string) => {
+    setTime(newTime);
+    if (!isAllDay) setEndTime(computeEndTime(newTime, durationMinutes));
   };
 
   const catConfig = CATEGORIES.find((c) => c.id === category) || CATEGORIES[0];
@@ -376,16 +441,20 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
           routine: routine || undefined,
         };
       }
-      const eventType: CustomEventType = category === 'arbeit' ? 'work' : 'personal';
+      const eventType: CustomEventType =
+        category === 'gesundheit' ? 'health' : category === 'arbeit' ? 'work' : 'personal';
       return {
         id: editEvent ? editEvent.id : `ev-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         type: 'custom',
         eventType,
         title: displayTitle,
         date: formDate,
-        time,
-        endTime: endTime || undefined,
+        time: isAllDay ? '00:00' : time,
+        endTime: isAllDay ? '23:59' : (endTime || undefined),
         location: location || undefined,
+        notes: notes.trim() || undefined,
+        reminderMinutes: reminderMinutes || undefined,
+        isAllDay: isAllDay || undefined,
       } as CalendarEvent;
     };
     await onSubmit(buildEvent());
@@ -398,30 +467,33 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
     onClose();
   };
 
-  const showLocation = category === 'arbeit' || category === 'privat';
+  const showLocation = category === 'arbeit' || category === 'privat' || category === 'gesundheit';
   const showRecipe = category === 'essen';
   const showRoutine = category === 'sport';
 
   const springTransition = { type: 'spring' as const, stiffness: 300, damping: 25 };
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
-        <div className={cn('fixed inset-0 z-50 flex', isMobile ? 'items-end justify-center' : 'items-center justify-center')}>
+        <motion.div
+          key="event-sheet"
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={springTransition}
+          className={cn('fixed inset-0 z-50 flex', isMobile ? 'items-end justify-center' : 'items-center justify-center')}
+        >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2 }}
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={handleClose}
             aria-hidden
           />
-          <motion.div
-            initial={isMobile ? { y: '100%' } : { y: 20, opacity: 0 }}
-            animate={isMobile ? { y: 0 } : { y: 0, opacity: 1 }}
-            exit={isMobile ? { y: '100%' } : { y: 20, opacity: 0 }}
-            transition={springTransition}
+          <div
             className={cn(
               'relative w-full max-w-lg bg-white shadow-xl flex flex-col z-10',
               isMobile ? 'max-h-[85vh] rounded-t-3xl' : 'max-h-[85vh] rounded-2xl'
@@ -452,10 +524,11 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={category === 'essen' ? 'z.B. Pasta Carbonara' : category === 'sport' ? 'z.B. Joggen, Yoga' : 'z.B. Team Call, Zahnarzt'}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              placeholder={category === 'essen' ? 'z.B. Pasta Carbonara' : category === 'sport' ? 'z.B. Joggen, Yoga' : category === 'gesundheit' ? 'z.B. Zahnarzt, Arzttermin' : 'z.B. Team Call, Zahnarzt'}
               className={cn(
                 'w-full px-4 py-4 text-lg font-medium rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
+                category === 'gesundheit' && 'border-emerald-200 focus:border-emerald-500 focus:ring-emerald-100',
                 category === 'arbeit' && 'border-blue-200 focus:border-blue-500 focus:ring-blue-100',
                 category === 'essen' && 'border-orange-200 focus:border-orange-500 focus:ring-orange-100',
                 category === 'sport' && 'border-pink-200 focus:border-pink-500 focus:ring-pink-100',
@@ -468,7 +541,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               <div className="flex flex-wrap gap-2">
                 {suggestions
                   .filter((s) => {
-                    if (s.type === 'location' && category !== 'arbeit' && category !== 'privat') return false;
+                    if (s.type === 'location' && category !== 'arbeit' && category !== 'privat' && category !== 'gesundheit') return false;
                     if (s.type === 'duration' && category === 'essen') return false;
                     if (s.type === 'recipe' && category !== 'essen') return false;
                     return true;
@@ -488,10 +561,10 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             )}
           </div>
 
-          {/* Kategorie-Picker */}
+          {/* Kategorie-Picker (AI setzt live um) */}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-3">Kategorie</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {CATEGORIES.map((c) => {
                 const Icon = c.icon;
                 const active = category === c.id;
@@ -535,7 +608,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             </div>
           )}
 
-          {/* Ort (bei Arbeit / Privat) */}
+          {/* Ort (bei Arbeit / Privat / Gesundheit) */}
           {showLocation && (
             <div>
               <label htmlFor="event-location" className="block text-sm font-medium text-gray-600 mb-2">
@@ -546,11 +619,50 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="z.B. Büro, Vapiano"
+                placeholder="z.B. Büro, Vapiano, Praxis"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all"
               />
             </div>
           )}
+
+          {/* Notizen (auto-growing) */}
+          <div>
+            <label htmlFor="event-notes" className="block text-sm font-medium text-gray-600 mb-2">
+              Notizen (optional)
+            </label>
+            <textarea
+              id="event-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Weitere Infos..."
+              rows={2}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all resize-none min-h-[80px]"
+            />
+          </div>
+
+          {/* Erinnerung */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              <Bell className="w-4 h-4 inline mr-1" /> Erinnerung
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {REMINDER_OPTIONS.map((r) => (
+                <button
+                  key={r.minutes}
+                  type="button"
+                  onClick={() => setReminderMinutes(r.minutes)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-xs font-medium transition-all',
+                    reminderMinutes === r.minutes
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                  )}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Rezept / Gericht (bei Essen) */}
           {showRecipe && (
@@ -586,9 +698,9 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             </div>
           )}
 
-          {/* Datum & Zeit – kontrollierte Inputs mit robustem Styling */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          {/* Datum & Ganztägig */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+            <div className="flex-1 w-full">
               <label htmlFor="event-date" className="block text-sm font-medium text-gray-600 mb-2">
                 <Calendar className="w-4 h-4 inline mr-1" /> Datum
               </label>
@@ -602,32 +714,82 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 />
               </div>
             </div>
+            {category !== 'essen' && (
+              <div className="flex items-center gap-3 py-2 sm:pb-0">
+                <span className="text-sm font-medium text-gray-600">Ganztägig</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isAllDay}
+                  onClick={() => setIsAllDay(!isAllDay)}
+                  className={cn(
+                    'relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors',
+                    isAllDay ? 'bg-gray-900' : 'bg-gray-200'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'inline-block h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform mt-1',
+                      isAllDay ? 'translate-x-6 ml-0.5' : 'translate-x-1'
+                    )}
+                  />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Zeit + Dauer-Chips (Outlook-Style, nur wenn nicht ganztägig) */}
+          {!isAllDay && category !== 'essen' && (
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="event-time" className="block text-sm font-medium text-gray-600 mb-2">
+                  <Clock className="w-4 h-4 inline mr-1" /> Startzeit
+                </label>
+                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 w-fit">
+                  <input
+                    id="event-time"
+                    type="time"
+                    value={time}
+                    onChange={(e) => handleTimeChange(e.target.value)}
+                    className="bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
+                  />
+                </div>
+              </div>
+              <div>
+                <span className="block text-sm font-medium text-gray-600 mb-2">Dauer</span>
+                <div className="flex flex-wrap gap-2">
+                  {DURATION_CHIPS.map((c) => (
+                    <button
+                      key={c.minutes}
+                      type="button"
+                      onClick={() => handleDurationChip(c.minutes)}
+                      className={cn(
+                        'px-4 py-2 rounded-full text-sm font-medium transition-all',
+                        durationMinutes === c.minutes
+                          ? 'bg-black text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                      )}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!isAllDay && category === 'essen' && (
             <div>
               <label htmlFor="event-time" className="block text-sm font-medium text-gray-600 mb-2">
-                <Clock className="w-4 h-4 inline mr-1" /> Von
+                <Clock className="w-4 h-4 inline mr-1" /> Uhrzeit
               </label>
-              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 w-fit">
                 <input
                   id="event-time"
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
-                  className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {category !== 'essen' && (
-            <div>
-              <label htmlFor="event-end" className="block text-sm font-medium text-gray-600 mb-2">Bis (optional)</label>
-              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                <input
-                  id="event-end"
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
+                  className="bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
                 />
               </div>
             </div>
@@ -643,6 +805,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               disabled={!title.trim() && category !== 'essen'}
               className={cn(
                 'flex-1 py-3 rounded-xl text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed',
+                category === 'gesundheit' && 'bg-emerald-500 hover:bg-emerald-600',
                 category === 'arbeit' && 'bg-blue-500 hover:bg-blue-600',
                 category === 'essen' && 'bg-orange-500 hover:bg-orange-600',
                 category === 'sport' && 'bg-pink-500 hover:bg-pink-600',
@@ -653,8 +816,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             </button>
           </div>
         </form>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

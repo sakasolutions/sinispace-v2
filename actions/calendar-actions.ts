@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { getWorkspaceResults } from './workspace-actions';
 
 /** Custom Event Types */
-export type CustomEventType = 'meeting' | 'reminder' | 'personal' | 'work';
+export type CustomEventType = 'meeting' | 'reminder' | 'personal' | 'work' | 'health';
 
 /** Erweiterte Optionen für Custom Events (NL-Parsing) */
 export type CalendarEventExtras = {
@@ -15,6 +15,9 @@ export type CalendarEventExtras = {
   durationMinutes?: number;
   location?: string;
   withPerson?: string;
+  notes?: string;
+  reminderMinutes?: number;
+  isAllDay?: boolean;
 };
 
 /** Base Calendar Event */

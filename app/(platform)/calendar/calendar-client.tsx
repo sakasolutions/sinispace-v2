@@ -81,18 +81,19 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
   return items.sort((a, b) => a.time.localeCompare(b.time));
 }
 
-/** Kategorien pro Datum (max 4, Reihenfolge: Termin, Essen, Sport) */
-type CategoryColor = 'blue' | 'orange' | 'pink';
+/** Kategorien pro Datum (max 4, Reihenfolge: Gesundheit, Termin, Essen, Sport) */
+type CategoryColor = 'blue' | 'orange' | 'pink' | 'emerald';
 
 function getCategoryDotsForDate(dateKey: string, events: CalendarEvent[]): CategoryColor[] {
   const dayEvents = events.filter((e) => eventOccursOnDate(e, dateKey));
   const categories = new Set<CategoryColor>();
   for (const e of dayEvents) {
-    if (e.type === 'custom') categories.add('blue');
-    else if (e.type === 'meal') categories.add('orange');
+    if (e.type === 'custom') {
+      categories.add('eventType' in e && e.eventType === 'health' ? 'emerald' : 'blue');
+    } else if (e.type === 'meal') categories.add('orange');
     else if (e.type === 'workout') categories.add('pink');
   }
-  const order: CategoryColor[] = ['blue', 'orange', 'pink'];
+  const order: CategoryColor[] = ['emerald', 'blue', 'orange', 'pink'];
   return order.filter((c) => categories.has(c)).slice(0, 4);
 }
 
@@ -114,6 +115,7 @@ function CategoryDots({
     blue: selected ? 'bg-white' : 'bg-blue-500',
     orange: selected ? 'bg-white' : 'bg-orange-500',
     pink: selected ? 'bg-white' : 'bg-pink-500',
+    emerald: selected ? 'bg-white' : 'bg-emerald-500',
   };
   return (
     <div className={cn('flex gap-0.5 justify-center mt-1', size === 'md' && 'gap-1 mt-1.5')}>
@@ -468,7 +470,12 @@ export function CalendarClient() {
                           )}
                         </div>
                         {/* Spalte 2: Icon */}
-                        <div className={cn('w-10 h-10 rounded-full flex items-center justify-center shrink-0', item.type === 'event' && 'bg-blue-100 text-blue-600', item.type === 'meal' && 'bg-orange-100 text-orange-600', item.type === 'workout' && 'bg-pink-100 text-pink-600')}>
+                        <div className={cn(
+                          'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
+                          item.type === 'event' && ('eventType' in item.event && item.event.eventType === 'health' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'),
+                          item.type === 'meal' && 'bg-orange-100 text-orange-600',
+                          item.type === 'workout' && 'bg-pink-100 text-pink-600'
+                        )}>
                           {item.type === 'event' && <Calendar className="w-5 h-5" />}
                           {item.type === 'meal' && <UtensilsCrossed className="w-5 h-5" />}
                           {item.type === 'workout' && <Dumbbell className="w-5 h-5" />}
@@ -544,7 +551,12 @@ export function CalendarClient() {
                                     )}
                                   </div>
                                 </div>
-                                <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', item.type === 'event' && 'bg-blue-100 text-blue-600', item.type === 'meal' && 'bg-orange-100 text-orange-600', item.type === 'workout' && 'bg-pink-100 text-pink-600')}>
+                                <div className={cn(
+                                  'w-8 h-8 rounded-full flex items-center justify-center shrink-0',
+                                  item.type === 'event' && ('eventType' in item.event && item.event.eventType === 'health' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'),
+                                  item.type === 'meal' && 'bg-orange-100 text-orange-600',
+                                  item.type === 'workout' && 'bg-pink-100 text-pink-600'
+                                )}>
                                   {item.type === 'event' && <Calendar className="w-4 h-4" />}
                                   {item.type === 'meal' && <UtensilsCrossed className="w-4 h-4" />}
                                   {item.type === 'workout' && <Dumbbell className="w-4 h-4" />}
