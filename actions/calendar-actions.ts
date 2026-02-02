@@ -36,12 +36,17 @@ export type CalendarEvent =
   | {
       id: string;
       type: 'meal';
-      slot: 'breakfast' | 'lunch' | 'dinner';
+      slot: 'breakfast' | 'lunch' | 'dinner' | 'snack';
       date: string;
       time: string;
+      /** DB-Rezept (Recipe.id) – Kalender weiß: "Ich bin die Lasagne aus der DB" */
       recipeId?: string;
       resultId?: string;
       recipeName?: string;
+      /** Mahlzeit-Typ (breakfast | lunch | dinner | snack) */
+      mealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+      /** Geplante Portionen */
+      servings?: number;
       calories?: string;
       prepTime?: string;
     }
@@ -105,7 +110,11 @@ export async function saveCalendarEvents(events: CalendarEvent[]) {
   }
 }
 
-/** Event hinzufügen */
+/**
+ * Event hinzufügen.
+ * Für Mahlzeiten (type: 'meal') werden recipeId, mealType und servings mitgespeichert,
+ * sodass der Kalender-Eintrag dem Gourmet-Planer-Rezept zugeordnet werden kann.
+ */
 export async function addCalendarEvent(event: CalendarEvent) {
   const result = await getCalendarEvents();
   if (!result.success || !result.events) return { success: false, error: result.error };
