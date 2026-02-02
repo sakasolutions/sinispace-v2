@@ -175,21 +175,6 @@ export function CalendarClient() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (searchParams.get('plan') !== 'success') return;
-    const fire = () => {
-      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
-      setTimeout(() => confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 } }), 200);
-      setTimeout(() => confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } }), 400);
-    };
-    fire();
-    setSuccessMessage('Wochenplan erstellt! 🎉');
-    loadEvents();
-    router.replace('/calendar', { scroll: false });
-    const t = setTimeout(() => setSuccessMessage(null), 5000);
-    return () => clearTimeout(t);
-  }, [searchParams, router, loadEvents]);
-
-  useEffect(() => {
     const check = () => setIsMobile(typeof window !== 'undefined' && window.innerWidth < 768);
     check();
     window.addEventListener('resize', check);
@@ -221,6 +206,21 @@ export function CalendarClient() {
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
+
+  useEffect(() => {
+    if (searchParams.get('plan') !== 'success') return;
+    const fire = () => {
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      setTimeout(() => confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 } }), 200);
+      setTimeout(() => confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } }), 400);
+    };
+    fire();
+    setSuccessMessage('Wochenplan erstellt! 🎉');
+    loadEvents();
+    router.replace('/calendar', { scroll: false });
+    const t = setTimeout(() => setSuccessMessage(null), 5000);
+    return () => clearTimeout(t);
+  }, [searchParams, router, loadEvents]);
 
   const dateKey = toDateKey(currentDate);
   const todayKey = toDateKey(new Date());
