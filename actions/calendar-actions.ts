@@ -39,6 +39,7 @@ export type CalendarEvent =
       slot: 'breakfast' | 'lunch' | 'dinner' | 'snack';
       date: string;
       time: string;
+      endTime?: string;
       /** DB-Rezept (Recipe.id) – Kalender weiß: "Ich bin die Lasagne aus der DB" */
       recipeId?: string;
       resultId?: string;
