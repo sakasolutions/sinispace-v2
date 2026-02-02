@@ -3,7 +3,7 @@
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -11,11 +11,12 @@ import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
 import { BackButton } from '@/components/ui/back-button';
-import { getWorkspaceResults, deleteResult, cleanupOldResults } from '@/actions/workspace-actions';
+import { getWorkspaceResults, deleteResult, cleanupOldResults, getResultById } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { RecipeDetailView } from '@/components/recipe/recipe-detail-view';
 import { WeekPlanner } from '@/components/recipe/week-planner';
+import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
 
 type Recipe = {
   recipeName: string;
@@ -124,11 +125,12 @@ function SubmitButton({ inspirationMode }: { inspirationMode: boolean }) {
 }
 
 export default function RecipePage() {
-  // @ts-ignore
-  const [state, formAction] = useActionState(generateRecipe, null);
   const searchParams = useSearchParams();
   const openResultId = searchParams.get('open');
+  // @ts-ignore
+  const [state, formAction] = useActionState(generateRecipe, null);
 
+  const [showCockpit, setShowCockpit] = useState(true);
   const [activeTab, setActiveTab] = useState<'create' | 'my-recipes' | 'week-planner'>('create');
   const [ingredients, setIngredients] = useState('');
   const [shoppingMode, setShoppingMode] = useState<'strict' | 'shopping'>('strict');
@@ -141,6 +143,33 @@ export default function RecipePage() {
   const [isAddToListOpen, setIsAddToListOpen] = useState(false);
   const [addToListToast, setAddToListToast] = useState<{ message: string } | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; resultId: string; createdAt: Date } | null>(null);
+
+  // ?open=resultId: Rezept direkt öffnen (z. B. von Kalender „Jetzt kochen“)
+  useEffect(() => {
+    if (!openResultId) return;
+    setShowCockpit(false);
+    setActiveTab('my-recipes');
+    getResultById(openResultId).then((result) => {
+      if (!result?.content) return;
+      try {
+        const content = JSON.parse(result.content) as Recipe;
+        const legacy = content as Record<string, unknown>;
+        if (!content.recipeName && legacy.title) (content as Recipe).recipeName = legacy.title as string;
+        if (!content.ingredients && Array.isArray(legacy.ingredients)) (content as Recipe).ingredients = legacy.ingredients as string[];
+        if (!content.instructions && Array.isArray(legacy.steps)) (content as Recipe).instructions = legacy.steps as string[];
+        if (!content.stats) (content as Recipe).stats = { time: '', calories: '', difficulty: '' };
+        if (!Array.isArray(content.shoppingList)) (content as Recipe).shoppingList = (legacy.missingIngredients as string[]) ?? [];
+        if (!content.chefTip) (content as Recipe).chefTip = (legacy.tip as string) ?? '';
+        setSelectedRecipe({
+          recipe: content,
+          resultId: result.id,
+          createdAt: new Date(result.createdAt),
+        });
+      } catch {
+        // ignore parse error
+      }
+    });
+  }, [openResultId]);
 
   useEffect(() => {
     if (!addToListToast) return;
@@ -187,36 +216,12 @@ export default function RecipePage() {
     }
   }
 
-  // Kalender-Link: ?open=resultId → Tab "Meine Rezepte" und Rezept öffnen
-  useEffect(() => {
-    if (openResultId) setActiveTab('my-recipes');
-  }, [openResultId]);
-
   // Lade "Meine Rezepte" wenn Tab gewechselt wird (auch für Wochenplaner)
   useEffect(() => {
     if (activeTab === 'my-recipes' || activeTab === 'week-planner') {
       loadMyRecipes();
     }
   }, [activeTab]);
-
-  // Nach Laden: Rezept mit open=resultId auswählen (Zum Rezept aus Kalender)
-  useEffect(() => {
-    if (!openResultId || myRecipes.length === 0 || isLoadingRecipes) return;
-    const result = myRecipes.find((r: { id: string }) => r.id === openResultId);
-    if (result && result.recipe) {
-      setSelectedRecipe({
-        recipe: result.recipe as Recipe,
-        resultId: result.id,
-        createdAt: new Date(result.createdAt),
-      });
-      // URL bereinigen (optional), damit Reload nicht wieder öffnet
-      if (typeof window !== 'undefined' && window.history.replaceState) {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('open');
-        window.history.replaceState({}, '', url.pathname + url.search);
-      }
-    }
-  }, [openResultId, myRecipes, isLoadingRecipes]);
 
   const loadMyRecipes = async () => {
     setIsLoadingRecipes(true);
@@ -332,35 +337,70 @@ export default function RecipePage() {
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
       <BackButton className="text-gray-600 hover:text-gray-900 mb-4" />
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Gourmet-Planer</h1>
-        <p className="text-sm sm:text-base text-gray-700 mt-1 sm:mt-2 font-medium">
-          Dein Smart-Chef für den Kühlschrank.
-        </p>
-      </div>
 
-      {/* Tab-System – klare Kontraste, inaktive nicht blass */}
-      <div className="mb-6 flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-        {(['create', 'my-recipes', 'week-planner'] as const).map((tab) => {
-          const labels = { create: 'Neues Rezept', 'my-recipes': 'Meine Rezepte', 'week-planner': 'Wochenplaner' };
-          const active = activeTab === tab;
-          return (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                active
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30'
-                  : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:text-gray-900'
-              }`}
-            >
-              {labels[tab]}
-            </button>
-          );
-        })}
-      </div>
+      {/* Cockpit (Landing) – Default-Ansicht */}
+      {showCockpit ? (
+        <>
+          <GourmetCockpit
+            onVorschlagGenerieren={() => {
+              setShowCockpit(false);
+              setActiveTab('create');
+              setIngredients('');
+            }}
+            onWochePlanen={() => {
+              setShowCockpit(false);
+              setActiveTab('week-planner');
+            }}
+            onMeineGerichte={() => {
+              setShowCockpit(false);
+              setActiveTab('my-recipes');
+            }}
+            onAICreator={() => {
+              setShowCockpit(false);
+              setActiveTab('create');
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => setShowCockpit(true)}
+            className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-violet-600 hover:text-violet-700"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Zurück zum Cockpit
+          </button>
 
-      {/* Tab Content */}
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Gourmet-Planer</h1>
+            <p className="text-sm sm:text-base text-gray-700 mt-1 sm:mt-2 font-medium">
+              Dein Smart-Chef für den Kühlschrank.
+            </p>
+          </div>
+
+          {/* Tab-System – klare Kontraste, inaktive nicht blass */}
+          <div className="mb-6 flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+            {(['create', 'my-recipes', 'week-planner'] as const).map((tab) => {
+              const labels = { create: 'Neues Rezept', 'my-recipes': 'Meine Rezepte', 'week-planner': 'Wochenplaner' };
+              const active = activeTab === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+                    active
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:text-gray-900'
+                  }`}
+                >
+                  {labels[tab]}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Tab Content */}
       {activeTab === 'create' ? (
         <>
           <div className="mt-4 mb-8 p-4 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-900">
@@ -777,6 +817,9 @@ export default function RecipePage() {
                 workspaceId={undefined}
               />
             ) : null}
+
+        </>
+      )}
 
       {/* Shopping List Modal (Export) */}
       {recipe && recipe.shoppingList && recipe.shoppingList.length > 0 && (
