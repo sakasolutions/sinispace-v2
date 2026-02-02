@@ -622,7 +622,7 @@ export function CalendarClient() {
 
       {/* Floating Command Bar – wegfahren wenn Modal offen (Focus Mode) */}
       <motion.div
-        className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 md:bottom-8 z-[110] pb-[env(safe-area-inset-bottom)] pointer-events-none"
+        className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 md:bottom-8 z-[100] pb-[env(safe-area-inset-bottom)] pointer-events-none"
         initial={false}
         animate={{
           y: eventModal.open ? '100%' : 0,

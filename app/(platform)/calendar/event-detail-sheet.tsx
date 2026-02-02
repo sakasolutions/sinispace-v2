@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, MapPin, UtensilsCrossed, Briefcase, Dumbbell, User, Stethoscope, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -486,7 +487,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
 
   const springTransition = { type: 'spring' as const, stiffness: 300, damping: 25 };
 
-  return (
+  const sheetContent = (
     <AnimatePresence mode="wait">
       {isOpen && (
         <motion.div
@@ -495,7 +496,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={springTransition}
-          className={cn('fixed inset-0 z-[110] flex', isMobile ? 'items-end justify-center' : 'items-center justify-center')}
+          className={cn('fixed inset-0 z-[9999] flex', isMobile ? 'items-end justify-center' : 'items-center justify-center')}
         >
           <motion.div
             initial={{ opacity: 0 }}
@@ -509,7 +510,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
           <div
             className={cn(
               'relative w-full max-w-lg bg-white shadow-xl flex flex-col',
-              isMobile ? 'max-h-[100dvh] rounded-t-3xl min-h-0' : 'max-h-[85vh] rounded-2xl'
+              isMobile ? 'min-h-[100dvh] max-h-[100dvh] rounded-t-3xl' : 'max-h-[85vh] rounded-2xl min-h-0'
             )}
             role="dialog"
             aria-labelledby="event-sheet-title"
@@ -808,7 +809,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
           </div>
 
           {/* Sticky Action Footer – immer sichtbar, über Navbar */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)] shrink-0">
+          <div className="absolute bottom-0 left-0 right-0 z-20 p-4 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom)] shrink-0">
             <div className="flex gap-3">
               <button
                 type="button"
@@ -832,4 +833,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
       )}
     </AnimatePresence>
   );
+
+  if (typeof document === 'undefined') return sheetContent;
+  return createPortal(sheetContent, document.body);
 }
