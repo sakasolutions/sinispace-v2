@@ -495,7 +495,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={springTransition}
-          className={cn('fixed inset-0 z-50 flex', isMobile ? 'items-end justify-center' : 'items-center justify-center')}
+          className={cn('fixed inset-0 z-[110] flex', isMobile ? 'items-end justify-center' : 'items-center justify-center')}
         >
           <motion.div
             initial={{ opacity: 0 }}
@@ -508,8 +508,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
           />
           <div
             className={cn(
-              'relative w-full max-w-lg bg-white shadow-xl flex flex-col z-10',
-              isMobile ? 'max-h-[85vh] rounded-t-3xl' : 'max-h-[85vh] rounded-2xl'
+              'relative w-full max-w-lg bg-white shadow-xl flex flex-col',
+              isMobile ? 'max-h-[100dvh] rounded-t-3xl min-h-0' : 'max-h-[85vh] rounded-2xl'
             )}
             role="dialog"
             aria-labelledby="event-sheet-title"
@@ -531,7 +531,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               </button>
             </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto min-h-0 p-4 pb-8 space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto min-h-0 p-4 pb-32 space-y-5">
           {/* Titel – groß oben */}
           <div className="space-y-2">
             <input
@@ -539,14 +540,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder={category === 'essen' ? 'z.B. Pasta Carbonara' : category === 'sport' ? 'z.B. Joggen, Yoga' : category === 'gesundheit' ? 'z.B. Zahnarzt, Arzttermin' : 'z.B. Team Call, Zahnarzt'}
-              className={cn(
-                'w-full px-4 py-4 text-lg font-medium rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
-                category === 'gesundheit' && 'border-emerald-200 focus:border-emerald-500 focus:ring-emerald-100',
-                category === 'arbeit' && 'border-blue-200 focus:border-blue-500 focus:ring-blue-100',
-                category === 'essen' && 'border-orange-200 focus:border-orange-500 focus:ring-orange-100',
-                category === 'sport' && 'border-pink-200 focus:border-pink-500 focus:ring-pink-100',
-                category === 'privat' && 'border-purple-200 focus:border-purple-500 focus:ring-purple-100'
-              )}
+              className="w-full p-4 text-lg font-medium rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400"
               autoFocus
             />
             {/* Smart Suggestions – aus Historie ähnlicher Events */}
@@ -574,10 +568,10 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             )}
           </div>
 
-          {/* Kategorie-Picker (AI setzt live um) */}
+          {/* Kategorie-Picker – Pills (kompakt) */}
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-3">Kategorie</label>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            <label className="block text-sm font-medium text-gray-600 mb-2">Kategorie</label>
+            <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((c) => {
                 const Icon = c.icon;
                 const active = category === c.id;
@@ -587,11 +581,11 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                     type="button"
                     onClick={() => setCategory(c.id)}
                     className={cn(
-                      'flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-sm font-medium transition-all',
-                      active ? `${c.bg} ${c.color} ${c.border}` : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      'inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all',
+                      active ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     )}
                   >
-                    <Icon className="w-6 h-6" />
+                    <Icon className="w-4 h-4 shrink-0" />
                     <span>{c.label}</span>
                   </button>
                 );
@@ -599,19 +593,19 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             </div>
           </div>
 
-          {/* Meal Slot (nur bei Essen) */}
+          {/* Meal Slot (nur bei Essen) – Pills */}
           {showRecipe && (
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2">Mahlzeit</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {MEAL_SLOTS.map((s) => (
                   <button
                     key={s.id}
                     type="button"
                     onClick={() => { setSlot(s.id); setTime(s.defaultTime); }}
                     className={cn(
-                      'py-2.5 px-3 rounded-xl border text-sm font-medium transition-all',
-                      slot === s.id ? 'bg-orange-50 text-orange-600 border-orange-200' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      'rounded-full px-4 py-2 text-sm font-medium transition-all',
+                      slot === s.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     )}
                   >
                     {s.label}
@@ -637,7 +631,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 }
               }}
               placeholder="z.B. Zahnarzt Herbrechtingen, Büro, Vapiano"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all"
+              className="w-full p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400"
             />
           )}
 
@@ -652,7 +646,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Weitere Infos..."
               rows={2}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100 outline-none transition-all resize-none min-h-[80px]"
+              className="w-full p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors resize-none min-h-[80px] placeholder:text-gray-400"
             />
           </div>
 
@@ -670,8 +664,8 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                   className={cn(
                     'px-3 py-1.5 rounded-full text-xs font-medium transition-all',
                     reminderMinutes === r.minutes
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                      ? 'bg-black text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   )}
                 >
                   {r.label}
@@ -692,7 +686,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 value={recipeName}
                 onChange={(e) => setRecipeName(e.target.value)}
                 placeholder="z.B. Pasta, Salat"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all"
+                className="w-full p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400"
               />
             </div>
           )}
@@ -709,7 +703,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 value={routine}
                 onChange={(e) => setRoutine(e.target.value)}
                 placeholder="z.B. 30 min Joggen"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 outline-none transition-all"
+                className="w-full p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400"
               />
             </div>
           )}
@@ -720,7 +714,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               <label htmlFor="event-date" className="block text-sm font-medium text-gray-600 mb-2">
                 <Calendar className="w-4 h-4 inline mr-1" /> Datum
               </label>
-              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+              <div className="bg-gray-50 hover:bg-gray-100 rounded-2xl p-4 transition-colors">
                 <input
                   id="event-date"
                   type="date"
@@ -761,15 +755,15 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 <label htmlFor="event-time" className="block text-sm font-medium text-gray-600 mb-2">
                   <Clock className="w-4 h-4 inline mr-1" /> Startzeit
                 </label>
-                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 w-fit">
-                  <input
-                    id="event-time"
-                    type="time"
-                    value={time}
-                    onChange={(e) => handleTimeChange(e.target.value)}
-                    className="bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
-                  />
-                </div>
+              <div className="bg-gray-50 hover:bg-gray-100 rounded-2xl p-4 w-fit transition-colors">
+                    <input
+                      id="event-time"
+                      type="time"
+                      value={time}
+                      onChange={(e) => handleTimeChange(e.target.value)}
+                      className="bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
+                    />
+                  </div>
               </div>
               <div>
                 <span className="block text-sm font-medium text-gray-600 mb-2">Dauer</span>
@@ -783,7 +777,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                         'px-4 py-2 rounded-full text-sm font-medium transition-all',
                         durationMinutes === c.minutes
                           ? 'bg-black text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       )}
                     >
                       {c.label}
@@ -799,7 +793,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               <label htmlFor="event-time" className="block text-sm font-medium text-gray-600 mb-2">
                 <Clock className="w-4 h-4 inline mr-1" /> Uhrzeit
               </label>
-              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 w-fit">
+              <div className="bg-gray-50 hover:bg-gray-100 rounded-2xl p-4 w-fit transition-colors">
                 <input
                   id="event-time"
                   type="time"
@@ -811,25 +805,26 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <button type="button" onClick={handleClose} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
-              Abbrechen
-            </button>
-            <button
-              type="submit"
-              disabled={!title.trim() && category !== 'essen'}
-              className={cn(
-                'flex-1 py-3 rounded-xl text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed',
-                category === 'gesundheit' && 'bg-emerald-500 hover:bg-emerald-600',
-                category === 'arbeit' && 'bg-blue-500 hover:bg-blue-600',
-                category === 'essen' && 'bg-orange-500 hover:bg-orange-600',
-                category === 'sport' && 'bg-pink-500 hover:bg-pink-600',
-                category === 'privat' && 'bg-purple-500 hover:bg-purple-600'
-              )}
-            >
-              {editEvent ? 'Speichern' : 'Erstellen'}
-            </button>
+          </div>
+
+          {/* Sticky Action Footer – immer sichtbar, über Navbar */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 pb-[env(safe-area-inset-bottom)] shrink-0">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="py-3 px-4 rounded-full text-gray-600 font-medium hover:bg-gray-100 transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button
+                type="submit"
+                disabled={!title.trim() && category !== 'essen'}
+                className="flex-1 py-4 rounded-full font-bold text-white bg-gradient-to-r from-violet-600 to-pink-500 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {editEvent ? 'Speichern' : 'Erstellen'}
+              </button>
+            </div>
           </div>
         </form>
           </div>
