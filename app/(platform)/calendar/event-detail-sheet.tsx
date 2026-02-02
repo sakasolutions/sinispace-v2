@@ -719,8 +719,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
                 {suggestions
                   .filter((s) => {
                     if (s.type === 'location' && category !== 'arbeit' && category !== 'privat' && category !== 'gesundheit') return false;
-                    if (s.type === 'duration' && category === 'essen') return false;
-                    if (s.type === 'recipe' && category !== 'essen') return false;
+                    if (s.type === 'recipe') return false; // Rezept-Vorschläge nur bei Kategorie Essen
                     return true;
                   })
                   .slice(0, 4)
