@@ -15,8 +15,18 @@ const WEEKDAYS: [number, string][] = [
 ];
 
 const MONTH_NAMES: Record<string, number> = {
-  januar: 0, februar: 1, märz: 2, april: 3, mai: 4, juni: 5,
-  juli: 6, august: 7, september: 8, oktober: 9, november: 10, dezember: 11,
+  januar: 0, jänner: 0, jan: 0,
+  februar: 1, feb: 1,
+  märz: 2, mär: 2, marz: 2,
+  april: 3, apr: 3,
+  mai: 4,
+  juni: 5, jun: 5,
+  juli: 6, jul: 6,
+  august: 7, aug: 7,
+  september: 8, sep: 8, sept: 8,
+  oktober: 9, okt: 9,
+  november: 10, nov: 10,
+  dezember: 11, dez: 11,
 };
 
 export type ParsedEvent = {
@@ -100,6 +110,8 @@ function extractAndClean(
   // Datum: Explizite Angaben haben IMMER Priorität (vor relativen wie morgen/Wochentag)
   // Formate: 16.02.2026, 16.02.26, 16.2.26, 16.02., 16/02/2026, 16-02-2026
   const explicitFullMatch = t.match(/\b(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})\b/);
+  // Deutsche Monatsnamen: "24. Dezember", "5. Januar", "24. Dez", "5. Jan 2027"
+  const explicitMonthNameMatch = t.match(/\b(\d{1,2})\.\s*([A-Za-zÄäÖöÜüß]+)(?:\s+(\d{2,4}))?\b/i);
   const explicitShortMatch = t.match(/\b(\d{1,2})[.\-/](\d{1,2})(?=[.\-/]|\s|$)/);
   if (explicitFullMatch) {
     const day = parseInt(explicitFullMatch[1], 10);
@@ -107,6 +119,21 @@ function extractAndClean(
     let year = parseInt(explicitFullMatch[3], 10);
     if (year < 100) year += year >= 50 ? 1900 : 2000;
     resultDate = new Date(year, month, day, 12, 0, 0);
+  } else if (explicitMonthNameMatch) {
+    const day = parseInt(explicitMonthNameMatch[1], 10);
+    const monthKey = explicitMonthNameMatch[2].toLowerCase().trim();
+    const month = MONTH_NAMES[monthKey];
+    if (month !== undefined) {
+      let year = explicitMonthNameMatch[3]
+        ? parseInt(explicitMonthNameMatch[3], 10)
+        : today.getFullYear();
+      if (explicitMonthNameMatch[3] && year < 100) year += year >= 50 ? 1900 : 2000;
+      resultDate = new Date(year, month, day, 12, 0, 0);
+      // Next-Year-Check: Ohne explizites Jahr – wenn Datum dieses Jahr schon vorbei, nimm nächstes Jahr
+      if (!explicitMonthNameMatch[3] && resultDate < today) {
+        resultDate.setFullYear(year + 1);
+      }
+    }
   } else if (explicitShortMatch) {
     const day = parseInt(explicitShortMatch[1], 10);
     const month = parseInt(explicitShortMatch[2], 10) - 1;
@@ -131,6 +158,7 @@ function extractAndClean(
 
   // Titel bereinigen (explizite Daten entfernen)
   let title = t
+    .replace(/\b(\d{1,2})\.\s*(?:januar|jänner|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|jan|feb|mär|apr|jun|jul|aug|sep|okt|nov|dez)(?:\s+\d{2,4})?\s*/gi, '')
     .replace(/\b(\d{1,2})[.\-/](\d{1,2})(?:[.\-/](\d{2,4})?)?\s*/g, '')
     .replace(/\b(morgen|übermorgen|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/gi, '')
     .replace(/\b(jeden|jede|wöchentlich|täglich|daily|weekly)\b/gi, '')
