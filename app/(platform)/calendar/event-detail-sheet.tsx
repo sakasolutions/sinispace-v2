@@ -3,23 +3,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, UtensilsCrossed, Briefcase, Dumbbell, User, Stethoscope, Bell, ChefHat, Loader2, Pencil } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, UtensilsCrossed, Briefcase, Dumbbell, User, Stethoscope, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CalendarEvent, CustomEventType } from '@/actions/calendar-actions';
-import { getCalendarRecipes, type CalendarRecipe } from '@/actions/calendar-actions';
 import { LocationPicker } from '@/components/ui/location-picker';
-
-/** Kochzeit-String parsen (z.B. "25 Min", "1 h") → Minuten */
-function parseCookingTimeMinutes(s: string | undefined): number | null {
-  if (!s?.trim()) return null;
-  const t = s.trim();
-  const minMatch = t.match(/(\d+)\s*Min/i);
-  if (minMatch) return parseInt(minMatch[1], 10) || null;
-  const hMatch = t.match(/(\d+)\s*h/i);
-  if (hMatch) return (parseInt(hMatch[1], 10) || 0) * 60;
-  const num = parseInt(t, 10);
-  return Number.isNaN(num) ? null : Math.min(num, 240);
-}
 
 function weatherCodeToEmoji(code: number): string {
   if (code === 0) return '☀️';
@@ -184,13 +171,16 @@ function getSmartSuggestions(events: CalendarEvent[], query: string, excludeId?:
 
 export type EventCategory = 'arbeit' | 'essen' | 'sport' | 'privat' | 'gesundheit';
 
+/** Nur wählbare Kategorien – Essen kommt ausschließlich aus dem Gourmet-Planer */
 const CATEGORIES: { id: EventCategory; label: string; icon: typeof Briefcase; color: string; bg: string; border: string }[] = [
   { id: 'gesundheit', label: 'Gesundheit', icon: Stethoscope, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   { id: 'arbeit', label: 'Arbeit', icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-  { id: 'essen', label: 'Essen', icon: UtensilsCrossed, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' },
   { id: 'sport', label: 'Sport', icon: Dumbbell, color: 'text-pink-600', bg: 'bg-pink-50', border: 'border-pink-200' },
   { id: 'privat', label: 'Privat', icon: User, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
 ];
+
+/** Styling für Essens-Events (nur Anzeige/Bearbeitung, nicht wählbar) */
+const ESSEN_READONLY_CONFIG = { id: 'essen' as const, label: 'Essen (aus Gourmet-Planer)', icon: UtensilsCrossed, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' };
 
 const DURATION_CHIPS = [
   { label: '30 min', minutes: 30 },
@@ -228,28 +218,25 @@ function eventToCategory(e: CalendarEvent): EventCategory {
   return 'privat';
 }
 
-/** AI-Kategorie-Erkennung: Heuristik basierend auf Titel */
+/** Kategorie-Erkennung aus Titel (Essen nicht mehr – nur Gourmet-Planer) */
 function detectCategoryFromTitle(title: string): EventCategory | null {
   const t = title.toLowerCase();
   if (/\b(arzt|praxis|zahn|ärztin|termin)\b/.test(t)) return 'gesundheit';
   if (/\b(meeting|call|büro|office|konferenz)\b/.test(t)) return 'arbeit';
-  if (/\b(essen|dinner|lunch|mittag|frühstück|abendessen)\b/.test(t)) return 'essen';
   if (/\b(gym|sport|training|joggen|yoga|fitness)\b/.test(t)) return 'sport';
   return null;
 }
 
-function eventToForm(e: CalendarEvent): { category: EventCategory; title: string; date: string; time: string; endTime: string; location: string; locationLat?: number; locationLon?: number; recipeName: string; slot: MealSlot; routine: string; isAllDay: boolean; notes: string; reminderMinutes: number; resultId?: string } {
+function eventToForm(e: CalendarEvent): { category: EventCategory; title: string; date: string; time: string; endTime: string; location: string; locationLat?: number; locationLon?: number; recipeName: string; slot: MealSlot; routine: string; isAllDay: boolean; notes: string; reminderMinutes: number } {
   const category = eventToCategory(e);
   let title = '';
   let recipeName = '';
   let slot: MealSlot = 'lunch';
   let routine = '';
-  let resultId: string | undefined;
   if (e.type === 'meal') {
     title = e.recipeName || (e.slot === 'breakfast' ? 'Frühstück' : e.slot === 'lunch' ? 'Mittagessen' : e.slot === 'dinner' ? 'Abendessen' : 'Snack');
     recipeName = e.recipeName || '';
     slot = e.slot;
-    resultId = e.resultId;
   } else if (e.type === 'workout') {
     title = e.label || 'Workout';
     routine = e.routine || '';
@@ -271,7 +258,6 @@ function eventToForm(e: CalendarEvent): { category: EventCategory; title: string
     isAllDay: ('isAllDay' in e ? e.isAllDay : false) || false,
     notes: ('notes' in e ? e.notes : '') || '',
     reminderMinutes: ('reminderMinutes' in e ? e.reminderMinutes : 15) ?? 15,
-    resultId,
   };
 }
 
@@ -311,12 +297,6 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
   const [routine, setRoutine] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [weather, setWeather] = useState<{ code: number; label: string } | null>(null);
-  const [essenInputMode, setEssenInputMode] = useState<'recipe' | 'manual'>('recipe');
-  const [selectedRecipeResultId, setSelectedRecipeResultId] = useState<string | null>(null);
-  const [recipes, setRecipes] = useState<CalendarRecipe[]>([]);
-  const [recipesLoading, setRecipesLoading] = useState(false);
-  const [recipeSearch, setRecipeSearch] = useState('');
-  const [recipeDropdownOpen, setRecipeDropdownOpen] = useState(false);
 
   const [coords, setCoords] = useState<{ lat: number; lon: number }>({ lat: 52.52, lon: 13.41 });
 
@@ -387,13 +367,6 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
         setRecipeName(f.recipeName);
         setSlot(f.slot);
         setRoutine(f.routine);
-        if (f.category === 'essen' && f.resultId) {
-          setSelectedRecipeResultId(f.resultId);
-          setEssenInputMode('recipe');
-        } else if (f.category === 'essen') {
-          setEssenInputMode('manual');
-          setSelectedRecipeResultId(null);
-        }
       } else {
         setCategory('privat');
         setTitle('');
@@ -410,26 +383,9 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
         setRecipeName('');
         setSlot(defaultTime < '11:00' ? 'breakfast' : defaultTime < '15:00' ? 'lunch' : defaultTime < '17:00' ? 'snack' : 'dinner');
         setRoutine('');
-        setEssenInputMode('recipe');
-        setSelectedRecipeResultId(null);
-        setRecipeSearch('');
-        setRecipeDropdownOpen(false);
       }
     }
   }, [isOpen, editEvent, date, defaultTime]);
-
-  useEffect(() => {
-    if (isOpen && category === 'essen') {
-      setRecipesLoading(true);
-      getCalendarRecipes().then((res) => {
-        setRecipes(res.recipes || []);
-        setRecipesLoading(false);
-      });
-    } else {
-      setRecipes([]);
-      setRecipeDropdownOpen(false);
-    }
-  }, [isOpen, category]);
 
   const suggestions = useMemo(
     () => getSmartSuggestions(events, title, editEvent?.id),
@@ -469,7 +425,7 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
     if (!isAllDay) setEndTime(computeEndTime(newTime, durationMinutes));
   };
 
-  const catConfig = CATEGORIES.find((c) => c.id === category) || CATEGORIES[0];
+  const catConfig = category === 'essen' ? ESSEN_READONLY_CONFIG : (CATEGORIES.find((c) => c.id === category) || CATEGORIES[0]);
   const accentBg = catConfig.bg;
   const accentColor = catConfig.color;
   const accentBorder = catConfig.border;
@@ -482,16 +438,13 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
 
     const buildEvent = (): CalendarEvent => {
       if (category === 'essen') {
-        const mealEndTime = endTime || computeEndTime(time, durationMinutes);
         return {
           id: editEvent ? editEvent.id : `meal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
           type: 'meal',
           slot,
           date: formDate,
           time,
-          endTime: mealEndTime,
           recipeName: recipeName || displayTitle,
-          resultId: selectedRecipeResultId || undefined,
         };
       }
       if (category === 'sport') {
@@ -586,140 +539,25 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto min-h-0 p-4 pb-40 space-y-5">
-          {/* Titel – bei Essen: Rezept-Wähler oder Freitext */}
+          {/* Titel – groß oben */}
           <div className="space-y-2">
-            {category === 'essen' ? (
-              <>
-                {essenInputMode === 'recipe' ? (
-                  <div className="space-y-2">
-                    {selectedRecipeResultId ? (
-                      <div className="flex items-center gap-3 p-4 rounded-2xl bg-orange-50 border border-orange-200">
-                        <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
-                          <ChefHat className="w-5 h-5 text-orange-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">{title || recipeName}</div>
-                          {recipes.find((r) => r.resultId === selectedRecipeResultId)?.stats?.time && (
-                            <div className="text-xs text-gray-600 mt-0.5">
-                              {recipes.find((r) => r.resultId === selectedRecipeResultId)?.stats?.time}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setRecipeDropdownOpen(true)}
-                          className="text-sm font-medium text-orange-600 hover:text-orange-700"
-                        >
-                          Ändern
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={recipeSearch}
-                          onChange={(e) => { setRecipeSearch(e.target.value); setRecipeDropdownOpen(true); }}
-                          onFocus={() => setRecipeDropdownOpen(true)}
-                          placeholder="Rezept suchen (z.B. Carbonara)"
-                          className="w-full p-4 pl-4 pr-4 text-left indent-0 text-lg font-medium rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
-                          style={{ textIndent: 0 }}
-                        />
-                        {recipeDropdownOpen && (
-                          <>
-                            <div className="absolute inset-0 z-10" style={{ height: 'auto', minHeight: 40 }} aria-hidden onClick={() => setRecipeDropdownOpen(false)} />
-                            <div className="absolute top-full left-0 right-0 z-20 mt-1 max-h-60 overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg">
-                              {recipesLoading ? (
-                                <div className="p-4 flex items-center justify-center gap-2 text-gray-500">
-                                  <Loader2 className="w-5 h-5 animate-spin" /> Lade Rezepte…
-                                </div>
-                              ) : (
-                                recipes
-                                  .filter((r) => !recipeSearch.trim() || r.recipeName.toLowerCase().includes(recipeSearch.toLowerCase()))
-                                  .slice(0, 20)
-                                  .map((r) => (
-                                    <button
-                                      key={r.id}
-                                      type="button"
-                                      onClick={() => {
-                                        setTitle(r.recipeName);
-                                        setRecipeName(r.recipeName);
-                                        setSelectedRecipeResultId(r.resultId);
-                                        setRecipeDropdownOpen(false);
-                                        setRecipeSearch('');
-                                        const mins = parseCookingTimeMinutes(r.stats?.time);
-                                        if (mins != null && mins > 0) {
-                                          setDurationMinutes(mins);
-                                          setEndTime(computeEndTime(time, mins));
-                                        }
-                                      }}
-                                      className="w-full flex items-center gap-3 p-3 text-left hover:bg-orange-50 border-b border-gray-100 last:border-0"
-                                    >
-                                      <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
-                                        <ChefHat className="w-5 h-5 text-orange-600" />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="font-medium text-gray-900 truncate">{r.recipeName}</div>
-                                        {r.stats?.time && <div className="text-xs text-gray-500">{r.stats.time}</div>}
-                                      </div>
-                                    </button>
-                                  ))
-                              )}
-                              {!recipesLoading && recipes.length === 0 && (
-                                <div className="p-4 text-sm text-gray-500 text-center">
-                                  Noch keine Rezepte. Erstelle welche im Gourmet-Planer.
-                                </div>
-                              )}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => { setEssenInputMode('manual'); setTitle(''); setRecipeName(''); setSelectedRecipeResultId(null); setRecipeDropdownOpen(false); }}
-                      className="text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
-                    >
-                      <Pencil className="w-3.5 h-3.5" /> Freitext eingeben (z.B. Döner holen)
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={(e) => handleTitleChange(e.target.value)}
-                      placeholder="z.B. Döner holen, Pasta Carbonara"
-                      className="w-full p-4 pl-4 pr-4 text-left indent-0 text-lg font-medium rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
-                      style={{ textIndent: 0 }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setEssenInputMode('recipe')}
-                      className="text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
-                    >
-                      <ChefHat className="w-3.5 h-3.5" /> Aus meinen Rezepten wählen
-                    </button>
-                  </>
-                )}
-              </>
-            ) : (
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder={category === 'sport' ? 'z.B. Joggen, Yoga' : category === 'gesundheit' ? 'z.B. Zahnarzt, Arzttermin' : 'z.B. Team Call, Zahnarzt'}
-                className="w-full p-4 pl-4 pr-4 text-left indent-0 text-lg font-medium rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
-                style={{ textIndent: 0 }}
-                autoFocus
-              />
-            )}
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              placeholder={category === 'essen' ? 'z.B. Pasta Carbonara' : category === 'sport' ? 'z.B. Joggen, Yoga' : category === 'gesundheit' ? 'z.B. Zahnarzt, Arzttermin' : 'z.B. Team Call, Zahnarzt'}
+              className="w-full p-4 pl-4 pr-4 text-left indent-0 text-lg font-medium rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
+              style={{ textIndent: 0 }}
+              autoFocus
+            />
             {/* Smart Suggestions – aus Historie ähnlicher Events */}
-            {suggestions.length > 0 && category !== 'essen' && (
+            {suggestions.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {suggestions
                   .filter((s) => {
                     if (s.type === 'location' && category !== 'arbeit' && category !== 'privat' && category !== 'gesundheit') return false;
-                    if (s.type === 'recipe') return false; // Rezept-Vorschläge nur bei Kategorie Essen
+                    if (s.type === 'duration' && category === 'essen') return false;
+                    if (s.type === 'recipe' && category !== 'essen') return false;
                     return true;
                   })
                   .slice(0, 4)
@@ -737,28 +575,35 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
             )}
           </div>
 
-          {/* Kategorie-Picker – Pills (kompakt) */}
+          {/* Kategorie-Picker – Pills (Essen nur als Read-only bei Bearbeitung) */}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">Kategorie</label>
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((c) => {
-                const Icon = c.icon;
-                const active = category === c.id;
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setCategory(c.id)}
-                    className={cn(
-                      'inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all',
-                      active ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    )}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span>{c.label}</span>
-                  </button>
-                );
-              })}
+              {category === 'essen' ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium bg-orange-50 text-orange-700 border border-orange-200">
+                  <UtensilsCrossed className="w-4 h-4 shrink-0" />
+                  {ESSEN_READONLY_CONFIG.label}
+                </span>
+              ) : (
+                CATEGORIES.map((c) => {
+                  const Icon = c.icon;
+                  const active = category === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setCategory(c.id)}
+                      className={cn(
+                        'inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all',
+                        active ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      )}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span>{c.label}</span>
+                    </button>
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -843,6 +688,23 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
               ))}
             </div>
           </div>
+
+          {/* Rezept / Gericht (bei Essen) */}
+          {showRecipe && (
+            <div>
+              <label htmlFor="event-recipe" className="block text-sm font-medium text-gray-600 mb-2">
+                <UtensilsCrossed className="w-4 h-4 inline mr-1" /> Gericht / Rezept
+              </label>
+              <input
+                id="event-recipe"
+                type="text"
+                value={recipeName}
+                onChange={(e) => setRecipeName(e.target.value)}
+                placeholder="z.B. Pasta, Salat"
+                className="w-full p-4 pl-4 pr-4 text-left indent-0 rounded-2xl bg-gray-50 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors placeholder:text-gray-400 [text-indent:0]"
+              />
+            </div>
+          )}
 
           {/* Routine (bei Sport) */}
           {showRoutine && (
@@ -942,40 +804,18 @@ export function EventDetailSheet({ isOpen, onClose, date, defaultTime = '09:00',
           )}
 
           {!isAllDay && category === 'essen' && (
-            <div className="space-y-3">
-              <div>
-                <label htmlFor="event-time-essen" className="block text-sm font-medium text-gray-600 mb-2">
-                  <Clock className="w-4 h-4 inline mr-1" /> Uhrzeit
-                </label>
-                <div className="bg-gray-50 hover:bg-gray-100 rounded-2xl p-4 w-fit transition-colors">
-                  <input
-                    id="event-time-essen"
-                    type="time"
-                    value={time}
-                    onChange={(e) => handleTimeChange(e.target.value)}
-                    className="bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
-                  />
-                </div>
-              </div>
-              <div>
-                <span className="block text-sm font-medium text-gray-600 mb-2">Dauer</span>
-                <div className="flex flex-wrap gap-2">
-                  {DURATION_CHIPS.map((c) => (
-                    <button
-                      key={c.minutes}
-                      type="button"
-                      onClick={() => handleDurationChip(c.minutes)}
-                      className={cn(
-                        'px-4 py-2 rounded-full text-sm font-medium transition-all',
-                        durationMinutes === c.minutes
-                          ? 'bg-black text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      )}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
+            <div>
+              <label htmlFor="event-time" className="block text-sm font-medium text-gray-600 mb-2">
+                <Clock className="w-4 h-4 inline mr-1" /> Uhrzeit
+              </label>
+              <div className="bg-gray-50 hover:bg-gray-100 rounded-2xl p-4 w-fit transition-colors">
+                <input
+                  id="event-time"
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className="bg-transparent border-none p-0 text-gray-900 focus:ring-0 focus:outline-none [color-scheme:light]"
+                />
               </div>
             </div>
           )}
