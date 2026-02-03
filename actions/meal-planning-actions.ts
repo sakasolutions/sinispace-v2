@@ -6,6 +6,58 @@ import { isUserPremium } from '@/lib/subscription';
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { generateWeekRecipes } from './week-planning-ai';
 
+/** Multi-Meal: Slot pro Tag (Frühstück, Mittag, Abend, Snack) */
+export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+/** Ein Eintrag pro Mahlzeit (Rezept + Feedback) */
+export type MealEntry = {
+  recipeId?: string;
+  resultId: string;
+  feedback: 'positive' | 'negative' | null;
+  recipe?: any;
+  mealType?: MealSlot; // Default DINNER wenn nicht angegeben
+};
+
+/** Pro Tag bis zu 4 Slots – Backend-Struktur für planData */
+export type DayMeals = {
+  breakfast?: MealEntry;
+  lunch?: MealEntry;
+  dinner?: MealEntry;
+  snack?: MealEntry;
+};
+
+/** Prüft ob ein Wert das neue DayMeals-Format hat (Slots als Keys) */
+function isDayMeals(val: any): val is DayMeals {
+  if (!val || typeof val !== 'object') return false;
+  const keys = Object.keys(val);
+  return keys.some((k) => ['breakfast', 'lunch', 'dinner', 'snack'].includes(k));
+}
+
+/** Normalisiert planData aus der DB: Legacy (ein Objekt pro Tag) → DayMeals pro Tag */
+function normalizePlanDataToDayMeals(raw: Record<string, any>): Record<string, DayMeals> {
+  const out: Record<string, DayMeals> = {};
+  for (const [dateKey, entry] of Object.entries(raw)) {
+    if (!entry || typeof entry !== 'object') continue;
+    if (isDayMeals(entry)) {
+      out[dateKey] = entry as DayMeals;
+      continue;
+    }
+    // Legacy: ein Rezept pro Tag → als dinner speichern
+    if (entry.resultId != null) {
+      out[dateKey] = {
+        dinner: {
+          recipeId: entry.recipeId,
+          resultId: entry.resultId,
+          feedback: entry.feedback ?? null,
+          recipe: entry.recipe,
+          mealType: 'dinner',
+        },
+      };
+    }
+  }
+  return out;
+}
+
 // Meal Preferences speichern/aktualisieren
 export async function saveMealPreferences(preferences: {
   dietType?: string;
@@ -177,35 +229,35 @@ export async function autoPlanWeek(weekStart: Date, workspaceId?: string) {
     // Jedes Rezept hat bereits einen Tag zugewiesen (monday, tuesday, etc.)
     // Die Rezepte enthalten bereits das vollständige Recipe-Objekt
 
-    // Direktes Mapping: Jedes generierte Rezept hat bereits einen Tag zugewiesen
+    // Direktes Mapping: Jedes generierte Rezept hat bereits einen Tag zugewiesen (Multi-Meal: dinner pro Tag)
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
-    const plan: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe: any }> = {};
+    const plan: Record<string, DayMeals> = {};
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-    // Mappe generierte Rezepte direkt zu Tagen
     for (let i = 0; i < 7; i++) {
       const date = new Date(weekStart);
       date.setDate(date.getDate() + i);
       const dateKey = date.toISOString().split('T')[0];
       const dayName = days[i];
 
-      // Finde Rezept für diesen Tag
       const recipeForDay = recipes.find(r => r.recipe.day === dayName);
       if (recipeForDay) {
         plan[dateKey] = {
-          recipeId: recipeForDay.resultId,
-          resultId: recipeForDay.resultId,
-          feedback: null,
-          recipe: recipeForDay.recipe, // Vollständiges Recipe-Objekt mitgeben
+          dinner: {
+            recipeId: recipeForDay.resultId,
+            resultId: recipeForDay.resultId,
+            feedback: null,
+            recipe: recipeForDay.recipe,
+            mealType: 'dinner',
+          },
         };
       } else {
         console.warn(`[MEAL-PLANNING] ⚠️ Kein Rezept für ${dayName} gefunden`);
       }
     }
 
-    // Prüfe ob mindestens ein Tag geplant wurde
     if (Object.keys(plan).length === 0) {
       console.error('[MEAL-PLANNING] ❌ Keine Rezepte konnten zugeordnet werden');
       return { error: 'Die KI konnte keine Rezepte für die Woche zuordnen. Bitte versuche es erneut.' };
@@ -291,10 +343,12 @@ export async function getWeeklyPlan(weekStart: Date) {
       return null;
     }
 
-    console.log('[MEAL-PLANNING] ✅ Plan gefunden:', plan.id, 'mit', Object.keys(JSON.parse(plan.planData)).length, 'Tagen');
+    const rawPlanData = JSON.parse(plan.planData) as Record<string, any>;
+    const planData = normalizePlanDataToDayMeals(rawPlanData);
+    console.log('[MEAL-PLANNING] ✅ Plan gefunden:', plan.id, 'mit', Object.keys(planData).length, 'Tagen (Multi-Meal)');
     return {
       ...plan,
-      planData: JSON.parse(plan.planData),
+      planData,
     };
   } catch (error) {
     console.error('[MEAL-PLANNING] ❌ Error fetching weekly plan:', error);
@@ -302,8 +356,13 @@ export async function getWeeklyPlan(weekStart: Date) {
   }
 }
 
-// Feedback für Wochentag speichern
-export async function saveDayFeedback(weekStart: Date, dateKey: string, feedback: 'positive' | 'negative') {
+// Feedback für Wochentag + Slot speichern (Multi-Meal)
+export async function saveDayFeedback(
+  weekStart: Date,
+  dateKey: string,
+  feedback: 'positive' | 'negative',
+  mealType: MealSlot = 'dinner'
+) {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: 'Nicht angemeldet' };
@@ -323,27 +382,35 @@ export async function saveDayFeedback(weekStart: Date, dateKey: string, feedback
       return { error: 'Wochenplan nicht gefunden' };
     }
 
-    const planData = JSON.parse(plan.planData);
-    if (planData[dateKey]) {
-      planData[dateKey].feedback = feedback;
+    const rawPlanData = JSON.parse(plan.planData) as Record<string, any>;
+    const planData = normalizePlanDataToDayMeals(rawPlanData);
+
+    if (!planData[dateKey]) {
+      planData[dateKey] = {};
+    }
+    if (!planData[dateKey][mealType]) {
+      planData[dateKey][mealType] = { resultId: '', feedback: null, mealType };
+    }
+    planData[dateKey][mealType]!.feedback = feedback;
+
+    // Zähle positive Feedbacks über alle Tage und Slots
+    let totalFeedback = 0;
+    for (const day of Object.values(planData)) {
+      for (const slot of Object.values(day)) {
+        if (slot?.feedback === 'positive') totalFeedback++;
+      }
     }
 
-    // Zähle positive Feedbacks
-    const totalFeedback = Object.values(planData).filter(
-      (day: any) => day.feedback === 'positive'
-    ).length;
-
-    // WICHTIG: Speichere den gesamten Plan mit aktualisiertem Feedback
     await prisma.weeklyPlan.update({
       where: { id: plan.id },
       data: {
         planData: JSON.stringify(planData),
         totalFeedback,
-        updatedAt: new Date(), // Aktualisiere Timestamp
+        updatedAt: new Date(),
       },
     });
 
-    console.log(`[MEAL-PLANNING] ✅ Feedback für ${dateKey} gespeichert, Plan aktualisiert`);
+    console.log(`[MEAL-PLANNING] ✅ Feedback für ${dateKey}/${mealType} gespeichert`);
     return { success: true };
   } catch (error) {
     console.error('Error saving day feedback:', error);
@@ -370,7 +437,9 @@ export async function saveWeeklyPlan(weekStart: Date, planData: Record<string, a
     const weekEnd = new Date(normalizedWeekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
-    console.log('[MEAL-PLANNING] 💾 Speichere Plan für Woche:', normalizedWeekStart.toISOString().split('T')[0], 'mit', Object.keys(planData).length, 'Tagen');
+    // Normalisiere auf Multi-Meal (DayMeals pro Tag), falls Frontend noch Legacy sendet
+    const normalized = normalizePlanDataToDayMeals(planData);
+    console.log('[MEAL-PLANNING] 💾 Speichere Plan für Woche:', normalizedWeekStart.toISOString().split('T')[0], 'mit', Object.keys(normalized).length, 'Tagen (Multi-Meal)');
 
     await prisma.weeklyPlan.upsert({
       where: {
@@ -384,11 +453,11 @@ export async function saveWeeklyPlan(weekStart: Date, planData: Record<string, a
         workspaceId: workspaceId || null,
         weekStart: normalizedWeekStart,
         weekEnd: weekEnd,
-        planData: JSON.stringify(planData),
+        planData: JSON.stringify(normalized),
         autoPlanned: false,
       },
       update: {
-        planData: JSON.stringify(planData),
+        planData: JSON.stringify(normalized),
         updatedAt: new Date(),
       },
     });

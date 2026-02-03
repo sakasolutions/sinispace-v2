@@ -121,7 +121,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     loadData();
   }, []);
 
-  // Lade gespeicherten Wochenplan
+  // Lade gespeicherten Wochenplan (Multi-Meal: planData[dateKey] = { breakfast?, lunch?, dinner?, snack? })
   const loadPlan = useCallback(async () => {
     if (isAutoPlanning) {
       return;
@@ -130,30 +130,33 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     setIsLoadingPlan(true);
     try {
       const savedPlan = await getWeeklyPlan(currentWeek);
-      
+
       if (savedPlan && savedPlan.planData) {
+        const planData = savedPlan.planData as Record<string, { breakfast?: { recipe?: any; resultId: string; feedback?: string | null }; lunch?: { recipe?: any; resultId: string; feedback?: string | null }; dinner?: { recipe?: any; resultId: string; feedback?: string | null }; snack?: { recipe?: any; resultId: string; feedback?: string | null } }>;
         const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
-        const planData = savedPlan.planData as Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe?: any }>;
-        
-        for (const [dateKey, planEntry] of Object.entries(planData)) {
+
+        for (const [dateKey, dayMeals] of Object.entries(planData)) {
+          const slot = dayMeals?.dinner ?? dayMeals?.breakfast ?? dayMeals?.lunch ?? dayMeals?.snack;
+          if (!slot?.resultId) continue;
+          const planEntry = slot;
           if (planEntry.recipe && typeof planEntry.recipe === 'object' && planEntry.recipe.recipeName) {
             transformedPlan[dateKey] = {
               recipe: planEntry.recipe as Recipe,
               resultId: planEntry.resultId,
-              feedback: planEntry.feedback || null,
+              feedback: (planEntry.feedback === 'positive' || planEntry.feedback === 'negative' ? planEntry.feedback : null) as 'positive' | 'negative' | null,
             };
           } else {
-            const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
+            const recipeResult = myRecipes.find((r) => r.id === planEntry.resultId);
             if (recipeResult) {
               transformedPlan[dateKey] = {
                 recipe: recipeResult.recipe,
                 resultId: planEntry.resultId,
-                feedback: planEntry.feedback || null,
+                feedback: (planEntry.feedback === 'positive' || planEntry.feedback === 'negative' ? planEntry.feedback : null) as 'positive' | 'negative' | null,
               };
             }
           }
         }
-        
+
         setWeekPlan(transformedPlan);
       } else {
         setWeekPlan({});

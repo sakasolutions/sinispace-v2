@@ -42,6 +42,7 @@ model User {
   userShoppingLists       UserShoppingLists?
   shoppingListFrequentItems ShoppingListFrequentItem[]
   userCalendar            UserCalendar?
+  calendarEvents          CalendarEvent[]
 }
 
 model Account {
@@ -263,11 +264,34 @@ model Result {
   // Relationen
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  calendarEvents CalendarEvent[]
 
   @@index([userId, createdAt])
   @@index([workspaceId, createdAt])
   @@index([toolId, createdAt])
   @@index([createdAt])
+}
+
+// Kalender: Einzelne Events (Essen aus Wochenplaner, später ggf. Custom/Workouts)
+model CalendarEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  date      String   // YYYY-MM-DD
+  time      String   // HH:mm
+  eventType String   // 'meal' | später custom types
+  title     String?
+  recipeId  String?  // Legacy/optional
+  resultId  String?  // Verknüpfung zum Rezept (Result)
+  mealType  String?  // 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  isMeal    Boolean? @default(false)
+  servings  Int?
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Result? @relation(fields: [resultId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, date])
+  @@index([date, time])
 }
 
 // Meal Preferences: User-Präferenzen für Wochenplaner (Premium)
