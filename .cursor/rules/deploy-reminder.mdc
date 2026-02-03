@@ -1,0 +1,25 @@
+---
+description: Nach Code-Änderungen Git- und Server-Befehle ausgeben (nur bei echten Projektänderungen)
+alwaysApply: true
+---
+
+# Deploy-Reminder nach Änderungen
+
+**Nur anwenden, wenn am Projekt tatsächlich etwas geändert wurde** (Dateien bearbeitet/erstellt/gelöscht). Nicht bei reinen Diskussionen, Fragen oder Erklärungen ohne Code-Änderung.
+
+Nach jeder Änderung am Projekt am Ende der Antwort ausgeben:
+
+## Git (lokal)
+
+```bash
+git add .
+git status
+git commit -m "Beschreibung der Änderung"
+git push origin main
+```
+
+## Server
+
+```bash
+cd /var/www/sinispace-v2 && git pull origin main && npm run build && pm2 restart sinispace
+```
