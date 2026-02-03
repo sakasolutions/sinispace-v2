@@ -166,14 +166,19 @@ export function CustomSelect({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`appearance-none w-full rounded-xl px-4 py-3 text-sm transition-all min-h-[44px] flex justify-between items-center ${
+        className={`appearance-none w-full rounded-xl px-4 py-3 text-sm transition-all min-h-[44px] flex justify-between items-center relative ${
           theme === 'light'
             ? `border border-gray-200 bg-white ${value ? 'text-gray-900' : 'text-gray-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-orange-200 hover:bg-orange-50/50 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500'}`
             : `border border-white/10 bg-zinc-900/50 ${value ? 'text-white' : 'text-zinc-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50'}`
         } ${triggerClassName ?? ''}`}
       >
+        {Icon && triggerClassName && (
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-400 pointer-events-none">
+            <Icon className="w-5 h-5" />
+          </span>
+        )}
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {Icon && <Icon className={`w-4 h-4 flex-shrink-0 ${theme === 'light' ? 'text-gray-500' : ''}`} />}
+          {Icon && !triggerClassName && <Icon className={`w-4 h-4 flex-shrink-0 ${theme === 'light' ? 'text-gray-500' : ''}`} />}
           <span className="truncate">
             {selectedOption?.label || placeholder}
           </span>

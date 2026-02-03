@@ -3,7 +3,7 @@
 import { generateFitnessPlan } from '@/actions/fitness-ai';
 import { useActionState } from 'react';
 import { useState } from 'react';
-import { Dumbbell, Loader2, CheckCircle2 } from 'lucide-react';
+import { Dumbbell, Loader2, CheckCircle2, Sparkles, Target, LayoutGrid } from 'lucide-react';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
@@ -19,7 +19,7 @@ type FitnessPlan = {
 };
 
 const filledInputTriggerClass =
-  '!border-0 bg-gray-100 rounded-2xl px-6 py-5 text-lg font-medium min-h-[52px] focus:!ring-2 focus:!ring-violet-500 focus:!ring-offset-0 transition-all';
+  '!border-0 bg-gray-100 rounded-2xl pl-12 pr-6 py-5 text-lg font-medium min-h-[52px] focus:!ring-2 focus:!ring-violet-500 focus:!ring-offset-0 transition-all';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -123,8 +123,17 @@ export default function FitnessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+    <div className="min-h-screen bg-gray-50 relative overflow-x-hidden">
+      {/* Ambient Background: zwei weiche Farb-Blobs */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        aria-hidden
+      >
+        <div className="absolute top-0 left-0 w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-violet-300/30 to-fuchsia-300/30 blur-[150px] -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-[800px] h-[800px] rounded-full bg-gradient-to-tl from-orange-200/30 to-rose-200/30 blur-[150px] translate-x-1/2 translate-y-1/2" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
@@ -138,18 +147,19 @@ export default function FitnessPage() {
           <div
             className="bg-white rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] mt-12 lg:mt-20 p-8 pt-12 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
           >
-            {/* Visual Hook: Illustration Placeholder */}
-            <div className="w-full h-48 bg-gray-100 rounded-3xl flex flex-col items-center justify-center mb-8 text-gray-400">
-              <Dumbbell className="w-16 h-16 mb-2 opacity-60" />
-              <span className="text-sm font-medium">Illustration hier</span>
+            {/* Premium Visual Hook */}
+            <div className="w-48 h-48 mx-auto mb-10 rounded-[40px] bg-gradient-to-bl from-violet-100 to-white shadow-xl shadow-violet-100/50 flex items-center justify-center border border-white">
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 flex items-center justify-center">
+                <Sparkles className="w-14 h-14 text-white" />
+              </div>
             </div>
 
             {/* Typografie */}
             <h1 className="text-4xl font-black text-gray-900 mb-3 text-center">
-              Dein Personal Coach
+              Hi, ich bin Sini! 👋
             </h1>
             <p className="text-lg text-gray-500 text-center leading-relaxed mb-10">
-              Ich helfe dir, deine Ziele zu erreichen. Lass uns starten!
+              Dein persönlicher AI-Coach für Fitness & Ernährung. Lass uns deine Ziele angehen!
             </p>
 
             <form action={formAction} className="space-y-5">
@@ -162,6 +172,7 @@ export default function FitnessPage() {
                   name="goal"
                   theme="light"
                   triggerClassName={filledInputTriggerClass}
+                  icon={Target}
                 />
               </div>
 
@@ -174,6 +185,7 @@ export default function FitnessPage() {
                   name="focus"
                   theme="light"
                   triggerClassName={filledInputTriggerClass}
+                  icon={LayoutGrid}
                 />
               </div>
 
