@@ -546,10 +546,11 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
             { id: 'lunch', label: 'Mittag', icon: '🥗', borderClass: 'border-l-emerald-400', bgClass: 'from-emerald-50 to-green-50' },
             { id: 'dinner', label: 'Abend', icon: '🍝', borderClass: 'border-l-orange-500', bgClass: 'from-orange-50 to-rose-50' },
           ];
+          const motionVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
           return (
             <motion.div
               key={dateKey}
-              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
+              variants={motionVariants}
               transition={{ duration: 0.25, delay: index * 0.05 }}
               className="rounded-2xl overflow-hidden"
             >
