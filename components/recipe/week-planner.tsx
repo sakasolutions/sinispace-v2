@@ -411,7 +411,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   const dateRangeStr = `${weekDays[0].date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })} – ${weekDays[6].date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 
   return (
-    <div className="pb-28">
+    <div className="pb-40">
       {/* Navigation: Glass-Button Cockpit + Info */}
       <div className="flex items-center justify-between mb-6">
         {onBackToCockpit ? (
@@ -686,9 +686,9 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         </div>
       )}
 
-      {/* Sticky Footer: Woche auto-planen + Plan speichern */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-sm border-t border-gray-100">
-        <div className="max-w-2xl mx-auto flex gap-3">
+      {/* Sticky Footer: über Navbar schwebend (bottom-nav ~80px), mit Schatten */}
+      <div className="fixed bottom-[90px] left-0 right-0 z-50 p-4 pb-0 bg-transparent pointer-events-none">
+        <div className="max-w-2xl mx-auto pointer-events-auto flex gap-3 rounded-2xl bg-white/95 backdrop-blur-md border border-gray-100 shadow-lg p-4">
           <button
             type="button"
             onClick={handleAutoPlan}
