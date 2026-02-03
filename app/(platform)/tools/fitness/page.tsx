@@ -382,6 +382,7 @@ export default function FitnessPage() {
           )}
           </div>
         </div>
+        </div>
       </div>
     </div>
   );
