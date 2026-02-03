@@ -30,6 +30,7 @@ import {
   Briefcase,
   ShoppingCart,
   FileImage,
+  Sun,
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
 
@@ -368,6 +369,14 @@ function getHeaderContent(date: Date): { headline: string; subline: string } {
   };
 }
 
+/** Zeitbasiertes Greeting für Sunrise-Header */
+function getSunriseGreeting(): { greeting: string; subline: string } {
+  const h = new Date().getHours();
+  if (h < 12) return { greeting: 'Guten Morgen, Sini! 👋', subline: 'Alles im Griff für heute.' };
+  if (h < 18) return { greeting: 'Guten Tag, Sini! 👋', subline: 'Zeit für Fokus.' };
+  return { greeting: 'Guten Abend, Sini! 👋', subline: 'Alles im Griff für heute.' };
+}
+
 // PREMIUM HIGH-FIDELITY: Helper-Funktion für Akzentfarben (RGB-Werte)
 const getAccentColorRGB = (accentColor: string): { r: number; g: number; b: number } => {
   const colorMap: Record<string, { r: number; g: number; b: number }> = {
@@ -673,7 +682,7 @@ export default function DashboardClient() {
     });
   }, [usageStats]);
 
-  const headerContent = getHeaderContent(new Date());
+  const sunriseGreeting = getSunriseGreeting();
 
   return (
     <div
@@ -709,18 +718,25 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Main Container: Header + Content */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32">
-        {/* Clean Header: Greeting + Date (keine Navigation hier) */}
-        <header className="pt-[max(3rem,env(safe-area-inset-top))] md:pt-12 pb-6 md:pb-8 border-b border-gray-200/50 mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tighter">
-            {headerContent.headline}
-          </h1>
-          <p className="text-sm text-gray-400 font-medium mt-1">
-            {headerContent.subline}
-          </p>
-        </header>
+      {/* Sunrise Hero Header */}
+      <div className="relative z-[1] w-full h-[240px] sm:h-[280px] md:h-[320px] bg-gradient-to-br from-orange-400 via-rose-500 to-purple-600 rounded-b-[40px] overflow-hidden">
+        <div className="absolute inset-0 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
+              {sunriseGreeting.greeting}
+            </h1>
+            <p className="text-white/90 text-sm sm:text-base mt-1 font-medium">
+              {sunriseGreeting.subline}
+            </p>
+          </div>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none" aria-hidden>
+            <Sun className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 text-white" />
+          </div>
+        </div>
+      </div>
 
+      {/* Main Container: Overlapping Content (überlappt den Header) */}
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32 -mt-24">
         {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
         {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
@@ -739,7 +755,7 @@ export default function DashboardClient() {
                       key={tool.id}
                       className={cn(
                         'group relative flex flex-col items-center text-center min-h-[44px]',
-                        'bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm',
+                        'bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-xl',
                         heroGlow ?? 'shadow-sm',
                         'hover:bg-white/90 hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300',
                         'p-5 min-h-[160px]',
@@ -793,7 +809,7 @@ export default function DashboardClient() {
                           key={tool.id}
                           className={cn(
                             'group relative flex flex-col items-center text-center min-h-[44px]',
-                            'bg-white/70 backdrop-blur-xl rounded-xl border border-white/40 shadow-sm',
+                            'bg-white/80 backdrop-blur-xl rounded-xl border border-white/60 shadow-xl',
                             'hover:bg-white/90 hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300',
                             'p-4 min-h-[140px]',
                             tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
