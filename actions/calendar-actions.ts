@@ -39,7 +39,6 @@ export type CalendarEvent =
       slot: 'breakfast' | 'lunch' | 'dinner' | 'snack';
       date: string;
       time: string;
-      endTime?: string;
       /** DB-Rezept (Recipe.id) – Kalender weiß: "Ich bin die Lasagne aus der DB" */
       recipeId?: string;
       resultId?: string;
@@ -231,7 +230,8 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
       dinner: '19:00',
     };
 
-    const rows = planData.map((entry) => ({
+    type CreateInput = Parameters<typeof prisma.calendarEvent.createMany>[0]['data'];
+    const rows: CreateInput = planData.map((entry) => ({
       userId,
       date: entry.date,
       time: entry.mealType ? defaultTimes[entry.mealType] ?? '12:00' : '12:00',
@@ -241,9 +241,8 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
       mealType: entry.mealType ?? 'dinner',
       resultId: entry.resultId,
       isMeal: true,
-    }));
-    // Cast für Server-Build: Prisma-Client kann ältere Typen ohne resultId/isMeal haben
-    await prisma.calendarEvent.createMany({ data: rows as never });
+    } as CreateInput[number]));
+    await prisma.calendarEvent.createMany({ data: rows });
 
     revalidatePath('/calendar');
     revalidatePath('/tools/recipe');

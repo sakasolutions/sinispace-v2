@@ -334,9 +334,13 @@ export default function RecipePage() {
     },
   ];
 
+  const showPageBackButton = showCockpit || activeTab !== 'week-planner';
+
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-      <BackButton className="text-gray-600 hover:text-gray-900 mb-4" />
+      {showPageBackButton && (
+        <BackButton className="text-gray-600 hover:text-gray-900 mb-4" />
+      )}
 
       {/* Cockpit (Landing) – Default-Ansicht */}
       {showCockpit ? (
@@ -361,6 +365,13 @@ export default function RecipePage() {
             }}
           />
         </>
+      ) : activeTab === 'week-planner' ? (
+        /* Planer-Modus: nur WeekPlanner, keine Tabs / kein doppelter Zurück-Text */
+        <WeekPlanner
+          myRecipes={myRecipes}
+          workspaceId={undefined}
+          onBackToCockpit={() => setShowCockpit(true)}
+        />
       ) : (
         <>
           <button
@@ -379,7 +390,7 @@ export default function RecipePage() {
             </p>
           </div>
 
-          {/* Tab-System – klare Kontraste, inaktive nicht blass */}
+          {/* Tab-System – nur bei Create / Meine Rezepte, nicht im Wochenplaner */}
           <div className="mb-6 flex gap-2 overflow-x-auto scrollbar-hide pb-1">
             {(['create', 'my-recipes', 'week-planner'] as const).map((tab) => {
               const labels = { create: 'Neues Rezept', 'my-recipes': 'Meine Rezepte', 'week-planner': 'Wochenplaner' };
@@ -810,13 +821,6 @@ export default function RecipePage() {
             )}
           </div>
         )
-            ) : activeTab === 'week-planner' ? (
-              /* Wochenplaner Tab */
-              <WeekPlanner
-                myRecipes={myRecipes}
-                workspaceId={undefined}
-                onBackToCockpit={() => setShowCockpit(true)}
-              />
             ) : null}
 
         </>

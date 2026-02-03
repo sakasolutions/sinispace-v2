@@ -402,18 +402,22 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   const kw = getWeekNumber(weekDays[0].date);
   const formatDayHeader = (date: Date) =>
     date.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+  const plannedCount = weekDays.filter((d) => d.recipe).length;
+  const dateRangeStr = `${weekDays[0].date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })} – ${weekDays[6].date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 
   return (
     <div className="pb-28">
-      {/* Header: Breadcrumb + Info */}
-      <div className="flex items-center justify-between mb-4">
+      {/* Navigation: Glass-Button Cockpit + Info */}
+      <div className="flex items-center justify-between mb-6">
         {onBackToCockpit ? (
           <button
             type="button"
             onClick={onBackToCockpit}
-            className="text-sm font-medium text-violet-600 hover:text-violet-700 flex items-center gap-1"
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium bg-white/80 backdrop-blur-md shadow-sm border border-gray-100 text-gray-700 hover:bg-white transition-colors"
+            aria-label="Zurück zum Cockpit"
           >
-            🏠 Cockpit
+            <ChevronLeft className="w-4 h-4 shrink-0" />
+            Cockpit
           </button>
         ) : (
           <span />
@@ -421,34 +425,51 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         <button
           type="button"
           onClick={() => setShowInfoModal(true)}
-          className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
           aria-label="Info"
         >
           <Info className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Titel + Woche-Navigation */}
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <button
-          type="button"
-          onClick={() => navigateWeek('prev')}
-          className="p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
-          aria-label="Vorherige Woche"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <h1 className="text-lg font-bold text-gray-900 text-center shrink-0">
-          Dein Wochenplan KW {kw}
-        </h1>
-        <button
-          type="button"
-          onClick={() => navigateWeek('next')}
-          className="p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
-          aria-label="Nächste Woche"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
+      {/* Stage: Titel + Subtitle + Fortschritt + Woche-Navigation (größerer Bereich) */}
+      <div className="mb-10 pt-2 pb-4">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
+              Dein Wochenplan
+            </h1>
+            <p className="text-base text-gray-500 mt-2">
+              KW {kw} • {dateRangeStr}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1.5 text-sm font-semibold bg-white/90 border border-gray-100 shadow-sm ring-2 ring-violet-200/80">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white text-xs font-bold">
+                {plannedCount}
+              </span>
+              <span className="bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent">/7 geplant</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => navigateWeek('prev')}
+                className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                aria-label="Vorherige Woche"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigateWeek('next')}
+                className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                aria-label="Nächste Woche"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Trial Info */}

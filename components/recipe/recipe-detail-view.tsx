@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus, CalendarPlus } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
-import { PlanToCalendarModal } from '@/components/recipe/plan-to-calendar-modal';
 
 type Recipe = {
   recipeName: string;
@@ -34,7 +33,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   const [servings, setServings] = useState(originalServings);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isAddToListOpen, setIsAddToListOpen] = useState(false);
-  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string } | null>(null);
   const [showMissingIngredients, setShowMissingIngredients] = useState(false);
   const [cookingMode, setCookingMode] = useState(false);
@@ -274,7 +272,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
       <div className="mb-8 pb-8 border-b border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900">Rezept anpassen</h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
             {servings !== originalServings && (
               <button
                 onClick={() => setServings(originalServings)}
@@ -285,13 +283,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
                 Original
               </button>
             )}
-            <button
-              onClick={() => setIsPlanModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white font-medium transition-colors flex items-center gap-2 shadow-lg shadow-violet-500/30"
-            >
-              <CalendarPlus className="w-4 h-4" />
-              In Kalender eintragen
-            </button>
             <button
               onClick={() => setCookingMode(true)}
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/30"
@@ -437,29 +428,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           }}
         />
       )}
-
-      {/* Planungs-Modal: In Kalender eintragen + Einkaufsliste */}
-      <PlanToCalendarModal
-        isOpen={isPlanModalOpen}
-        onClose={() => setIsPlanModalOpen(false)}
-        recipeName={recipe.recipeName}
-        resultId={resultId}
-        ingredients={adjustedShoppingList?.length ? adjustedShoppingList : adjustedIngredients}
-        defaultServings={servings}
-        onSuccess={(message) => setToast({ message })}
-      />
-
-      {/* Sticky CTA Mobile: In Kalender eintragen */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur border-t border-gray-100 pb-[env(safe-area-inset-bottom)] z-40">
-        <button
-          onClick={() => setIsPlanModalOpen(true)}
-          className="w-full py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-violet-600 to-pink-500 shadow-lg flex items-center justify-center gap-2"
-        >
-          <CalendarPlus className="w-5 h-5" />
-          In Kalender eintragen
-        </button>
-      </div>
-      <div className="md:hidden h-20 shrink-0" aria-hidden />
 
       {toast && (
         <div

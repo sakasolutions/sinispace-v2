@@ -42,9 +42,6 @@ model User {
   userShoppingLists       UserShoppingLists?
   shoppingListFrequentItems ShoppingListFrequentItem[]
   userCalendar            UserCalendar?
-  recipes                 Recipe[]
-  calendarEvents          CalendarEvent[]
-  shoppingLists           ShoppingList[]
 }
 
 model Account {
@@ -329,7 +326,7 @@ model UserShoppingLists {
   @@index([userId])
 }
 
-// Kalender: Events (Custom + Meals + Workouts) pro User (Legacy JSON)
+// Kalender: Events (Custom + Meals + Workouts) pro User
 model UserCalendar {
   id         String   @id @default(cuid())
   userId     String   @unique
@@ -339,81 +336,6 @@ model UserCalendar {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-}
-
-// Gourmet-Planer: Rezept (Titel, Zutaten, Bild) – Verknüpfung zum Kalender
-model Recipe {
-  id          String   @id @default(cuid())
-  userId      String
-  title       String
-  ingredients String?  // JSON: Zutatenliste
-  imageUrl    String?
-  content     String?  // Vollständiges Rezept-JSON (z. B. aus Result)
-  resultId    String?  // Optional: Verweis auf Result.id (Gourmet-Planer)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  events CalendarEvent[]
-
-  @@index([userId])
-  @@index([resultId])
-}
-
-// Kalender-Event (DB-Modell) – Gourmet + Kalender nutzen dieselben Daten
-model CalendarEvent {
-  id         String   @id @default(cuid())
-  userId     String
-  date       String   // YYYY-MM-DD
-  time       String   // HH:mm
-  eventType  String   // 'custom' | 'meal' | 'workout'
-  title      String?
-  recipeId   String?  // Optional: Relation zu Recipe
-  isMeal     Boolean  @default(false) // true = Essen-Event (Kategorie Orange)
-  mealType   String?  // 'breakfast' | 'lunch' | 'dinner' | 'snack'
-  servings   Int?     // Geplante Portionen
-  resultId   String?  // Optional: Verweis auf Result (Gourmet/Wochenplaner)
-  dataJson   String?  // Restliche Event-Daten als JSON
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipe Recipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([userId, date])
-  @@index([recipeId])
-  @@index([resultId])
-}
-
-// Einkaufsliste (Tabelle) – pro User mehrere Listen
-model ShoppingList {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items ShoppingItem[]
-
-  @@index([userId])
-}
-
-// Einkaufslisten-Position
-model ShoppingItem {
-  id             String   @id @default(cuid())
-  shoppingListId String
-  name           String
-  amount         Float?
-  unit           String?
-  isChecked      Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  shoppingList ShoppingList @relation(fields: [shoppingListId], references: [id], onDelete: Cascade)
-
-  @@index([shoppingListId])
 }
 
 // Smart History: häufig gekaufte Items pro User (Quick-Add & Type-Ahead)
