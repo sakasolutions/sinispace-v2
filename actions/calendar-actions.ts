@@ -230,8 +230,9 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
       dinner: '19:00',
     };
 
-    type CreateInput = Parameters<typeof prisma.calendarEvent.createMany>[0]['data'];
-    const rows: CreateInput = planData.map((entry) => ({
+    type CreateManyArg = NonNullable<Parameters<typeof prisma.calendarEvent.createMany>[0]>;
+    type CreateRow = CreateManyArg['data'] extends (infer R)[] ? R : CreateManyArg['data'];
+    const rows: CreateRow[] = planData.map((entry) => ({
       userId,
       date: entry.date,
       time: entry.mealType ? defaultTimes[entry.mealType] ?? '12:00' : '12:00',
@@ -241,7 +242,7 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
       mealType: entry.mealType ?? 'dinner',
       resultId: entry.resultId,
       isMeal: true,
-    } as CreateInput[number]));
+    } as CreateRow));
     await prisma.calendarEvent.createMany({ data: rows });
 
     revalidatePath('/calendar');
