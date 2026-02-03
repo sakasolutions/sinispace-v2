@@ -27,7 +27,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full bg-gray-900 text-white rounded-2xl py-5 font-bold text-lg shadow-lg hover:bg-gray-800 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2 min-h-[56px] touch-manipulation transition-all"
+      className="w-full bg-gray-900 text-white rounded-2xl py-5 font-bold text-lg shadow-lg hover:bg-gray-800 hover:scale-105 active:scale-[0.98] disabled:opacity-70 disabled:hover:scale-100 flex items-center justify-center gap-2 min-h-[56px] touch-manipulation transition-transform duration-200"
     >
       {pending ? (
         <>
@@ -131,82 +131,83 @@ export default function FitnessPage() {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gray-50 relative overflow-x-hidden">
+    <div className="min-h-screen min-h-[100dvh] bg-gray-50 relative overflow-x-hidden scrollbar-hide">
       {/* 1. Ambient Background: zwei weiche Orbs */}
       <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
         <div className="absolute top-0 left-0 w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-violet-400 to-fuchsia-400 opacity-40 blur-3xl -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-[800px] h-[800px] rounded-full bg-gradient-to-tl from-orange-300 to-rose-300 opacity-40 blur-3xl translate-x-1/2 translate-y-1/2" />
       </div>
 
-      <div className="relative z-10 flex flex-col lg:flex-row lg:gap-8 max-w-7xl mx-auto w-full min-h-screen px-4 sm:px-6 lg:px-8 pb-8 pb-[env(safe-area-inset-bottom)]">
-        {/* Linke Spalte: Floating Islands + Action Sheet */}
-        <div className="flex-1 flex flex-col lg:max-h-screen min-w-0">
-          <div className="flex-shrink-0 pt-4 px-4 sm:px-6">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
-              aria-label="Zurück"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Zurück
-            </Link>
-          </div>
-
-          {/* 2. Floating Header (Greeting Pill) */}
-          <div className="flex-shrink-0 mt-8 sm:mt-12 ml-4 sm:ml-6">
-            <div className="bg-white/80 backdrop-blur-md rounded-full px-4 py-2.5 shadow-sm border border-white/50 inline-flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-                <User className="w-4 h-4 text-violet-600" />
-              </div>
-              <span className="text-gray-800 font-semibold text-sm sm:text-base">Hi, bereit fürs Training?</span>
+      <div className="relative z-10 max-w-6xl mx-auto w-full min-h-screen px-4 sm:px-6 lg:px-8 pb-[140px] lg:pb-12">
+        {/* Mobile: alles untereinander | Desktop: 2-Spalten (Sticky links, Scroll rechts) */}
+        <div className="flex flex-col lg:grid lg:grid-cols-[1fr,1fr] lg:gap-8 lg:min-h-screen">
+          {/* Linke Spalte (Desktop: Sticky – nur Pill + Hero) */}
+          <div className="lg:sticky lg:top-0 lg:self-start lg:max-h-screen lg:flex lg:flex-col lg:pt-8">
+            <div className="flex-shrink-0 pt-4 lg:pt-0">
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
+                aria-label="Zurück"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Zurück
+              </Link>
             </div>
-          </div>
-
-          {/* 3. Hero Card (Visual Anchor) */}
-          <div className="flex-shrink-0 mx-4 sm:mx-6 mt-6">
-            <div className="aspect-[4/3] max-h-[280px] sm:max-h-[320px] rounded-[32px] bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-xl shadow-violet-300/50 relative overflow-hidden">
-              <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-between">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Dein Personal Plan</h1>
-                  <p className="text-white/80 text-sm sm:text-base mt-1">AI-basiert & maßgeschneidert</p>
+            <div className="flex-shrink-0 mt-8 sm:mt-12 ml-0 sm:ml-2">
+              <div className="bg-white/80 backdrop-blur-md rounded-full px-4 py-2.5 shadow-sm border border-white/50 inline-flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                  <User className="w-4 h-4 text-violet-600" />
                 </div>
-                <div className="absolute bottom-0 right-0 w-32 h-32 sm:w-40 sm:h-40 -translate-y-4 translate-x-4 sm:translate-x-6 opacity-90">
-                  <Bot className="w-full h-full text-white/90" />
-                </div>
+                <span className="text-gray-800 font-semibold text-sm sm:text-base">Hi, bereit fürs Training?</span>
               </div>
             </div>
-          </div>
-
-          {/* 4. Quick-Select Dock (Icon Row) */}
-          <div className="flex-shrink-0 mt-6 px-4 sm:px-6">
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 scrollbar-hide">
-              {quickSelectDock.map(({ id, label, value, icon: Icon }) => {
-                const isActive = id === dockSelection;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => {
-                      setGoal(value);
-                      setDockSelection(id);
-                    }}
-                    className={`flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all touch-manipulation ${
-                      isActive
-                        ? 'bg-gray-900 text-white shadow-lg'
-                        : 'bg-white shadow-sm border border-gray-100 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-violet-500'}`} />
-                    <span className="text-[10px] sm:text-xs font-medium leading-tight">{label}</span>
-                  </button>
-                );
-              })}
+            <div className="flex-shrink-0 mx-0 sm:mx-2 mt-6 lg:mt-8">
+              <div className="aspect-[4/3] max-h-[280px] sm:max-h-[320px] lg:max-h-[360px] rounded-[32px] bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-xl shadow-violet-300/50 relative overflow-hidden">
+                <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-between">
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Dein Personal Plan</h1>
+                    <p className="text-white/80 text-sm sm:text-base mt-1">AI-basiert & maßgeschneidert</p>
+                  </div>
+                  <div className="absolute bottom-0 right-0 w-32 h-32 sm:w-40 sm:h-40 -translate-y-4 translate-x-4 sm:translate-x-6 opacity-90">
+                    <Bot className="w-full h-full text-white/90" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* 5. Action Sheet (Bottom) */}
-          <div className="flex-1 min-h-0 mt-6 lg:mt-8 flex flex-col">
-            <div className="bg-white rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] p-6 sm:p-8 flex-1 overflow-y-auto">
+          {/* Rechte Spalte (Desktop: scrollbar) – Dock + Action Sheet */}
+          <div className="flex-1 flex flex-col min-w-0 lg:overflow-y-auto lg:max-h-screen scrollbar-hide lg:pt-8">
+            {/* 4. Quick-Select Dock */}
+            <div className="flex-shrink-0 mt-6 lg:mt-0 px-0">
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 scrollbar-hide">
+                {quickSelectDock.map(({ id, label, value, icon: Icon }) => {
+                  const isActive = id === dockSelection;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => {
+                        setGoal(value);
+                        setDockSelection(id);
+                      }}
+                      className={`flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-transform duration-200 touch-manipulation hover:scale-105 ${
+                        isActive
+                          ? 'bg-gray-900 text-white shadow-lg'
+                          : 'bg-white shadow-sm border border-gray-100 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-violet-500'}`} />
+                      <span className="text-[10px] sm:text-xs font-medium leading-tight">{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 5. Action Sheet (Bottom) */}
+            <div className="flex-1 min-h-0 mt-6 lg:mt-8 flex flex-col">
+              <div className="bg-white rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] p-6 sm:p-8 flex-1 overflow-y-auto scrollbar-hide min-h-0">
               <form action={formAction} className="space-y-4 sm:space-y-5">
                 <input type="hidden" name="goal" value={goal} />
                 <div>
@@ -226,7 +227,7 @@ export default function FitnessPage() {
                   <div className="flex flex-wrap gap-2">
                     {levelOptions.map((opt) => (
                       <button key={opt.id} type="button" onClick={() => setLevel(opt.value)}
-                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all hover:scale-105 ${
                           level === opt.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >{opt.label}</button>
@@ -239,7 +240,7 @@ export default function FitnessPage() {
                   <div className="flex flex-wrap gap-2">
                     {durationOptions.map((min) => (
                       <button key={min} type="button" onClick={() => setDuration(min)}
-                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all hover:scale-105 ${
                           duration === min ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >{min} Min</button>
@@ -252,7 +253,7 @@ export default function FitnessPage() {
                   <div className="flex flex-wrap gap-2">
                     {equipmentOptions.map((opt) => (
                       <button key={opt.id} type="button" onClick={() => toggleEquipment(opt.value)}
-                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all hover:scale-105 ${
                           equipment.includes(opt.value) ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >{opt.label}</button>
@@ -265,7 +266,7 @@ export default function FitnessPage() {
                   <div className="flex flex-wrap gap-2">
                     {constraintOptions.map((opt) => (
                       <button key={opt.id} type="button" onClick={() => toggleConstraint(opt.value)}
-                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all hover:scale-105 ${
                           constraints.includes(opt.value) ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >{opt.label}</button>
@@ -278,7 +279,7 @@ export default function FitnessPage() {
                   <div className="flex flex-wrap gap-2">
                     {energyOptions.map((opt) => (
                       <button key={opt.id} type="button" onClick={() => setEnergy(opt.value)}
-                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all hover:scale-105 ${
                           energy === opt.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >{opt.label}</button>
@@ -295,9 +296,9 @@ export default function FitnessPage() {
           </div>
         </div>
 
-        {/* Rechte Spalte: Ergebnis (Desktop) / unter dem Sheet (Mobile) */}
-        <div className="flex-shrink-0 w-full lg:w-[420px] lg:max-h-screen mt-6 lg:mt-0">
-          <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] sm:shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 min-h-[280px] sm:min-h-[400px] overflow-hidden h-full">
+        {/* Ergebnis (Mobile: unter Sheet | Desktop: eigene Zeile volle Breite) */}
+        <div className="flex-shrink-0 w-full lg:col-span-2 mt-6 lg:mt-8">
+          <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] sm:shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 min-h-[280px] sm:min-h-[400px] overflow-hidden overflow-y-auto scrollbar-hide max-h-[70vh] lg:max-h-none">
             {state?.result && state.result.includes('🔒 Premium Feature') ? (
               <div className="p-6">
                 <div className="prose prose-sm max-w-none text-gray-700">
