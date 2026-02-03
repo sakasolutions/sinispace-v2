@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, CheckCircle2, Info, ChevronDown, ChefHat, Trash2, Repeat } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { PremiumOnboardingModal } from './premium-onboarding-modal';
@@ -402,6 +403,10 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   const kw = getWeekNumber(weekDays[0].date);
   const formatDayHeader = (date: Date) =>
     date.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+  const formatWeekdaySlot = (date: Date) =>
+    date.toLocaleDateString('de-DE', { weekday: 'short' }).slice(0, 2).toUpperCase();
+  const formatDateSmall = (date: Date) =>
+    date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
   const plannedCount = weekDays.filter((d) => d.recipe).length;
   const dateRangeStr = `${weekDays[0].date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })} – ${weekDays[6].date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 
@@ -482,42 +487,83 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         </div>
       )}
 
-      {/* Vertical Stack: 7 Tage als Accordion-Karten */}
-      <div className="space-y-3">
-        {weekDays.map((day) => {
+      {/* Vertical Stack: 7 Tage als Slots mit Stagger-Animation */}
+      <motion.div
+        className="space-y-3"
+        initial="hidden"
+        animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+      >
+        {weekDays.map((day, index) => {
           const dateKey = day.dateKey;
           const isOpen = openDay === dateKey;
           return (
-            <div
+            <motion.div
               key={dateKey}
-              className="rounded-3xl bg-white border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden"
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              transition={{ duration: 0.25, delay: index * 0.05 }}
+              className="rounded-2xl overflow-hidden"
             >
               <button
                 type="button"
-                onClick={() => setOpenDay(isOpen ? null : dateKey)}
-                className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-gray-50/80 transition-colors"
+                onClick={() =>
+                  day.recipe
+                    ? setOpenDay(isOpen ? null : dateKey)
+                    : (setSelectedDay(dateKey), setOpenDay(null))
+                }
+                className="w-full flex items-stretch gap-3 text-left rounded-2xl overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
               >
-                <span className="font-semibold text-gray-900">
-                  {formatDayHeader(day.date)}
-                </span>
-                <span className="flex items-center gap-2 min-w-0">
+                {/* Datums-Spalte: Wochentag + Datum */}
+                <div className="flex flex-col justify-center shrink-0 w-14 sm:w-16 py-3 pl-3">
+                  <span className="text-gray-800 font-black text-xl leading-tight uppercase tracking-tight">
+                    {formatWeekdaySlot(day.date)}
+                  </span>
+                  <span className="text-gray-400 text-xs font-medium mt-0.5">
+                    {formatDateSmall(day.date)}
+                  </span>
+                </div>
+
+                {/* Slot-Bereich: Empty oder Filled */}
+                <div className="flex-1 min-w-0 flex items-center">
                   {day.recipe ? (
-                    <span className="text-sm text-gray-600 truncate">
-                      {day.recipe.recipe.recipeName}
-                    </span>
+                    /* Filled State: satt wirkende Vorschau */
+                    <div className="w-full h-24 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden flex items-center gap-3 pr-3">
+                      <div className="h-full w-24 shrink-0 bg-gradient-to-br from-orange-100 to-rose-100 flex items-center justify-center">
+                        <ChefHat className="w-10 h-10 text-orange-400" />
+                      </div>
+                      <div className="min-w-0 flex-1 py-2">
+                        <p className="font-bold text-gray-900 truncate line-clamp-2 text-sm sm:text-base">
+                          {day.recipe.recipe.recipeName}
+                        </p>
+                        {day.recipe.recipe.stats?.calories && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {day.recipe.recipe.stats.calories} kcal
+                          </p>
+                        )}
+                      </div>
+                      <ChevronDown
+                        className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                      />
+                    </div>
                   ) : (
-                    <span className="text-sm text-gray-400">Leer</span>
+                    /* Empty State: Setzkasten-Slot */
+                    <div className="group w-full h-24 rounded-2xl bg-gray-50/80 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-violet-400 hover:bg-violet-50/50 hover:scale-[1.01] transition-all duration-200">
+                      <Plus className="w-8 h-8 text-gray-300 group-hover:text-violet-500 transition-colors" />
+                      <span className="text-xs font-medium text-gray-400 group-hover:text-violet-600 transition-colors">
+                        Planen
+                      </span>
+                    </div>
                   )}
-                  <ChevronDown
-                    className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                  />
-                </span>
+                </div>
               </button>
 
               {isOpen && (
-                <div className="px-4 pb-4 pt-0 border-t border-gray-100">
+                <div className="px-3 pb-4 pt-2 border-t border-gray-100 mt-2">
                   {day.recipe ? (
-                    <div className="pt-4 space-y-4">
+                    <div className="space-y-4">
                       <button
                         type="button"
                         onClick={() =>
@@ -603,26 +649,28 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                       )}
                     </div>
                   ) : (
-                    <div className="pt-4">
+                    <div className="pt-2">
                       <button
                         type="button"
                         onClick={() => {
                           setSelectedDay(dateKey);
                           setOpenDay(null);
                         }}
-                        className="w-full min-h-[120px] flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 hover:border-violet-300 hover:bg-violet-50/50 text-gray-500 hover:text-violet-600 transition-colors py-6"
+                        className="group w-full h-24 flex flex-col items-center justify-center gap-1 rounded-2xl bg-gray-50/80 border-2 border-dashed border-gray-200 hover:border-violet-400 hover:bg-violet-50/50 hover:scale-[1.01] transition-all duration-200 cursor-pointer"
                       >
-                        <Plus className="w-8 h-8" />
-                        <span className="text-sm font-medium">Rezept hinzufügen</span>
+                        <Plus className="w-8 h-8 text-gray-300 group-hover:text-violet-500 transition-colors" />
+                        <span className="text-sm font-medium text-gray-500 group-hover:text-violet-600 transition-colors">
+                          Rezept hinzufügen
+                        </span>
                       </button>
                     </div>
                   )}
                 </div>
               )}
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Master Einkaufsliste (inline, nicht sticky) */}
       {masterShoppingList.length > 0 && (
