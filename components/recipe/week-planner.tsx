@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, CheckCircle2, Info, ChevronDown, ChefHat, Trash2, Repeat } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { PremiumOnboardingModal } from './premium-onboarding-modal';
 import { AlternativeRecipesModal } from './alternative-recipes-modal';
@@ -15,7 +15,6 @@ import {
   getPremiumStatus,
   getMealPreferences
 } from '@/actions/meal-planning-actions';
-import { saveWeeklyPlan as saveWeeklyPlanToCalendar } from '@/actions/calendar-actions';
 import { saveResult } from '@/actions/workspace-actions';
 import { saveRecipeToCollection } from '@/actions/recipe-collection-actions';
 import { useRouter } from 'next/navigation';
@@ -62,9 +61,18 @@ interface WeekPlannerProps {
   myRecipes: Array<{ recipe: Recipe; id: string; createdAt: Date }>;
   workspaceId?: string;
   isPremium?: boolean;
+  onBackToCockpit?: () => void;
 }
 
-export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremium }: WeekPlannerProps) {
+function getWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+
+export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremium, onBackToCockpit }: WeekPlannerProps) {
   const router = useRouter();
   
   const [currentWeek, setCurrentWeek] = useState(() => {
@@ -90,6 +98,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   const [alternativeModal, setAlternativeModal] = useState<{ day: string; dateKey: string; recipe: any } | null>(null);
   const [selectedRecipeDetail, setSelectedRecipeDetail] = useState<{ recipe: Recipe; resultId: string; dateKey: string; day: string } | null>(null);
   const [isSavingPlan, setIsSavingPlan] = useState(false);
+  const [openDay, setOpenDay] = useState<string | null>(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   // Lade Premium-Status und Trial-Count
   useEffect(() => {
@@ -250,13 +260,6 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       if (result.error) {
         alert(`Fehler beim Speichern: ${result.error}`);
       } else {
-        const calendarEntries = Object.entries(planDataForDB).map(([date, data]) => ({
-          date,
-          resultId: data.resultId,
-          title: (data.recipe?.recipeName ?? data.recipe?.title) || 'Rezept',
-          mealType: 'dinner' as const,
-        }));
-        await saveWeeklyPlanToCalendar(calendarEntries);
         alert('✅ Wochenplan erfolgreich gespeichert!');
         await loadPlan();
       }
@@ -396,167 +399,141 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     );
   }
 
+  const kw = getWeekNumber(weekDays[0].date);
+  const formatDayHeader = (date: Date) =>
+    date.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+
   return (
-    <div className="space-y-6">
-      {/* Woche-Navigation */}
-      <div className="flex items-center justify-between">
+    <div className="pb-28">
+      {/* Header: Breadcrumb + Info */}
+      <div className="flex items-center justify-between mb-4">
+        {onBackToCockpit ? (
+          <button
+            type="button"
+            onClick={onBackToCockpit}
+            className="text-sm font-medium text-violet-600 hover:text-violet-700 flex items-center gap-1"
+          >
+            🏠 Cockpit
+          </button>
+        ) : (
+          <span />
+        )}
         <button
+          type="button"
+          onClick={() => setShowInfoModal(true)}
+          className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          aria-label="Info"
+        >
+          <Info className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Titel + Woche-Navigation */}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <button
+          type="button"
           onClick={() => navigateWeek('prev')}
-          className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
+          className="p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
+          aria-label="Vorherige Woche"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <div className="text-center">
-          <h2 className="text-lg font-semibold text-white">
-            {weekDays[0].date.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}
-          </h2>
-          <p className="text-sm text-zinc-400">
-            {formatDate(weekDays[0].date)} - {formatDate(weekDays[6].date)}
-          </p>
-        </div>
+        <h1 className="text-lg font-bold text-gray-900 text-center shrink-0">
+          Dein Wochenplan KW {kw}
+        </h1>
         <button
+          type="button"
           onClick={() => navigateWeek('next')}
-          className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
+          className="p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
+          aria-label="Nächste Woche"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Auto-Plan Button */}
-      <div className="flex gap-2">
-        <button
-          onClick={handleAutoPlan}
-          disabled={isAutoPlanning}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-medium transition-colors ${
-            isAutoPlanning
-              ? 'bg-zinc-700 opacity-50 cursor-not-allowed'
-              : canAutoPlan || !hasPreferences
-              ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700'
-              : 'bg-zinc-700 opacity-50 cursor-not-allowed'
-          }`}
-        >
-          {isAutoPlanning ? (
-            <>
-              <RefreshCw className="w-5 h-5 animate-spin" />
-              {planningProgress ? (
-                <span>Generiere Rezepte... {planningProgress.current}/{planningProgress.total}</span>
-              ) : (
-                <span>Plane Woche...</span>
-              )}
-            </>
-          ) : !canAutoPlan ? (
-            <>
-              <Lock className="w-5 h-5" />
-              Premium erforderlich
-            </>
-          ) : !hasPreferences ? (
-            <>
-              <Sparkles className="w-5 h-5" />
-              Präferenzen einrichten
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5" />
-              Woche auto-planen {!isPremium && trialCount.remaining > 0 && `(${trialCount.remaining} übrig)`}
-            </>
-          )}
-        </button>
-        
-        {Object.keys(weekPlan).length > 0 && (
-          <button
-            onClick={handleSavePlan}
-            disabled={isSavingPlan}
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-medium transition-colors ${
-              isSavingPlan
-                ? 'bg-zinc-700 opacity-50 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {isSavingPlan ? (
-              <>
-                <RefreshCw className="w-5 h-5 animate-spin" />
-                Speichere...
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="w-5 h-5" />
-                Plan speichern
-              </>
-            )}
-          </button>
-        )}
-      </div>
-
       {/* Trial Info */}
       {!isPremium && trialCount.remaining > 0 && (
-        <div className="rounded-lg border border-violet-500/30 bg-violet-500/10 p-3 text-sm text-violet-300">
-          🎁 Du hast noch {trialCount.remaining} kostenlose Auto-Planung{trialCount.remaining > 1 ? 'en' : ''}. 
-          <button onClick={() => router.push('/settings')} className="ml-2 underline hover:text-violet-200">
+        <div className="rounded-2xl border border-violet-200 bg-violet-50 p-3 text-sm text-violet-800 mb-6">
+          🎁 Du hast noch {trialCount.remaining} kostenlose Auto-Planung{trialCount.remaining > 1 ? 'en' : ''}.
+          <button onClick={() => router.push('/settings')} className="ml-2 font-medium underline hover:text-violet-900">
             Upgrade für unbegrenzt
           </button>
         </div>
       )}
 
-      {/* 7-Tage Grid - Mobile: Horizontal Scroll */}
-      <div className="sm:hidden overflow-x-auto pb-4 -mx-4 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="flex gap-4 min-w-max">
-          {weekDays.map((day) => {
-            const dateKey = day.dateKey;
-            return (
-              <div
-                key={dateKey}
-                className="w-[280px] flex-shrink-0 rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 min-h-[200px]"
+      {/* Vertical Stack: 7 Tage als Accordion-Karten */}
+      <div className="space-y-3">
+        {weekDays.map((day) => {
+          const dateKey = day.dateKey;
+          const isOpen = openDay === dateKey;
+          return (
+            <div
+              key={dateKey}
+              className="rounded-3xl bg-white border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => setOpenDay(isOpen ? null : dateKey)}
+                className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-gray-50/80 transition-colors"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">{day.dayName}</h3>
-                    <p className="text-xs text-zinc-500">{formatDate(day.date)}</p>
-                  </div>
-                  {day.recipe && (
-                    <button
-                      onClick={() => removeRecipeFromDay(dateKey)}
-                      className="p-1 rounded-md hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                <span className="font-semibold text-gray-900">
+                  {formatDayHeader(day.date)}
+                </span>
+                <span className="flex items-center gap-2 min-w-0">
+                  {day.recipe ? (
+                    <span className="text-sm text-gray-600 truncate">
+                      {day.recipe.recipe.recipeName}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-400">Leer</span>
                   )}
-                </div>
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                  />
+                </span>
+              </button>
 
-                {day.recipe ? (
-                  <div className="space-y-2">
-                    <div 
-                      className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 cursor-pointer hover:bg-orange-500/20 transition-colors"
-                      onClick={() => {
-                        setSelectedRecipeDetail({
-                          recipe: day.recipe!.recipe,
-                          resultId: day.recipe!.resultId,
-                          dateKey: day.dateKey,
-                          day: day.dayName,
-                        });
-                      }}
-                    >
-                      <h4 className="text-sm font-medium text-white line-clamp-2 mb-1">
-                        {day.recipe.recipe.recipeName}
-                      </h4>
-                      {day.recipe.recipe.stats?.time && (
-                        <p className="text-xs text-zinc-400">⏱️ {day.recipe.recipe.stats.time}</p>
-                      )}
-                    </div>
-                    
-                    {isPremium && (
+              {isOpen && (
+                <div className="px-4 pb-4 pt-0 border-t border-gray-100">
+                  {day.recipe ? (
+                    <div className="pt-4 space-y-4">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedRecipeDetail({
+                            recipe: day.recipe!.recipe,
+                            resultId: day.recipe!.resultId,
+                            dateKey: day.dateKey,
+                            day: day.dayName,
+                          })
+                        }
+                        className="w-full rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 to-rose-50 border border-orange-100 text-left"
+                      >
+                        <div className="aspect-[16/10] flex items-center justify-center">
+                          <ChefHat className="w-14 h-14 text-orange-300" />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-semibold text-gray-900 line-clamp-2">
+                            {day.recipe.recipe.recipeName}
+                          </h3>
+                          {day.recipe.recipe.stats?.calories && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              {day.recipe.recipe.stats.calories} kcal
+                            </p>
+                          )}
+                        </div>
+                      </button>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleFeedback(dateKey, 'positive')}
-                          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                            day.recipe.feedback === 'positive'
-                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                              : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                          }`}
+                          type="button"
+                          onClick={() => removeRecipeFromDay(dateKey)}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-sm font-medium transition-colors"
                         >
-                          <ThumbsUp className="w-3 h-3 inline mr-1" />
-                          👍
+                          <Trash2 className="w-4 h-4" />
+                          Löschen
                         </button>
                         <button
+                          type="button"
                           onClick={() => {
                             const currentRecipe = day.recipe!.recipe;
                             setAlternativeModal({
@@ -564,128 +541,167 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                               dateKey: dateKey,
                               recipe: currentRecipe,
                             });
+                            setOpenDay(null);
                           }}
-                          className="flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-red-400"
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 text-sm font-medium transition-colors"
                         >
-                          <ThumbsDown className="w-3 h-3 inline mr-1" />
-                          😕 Alternative
+                          <Repeat className="w-4 h-4" />
+                          Austauschen
                         </button>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setSelectedDay(dateKey)}
-                    className="w-full h-full min-h-[120px] flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/20 hover:border-orange-500/30 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors"
-                  >
-                    <Plus className="w-6 h-6 text-zinc-500" />
-                    <span className="text-xs text-zinc-500">Rezept hinzufügen</span>
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Desktop: Grid Layout */}
-      <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-        {weekDays.map((day) => {
-          return (
-            <div
-              key={day.dateKey}
-              className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4 min-h-[200px]"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-white">{day.dayName}</h3>
-                  <p className="text-xs text-zinc-500">{formatDate(day.date)}</p>
-                </div>
-                {day.recipe && (
-                  <button
-                    onClick={() => removeRecipeFromDay(day.dateKey)}
-                    className="p-1 rounded-md hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {day.recipe ? (
-                <div className="space-y-2">
-                  <div 
-                    className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 cursor-pointer hover:bg-orange-500/20 transition-colors"
-                    onClick={() => {
-                      setSelectedRecipeDetail({
-                        recipe: day.recipe!.recipe,
-                        resultId: day.recipe!.resultId,
-                        dateKey: day.dateKey,
-                        day: day.dayName,
-                      });
-                    }}
-                  >
-                    <h4 className="text-sm font-medium text-white line-clamp-2 mb-1">
-                      {day.recipe.recipe.recipeName}
-                    </h4>
-                    {day.recipe.recipe.stats?.time && (
-                      <p className="text-xs text-zinc-400">⏱️ {day.recipe.recipe.stats.time}</p>
-                    )}
-                  </div>
-                  
-                  {isPremium && (
-                    <div className="flex gap-2">
+                      {isPremium && (
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleFeedback(dateKey, 'positive')}
+                            className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                              day.recipe.feedback === 'positive'
+                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            <ThumbsUp className="w-3.5 h-3.5 inline mr-1" />
+                            Passt
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAlternativeModal({
+                                day: day.dayName,
+                                dateKey: dateKey,
+                                recipe: day.recipe!.recipe,
+                              });
+                              setOpenDay(null);
+                            }}
+                            className="flex-1 px-3 py-2 rounded-xl text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                          >
+                            <ThumbsDown className="w-3.5 h-3.5 inline mr-1" />
+                            Alternative
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="pt-4">
                       <button
-                        onClick={() => handleFeedback(day.dateKey, 'positive')}
-                        className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                          day.recipe.feedback === 'positive'
-                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                        }`}
-                      >
-                        <ThumbsUp className="w-3 h-3 inline mr-1" />
-                        👍
-                      </button>
-                      <button
+                        type="button"
                         onClick={() => {
-                          const currentRecipe = day.recipe!.recipe;
-                          setAlternativeModal({
-                            day: day.dayName,
-                            dateKey: day.dateKey,
-                            recipe: currentRecipe,
-                          });
+                          setSelectedDay(dateKey);
+                          setOpenDay(null);
                         }}
-                        className="flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-red-400"
+                        className="w-full min-h-[120px] flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 hover:border-violet-300 hover:bg-violet-50/50 text-gray-500 hover:text-violet-600 transition-colors py-6"
                       >
-                        <ThumbsDown className="w-3 h-3 inline mr-1" />
-                        😕 Alternative
+                        <Plus className="w-8 h-8" />
+                        <span className="text-sm font-medium">Rezept hinzufügen</span>
                       </button>
                     </div>
                   )}
                 </div>
-              ) : (
-                <button
-                  onClick={() => setSelectedDay(day.dateKey)}
-                  className="w-full h-full min-h-[120px] flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/20 hover:border-orange-500/30 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors"
-                >
-                  <Plus className="w-6 h-6 text-zinc-500" />
-                  <span className="text-xs text-zinc-500">Rezept hinzufügen</span>
-                </button>
               )}
             </div>
           );
         })}
       </div>
 
-      {/* Master Einkaufsliste Button */}
+      {/* Master Einkaufsliste (inline, nicht sticky) */}
       {masterShoppingList.length > 0 && (
         <div className="mt-6">
           <button
+            type="button"
             onClick={() => setIsShoppingListOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 text-gray-800 font-medium transition-colors"
           >
             <ShoppingCart className="w-5 h-5" />
             Wocheneinkauf erstellen ({masterShoppingList.length} Zutaten)
           </button>
+        </div>
+      )}
+
+      {/* Sticky Footer: Woche auto-planen + Plan speichern */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-sm border-t border-gray-100">
+        <div className="max-w-2xl mx-auto flex gap-3">
+          <button
+            type="button"
+            onClick={handleAutoPlan}
+            disabled={isAutoPlanning}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-white font-semibold transition-all shadow-lg ${
+              isAutoPlanning
+                ? 'bg-gray-300 cursor-not-allowed'
+                : canAutoPlan || !hasPreferences
+                ? 'bg-gradient-to-r from-violet-600 to-fuchsia-500 hover:from-violet-700 hover:to-fuchsia-600 shadow-violet-500/25'
+                : 'bg-gray-300 cursor-not-allowed'
+            }`}
+          >
+            {isAutoPlanning ? (
+              <>
+                <RefreshCw className="w-5 h-5 animate-spin" />
+                {planningProgress ? (
+                  <span>Generiere… {planningProgress.current}/{planningProgress.total}</span>
+                ) : (
+                  <span>Plane Woche…</span>
+                )}
+              </>
+            ) : !canAutoPlan ? (
+              <>
+                <Lock className="w-5 h-5" />
+                Premium
+              </>
+            ) : !hasPreferences ? (
+              <>
+                <Sparkles className="w-5 h-5" />
+                Präferenzen
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                Woche auto-planen
+                {!isPremium && trialCount.remaining > 0 && (
+                  <span className="text-white/90 text-sm">({trialCount.remaining})</span>
+                )}
+              </>
+            )}
+          </button>
+          {Object.keys(weekPlan).length > 0 && (
+            <button
+              type="button"
+              onClick={handleSavePlan}
+              disabled={isSavingPlan}
+              className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white font-semibold transition-colors shrink-0"
+            >
+              {isSavingPlan ? (
+                <RefreshCw className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <CheckCircle2 className="w-5 h-5" />
+                  Speichern
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Info-Modal */}
+      {showInfoModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowInfoModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl max-w-sm p-5 border border-gray-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-gray-700 font-medium">
+              Plane hier deine Mahlzeiten für die Woche. Die KI hilft dir dabei!
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowInfoModal(false)}
+              className="mt-4 w-full py-2.5 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 transition-colors"
+            >
+              Verstanden
+            </button>
+          </div>
         </div>
       )}
 

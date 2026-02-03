@@ -815,6 +815,7 @@ export default function RecipePage() {
               <WeekPlanner
                 myRecipes={myRecipes}
                 workspaceId={undefined}
+                onBackToCockpit={() => setShowCockpit(true)}
               />
             ) : null}
 
