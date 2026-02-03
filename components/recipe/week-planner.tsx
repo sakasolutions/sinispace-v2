@@ -892,13 +892,17 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
               }
             } else if ('plan' in result && result.plan) {
               const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
-              
-              Object.entries(result.plan).forEach(([dateKey, planEntry]) => {
-                if ('recipe' in planEntry && planEntry.recipe) {
+              const plan = result.plan as Record<string, { breakfast?: { recipe?: any; resultId: string; feedback?: string | null }; lunch?: { recipe?: any; resultId: string; feedback?: string | null }; dinner?: { recipe?: any; resultId: string; feedback?: string | null }; snack?: { recipe?: any; resultId: string; feedback?: string | null } }>;
+
+              Object.entries(plan).forEach(([dateKey, dayMeals]) => {
+                const slot = dayMeals?.dinner ?? dayMeals?.breakfast ?? dayMeals?.lunch ?? dayMeals?.snack;
+                if (!slot?.resultId) return;
+                const planEntry = slot;
+                if (planEntry.recipe && typeof planEntry.recipe === 'object' && planEntry.recipe.recipeName) {
                   transformedPlan[dateKey] = {
                     recipe: planEntry.recipe as Recipe,
                     resultId: planEntry.resultId,
-                    feedback: planEntry.feedback || null,
+                    feedback: (planEntry.feedback === 'positive' || planEntry.feedback === 'negative' ? planEntry.feedback : null) as 'positive' | 'negative' | null,
                   };
                 } else {
                   const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
@@ -906,7 +910,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                     transformedPlan[dateKey] = {
                       recipe: recipeResult.recipe,
                       resultId: planEntry.resultId,
-                      feedback: planEntry.feedback || null,
+                      feedback: (planEntry.feedback === 'positive' || planEntry.feedback === 'negative' ? planEntry.feedback : null) as 'positive' | 'negative' | null,
                     };
                   }
                 }
