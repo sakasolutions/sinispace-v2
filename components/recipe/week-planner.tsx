@@ -52,11 +52,14 @@ type Recipe = {
   chefTip: string;
 };
 
+type SlotEntry = { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null };
+type DayMeals = { breakfast?: SlotEntry; lunch?: SlotEntry; dinner?: SlotEntry };
+
 type WeekDay = {
   date: Date;
   dayName: string;
   dateKey: string;
-  recipe: { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null } | null;
+  meals: DayMeals;
 };
 
 interface WeekPlannerProps {
@@ -87,8 +90,9 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     return monday;
   });
   
-  const [weekPlan, setWeekPlan] = useState<Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }>>({});
+  const [weekPlan, setWeekPlan] = useState<Record<string, DayMeals>>({});
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<'breakfast' | 'lunch' | 'dinner' | null>(null);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isPremium, setIsPremium] = useState(initialIsPremium || false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
@@ -98,7 +102,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   const [planningProgress, setPlanningProgress] = useState<{ current: number; total: number } | null>(null);
   const [trialCount, setTrialCount] = useState({ count: 0, remaining: 0 });
   const [hasPreferences, setHasPreferences] = useState(false);
-  const [alternativeModal, setAlternativeModal] = useState<{ day: string; dateKey: string; recipe: any } | null>(null);
+  const [alternativeModal, setAlternativeModal] = useState<{ day: string; dateKey: string; slot: 'breakfast' | 'lunch' | 'dinner'; recipe: any } | null>(null);
   const [selectedRecipeDetail, setSelectedRecipeDetail] = useState<{ recipe: Recipe; resultId: string; dateKey: string; day: string } | null>(null);
   const [isSavingPlan, setIsSavingPlan] = useState(false);
   const [isSyncingToCalendar, setIsSyncingToCalendar] = useState(false);
@@ -133,28 +137,25 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 
       if (savedPlan && savedPlan.planData) {
         const planData = savedPlan.planData as Record<string, { breakfast?: { recipe?: any; resultId: string; feedback?: string | null }; lunch?: { recipe?: any; resultId: string; feedback?: string | null }; dinner?: { recipe?: any; resultId: string; feedback?: string | null }; snack?: { recipe?: any; resultId: string; feedback?: string | null } }>;
-        const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
+        const transformedPlan: Record<string, DayMeals> = {};
+
+        const resolveSlot = (slot: { recipe?: any; resultId: string; feedback?: string | null }): SlotEntry | undefined => {
+          if (!slot?.resultId) return undefined;
+          const feedback = (slot.feedback === 'positive' || slot.feedback === 'negative' ? slot.feedback : null) as 'positive' | 'negative' | null;
+          if (slot.recipe && typeof slot.recipe === 'object' && slot.recipe.recipeName) {
+            return { recipe: slot.recipe as Recipe, resultId: slot.resultId, feedback };
+          }
+          const recipeResult = myRecipes.find((r) => r.id === slot.resultId);
+          if (recipeResult) return { recipe: recipeResult.recipe, resultId: slot.resultId, feedback };
+          return undefined;
+        };
 
         for (const [dateKey, dayMeals] of Object.entries(planData)) {
-          const slot = dayMeals?.dinner ?? dayMeals?.breakfast ?? dayMeals?.lunch ?? dayMeals?.snack;
-          if (!slot?.resultId) continue;
-          const planEntry = slot;
-          if (planEntry.recipe && typeof planEntry.recipe === 'object' && planEntry.recipe.recipeName) {
-            transformedPlan[dateKey] = {
-              recipe: planEntry.recipe as Recipe,
-              resultId: planEntry.resultId,
-              feedback: (planEntry.feedback === 'positive' || planEntry.feedback === 'negative' ? planEntry.feedback : null) as 'positive' | 'negative' | null,
-            };
-          } else {
-            const recipeResult = myRecipes.find((r) => r.id === planEntry.resultId);
-            if (recipeResult) {
-              transformedPlan[dateKey] = {
-                recipe: recipeResult.recipe,
-                resultId: planEntry.resultId,
-                feedback: (planEntry.feedback === 'positive' || planEntry.feedback === 'negative' ? planEntry.feedback : null) as 'positive' | 'negative' | null,
-              };
-            }
-          }
+          const out: DayMeals = {};
+          if (dayMeals?.breakfast) { const e = resolveSlot(dayMeals.breakfast); if (e) out.breakfast = e; }
+          if (dayMeals?.lunch) { const e = resolveSlot(dayMeals.lunch); if (e) out.lunch = e; }
+          if (dayMeals?.dinner) { const e = resolveSlot(dayMeals.dinner); if (e) out.dinner = e; }
+          if (Object.keys(out).length) transformedPlan[dateKey] = out;
         }
 
         setWeekPlan(transformedPlan);
@@ -178,7 +179,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     }
   }, [currentWeek, myRecipes, isAutoPlanning, isLoadingPlan, skipNextLoad, loadPlan, weekPlan]);
 
-  // Berechne Wochentage
+  // Berechne Wochentage (Multi-Meal: day.meals = { breakfast?, lunch?, dinner? })
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(currentWeek);
     const day = startOfWeek.getDay();
@@ -187,25 +188,19 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 
     const days: WeekDay[] = [];
     const dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
       const dateKey = date.toISOString().split('T')[0];
-      const planEntry = weekPlan[dateKey];
-      
       days.push({
         date,
         dayName: dayNames[i],
         dateKey,
-        recipe: planEntry ? {
-          recipe: planEntry.recipe,
-          resultId: planEntry.resultId,
-          feedback: planEntry.feedback || null,
-        } : null,
+        meals: weekPlan[dateKey] ?? {},
       });
     }
-    
+
     return days;
   }, [currentWeek, weekPlan]);
 
@@ -216,21 +211,29 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     setCurrentWeek(newDate);
   };
 
-  // Rezept zu Tag hinzufügen
-  const addRecipeToDay = (dateKey: string, recipe: Recipe, resultId: string) => {
+  // Rezept zu Tag + Slot hinzufügen
+  const addRecipeToDay = (dateKey: string, slot: 'breakfast' | 'lunch' | 'dinner', recipe: Recipe, resultId: string) => {
     setWeekPlan(prev => ({
       ...prev,
-      [dateKey]: { recipe, resultId, feedback: null },
+      [dateKey]: { ...(prev[dateKey] ?? {}), [slot]: { recipe, resultId, feedback: null } },
     }));
     setSelectedDay(null);
+    setSelectedSlot(null);
   };
 
-  // Rezept von Tag entfernen
-  const removeRecipeFromDay = (dateKey: string) => {
+  // Rezept von Tag + Slot entfernen
+  const removeRecipeFromDay = (dateKey: string, slot: 'breakfast' | 'lunch' | 'dinner') => {
     setWeekPlan(prev => {
-      const newPlan = { ...prev };
-      delete newPlan[dateKey];
-      return newPlan;
+      const day = prev[dateKey];
+      if (!day) return prev;
+      const next = { ...day };
+      delete next[slot];
+      if (Object.keys(next).length === 0) {
+        const out = { ...prev };
+        delete out[dateKey];
+        return out;
+      }
+      return { ...prev, [dateKey]: next };
     });
   };
 
@@ -244,7 +247,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     setIsOnboardingOpen(true);
   };
 
-  // Wochenplan speichern
+  // Wochenplan speichern (Multi-Meal: DayMeals pro Tag)
   const handleSavePlan = async () => {
     if (Object.keys(weekPlan).length === 0) {
       alert('Kein Wochenplan zum Speichern vorhanden');
@@ -253,15 +256,15 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 
     setIsSavingPlan(true);
     try {
-      const planDataForDB: Record<string, { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe?: any }> = {};
-      
-      Object.entries(weekPlan).forEach(([dateKey, planEntry]) => {
-        planDataForDB[dateKey] = {
-          recipeId: planEntry.resultId,
-          resultId: planEntry.resultId,
-          feedback: planEntry.feedback,
-          recipe: planEntry.recipe,
-        };
+      const planDataForDB: Record<string, { breakfast?: { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe?: any }; lunch?: { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe?: any }; dinner?: { recipeId: string; resultId: string; feedback: 'positive' | 'negative' | null; recipe?: any } }> = {};
+
+      Object.entries(weekPlan).forEach(([dateKey, dayMeals]) => {
+        const out: Record<string, any> = {};
+        (['breakfast', 'lunch', 'dinner'] as const).forEach((slot) => {
+          const entry = dayMeals[slot];
+          if (entry) out[slot] = { recipeId: entry.resultId, resultId: entry.resultId, feedback: entry.feedback, recipe: entry.recipe };
+        });
+        if (Object.keys(out).length) planDataForDB[dateKey] = out;
       });
 
       const result = await saveWeeklyPlan(currentWeek, planDataForDB, workspaceId);
@@ -279,19 +282,19 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     }
   };
 
-  // In Kalender übernehmen (Sync)
+  // In Kalender übernehmen (Sync) – alle Slots (breakfast, lunch, dinner)
   const handleSyncToCalendar = async () => {
-    const entries = Object.entries(weekPlan).filter(([, v]) => v?.recipe);
-    if (entries.length === 0) return;
+    const planData: { date: string; resultId: string; title: string; mealType: 'breakfast' | 'lunch' | 'dinner' }[] = [];
+    Object.entries(weekPlan).forEach(([dateKey, dayMeals]) => {
+      (['breakfast', 'lunch', 'dinner'] as const).forEach((slot) => {
+        const entry = dayMeals[slot];
+        if (entry?.recipe) planData.push({ date: dateKey, resultId: entry.resultId, title: entry.recipe.recipeName, mealType: slot });
+      });
+    });
+    if (planData.length === 0) return;
 
     setIsSyncingToCalendar(true);
     try {
-      const planData = entries.map(([dateKey, entry]) => ({
-        date: dateKey,
-        resultId: entry.resultId,
-        title: entry.recipe.recipeName,
-        mealType: 'dinner' as const,
-      }));
       const result = await syncWeekPlanToCalendar(planData);
       if (result && 'error' in result && result.error) {
         alert(`Sync fehlgeschlagen: ${result.error}`);
@@ -314,63 +317,57 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     }
   };
 
-  // Feedback speichern
-  const handleFeedback = async (dateKey: string, feedback: 'positive' | 'negative') => {
-    const current = weekPlan[dateKey];
+  // Feedback speichern (pro Slot)
+  const handleFeedback = async (dateKey: string, slot: 'breakfast' | 'lunch' | 'dinner', feedback: 'positive' | 'negative') => {
+    const current = weekPlan[dateKey]?.[slot];
     if (!current) return;
 
     setWeekPlan(prev => ({
       ...prev,
-      [dateKey]: { ...prev[dateKey]!, feedback },
+      [dateKey]: { ...(prev[dateKey] ?? {}), [slot]: { ...prev[dateKey]![slot]!, feedback } },
     }));
 
     if (feedback === 'positive') {
       try {
-        const result = await saveDayFeedback(currentWeek, dateKey, feedback);
+        const result = await saveDayFeedback(currentWeek, dateKey, feedback, slot);
         if (result.error) {
-          setWeekPlan(prev => ({
-            ...prev,
-            [dateKey]: { ...prev[dateKey]!, feedback: null },
-          }));
+          setWeekPlan(prev => ({ ...prev, [dateKey]: { ...(prev[dateKey] ?? {}), [slot]: { ...prev[dateKey]![slot]!, feedback: null } } }));
           alert('Fehler beim Speichern des Feedbacks');
         } else {
           await loadPlan();
         }
       } catch (error) {
         console.error('[WEEK-PLANNER] ❌ Error saving feedback:', error);
-        setWeekPlan(prev => ({
-          ...prev,
-          [dateKey]: { ...prev[dateKey]!, feedback: null },
-        }));
+        setWeekPlan(prev => ({ ...prev, [dateKey]: { ...(prev[dateKey] ?? {}), [slot]: { ...prev[dateKey]![slot]!, feedback: null } } }));
         alert('Fehler beim Speichern des Feedbacks');
       }
     } else {
-      setWeekPlan(prev => ({
-        ...prev,
-        [dateKey]: { ...prev[dateKey]!, feedback: null },
-      }));
-      
+      setWeekPlan(prev => ({ ...prev, [dateKey]: { ...(prev[dateKey] ?? {}), [slot]: { ...prev[dateKey]![slot]!, feedback: null } } }));
       const day = weekDays.find(d => d.dateKey === dateKey);
-      if (day && day.recipe) {
+      const slotEntry = day?.meals?.[slot];
+      if (slotEntry) {
         setAlternativeModal({
           day: day.dayName,
           dateKey: dateKey,
-          recipe: day.recipe.recipe,
+          slot,
+          recipe: slotEntry.recipe,
         });
       }
     }
   };
 
-  // Master Einkaufsliste
+  // Master Einkaufsliste (alle Slots: breakfast, lunch, dinner)
   const masterShoppingList = useMemo(() => {
     const allIngredients: Record<string, { amount: number; unit: string }> = {};
-    
+
     weekDays.forEach(day => {
-      if (day.recipe) {
-        const ingredientsToUse = day.recipe.recipe.shoppingList && day.recipe.recipe.shoppingList.length > 0
-          ? day.recipe.recipe.shoppingList
-          : day.recipe.recipe.ingredients;
-        
+      (['breakfast', 'lunch', 'dinner'] as const).forEach(slot => {
+        const entry = day.meals[slot];
+        if (!entry) return;
+        const ingredientsToUse = entry.recipe.shoppingList && entry.recipe.shoppingList.length > 0
+          ? entry.recipe.shoppingList
+          : entry.recipe.ingredients;
+
         ingredientsToUse.forEach(ingredient => {
           const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk|Stück|EL|TL|Glas|Bund|Packung)?\s*(.*)$/i);
           if (match) {
@@ -449,7 +446,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     date.toLocaleDateString('de-DE', { weekday: 'short' }).slice(0, 2).toUpperCase();
   const formatDateSmall = (date: Date) =>
     date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
-  const plannedCount = weekDays.filter((d) => d.recipe).length;
+  const plannedCount = weekDays.reduce((n, d) => n + (d.meals.breakfast ? 1 : 0) + (d.meals.lunch ? 1 : 0) + (d.meals.dinner ? 1 : 0), 0);
+  const totalSlots = 7 * 3; // 7 Tage × 3 Mahlzeiten
   const dateRangeStr = `${weekDays[0].date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })} – ${weekDays[6].date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 
   return (
@@ -495,7 +493,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white text-xs font-bold">
                 {plannedCount}
               </span>
-              <span className="bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent">/7 geplant</span>
+              <span className="bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent">/{totalSlots} geplant</span>
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -539,26 +537,27 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         {weekDays.map((day, index) => {
           const dateKey = day.dateKey;
           const isOpen = openDay === dateKey;
+          const hasBreakfast = !!day.meals.breakfast;
+          const hasLunch = !!day.meals.lunch;
+          const hasDinner = !!day.meals.dinner;
+          const hasAnyMeal = hasBreakfast || hasLunch || hasDinner;
+          const slotConfig: { id: 'breakfast' | 'lunch' | 'dinner'; label: string; icon: string; borderClass: string; bgClass: string }[] = [
+            { id: 'breakfast', label: 'Frühstück', icon: '🥐', borderClass: 'border-l-yellow-400', bgClass: 'from-yellow-50 to-amber-50' },
+            { id: 'lunch', label: 'Mittag', icon: '🥗', borderClass: 'border-l-emerald-400', bgClass: 'from-emerald-50 to-green-50' },
+            { id: 'dinner', label: 'Abend', icon: '🍝', borderClass: 'border-l-orange-500', bgClass: 'from-orange-50 to-rose-50' },
+          ];
           return (
             <motion.div
               key={dateKey}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0 },
-              }}
+              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
               transition={{ duration: 0.25, delay: index * 0.05 }}
               className="rounded-2xl overflow-hidden"
             >
               <button
                 type="button"
-                onClick={() =>
-                  day.recipe
-                    ? setOpenDay(isOpen ? null : dateKey)
-                    : (setSelectedDay(dateKey), setOpenDay(null))
-                }
+                onClick={() => setOpenDay(isOpen ? null : dateKey)}
                 className="w-full flex items-stretch gap-3 text-left rounded-2xl overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
               >
-                {/* Datums-Spalte: Wochentag + Datum */}
                 <div className="flex flex-col justify-center shrink-0 w-14 sm:w-16 py-3 pl-3">
                   <span className="text-gray-800 font-black text-xl leading-tight uppercase tracking-tight">
                     {formatWeekdaySlot(day.date)}
@@ -567,146 +566,74 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                     {formatDateSmall(day.date)}
                   </span>
                 </div>
-
-                {/* Slot-Bereich: Empty oder Filled */}
-                <div className="flex-1 min-w-0 flex items-center">
-                  {day.recipe ? (
-                    /* Filled State: satt wirkende Vorschau */
-                    <div className="w-full h-24 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden flex items-center gap-3 pr-3">
-                      <div className="h-full w-24 shrink-0 bg-gradient-to-br from-orange-100 to-rose-100 flex items-center justify-center">
-                        <ChefHat className="w-10 h-10 text-orange-400" />
-                      </div>
-                      <div className="min-w-0 flex-1 py-2">
-                        <p className="font-bold text-gray-900 truncate line-clamp-2 text-sm sm:text-base">
-                          {day.recipe.recipe.recipeName}
-                        </p>
-                        {day.recipe.recipe.stats?.calories && (
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            {day.recipe.recipe.stats.calories} kcal
-                          </p>
-                        )}
-                      </div>
-                      <ChevronDown
-                        className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                      />
-                    </div>
-                  ) : (
-                    /* Empty State: Setzkasten-Slot */
-                    <div className="group w-full h-24 rounded-2xl bg-gray-50/80 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-violet-400 hover:bg-violet-50/50 hover:scale-[1.01] transition-all duration-200">
-                      <Plus className="w-8 h-8 text-gray-300 group-hover:text-violet-500 transition-colors" />
-                      <span className="text-xs font-medium text-gray-400 group-hover:text-violet-600 transition-colors">
-                        Planen
-                      </span>
-                    </div>
+                <div className="flex-1 min-w-0 flex items-center gap-2 pr-3">
+                  {slotConfig.map(({ id, icon }) => (day.meals[id] ? (
+                    <span key={id} className="text-lg shrink-0" title={id === 'breakfast' ? 'Frühstück' : id === 'lunch' ? 'Mittag' : 'Abend'}>{icon}</span>
+                  ) : null))}
+                  {!hasAnyMeal && (
+                    <span className="text-sm text-gray-400">Noch nichts geplant</span>
                   )}
+                  <ChevronDown className={`w-5 h-5 text-gray-400 shrink-0 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
               </button>
 
               {isOpen && (
-                <div className="px-3 pb-4 pt-2 border-t border-gray-100 mt-2">
-                  {day.recipe ? (
-                    <div className="space-y-4">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedRecipeDetail({
-                            recipe: day.recipe!.recipe,
-                            resultId: day.recipe!.resultId,
-                            dateKey: day.dateKey,
-                            day: day.dayName,
-                          })
-                        }
-                        className="w-full rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 to-rose-50 border border-orange-100 text-left"
-                      >
-                        <div className="aspect-[16/10] flex items-center justify-center">
-                          <ChefHat className="w-14 h-14 text-orange-300" />
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-semibold text-gray-900 line-clamp-2">
-                            {day.recipe.recipe.recipeName}
-                          </h3>
-                          {day.recipe.recipe.stats?.calories && (
-                            <p className="text-sm text-gray-600 mt-1">
-                              {day.recipe.recipe.stats.calories} kcal
-                            </p>
-                          )}
-                        </div>
-                      </button>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => removeRecipeFromDay(dateKey)}
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-sm font-medium transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Löschen
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const currentRecipe = day.recipe!.recipe;
-                            setAlternativeModal({
-                              day: day.dayName,
-                              dateKey: dateKey,
-                              recipe: currentRecipe,
-                            });
-                            setOpenDay(null);
-                          }}
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 text-sm font-medium transition-colors"
-                        >
-                          <Repeat className="w-4 h-4" />
-                          Austauschen
-                        </button>
+                <div className="px-3 pb-4 pt-2 border-t border-gray-100 mt-2 space-y-3">
+                  {slotConfig.map(({ id, label, icon, borderClass, bgClass }) => {
+                    const entry = day.meals[id];
+                    return (
+                      <div key={id}>
+                        <p className="text-xs font-medium text-gray-500 mb-1.5">{label}</p>
+                        {entry ? (
+                          <div className={`rounded-xl border border-gray-100 shadow-sm overflow-hidden flex items-center gap-3 bg-gradient-to-r ${bgClass} border-l-4 ${borderClass} pl-3 pr-3 py-2`}>
+                            <div className="w-12 h-12 shrink-0 rounded-lg bg-white/80 flex items-center justify-center">
+                              <ChefHat className="w-6 h-6 text-gray-500" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-gray-900 text-sm truncate">{entry.recipe.recipeName}</p>
+                              {entry.recipe.stats?.time && (
+                                <p className="text-xs text-gray-500">⏱ {entry.recipe.stats.time}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedRecipeDetail({
+                                    recipe: entry.recipe,
+                                    resultId: entry.resultId,
+                                    dateKey: day.dateKey,
+                                    day: day.dayName,
+                                  });
+                                }}
+                                className="p-2 rounded-lg text-gray-500 hover:bg-white/80 transition-colors"
+                                aria-label="Details"
+                              >
+                                <ChevronDown className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeRecipeFromDay(dateKey, id)}
+                                className="p-2 rounded-lg text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors"
+                                aria-label="Löschen"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setSelectedDay(dateKey); setSelectedSlot(id); setOpenDay(null); }}
+                            className={`group w-full h-16 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center gap-2 bg-gray-50/80 hover:bg-gray-100/80 transition-all border-l-4 ${borderClass} pl-3`}
+                          >
+                            <Plus className="w-5 h-5 text-gray-400 group-hover:text-violet-500 transition-colors" />
+                            <span className="text-sm font-medium text-gray-500 group-hover:text-violet-600 transition-colors">Hinzufügen</span>
+                          </button>
+                        )}
                       </div>
-                      {isPremium && (
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleFeedback(dateKey, 'positive')}
-                            className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
-                              day.recipe.feedback === 'positive'
-                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                          >
-                            <ThumbsUp className="w-3.5 h-3.5 inline mr-1" />
-                            Passt
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAlternativeModal({
-                                day: day.dayName,
-                                dateKey: dateKey,
-                                recipe: day.recipe!.recipe,
-                              });
-                              setOpenDay(null);
-                            }}
-                            className="flex-1 px-3 py-2 rounded-xl text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                          >
-                            <ThumbsDown className="w-3.5 h-3.5 inline mr-1" />
-                            Alternative
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="pt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedDay(dateKey);
-                          setOpenDay(null);
-                        }}
-                        className="group w-full h-24 flex flex-col items-center justify-center gap-1 rounded-2xl bg-gray-50/80 border-2 border-dashed border-gray-200 hover:border-violet-400 hover:bg-violet-50/50 hover:scale-[1.01] transition-all duration-200 cursor-pointer"
-                      >
-                        <Plus className="w-8 h-8 text-gray-300 group-hover:text-violet-500 transition-colors" />
-                        <span className="text-sm font-medium text-gray-500 group-hover:text-violet-600 transition-colors">
-                          Rezept hinzufügen
-                        </span>
-                      </button>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
               )}
             </motion.div>
@@ -846,11 +773,11 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       {selectedDay && (
         <RecipeSelectionModal
           isOpen={true}
-          onClose={() => setSelectedDay(null)}
+          mealType={selectedSlot ?? 'dinner'}
+          onClose={() => { setSelectedDay(null); setSelectedSlot(null); }}
           recipes={myRecipes}
           onSelect={(recipe, resultId) => {
-            addRecipeToDay(selectedDay, recipe, resultId);
-            setSelectedDay(null);
+            addRecipeToDay(selectedDay, selectedSlot ?? 'dinner', recipe, resultId);
           }}
           onRequestNewRecipe={onRequestNewRecipe}
         />
@@ -891,31 +818,26 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                 alert(`Fehler: ${result.error}`);
               }
             } else if ('plan' in result && result.plan) {
-              const transformedPlan: Record<string, { recipe: Recipe; resultId: string; feedback: 'positive' | 'negative' | null }> = {};
               const plan = result.plan as Record<string, { breakfast?: { recipe?: any; resultId: string; feedback?: string | null }; lunch?: { recipe?: any; resultId: string; feedback?: string | null }; dinner?: { recipe?: any; resultId: string; feedback?: string | null }; snack?: { recipe?: any; resultId: string; feedback?: string | null } }>;
+              const transformedPlan: Record<string, DayMeals> = {};
 
-              Object.entries(plan).forEach(([dateKey, dayMeals]) => {
-                const slot = dayMeals?.dinner ?? dayMeals?.breakfast ?? dayMeals?.lunch ?? dayMeals?.snack;
-                if (!slot?.resultId) return;
-                const planEntry = slot;
-                if (planEntry.recipe && typeof planEntry.recipe === 'object' && planEntry.recipe.recipeName) {
-                  transformedPlan[dateKey] = {
-                    recipe: planEntry.recipe as Recipe,
-                    resultId: planEntry.resultId,
-                    feedback: (planEntry.feedback === 'positive' || planEntry.feedback === 'negative' ? planEntry.feedback : null) as 'positive' | 'negative' | null,
-                  };
-                } else {
-                  const recipeResult = myRecipes.find(r => r.id === planEntry.resultId);
-                  if (recipeResult) {
-                    transformedPlan[dateKey] = {
-                      recipe: recipeResult.recipe,
-                      resultId: planEntry.resultId,
-                      feedback: (planEntry.feedback === 'positive' || planEntry.feedback === 'negative' ? planEntry.feedback : null) as 'positive' | 'negative' | null,
-                    };
+              for (const [dateKey, dayMeals] of Object.entries(plan)) {
+                const out: DayMeals = {};
+                (['breakfast', 'lunch', 'dinner'] as const).forEach((slotKey) => {
+                  const slot = dayMeals?.[slotKey];
+                  if (!slot?.resultId) return;
+                  let entry: SlotEntry | undefined;
+                  if (slot.recipe && typeof slot.recipe === 'object' && slot.recipe.recipeName) {
+                    entry = { recipe: slot.recipe as Recipe, resultId: slot.resultId, feedback: (slot.feedback === 'positive' || slot.feedback === 'negative' ? slot.feedback : null) as 'positive' | 'negative' | null };
+                  } else {
+                    const recipeResult = myRecipes.find(r => r.id === slot.resultId);
+                    if (recipeResult) entry = { recipe: recipeResult.recipe, resultId: slot.resultId, feedback: (slot.feedback === 'positive' || slot.feedback === 'negative' ? slot.feedback : null) as 'positive' | 'negative' | null };
                   }
-                }
-              });
-              
+                  if (entry) out[slotKey] = entry;
+                });
+                if (Object.keys(out).length) transformedPlan[dateKey] = out;
+              }
+
               setSkipNextLoad(true);
               setWeekPlan(transformedPlan);
               
@@ -959,12 +881,12 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
               }
             }
 
+            const slot = alternativeModal.slot;
             setWeekPlan(prev => ({
               ...prev,
               [alternativeModal.dateKey]: {
-                recipe,
-                resultId,
-                feedback: null,
+                ...(prev[alternativeModal.dateKey] ?? {}),
+                [slot]: { recipe, resultId, feedback: null },
               },
             }));
 
@@ -980,14 +902,22 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 }
 
 // Rezept-Auswahl-Modal: helles Bottom Sheet (Mobile) / zentriertes Modal (Desktop)
+const mealTypeLabels: Record<'breakfast' | 'lunch' | 'dinner', string> = {
+  breakfast: 'Frühstück',
+  lunch: 'Mittag',
+  dinner: 'Abend',
+};
+
 function RecipeSelectionModal({
   isOpen,
+  mealType = 'dinner',
   onClose,
   recipes,
   onSelect,
   onRequestNewRecipe,
 }: {
   isOpen: boolean;
+  mealType?: 'breakfast' | 'lunch' | 'dinner';
   onClose: () => void;
   recipes: Array<{ recipe: Recipe; id: string; createdAt: Date }>;
   onSelect: (recipe: Recipe, resultId: string) => void;
@@ -1020,7 +950,7 @@ function RecipeSelectionModal({
         {/* Header + Suche */}
         <div className="shrink-0 p-4 border-b border-gray-100">
           <div className="flex items-center justify-between gap-3 mb-3">
-            <h2 className="text-lg font-semibold text-gray-900">Rezept auswählen</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Rezept für {mealTypeLabels[mealType]} auswählen</h2>
             <button
               type="button"
               onClick={onClose}
