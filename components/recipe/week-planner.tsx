@@ -395,7 +395,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
             }
           }
         });
-      }
+      });
     });
 
     return Object.entries(allIngredients).map(([key, data]) => {
