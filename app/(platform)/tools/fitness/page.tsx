@@ -3,7 +3,7 @@
 import { generateFitnessPlan } from '@/actions/fitness-ai';
 import { useActionState } from 'react';
 import { useState } from 'react';
-import { Dumbbell, Loader2, CheckCircle2, Sparkles, Target, LayoutGrid } from 'lucide-react';
+import { Dumbbell, Loader2, CheckCircle2, Target, LayoutGrid, Bot, Flame, Activity, Leaf, User } from 'lucide-react';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { useFormStatus } from 'react-dom';
 import { CustomSelect } from '@/components/ui/custom-select';
@@ -27,7 +27,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white text-lg sm:text-xl font-bold py-4 sm:py-5 rounded-2xl shadow-xl shadow-violet-200 hover:shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:hover:scale-100 disabled:shadow-xl flex items-center justify-center gap-2 min-h-[52px] sm:min-h-[56px] touch-manipulation"
+      className="w-full bg-gray-900 text-white rounded-2xl py-5 font-bold text-lg shadow-lg hover:bg-gray-800 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2 min-h-[56px] touch-manipulation transition-all"
     >
       {pending ? (
         <>
@@ -49,6 +49,7 @@ export default function FitnessPage() {
   const [state, formAction] = useActionState(generateFitnessPlan, null);
 
   const [goal, setGoal] = useState('Muskelaufbau');
+  const [dockSelection, setDockSelection] = useState<'muscle' | 'fat' | 'cardio' | 'yoga'>('muscle');
   const [level, setLevel] = useState('Anfänger');
   const [duration, setDuration] = useState('30');
   const [equipment, setEquipment] = useState<string[]>([]);
@@ -99,6 +100,13 @@ export default function FitnessPage() {
     { id: 'high', label: 'High Energy', value: 'High Energy' },
   ];
 
+  const quickSelectDock = [
+    { id: 'muscle', label: 'Muskeln', value: 'Muskelaufbau', icon: Dumbbell },
+    { id: 'fat', label: 'Abnehmen', value: 'Abnehmen', icon: Flame },
+    { id: 'cardio', label: 'Cardio', value: 'Ausdauer', icon: Activity },
+    { id: 'yoga', label: 'Yoga', value: 'Ausdauer', icon: Leaf },
+  ] as const;
+
   const toggleEquipment = (value: string) => {
     setEquipment((prev) =>
       prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
@@ -124,193 +132,172 @@ export default function FitnessPage() {
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-gray-50 relative overflow-x-hidden">
-      {/* Ambient Background: kräftiger auf Mobile für Referenz-Look */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
-        aria-hidden
-      >
-        <div className="absolute top-0 left-0 w-[800px] h-[800px] sm:w-[1000px] sm:h-[1000px] rounded-full bg-gradient-to-tr from-violet-300/40 to-fuchsia-300/40 sm:from-violet-300/30 sm:to-fuchsia-300/30 blur-[120px] sm:blur-[150px] -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] sm:w-[800px] sm:h-[800px] rounded-full bg-gradient-to-tl from-orange-200/35 to-rose-200/35 sm:from-orange-200/30 sm:to-rose-200/30 blur-[100px] sm:blur-[150px] translate-x-1/2 translate-y-1/2" />
-        {/* Leichter Violet-Top für „Header-Bereich“ wie Referenz */}
-        <div className="absolute top-0 left-0 right-0 h-48 sm:h-56 bg-gradient-to-b from-violet-400/20 to-transparent pointer-events-none" />
+      {/* 1. Ambient Background: zwei weiche Orbs */}
+      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
+        <div className="absolute top-0 left-0 w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-violet-400 to-fuchsia-400 opacity-40 blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-[800px] h-[800px] rounded-full bg-gradient-to-tl from-orange-300 to-rose-300 opacity-40 blur-3xl translate-x-1/2 translate-y-1/2" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-8 pb-[env(safe-area-inset-bottom)]">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors min-h-[44px] min-w-[44px] -ml-2 items-center justify-center sm:justify-start"
-          aria-label="Zurück zum Dashboard"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Zurück</span>
-        </Link>
-
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-8 mt-2 sm:mt-4">
-          {/* Bottom-Sheet: sehr starke Rundung oben, mehr Abstand auf Mobile */}
-          <div
-            className="bg-white rounded-t-[32px] sm:rounded-t-[40px] shadow-[0_-8px_32px_rgba(0,0,0,0.08)] sm:shadow-[0_-10px_40px_rgba(0,0,0,0.1)] mt-8 sm:mt-12 lg:mt-20 p-6 pt-10 sm:p-8 sm:pt-12 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
-          >
-            {/* Premium Visual Hook – auf Mobile etwas kompakter, trotzdem präsent */}
-            <div className="w-40 h-40 sm:w-48 sm:h-48 mx-auto mb-8 sm:mb-10 rounded-[32px] sm:rounded-[40px] bg-gradient-to-bl from-violet-100 to-white shadow-xl shadow-violet-100/50 flex items-center justify-center border border-white/80">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
-                <Sparkles className="w-10 h-10 sm:w-14 sm:h-14 text-white" />
-              </div>
-            </div>
-
-            {/* Typografie – auf Mobile etwas kleiner, bessere Lesbarkeit */}
-            <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-2 sm:mb-3 text-center tracking-tight">
-              Hi, ich bin Sini! 👋
-            </h1>
-            <p className="text-base sm:text-lg text-gray-500 text-center leading-relaxed mb-8 sm:mb-10 px-1">
-              Dein persönlicher AI-Coach für Fitness & Ernährung. Lass uns deine Ziele angehen!
-            </p>
-
-            <form action={formAction} className="space-y-4 sm:space-y-5">
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Ziel</label>
-                <CustomSelect
-                  value={goal}
-                  onChange={(value) => setGoal(value)}
-                  options={goalOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
-                  name="goal"
-                  theme="light"
-                  triggerClassName={filledInputTriggerClass}
-                  icon={Target}
-                />
-              </div>
-
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Fokus</label>
-                <CustomSelect
-                  value={focus}
-                  onChange={(value) => setFocus(value)}
-                  options={focusOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
-                  name="focus"
-                  theme="light"
-                  triggerClassName={filledInputTriggerClass}
-                  icon={LayoutGrid}
-                />
-              </div>
-
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Level</label>
-                <div className="flex flex-wrap gap-2">
-                  {levelOptions.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setLevel(opt.value)}
-                      className={`px-4 py-3 rounded-2xl text-sm sm:text-base font-medium transition-all min-h-[48px] touch-manipulation ${
-                        level === opt.value
-                          ? 'bg-violet-100 text-violet-700 ring-2 ring-violet-500/30'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                <input type="hidden" name="level" value={level} />
-              </div>
-
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Zeit</label>
-                <div className="flex flex-wrap gap-2">
-                  {durationOptions.map((min) => (
-                    <button
-                      key={min}
-                      type="button"
-                      onClick={() => setDuration(min)}
-                      className={`px-4 py-3 rounded-2xl text-sm sm:text-base font-medium transition-all min-h-[48px] touch-manipulation ${
-                        duration === min
-                          ? 'bg-violet-100 text-violet-700 ring-2 ring-violet-500/30'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {min} Min
-                    </button>
-                  ))}
-                </div>
-                <input type="hidden" name="duration" value={duration} />
-              </div>
-
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Equipment</label>
-                <div className="flex flex-wrap gap-2">
-                  {equipmentOptions.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => toggleEquipment(opt.value)}
-                      className={`px-4 py-3 rounded-2xl text-sm sm:text-base font-medium transition-all min-h-[48px] touch-manipulation ${
-                        equipment.includes(opt.value)
-                          ? 'bg-violet-100 text-violet-700 ring-2 ring-violet-500/30'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                {equipment.map((eq) => (
-                  <input key={eq} type="hidden" name="equipment" value={eq} />
-                ))}
-              </div>
-
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Besonderheiten</label>
-                <div className="flex flex-wrap gap-2">
-                  {constraintOptions.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => toggleConstraint(opt.value)}
-                      className={`px-4 py-3 rounded-2xl text-sm sm:text-base font-medium transition-all min-h-[48px] touch-manipulation ${
-                        constraints.includes(opt.value)
-                          ? 'bg-violet-100 text-violet-700 ring-2 ring-violet-500/30'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                {constraints.map((c) => (
-                  <input key={c} type="hidden" name="constraints" value={c} />
-                ))}
-              </div>
-
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Energie</label>
-                <div className="flex flex-wrap gap-2">
-                  {energyOptions.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setEnergy(opt.value)}
-                      className={`px-4 py-3 rounded-2xl text-sm sm:text-base font-medium transition-all min-h-[48px] touch-manipulation ${
-                        energy === opt.value
-                          ? 'bg-violet-100 text-violet-700 ring-2 ring-violet-500/30'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                <input type="hidden" name="energy" value={energy} />
-              </div>
-
-              <div className="pt-2">
-                <SubmitButton />
-              </div>
-            </form>
-
-            {state?.error && <p className="mt-4 text-sm text-red-500 text-center">{state.error}</p>}
+      <div className="relative z-10 flex flex-col lg:flex-row lg:gap-8 max-w-7xl mx-auto w-full min-h-screen px-4 sm:px-6 lg:px-8 pb-8 pb-[env(safe-area-inset-bottom)]">
+        {/* Linke Spalte: Floating Islands + Action Sheet */}
+        <div className="flex-1 flex flex-col lg:max-h-screen min-w-0">
+          <div className="flex-shrink-0 pt-4 px-4 sm:px-6">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
+              aria-label="Zurück"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Zurück
+            </Link>
           </div>
 
-          {/* RECHTE SEITE: ERGEBNIS – auf Mobile gleicher Sheet-Look */}
-          <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] sm:shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 min-h-[280px] sm:min-h-[400px] overflow-hidden lg:mt-20">
+          {/* 2. Floating Header (Greeting Pill) */}
+          <div className="flex-shrink-0 mt-8 sm:mt-12 ml-4 sm:ml-6">
+            <div className="bg-white/80 backdrop-blur-md rounded-full px-4 py-2.5 shadow-sm border border-white/50 inline-flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 text-violet-600" />
+              </div>
+              <span className="text-gray-800 font-semibold text-sm sm:text-base">Hi, bereit fürs Training?</span>
+            </div>
+          </div>
+
+          {/* 3. Hero Card (Visual Anchor) */}
+          <div className="flex-shrink-0 mx-4 sm:mx-6 mt-6">
+            <div className="aspect-[4/3] max-h-[280px] sm:max-h-[320px] rounded-[32px] bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-xl shadow-violet-300/50 relative overflow-hidden">
+              <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Dein Personal Plan</h1>
+                  <p className="text-white/80 text-sm sm:text-base mt-1">AI-basiert & maßgeschneidert</p>
+                </div>
+                <div className="absolute bottom-0 right-0 w-32 h-32 sm:w-40 sm:h-40 -translate-y-4 translate-x-4 sm:translate-x-6 opacity-90">
+                  <Bot className="w-full h-full text-white/90" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Quick-Select Dock (Icon Row) */}
+          <div className="flex-shrink-0 mt-6 px-4 sm:px-6">
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 scrollbar-hide">
+              {quickSelectDock.map(({ id, label, value, icon: Icon }) => {
+                const isActive = id === dockSelection;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setGoal(value);
+                      setDockSelection(id);
+                    }}
+                    className={`flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all touch-manipulation ${
+                      isActive
+                        ? 'bg-gray-900 text-white shadow-lg'
+                        : 'bg-white shadow-sm border border-gray-100 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-violet-500'}`} />
+                    <span className="text-[10px] sm:text-xs font-medium leading-tight">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 5. Action Sheet (Bottom) */}
+          <div className="flex-1 min-h-0 mt-6 lg:mt-8 flex flex-col">
+            <div className="bg-white rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] p-6 sm:p-8 flex-1 overflow-y-auto">
+              <form action={formAction} className="space-y-4 sm:space-y-5">
+                <input type="hidden" name="goal" value={goal} />
+                <div>
+                  <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Fokus</label>
+                  <CustomSelect
+                    value={focus}
+                    onChange={(v) => setFocus(v)}
+                    options={focusOptions.map((o) => ({ value: o.value, label: o.label }))}
+                    name="focus"
+                    theme="light"
+                    triggerClassName={filledInputTriggerClass}
+                    icon={LayoutGrid}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Level</label>
+                  <div className="flex flex-wrap gap-2">
+                    {levelOptions.map((opt) => (
+                      <button key={opt.id} type="button" onClick={() => setLevel(opt.value)}
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                          level === opt.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >{opt.label}</button>
+                    ))}
+                  </div>
+                  <input type="hidden" name="level" value={level} />
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Zeit</label>
+                  <div className="flex flex-wrap gap-2">
+                    {durationOptions.map((min) => (
+                      <button key={min} type="button" onClick={() => setDuration(min)}
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                          duration === min ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >{min} Min</button>
+                    ))}
+                  </div>
+                  <input type="hidden" name="duration" value={duration} />
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Equipment</label>
+                  <div className="flex flex-wrap gap-2">
+                    {equipmentOptions.map((opt) => (
+                      <button key={opt.id} type="button" onClick={() => toggleEquipment(opt.value)}
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                          equipment.includes(opt.value) ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >{opt.label}</button>
+                    ))}
+                  </div>
+                  {equipment.map((eq) => <input key={eq} type="hidden" name="equipment" value={eq} />)}
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Besonderheiten</label>
+                  <div className="flex flex-wrap gap-2">
+                    {constraintOptions.map((opt) => (
+                      <button key={opt.id} type="button" onClick={() => toggleConstraint(opt.value)}
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                          constraints.includes(opt.value) ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >{opt.label}</button>
+                    ))}
+                  </div>
+                  {constraints.map((c) => <input key={c} type="hidden" name="constraints" value={c} />)}
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide ml-2 mb-2 block">Energie</label>
+                  <div className="flex flex-wrap gap-2">
+                    {energyOptions.map((opt) => (
+                      <button key={opt.id} type="button" onClick={() => setEnergy(opt.value)}
+                        className={`px-4 py-3 rounded-2xl text-sm font-medium min-h-[48px] touch-manipulation transition-all ${
+                          energy === opt.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >{opt.label}</button>
+                    ))}
+                  </div>
+                  <input type="hidden" name="energy" value={energy} />
+                </div>
+                <div className="pt-2">
+                  <SubmitButton />
+                </div>
+              </form>
+              {state?.error && <p className="mt-4 text-sm text-red-500 text-center">{state.error}</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* Rechte Spalte: Ergebnis (Desktop) / unter dem Sheet (Mobile) */}
+        <div className="flex-shrink-0 w-full lg:w-[420px] lg:max-h-screen mt-6 lg:mt-0">
+          <div className="bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] sm:shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 min-h-[280px] sm:min-h-[400px] overflow-hidden h-full">
             {state?.result && state.result.includes('🔒 Premium Feature') ? (
               <div className="p-6">
                 <div className="prose prose-sm max-w-none text-gray-700">
