@@ -371,6 +371,10 @@ export default function RecipePage() {
           myRecipes={myRecipes}
           workspaceId={undefined}
           onBackToCockpit={() => setShowCockpit(true)}
+          onRequestNewRecipe={() => {
+            setShowCockpit(false);
+            setActiveTab('create');
+          }}
         />
       ) : (
         <>

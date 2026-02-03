@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, CheckCircle2, Info, ChevronDown, ChefHat, Trash2, Repeat } from 'lucide-react';
+import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, CheckCircle2, Info, ChevronDown, ChefHat, Trash2, Repeat, Search } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { PremiumOnboardingModal } from './premium-onboarding-modal';
 import { AlternativeRecipesModal } from './alternative-recipes-modal';
@@ -63,6 +63,7 @@ interface WeekPlannerProps {
   workspaceId?: string;
   isPremium?: boolean;
   onBackToCockpit?: () => void;
+  onRequestNewRecipe?: () => void;
 }
 
 function getWeekNumber(date: Date): number {
@@ -73,7 +74,7 @@ function getWeekNumber(date: Date): number {
   return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
 }
 
-export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremium, onBackToCockpit }: WeekPlannerProps) {
+export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremium, onBackToCockpit, onRequestNewRecipe }: WeekPlannerProps) {
   const router = useRouter();
   
   const [currentWeek, setCurrentWeek] = useState(() => {
@@ -782,7 +783,9 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           recipes={myRecipes}
           onSelect={(recipe, resultId) => {
             addRecipeToDay(selectedDay, recipe, resultId);
+            setSelectedDay(null);
           }}
+          onRequestNewRecipe={onRequestNewRecipe}
         />
       )}
 
@@ -905,67 +908,157 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   );
 }
 
-// Rezept-Auswahl-Modal
+// Rezept-Auswahl-Modal: helles Bottom Sheet (Mobile) / zentriertes Modal (Desktop)
 function RecipeSelectionModal({
   isOpen,
   onClose,
   recipes,
   onSelect,
+  onRequestNewRecipe,
 }: {
   isOpen: boolean;
   onClose: () => void;
   recipes: Array<{ recipe: Recipe; id: string; createdAt: Date }>;
   onSelect: (recipe: Recipe, resultId: string) => void;
+  onRequestNewRecipe?: () => void;
 }) {
+  const [search, setSearch] = useState('');
+  const [tab, setTab] = useState<'meine' | 'favoriten' | 'verlauf'>('meine');
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return recipes;
+    const q = search.toLowerCase().trim();
+    return recipes.filter(
+      (r) =>
+        r.recipe.recipeName?.toLowerCase().includes(q) ||
+        r.recipe.ingredients?.some((i) => i.toLowerCase().includes(q))
+    );
+  }, [recipes, search]);
+
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-zinc-900 border border-white/10 rounded-2xl shadow-xl max-h-[80vh] overflow-hidden"
+        className="w-full max-w-2xl bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[85vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">Rezept auswählen</h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-          >
-            <X className="w-4 h-4 text-zinc-400" />
-          </button>
+        {/* Header + Suche */}
+        <div className="shrink-0 p-4 border-b border-gray-100">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h2 className="text-lg font-semibold text-gray-900">Rezept auswählen</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
+              aria-label="Schließen"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Suche nach Lasagne..."
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 text-gray-900 placeholder:text-gray-400 transition-colors"
+            />
+          </div>
+          {/* Tabs */}
+          <div className="flex gap-1 mt-3 p-1 rounded-lg bg-gray-100">
+            {(
+              [
+                { id: 'meine' as const, label: 'Meine Rezepte' },
+                { id: 'favoriten' as const, label: 'Favoriten' },
+                { id: 'verlauf' as const, label: 'Verlauf' },
+              ] as const
+            ).map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
+                  tab === t.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="p-4 overflow-y-auto max-h-[60vh]">
-          {recipes.length === 0 ? (
-            <div className="text-center py-8 text-zinc-400">
-              <p>Noch keine Rezepte gespeichert.</p>
-              <p className="text-sm mt-2">Erstelle zuerst ein Rezept im Tab "Neues Rezept"!</p>
+        {/* Liste */}
+        <div className="flex-1 overflow-y-auto min-h-0 p-4">
+          {tab === 'meine' && (
+            <>
+              {filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <p className="text-gray-500 font-medium">
+                    {recipes.length === 0 ? 'Noch keine Rezepte gespeichert.' : 'Keine Treffer für deine Suche.'}
+                  </p>
+                  {onRequestNewRecipe && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onRequestNewRecipe();
+                      }}
+                      className="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white font-semibold shadow-lg shadow-violet-500/25 hover:from-violet-700 hover:to-fuchsia-600 transition-all"
+                    >
+                      <Sparkles className="w-5 h-5" />
+                      Neues Rezept generieren
+                    </button>
+                  )}
+                  {!onRequestNewRecipe && recipes.length === 0 && (
+                    <p className="text-sm text-gray-400 mt-2">Erstelle zuerst ein Rezept im Tab &quot;Neues Rezept&quot;.</p>
+                  )}
+                </div>
+              ) : (
+                <ul className="space-y-2">
+                  {filtered.map((result) => {
+                    const r = result.recipe;
+                    return (
+                      <li key={result.id}>
+                        <button
+                          type="button"
+                          onClick={() => onSelect(r, result.id)}
+                          className="w-full flex items-center gap-4 p-3 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-violet-50/50 hover:border-violet-200 transition-all text-left group"
+                        >
+                          <div className="w-16 h-16 shrink-0 rounded-xl bg-gradient-to-br from-orange-100 to-rose-100 flex items-center justify-center overflow-hidden">
+                            <ChefHat className="w-8 h-8 text-orange-400" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-gray-900 line-clamp-2">{r.recipeName}</p>
+                            {r.stats?.time && (
+                              <p className="text-sm text-gray-500 mt-0.5">⏱ {r.stats.time}</p>
+                            )}
+                          </div>
+                          <div className="shrink-0 w-10 h-10 rounded-full bg-violet-100 group-hover:bg-violet-200 flex items-center justify-center text-violet-600 transition-colors">
+                            <Plus className="w-5 h-5" />
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </>
+          )}
+          {tab === 'favoriten' && (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <p className="font-medium">Favoriten kommen bald.</p>
+              <p className="text-sm mt-1">Nutze in der Zwischenzeit &quot;Meine Rezepte&quot;.</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {recipes.map((result) => {
-                const r = result.recipe;
-                return (
-                  <button
-                    key={result.id}
-                    onClick={() => {
-                      onSelect(r, result.id);
-                      onClose();
-                    }}
-                    className="p-4 rounded-lg border border-white/10 bg-zinc-800/50 hover:bg-zinc-800 hover:border-orange-500/30 text-left transition-colors"
-                  >
-                    <h3 className="text-sm font-medium text-white mb-1 line-clamp-2">
-                      {r.recipeName}
-                    </h3>
-                    {r.stats?.time && (
-                      <p className="text-xs text-zinc-400">⏱️ {r.stats.time}</p>
-                    )}
-                  </button>
-                );
-              })}
+          )}
+          {tab === 'verlauf' && (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <p className="font-medium">Verlauf kommt bald.</p>
+              <p className="text-sm mt-1">Nutze in der Zwischenzeit &quot;Meine Rezepte&quot;.</p>
             </div>
           )}
         </div>
