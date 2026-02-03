@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Sparkles, Check, ArrowRight } from 'lucide-react';
-import { saveMealPreferences } from '@/actions/meal-planning-actions';
+import { saveMealPreferences, getMealPreferences } from '@/actions/meal-planning-actions';
 import { useRouter } from 'next/navigation';
 
 interface PremiumOnboardingModalProps {
@@ -30,6 +30,44 @@ const MEAL_STRUCTURE_OPTIONS = [
   { id: 'abendessen', label: 'Abendessen' },
 ] as const;
 
+const FILTER_GROUPS: { label: string; options: { value: string; label: string }[] }[] = [
+  {
+    label: 'Basis',
+    options: [
+      { value: 'Fleisch & Gemüse', label: 'Fleisch & Gemüse' },
+      { value: 'Vegetarisch', label: 'Vegetarisch 🌱' },
+      { value: 'Vegan', label: 'Vegan 🌿' },
+      { value: 'Pescetarisch', label: 'Pescetarisch 🐟' },
+    ],
+  },
+  {
+    label: 'Lifestyle & Religion',
+    options: [
+      { value: 'Halal', label: 'Halal ☪️' },
+      { value: 'Koscher', label: 'Koscher ✡️' },
+      { value: 'Glutenfrei', label: 'Glutenfrei 🌾' },
+      { value: 'Laktosefrei', label: 'Laktosefrei 🥛' },
+    ],
+  },
+  {
+    label: 'Ziele',
+    options: [
+      { value: 'High Protein', label: 'High Protein 💪' },
+      { value: 'Low Carb', label: 'Low Carb 📉' },
+      { value: 'Keto', label: 'Keto 🥑' },
+      { value: 'Unter 600 kcal', label: 'Unter 600 kcal 🔥' },
+    ],
+  },
+  {
+    label: 'Situation',
+    options: [
+      { value: 'Schnell', label: 'Zeit sparen ⚡' },
+      { value: 'Familienfreundlich', label: 'Familienfreundlich 👨‍👩‍👧‍👦' },
+      { value: 'Gäste', label: 'Gäste 🍷' },
+    ],
+  },
+];
+
 export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumOnboardingModalProps) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -46,11 +84,29 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
   // Schritt 3: Mahlzeiten-Struktur
   const [mealTypes, setMealTypes] = useState<string[]>(['abendessen']);
 
+  // Filter (Basis, Lifestyle, Ziele, Situation) – Mehrfachauswahl
+  const [filters, setFilters] = useState<string[]>([]);
+  const toggleFilter = (value: string) => {
+    setFilters((prev) =>
+      prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]
+    );
+  };
+
   const toggleMealType = (id: string) => {
     setMealTypes((prev) =>
       prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
     );
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      getMealPreferences().then((prefs) => {
+        if (prefs && (prefs as { filters?: string[] }).filters?.length) {
+          setFilters((prefs as { filters: string[] }).filters);
+        }
+      });
+    }
+  }, [isOpen]);
 
   const handleSave = async () => {
     setLoading(true);
@@ -74,6 +130,7 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
         cookingTime: cookingRhythm === 'quick_dirty' ? 'schnell' : 'normal',
         preferredCuisines: [],
         cookingRhythm,
+        filters,
       });
       onComplete();
       onClose();
@@ -175,6 +232,44 @@ export function PremiumOnboardingModal({ isOpen, onClose, onComplete }: PremiumO
                           {range.value === 'high' && '💰💰💰'}
                           <span className="block mt-0.5">{range.label}</span>
                         </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-300 mb-3">Filter & Präferenzen</label>
+                    <p className="text-xs text-zinc-500 mb-4">Mehrfachauswahl möglich – z.B. Vegetarisch + High Protein</p>
+                    <div className="space-y-5">
+                      {FILTER_GROUPS.map((group) => (
+                        <div key={group.label}>
+                          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                            {group.label}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {group.options.map((option) => {
+                              const isActive = filters.includes(option.value);
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => toggleFilter(option.value)}
+                                  className={`relative h-16 rounded-xl flex items-center justify-start w-full px-4 text-left transition-all duration-200 active:scale-[0.98] ${
+                                    isActive
+                                      ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md shadow-violet-500/25 border border-violet-500'
+                                      : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-transparent'
+                                  }`}
+                                >
+                                  <span className="text-sm font-medium pr-8 line-clamp-2">{option.label}</span>
+                                  {isActive && (
+                                    <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center">
+                                      <Check className="w-3 h-3" />
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>

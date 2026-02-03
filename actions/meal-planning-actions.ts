@@ -20,6 +20,7 @@ export async function saveMealPreferences(preferences: {
   meatSelection?: string[];
   cookingTime?: string;
   cookingRhythm?: string; // 'daily_fresh' | 'quick_dirty' | 'meal_prep'
+  filters?: string[]; // Basis/Lifestyle/Ziele/Situation (z.B. Halal, Vegetarisch, High Protein)
 }) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -35,6 +36,7 @@ export async function saveMealPreferences(preferences: {
       meatSelection: preferences.meatSelection || [],
       cookingTime: preferences.cookingTime || null,
       cookingRhythm: preferences.cookingRhythm || null,
+      filters: preferences.filters || [],
     };
     const extendedCuisinesJson = JSON.stringify(extendedCuisines);
 
@@ -90,6 +92,7 @@ export async function getMealPreferences() {
     let meatSelection: string[] = [];
     let cookingTime: string | null = null;
     let cookingRhythm: string | null = null;
+    let filters: string[] = [];
 
     if (prefs.preferredCuisines) {
       try {
@@ -99,6 +102,7 @@ export async function getMealPreferences() {
           meatSelection = parsed.meatSelection || [];
           cookingTime = parsed.cookingTime || null;
           cookingRhythm = parsed.cookingRhythm || null;
+          filters = Array.isArray(parsed.filters) ? parsed.filters : [];
         } else {
           parsedCuisines = Array.isArray(parsed) ? parsed : [];
         }
@@ -116,6 +120,7 @@ export async function getMealPreferences() {
       meatSelection,
       cookingTime,
       cookingRhythm,
+      filters,
     };
   } catch (error) {
     console.error('Error fetching meal preferences:', error);

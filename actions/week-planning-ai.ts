@@ -62,6 +62,58 @@ export async function generateWeekRecipes(workspaceId?: string) {
         ? `WICHTIG - Allergien vermeiden: ${preferences.allergies.join(', ')}`
         : 'Keine Allergien';
 
+    const userFilters = (preferences as { filters?: string[] }).filters || [];
+    const filterConstraintRules: string[] = [];
+    if (userFilters.includes('Halal')) {
+      filterConstraintRules.push('HALAL (STRIKT): Kein Schweinefleisch, keine nicht-halal Zutaten. Nur halal-konforme Fleischsorten und Zutaten.');
+    }
+    if (userFilters.includes('Koscher')) {
+      filterConstraintRules.push('KOSCHER (STRIKT): Nur koschere Zutaten und Zubereitung (kein Schwein, keine Vermischung von Milch und Fleisch, nur koschere Fische etc.).');
+    }
+    if (userFilters.includes('Vegetarisch')) {
+      filterConstraintRules.push('VEGETARISCH (STRIKT): Kein Fleisch, kein Fisch. Eier und Milchprodukte erlaubt.');
+    }
+    if (userFilters.includes('Vegan')) {
+      filterConstraintRules.push('VEGAN (STRIKT): Keine tierischen Produkte (kein Fleisch, Fisch, Eier, Honig, Milch).');
+    }
+    if (userFilters.includes('Pescetarisch')) {
+      filterConstraintRules.push('PESCETARISCH: Kein Fleisch. Fisch und Meeresfrüchte erlaubt.');
+    }
+    if (userFilters.includes('Fleisch & Gemüse')) {
+      filterConstraintRules.push('Fleisch und Gemüse erwünscht – ausgewogene Mischkost.');
+    }
+    if (userFilters.includes('Glutenfrei')) {
+      filterConstraintRules.push('GLUTENFREI (STRIKT): Keine Weizen-, Gersten-, Roggen- oder Dinkelprodukte. Keine glutenhaltigen Soßen oder Bindemittel.');
+    }
+    if (userFilters.includes('Laktosefrei')) {
+      filterConstraintRules.push('LAKTOSEFREI (STRIKT): Keine Milch, Sahne, Frischkäse oder andere laktosehaltigen Milchprodukte. Laktosefreie Alternativen erlaubt.');
+    }
+    if (userFilters.includes('High Protein')) {
+      filterConstraintRules.push('HIGH PROTEIN: Proteinreiche Zutaten betonen (Fleisch, Fisch, Eier, Hülsenfrüchte, Quark, Tofu).');
+    }
+    if (userFilters.includes('Low Carb')) {
+      filterConstraintRules.push('LOW CARB: Kohlenhydratarm – wenig Nudeln, Reis, Brot, Kartoffeln. Mehr Gemüse und Protein.');
+    }
+    if (userFilters.includes('Keto')) {
+      filterConstraintRules.push('KETO: Sehr kohlenhydratarm, fettbetont. Kein Zucker, kein Getreide, keine Hülsenfrüchte.');
+    }
+    if (userFilters.includes('Unter 600 kcal')) {
+      filterConstraintRules.push('UNTER 600 KCAL: Pro Gericht maximal 600 kcal. Leichte, kalorienbewusste Rezepte.');
+    }
+    if (userFilters.includes('Schnell')) {
+      filterConstraintRules.push('ZEIT SPAREN: Maximale Kochzeit ca. 20–25 Min. Schnelle, unkomplizierte Rezepte.');
+    }
+    if (userFilters.includes('Familienfreundlich')) {
+      filterConstraintRules.push('FAMILIENFREUNDLICH: Kindertauglich, nicht zu scharf, gut portionierbar.');
+    }
+    if (userFilters.includes('Gäste')) {
+      filterConstraintRules.push('GÄSTE: Festlicher, für Gäste geeignet – besondere Gerichte, ansprechende Präsentation.');
+    }
+    const filterConstraintsText =
+      filterConstraintRules.length > 0
+        ? `\nUSER-FILTER (STRIKT EINHALTEN):\n${filterConstraintRules.map((r) => `- ${r}`).join('\n')}\n`
+        : '';
+
     const isMealPrep = cookingRhythm === 'meal_prep';
     const recipeCount = isMealPrep ? 4 : 7;
     const daysForMealPrep = ['monday', 'wednesday', 'friday', 'sunday'];
@@ -73,6 +125,7 @@ KOCH-RHYTHMUS: ${rhythmText}
 MAHLZEITEN: ${mealTypesText}
 Portionen: ${preferences.householdSize} Personen pro Rezept (bei Meal Prep: pro Rezept die doppelte Menge für 2 Tage).
 ${allergiesText}
+${filterConstraintsText}
 
 QUALITÄTS-ANFORDERUNGEN:
 - KONSISTENTE deutsche Einheiten: g, kg, ml, l, TL, EL, Stk, Glas, Bund, Packung
@@ -109,8 +162,9 @@ WICHTIG:
 - Mahlzeit: ${mealTypesLabel}
 - Personen: ${preferences.householdSize}
 ${allergiesText}
+${userFilters.length > 0 ? `- User-Filter (strikt einhalten): ${userFilters.join(', ')}` : ''}
 
-Woche ausgewogen und abwechslungsreich gestalten.`;
+Woche ausgewogen und abwechslungsreich gestalten. Alle genannten Filter und Einschränkungen müssen in jedem Rezept beachtet werden.`;
 
     console.log('[WEEK-PLANNING-AI] Generiere 7 Rezepte...');
     const response = await createChatCompletion(
