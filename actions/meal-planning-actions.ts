@@ -17,8 +17,9 @@ export async function saveMealPreferences(preferences: {
   cookingLevel?: string;
   preferredCuisines?: string[];
   dislikedIngredients?: string[];
-  meatSelection?: string[]; // Neu
-  cookingTime?: string; // Neu
+  meatSelection?: string[];
+  cookingTime?: string;
+  cookingRhythm?: string; // 'daily_fresh' | 'quick_dirty' | 'meal_prep'
 }) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -28,13 +29,12 @@ export async function saveMealPreferences(preferences: {
   try {
     const allergiesJson = preferences.allergies ? JSON.stringify(preferences.allergies) : null;
     const mealTypesJson = preferences.mealTypes ? JSON.stringify(preferences.mealTypes) : null;
-    const preferredCuisinesJson = preferences.preferredCuisines ? JSON.stringify(preferences.preferredCuisines) : null;
     const dislikedIngredientsJson = preferences.dislikedIngredients ? JSON.stringify(preferences.dislikedIngredients) : null;
-    // Speichere meatSelection und cookingTime in preferredCuisines als erweitertes JSON (temporär, bis Schema erweitert)
     const extendedCuisines = {
       cuisines: preferences.preferredCuisines || [],
       meatSelection: preferences.meatSelection || [],
       cookingTime: preferences.cookingTime || null,
+      cookingRhythm: preferences.cookingRhythm || null,
     };
     const extendedCuisinesJson = JSON.stringify(extendedCuisines);
 
@@ -86,28 +86,27 @@ export async function getMealPreferences() {
 
     if (!prefs) return null;
 
-    // Parse extended cuisines (kann altes Format oder neues Format sein)
     let parsedCuisines: any = [];
     let meatSelection: string[] = [];
     let cookingTime: string | null = null;
-    
+    let cookingRhythm: string | null = null;
+
     if (prefs.preferredCuisines) {
       try {
         const parsed = JSON.parse(prefs.preferredCuisines);
         if (parsed.cuisines) {
-          // Neues erweitertes Format
           parsedCuisines = parsed.cuisines;
           meatSelection = parsed.meatSelection || [];
           cookingTime = parsed.cookingTime || null;
+          cookingRhythm = parsed.cookingRhythm || null;
         } else {
-          // Altes Format (nur Array)
-          parsedCuisines = parsed;
+          parsedCuisines = Array.isArray(parsed) ? parsed : [];
         }
       } catch {
         parsedCuisines = [];
       }
     }
-    
+
     return {
       ...prefs,
       allergies: prefs.allergies ? JSON.parse(prefs.allergies) : [],
@@ -116,6 +115,7 @@ export async function getMealPreferences() {
       dislikedIngredients: prefs.dislikedIngredients ? JSON.parse(prefs.dislikedIngredients) : [],
       meatSelection,
       cookingTime,
+      cookingRhythm,
     };
   } catch (error) {
     console.error('Error fetching meal preferences:', error);
