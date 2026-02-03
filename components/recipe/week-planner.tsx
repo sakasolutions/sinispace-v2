@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, CheckCircle2, Info, ChevronDown, ChefHat, Trash2, Repeat, Search } from 'lucide-react';
+import { Plus, X, ShoppingCart, Sparkles, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Lock, CheckCircle2, Info, ChevronDown, ChefHat, Trash2, Repeat, Search, CalendarCheck } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { PremiumOnboardingModal } from './premium-onboarding-modal';
 import { AlternativeRecipesModal } from './alternative-recipes-modal';
@@ -16,6 +16,7 @@ import {
   getPremiumStatus,
   getMealPreferences
 } from '@/actions/meal-planning-actions';
+import { saveWeeklyPlan as syncWeekPlanToCalendar } from '@/actions/calendar-actions';
 import { saveResult } from '@/actions/workspace-actions';
 import { saveRecipeToCollection } from '@/actions/recipe-collection-actions';
 import { useRouter } from 'next/navigation';
@@ -100,6 +101,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
   const [alternativeModal, setAlternativeModal] = useState<{ day: string; dateKey: string; recipe: any } | null>(null);
   const [selectedRecipeDetail, setSelectedRecipeDetail] = useState<{ recipe: Recipe; resultId: string; dateKey: string; day: string } | null>(null);
   const [isSavingPlan, setIsSavingPlan] = useState(false);
+  const [isSyncingToCalendar, setIsSyncingToCalendar] = useState(false);
+  const [syncToast, setSyncToast] = useState<string | null>(null);
   const [openDay, setOpenDay] = useState<string | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -270,6 +273,41 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       alert('Fehler beim Speichern des Wochenplans');
     } finally {
       setIsSavingPlan(false);
+    }
+  };
+
+  // In Kalender übernehmen (Sync)
+  const handleSyncToCalendar = async () => {
+    const entries = Object.entries(weekPlan).filter(([, v]) => v?.recipe);
+    if (entries.length === 0) return;
+
+    setIsSyncingToCalendar(true);
+    try {
+      const planData = entries.map(([dateKey, entry]) => ({
+        date: dateKey,
+        resultId: entry.resultId,
+        title: entry.recipe.recipeName,
+        mealType: 'dinner' as const,
+      }));
+      const result = await syncWeekPlanToCalendar(planData);
+      if (result && 'error' in result && result.error) {
+        alert(`Sync fehlgeschlagen: ${result.error}`);
+        return;
+      }
+      const confetti = (await import('canvas-confetti')).default;
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      setTimeout(() => confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 } }), 200);
+      setTimeout(() => confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } }), 400);
+      setSyncToast('Wochenplan ist im Kalender! 🎉');
+      setTimeout(() => {
+        setSyncToast(null);
+        router.push('/calendar');
+      }, 2500);
+    } catch (error) {
+      console.error('[WEEK-PLANNER] Sync to calendar:', error);
+      alert('Fehler beim Übernehmen in den Kalender');
+    } finally {
+      setIsSyncingToCalendar(false);
     }
   };
 
@@ -687,14 +725,23 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         </div>
       )}
 
+      {/* Toast: Sync-Erfolg */}
+      {syncToast && (
+        <div className="fixed top-4 left-4 right-4 z-[60] flex justify-center pointer-events-none">
+          <div className="rounded-xl bg-gray-900 text-white px-5 py-3 shadow-lg font-medium animate-in fade-in slide-in-from-top-2 duration-300">
+            {syncToast}
+          </div>
+        </div>
+      )}
+
       {/* Sticky Footer: über Navbar schwebend (bottom-nav ~80px), mit Schatten */}
       <div className="fixed bottom-[90px] left-0 right-0 z-50 p-4 pb-0 bg-transparent pointer-events-none">
-        <div className="max-w-2xl mx-auto pointer-events-auto flex gap-3 rounded-2xl bg-white/95 backdrop-blur-md border border-gray-100 shadow-lg p-4">
+        <div className="max-w-2xl mx-auto pointer-events-auto flex flex-wrap gap-3 rounded-2xl bg-white/95 backdrop-blur-md border border-gray-100 shadow-lg p-4">
           <button
             type="button"
             onClick={handleAutoPlan}
             disabled={isAutoPlanning}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-white font-semibold transition-all shadow-lg ${
+            className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-white font-semibold transition-all shadow-lg ${
               isAutoPlanning
                 ? 'bg-gray-300 cursor-not-allowed'
                 : canAutoPlan || !hasPreferences
@@ -732,21 +779,38 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
             )}
           </button>
           {Object.keys(weekPlan).length > 0 && (
-            <button
-              type="button"
-              onClick={handleSavePlan}
-              disabled={isSavingPlan}
-              className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white font-semibold transition-colors shrink-0"
-            >
-              {isSavingPlan ? (
-                <RefreshCw className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle2 className="w-5 h-5" />
-                  Speichern
-                </>
-              )}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleSyncToCalendar}
+                disabled={isSyncingToCalendar}
+                className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold shadow-lg shadow-orange-500/25 transition-all shrink-0"
+              >
+                {isSyncingToCalendar ? (
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <CalendarCheck className="w-5 h-5" />
+                    In Kalender übernehmen
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleSavePlan}
+                disabled={isSavingPlan}
+                className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white font-semibold transition-colors shrink-0"
+              >
+                {isSavingPlan ? (
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-5 h-5" />
+                    Speichern
+                  </>
+                )}
+              </button>
+            </>
           )}
         </div>
       </div>
