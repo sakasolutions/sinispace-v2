@@ -18,6 +18,8 @@ interface CustomSelectProps {
   theme?: 'dark' | 'light'; // 'light' = weißes SiniSpace-Design (z.B. Settings)
   /** Dropdown-Liste per Portal rendern (z.B. in Modals mit overflow), damit nichts abgeschnitten wird */
   dropdownInPortal?: boolean;
+  /** Zusätzliche Klassen für den Trigger-Button (z.B. filled-Style) */
+  triggerClassName?: string;
 }
 
 export function CustomSelect({
@@ -31,6 +33,7 @@ export function CustomSelect({
   variant = 'dropdown',
   theme = 'dark',
   dropdownInPortal = false,
+  triggerClassName,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [portalRect, setPortalRect] = useState<{ top: number; left: number; width: number } | null>(null);
@@ -167,7 +170,7 @@ export function CustomSelect({
           theme === 'light'
             ? `border border-gray-200 bg-white ${value ? 'text-gray-900' : 'text-gray-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-orange-200 hover:bg-orange-50/50 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500'}`
             : `border border-white/10 bg-zinc-900/50 ${value ? 'text-white' : 'text-zinc-500'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50'}`
-        }`}
+        } ${triggerClassName ?? ''}`}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {Icon && <Icon className={`w-4 h-4 flex-shrink-0 ${theme === 'light' ? 'text-gray-500' : ''}`} />}
