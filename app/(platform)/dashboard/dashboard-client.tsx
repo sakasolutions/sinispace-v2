@@ -678,7 +678,7 @@ export default function DashboardClient() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full relative"
+      className="min-h-screen w-full relative bg-gray-50/50"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -687,6 +687,12 @@ export default function DashboardClient() {
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
       }}
     >
+      {/* Ambient Background (Sini-Space Glow) */}
+      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-purple-400/20 blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-orange-300/20 blur-[120px]" />
+      </div>
+
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 50 && (
         <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-white z-50">
@@ -733,9 +739,9 @@ export default function DashboardClient() {
                       key={tool.id}
                       className={cn(
                         'group relative flex flex-col items-center text-center min-h-[44px]',
-                        'bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-100/80',
+                        'bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm',
                         heroGlow ?? 'shadow-sm',
-                        'hover:shadow-lg hover:border-gray-200/80 transition-all duration-300',
+                        'hover:bg-white/90 hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300',
                         'p-5 min-h-[160px]',
                         tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                       )}
@@ -787,8 +793,8 @@ export default function DashboardClient() {
                           key={tool.id}
                           className={cn(
                             'group relative flex flex-col items-center text-center min-h-[44px]',
-                            'bg-white rounded-xl border border-gray-100 shadow-sm',
-                            'hover:shadow-md hover:border-gray-200 transition-all duration-200',
+                            'bg-white/70 backdrop-blur-xl rounded-xl border border-white/40 shadow-sm',
+                            'hover:bg-white/90 hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300',
                             'p-4 min-h-[140px]',
                             tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                           )}
