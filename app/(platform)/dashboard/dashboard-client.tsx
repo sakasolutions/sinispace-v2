@@ -751,21 +751,21 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Soft Ambient Header – Licht statt Farbe, Edge-to-Edge */}
+      {/* Dashboard-Header – am oberen Rand angedockt, nur unten abgerundet */}
       <div
         className={cn(
           'relative z-[1]',
           'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(0.5rem,env(safe-area-inset-top))] md:mt-0',
           'h-[260px] sm:h-[300px] md:h-[350px]',
-          'bg-white',
-          'rounded-none rounded-b-[40px] md:rounded-b-none md:rounded-tl-[30px] md:rounded-br-[50px]',
+          'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200',
+          'rounded-none rounded-b-[40px]',
           'overflow-hidden'
         )}
       >
-        {/* Weiche Licht-Quellen (Sunrise-Andeutung) */}
-        <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/40 blur-[100px] pointer-events-none" aria-hidden />
-        <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/30 blur-[100px] pointer-events-none" aria-hidden />
+        {/* Ambient-Blobs – etwas satter (opacity 60) */}
+        <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/60 blur-[100px] pointer-events-none" aria-hidden />
+        <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/60 blur-[100px] pointer-events-none" aria-hidden />
         <div className="absolute inset-0 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 flex items-start justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
