@@ -31,7 +31,10 @@ import {
   ShoppingCart,
   FileImage,
   Sun,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PageTransition } from '@/components/ui/PageTransition';
 
 /** Kurze Untertitel – visuelle Dichte (1–2 Wörter) */
@@ -137,6 +140,26 @@ const TOOL_SQUIRCLE: Record<string, { gradient: string; shadow: string }> = {
 };
 
 const SQUIRCLE_FALLBACK = { gradient: 'bg-gradient-to-br from-orange-400 to-pink-500', shadow: 'shadow-lg shadow-orange-500/30' };
+
+/** Accordion-Listen: dezente Icon-Box pro Tool (kleiner Squircle) */
+const ACCORDION_ICON: Record<string, { bg: string; text: string }> = {
+  recipe: { bg: 'bg-orange-100', text: 'text-orange-600' },
+  'shopping-list': { bg: 'bg-orange-100', text: 'text-orange-600' },
+  excel: { bg: 'bg-green-100', text: 'text-green-600' },
+  email: { bg: 'bg-blue-100', text: 'text-blue-600' },
+  'tough-msg': { bg: 'bg-indigo-100', text: 'text-indigo-600' },
+  translate: { bg: 'bg-indigo-100', text: 'text-indigo-600' },
+  fitness: { bg: 'bg-rose-100', text: 'text-rose-600' },
+  travel: { bg: 'bg-sky-100', text: 'text-sky-600' },
+  polish: { bg: 'bg-teal-100', text: 'text-teal-600' },
+  legal: { bg: 'bg-violet-100', text: 'text-violet-600' },
+  invoice: { bg: 'bg-emerald-100', text: 'text-emerald-600' },
+  pdf: { bg: 'bg-red-100', text: 'text-red-600' },
+  summarize: { bg: 'bg-amber-100', text: 'text-amber-600' },
+  code: { bg: 'bg-slate-100', text: 'text-slate-600' },
+  social: { bg: 'bg-pink-100', text: 'text-pink-600' },
+};
+const ACCORDION_ICON_FALLBACK = { bg: 'bg-gray-100', text: 'text-gray-600' };
 
 /** Live-Badges für Top-4 (Micro-Experience) – Label + Pill-Style */
 const TOOL_LIVE_BADGE: Record<string, { label: string; className: string }> = {
@@ -608,6 +631,15 @@ const toolColors: Record<string, {
 export default function DashboardClient() {
   const [pullDistance, setPullDistance] = useState(0);
   const [usageStats, setUsageStats] = useState<Record<string, { count7d: number; count30d: number; isTrending: boolean }>>({});
+  const [openAccordions, setOpenAccordions] = useState<Set<string>>(new Set());
+  const toggleAccordion = (id: string) => {
+    setOpenAccordions((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -752,7 +784,7 @@ export default function DashboardClient() {
         className={cn(
           'relative z-[1]',
           'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8',
+          '-mt-[max(0.75rem,max(0.5rem,env(safe-area-inset-top)))] md:-mt-6 lg:-mt-8',
           'h-[260px] sm:h-[300px] md:h-[350px]',
           'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200',
           'rounded-t-none rounded-tr-none rounded-tl-none rounded-b-[40px]',
@@ -794,7 +826,7 @@ export default function DashboardClient() {
       </div>
 
       {/* Main Container: Grid ragt in den Header (Glass über Orange) */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32 -mt-24">
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-40 md:pb-32 -mt-24">
         {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
         {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
@@ -860,60 +892,83 @@ export default function DashboardClient() {
               </div>
             </section>
 
-            {/* Kategorie-Sektionen: Klare Content-Struktur */}
+            {/* Smart Glass Accordions – sekundäre Tools nach Kategorie */}
             {WORKFLOW_SECTIONS.map((section) => {
               const featuredIds = sortedTools.slice(0, 4).map((t) => t.id);
               const tools = sortedTools.filter(
                 (t) => TOOL_WORKFLOW[t.id] === section.id && !featuredIds.includes(t.id)
               );
               if (tools.length === 0) return null;
-              const sectionBg = WORKFLOW_SECTION_BG[section.id] ?? '';
-              const Icon = section.icon;
+              const isOpen = openAccordions.has(section.id);
+              const SectionIcon = section.icon;
               return (
-                <section key={section.id} className={cn('rounded-2xl p-4 md:p-5 -mx-1 mb-6 md:mb-8', sectionBg)}>
-                  <h2 className="text-sm font-bold text-gray-600 mb-4 flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-gray-500" />
-                    {section.label}
-                  </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {tools.map((tool) => {
-                      const Icon = tool.icon;
-                      const subtitle = TOOL_SUBTITLES[tool.id];
-                      const sq = TOOL_SQUIRCLE[tool.id] ?? SQUIRCLE_FALLBACK;
-                      const card = (
-                        <div
-                          key={tool.id}
-                          className={cn(
-                            'group relative flex flex-col items-center text-center min-h-[44px]',
-                            'bg-white/50 backdrop-blur-2xl rounded-2xl border border-white/50',
-                            'shadow-[0_20px_40px_-15px_rgba(249,115,22,0.3)]',
-                            'hover:bg-white/60 hover:scale-[1.02] hover:shadow-[0_24px_48px_-12px_rgba(249,115,22,0.35)] transition-all duration-300',
-                            'p-3 sm:p-4 min-h-[140px]',
-                            tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
-                          )}
-                        >
-                          <div className={cn('w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 mb-2', sq.gradient, sq.shadow)}>
-                            {createElement(Icon, { className: 'w-8 h-8 shrink-0 text-white', strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
-                          </div>
-                          <h3 className="font-bold text-lg text-gray-900 mt-2 leading-tight line-clamp-2">{tool.title}</h3>
-                          <p className="text-xs text-gray-500 font-medium mt-1 line-clamp-1">{subtitle}</p>
-                          {!tool.available && tool.status === 'soon' && (
-                            <span className="absolute top-2 right-2 text-[10px] uppercase font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Bald</span>
-                          )}
-                        </div>
-                      );
-                      return tool.available ? (
-                        <Link key={tool.id} href={tool.href} onClick={async () => { triggerHaptic('light'); await trackToolUsage(tool.id, tool.title); setTimeout(() => getToolUsageStats().then((r) => r.success && r.stats && setUsageStats(r.stats)), 500); }}>
-                          {card}
-                        </Link>
-                      ) : (
-                        <div key={tool.id}>{card}</div>
-                      );
-                    })}
-                  </div>
-                </section>
+                <div
+                  key={section.id}
+                  className="bg-white/40 backdrop-blur-md rounded-[24px] border border-white/40 overflow-hidden mb-4"
+                >
+                  <button
+                    type="button"
+                    onClick={() => { triggerHaptic('light'); toggleAccordion(section.id); }}
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-white/30 transition-colors"
+                  >
+                    <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                      <SectionIcon className="w-4 h-4 text-gray-500" />
+                      {section.label}
+                    </span>
+                    <motion.span
+                      animate={{ rotate: isOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-gray-500"
+                    >
+                      <ChevronDown className="w-5 h-5" />
+                    </motion.span>
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                      >
+                        {tools.map((tool) => {
+                          const Icon = tool.icon;
+                          const subtitle = TOOL_SUBTITLES[tool.id];
+                          const iconStyle = ACCORDION_ICON[tool.id] ?? ACCORDION_ICON_FALLBACK;
+                          const row = (
+                            <div className="flex items-center gap-3 p-4 border-b border-white/20 last:border-0 hover:bg-white/40 transition-colors">
+                              <div className={cn('w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0', iconStyle.bg)}>
+                                {createElement(Icon, { className: cn('w-5 h-5 shrink-0', iconStyle.text), strokeWidth: 2, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-800 truncate">{tool.title}</p>
+                                <p className="text-xs text-gray-500 truncate">{subtitle}</p>
+                              </div>
+                              <ChevronRight className="w-5 h-5 shrink-0 text-gray-400" />
+                            </div>
+                          );
+                          return tool.available ? (
+                            <Link
+                              key={tool.id}
+                              href={tool.href}
+                              onClick={async () => { triggerHaptic('light'); await trackToolUsage(tool.id, tool.title); setTimeout(() => getToolUsageStats().then((r) => r.success && r.stats && setUsageStats(r.stats)), 500); }}
+                              className="block"
+                            >
+                              {row}
+                            </Link>
+                          ) : (
+                            <div key={tool.id} className="opacity-60 cursor-not-allowed">
+                              {row}
+                            </div>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               );
-            }).filter(Boolean)}
+            })}
           </div>
         ) : (
           <div className="text-center py-24">
