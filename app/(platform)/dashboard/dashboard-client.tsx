@@ -35,7 +35,6 @@ import {
   ChevronRight,
   Calendar,
   CheckCircle,
-  User,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageTransition } from '@/components/ui/PageTransition';
@@ -836,11 +835,8 @@ export default function DashboardClient() {
                 </span>
               </div>
             </div>
-            <div className="absolute right-0 top-0 flex items-center gap-3">
-              <Link href="/settings" className="w-10 h-10 rounded-full border-2 border-white/30 bg-white/20 backdrop-blur-md shrink-0 flex items-center justify-center ring-2 ring-transparent hover:ring-white/40 transition-all" aria-label="Profil">
-                <User className="w-5 h-5 text-white/90" strokeWidth={2} aria-hidden />
-              </Link>
-              <div className="translate-x-[30%] -translate-y-[30%] text-orange-100/60 pointer-events-none" aria-hidden>
+            <div className="absolute right-0 top-0 pointer-events-none" aria-hidden>
+              <div className="translate-x-[30%] -translate-y-[30%] text-orange-100/60">
                 <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
               </div>
             </div>
