@@ -33,6 +33,8 @@ import {
   Sun,
   ChevronDown,
   ChevronRight,
+  Calendar,
+  CheckCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageTransition } from '@/components/ui/PageTransition';
@@ -798,32 +800,32 @@ export default function DashboardClient() {
         {/* 2. Inhalt darüber: Safe Area + Abstand für Statusleiste */}
         <div className="relative z-10 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 min-h-[260px] sm:min-h-[300px] md:min-h-[350px] flex flex-col">
           <div className="flex items-start justify-between">
-            <div>
+            <div className="min-w-0 flex-1">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
                 {sunriseGreeting.greeting}
               </h1>
               <p className="text-gray-500 text-sm sm:text-base mt-1 font-medium">
                 {sunriseGreeting.subline}
               </p>
+              {/* Quick-Stats: direkt unter der Begrüßung, Glass Pills */}
+              <div className="mt-3 flex gap-3 overflow-x-auto scrollbar-hide pb-1 -mx-1">
+                <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-4 py-1.5 text-white text-xs font-medium tracking-wide flex items-center shrink-0">
+                  <Calendar className="w-3.5 h-3.5 mr-2 text-white/90 shrink-0" aria-hidden />
+                  2 Termine
+                </span>
+                <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-4 py-1.5 text-white text-xs font-medium tracking-wide flex items-center shrink-0">
+                  <ShoppingCart className="w-3.5 h-3.5 mr-2 text-white/90 shrink-0" aria-hidden />
+                  4 Offen
+                </span>
+                <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-4 py-1.5 text-white text-xs font-medium tracking-wide flex items-center shrink-0">
+                  <CheckCircle className="w-3.5 h-3.5 mr-2 text-white/90 shrink-0" aria-hidden />
+                  Alles erledigt
+                </span>
+              </div>
             </div>
             <div className="absolute right-0 top-0 translate-x-[30%] -translate-y-[30%] text-orange-100/60 pointer-events-none" aria-hidden>
               <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
             </div>
-          </div>
-          {/* Quick-Stats */}
-          <div className="mt-auto pt-4 pb-2 flex flex-wrap gap-2 sm:gap-3">
-            <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
-              <span aria-hidden>📅</span>
-              2 Termine heute
-            </span>
-            <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
-              <span aria-hidden>🛒</span>
-              4 Dinge offen
-            </span>
-            <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
-              <span aria-hidden>🔥</span>
-              1200 kcal
-            </span>
           </div>
         </div>
       </header>
