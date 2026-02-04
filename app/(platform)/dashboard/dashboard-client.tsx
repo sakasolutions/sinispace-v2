@@ -718,8 +718,18 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Sunrise Hero Header */}
-      <div className="relative z-[1] w-full h-[240px] sm:h-[280px] md:h-[320px] bg-gradient-to-br from-orange-400 via-rose-500 to-purple-600 rounded-b-[40px] overflow-hidden">
+      {/* Sunrise Hero Header – Edge-to-Edge, fest an Top/Nav andockend */}
+      <div
+        className={cn(
+          'relative z-[1]',
+          'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
+          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:mt-0',
+          'h-[260px] sm:h-[300px] md:h-[350px]',
+          'bg-gradient-to-br from-orange-400 via-rose-500 to-purple-600',
+          'rounded-none rounded-b-[40px] md:rounded-b-none md:rounded-tl-[30px] md:rounded-br-[50px]',
+          'overflow-hidden'
+        )}
+      >
         <div className="absolute inset-0 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 flex items-start justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
@@ -729,8 +739,9 @@ export default function DashboardClient() {
               {sunriseGreeting.subline}
             </p>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none" aria-hidden>
-            <Sun className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 text-white" />
+          {/* Sonne halb angeschnitten, subtil */}
+          <div className="absolute right-0 top-0 translate-x-[30%] -translate-y-[30%] opacity-10 pointer-events-none" aria-hidden>
+            <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 text-white" />
           </div>
         </div>
       </div>
