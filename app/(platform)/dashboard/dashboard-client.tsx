@@ -730,43 +730,46 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Sunrise Hero Header – Edge-to-Edge, fest an Top/Nav andockend */}
+      {/* Soft-Mesh Header – leiser Morgenhimmel, Edge-to-Edge */}
       <div
         className={cn(
           'relative z-[1]',
           'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(0.5rem,env(safe-area-inset-top))] md:mt-0',
           'h-[260px] sm:h-[300px] md:h-[350px]',
-          'bg-gradient-to-br from-orange-400 via-rose-500 to-purple-600',
+          'bg-gradient-to-br from-orange-100 via-rose-100 to-violet-100',
           'rounded-none rounded-b-[40px] md:rounded-b-none md:rounded-tl-[30px] md:rounded-br-[50px]',
           'overflow-hidden'
         )}
       >
+        {/* Ambient Blobs – Farbe ohne Schrei */}
+        <div className="absolute top-0 left-0 w-64 h-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-400/30 blur-[80px] pointer-events-none" aria-hidden />
+        <div className="absolute bottom-0 right-0 w-64 h-64 translate-x-1/2 translate-y-1/2 rounded-full bg-purple-400/20 blur-[80px] pointer-events-none" aria-hidden />
         <div className="absolute inset-0 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 flex items-start justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
               {sunriseGreeting.greeting}
             </h1>
-            <p className="text-white/90 text-sm sm:text-base mt-1 font-medium">
+            <p className="text-gray-600 text-sm sm:text-base mt-1 font-medium">
               {sunriseGreeting.subline}
             </p>
           </div>
-          {/* Sonne halb angeschnitten, subtil */}
-          <div className="absolute right-0 top-0 translate-x-[30%] -translate-y-[30%] opacity-10 pointer-events-none" aria-hidden>
-            <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 text-white" />
+          {/* Sonne dezent im Nebel */}
+          <div className="absolute right-0 top-0 translate-x-[30%] -translate-y-[30%] text-orange-200/40 pointer-events-none" aria-hidden>
+            <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
           </div>
         </div>
-        {/* Quick-Stats: Brücke zwischen Header und Karten (schweben über dem Grid) */}
+        {/* Quick-Stats: lesbar auf hellem Grund */}
         <div className="absolute bottom-24 left-4 right-4 sm:left-6 sm:right-6 md:left-8 md:right-8 flex flex-wrap gap-2 sm:gap-3">
-          <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-3 py-1 text-xs text-white font-medium flex items-center gap-2 shrink-0">
+          <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
             <span aria-hidden>📅</span>
             2 Termine heute
           </span>
-          <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-3 py-1 text-xs text-white font-medium flex items-center gap-2 shrink-0">
+          <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
             <span aria-hidden>🛒</span>
             4 Dinge offen
           </span>
-          <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-3 py-1 text-xs text-white font-medium flex items-center gap-2 shrink-0">
+          <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
             <span aria-hidden>🔥</span>
             1200 kcal
           </span>
