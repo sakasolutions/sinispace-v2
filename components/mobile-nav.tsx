@@ -20,15 +20,15 @@ export function MobileNav() {
     <nav
       className="fixed bottom-6 left-6 right-6 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
     >
-      {/* Frosted Purple – dezenter, lichtdurchlässig (geschliffener Amethyst) */}
+      {/* Colored Glass – lila Plexiglas über der App (transparent, Blur, Lichtkante) */}
       <div
         className={cn(
           'w-full rounded-full',
-          'bg-violet-600/85 backdrop-blur-xl',
+          'bg-violet-600/60 backdrop-blur-xl backdrop-saturate-150',
           'border border-white/20',
-          'shadow-lg shadow-violet-900/20'
+          'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_10px_15px_-3px_rgba(76,29,149,0.3),0_4px_6px_-2px_rgba(76,29,149,0.2)]'
         )}
-        style={{ WebkitBackdropFilter: 'blur(24px)' }}
+        style={{ WebkitBackdropFilter: 'blur(24px) saturate(150%)' }}
       >
         <div className="flex justify-evenly items-center h-14 px-2">
           {navItems.map((item) => {
