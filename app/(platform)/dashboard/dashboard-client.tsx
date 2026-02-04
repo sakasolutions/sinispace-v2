@@ -117,6 +117,27 @@ const HERO_ICON_COLORS: Record<string, string> = {
   social: 'text-pink-500',
 };
 
+/** Squircle-Container pro Tool: Gradient + farbiger Schatten (iOS-Style) */
+const TOOL_SQUIRCLE: Record<string, { gradient: string; shadow: string }> = {
+  recipe: { gradient: 'bg-gradient-to-br from-violet-500 to-purple-500', shadow: 'shadow-lg shadow-violet-500/25' },
+  'shopping-list': { gradient: 'bg-gradient-to-br from-orange-400 to-rose-400', shadow: 'shadow-lg shadow-orange-500/20' },
+  fitness: { gradient: 'bg-gradient-to-br from-pink-500 to-rose-500', shadow: 'shadow-lg shadow-pink-500/25' },
+  travel: { gradient: 'bg-gradient-to-br from-sky-400 to-indigo-500', shadow: 'shadow-lg shadow-sky-500/20' },
+  pdf: { gradient: 'bg-gradient-to-br from-red-400 to-rose-400', shadow: 'shadow-lg shadow-red-500/20' },
+  email: { gradient: 'bg-gradient-to-br from-blue-500 to-indigo-500', shadow: 'shadow-lg shadow-blue-500/20' },
+  polish: { gradient: 'bg-gradient-to-br from-teal-500 to-emerald-500', shadow: 'shadow-lg shadow-teal-500/20' },
+  invoice: { gradient: 'bg-gradient-to-br from-emerald-500 to-green-500', shadow: 'shadow-lg shadow-emerald-500/20' },
+  excel: { gradient: 'bg-gradient-to-br from-green-500 to-emerald-600', shadow: 'shadow-lg shadow-green-500/20' },
+  legal: { gradient: 'bg-gradient-to-br from-violet-500 to-purple-600', shadow: 'shadow-lg shadow-violet-500/25' },
+  'tough-msg': { gradient: 'bg-gradient-to-br from-indigo-500 to-violet-500', shadow: 'shadow-lg shadow-indigo-500/20' },
+  summarize: { gradient: 'bg-gradient-to-br from-amber-400 to-orange-500', shadow: 'shadow-lg shadow-amber-500/20' },
+  translate: { gradient: 'bg-gradient-to-br from-indigo-400 to-violet-500', shadow: 'shadow-lg shadow-indigo-500/20' },
+  code: { gradient: 'bg-gradient-to-br from-slate-500 to-slate-600', shadow: 'shadow-lg shadow-slate-500/20' },
+  social: { gradient: 'bg-gradient-to-br from-pink-500 to-rose-500', shadow: 'shadow-lg shadow-pink-500/25' },
+};
+
+const SQUIRCLE_FALLBACK = { gradient: 'bg-gradient-to-br from-orange-400 to-rose-400', shadow: 'shadow-lg shadow-orange-500/20' };
+
 /** Live-Badges für Top-4 (Micro-Experience) – Label + Pill-Style */
 const TOOL_LIVE_BADGE: Record<string, { label: string; className: string }> = {
   recipe: { label: 'Heute: Pasta', className: 'bg-violet-100 text-violet-600' },
@@ -802,13 +823,16 @@ export default function DashboardClient() {
                         tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                       )}
                     >
-                      {/* Oben: Icon links (Gradient-Fill), Live-Badge rechts */}
+                      {/* Oben: Squircle (App-Icon-Style), Live-Badge rechts */}
                       <div className="flex w-full justify-between items-start gap-2">
-                        <div className="bg-white/50 rounded-2xl p-3 shadow-sm shrink-0">
-                          <div className="rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center p-2">
-                            {createElement(Icon, { className: 'w-8 h-8 shrink-0 text-white', strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
-                          </div>
-                        </div>
+                        {(() => {
+                          const sq = TOOL_SQUIRCLE[tool.id] ?? SQUIRCLE_FALLBACK;
+                          return (
+                            <div className={cn('w-14 h-14 rounded-[20px] flex items-center justify-center shrink-0', sq.gradient, sq.shadow)}>
+                              {createElement(Icon, { className: 'w-7 h-7 shrink-0 text-white', strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                            </div>
+                          );
+                        })()}
                         {(liveBadge || (!tool.available && tool.status === 'soon')) && (
                           <div className="flex flex-col items-end gap-1">
                             {liveBadge && (
@@ -858,8 +882,8 @@ export default function DashboardClient() {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {tools.map((tool) => {
                       const Icon = tool.icon;
-                      const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
                       const subtitle = TOOL_SUBTITLES[tool.id];
+                      const sq = TOOL_SQUIRCLE[tool.id] ?? SQUIRCLE_FALLBACK;
                       const card = (
                         <div
                           key={tool.id}
@@ -872,8 +896,8 @@ export default function DashboardClient() {
                             tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                           )}
                         >
-                          <div className="flex items-center justify-center shrink-0 mb-1">
-                            {createElement(Icon, { className: cn('w-10 h-10 shrink-0 drop-shadow-lg', iconColor), strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                          <div className={cn('w-14 h-14 rounded-[20px] flex items-center justify-center shrink-0 mb-2', sq.gradient, sq.shadow)}>
+                            {createElement(Icon, { className: 'w-7 h-7 shrink-0 text-white', strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                           </div>
                           <h3 className="font-bold text-lg text-gray-900 mt-2 leading-tight line-clamp-2">{tool.title}</h3>
                           <p className="text-xs text-gray-500 font-medium mt-1 line-clamp-1">{subtitle}</p>
