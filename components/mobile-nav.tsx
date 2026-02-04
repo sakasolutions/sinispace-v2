@@ -20,24 +20,10 @@ export function MobileNav() {
     <nav
       className="fixed bottom-6 left-6 right-6 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
     >
-      {/* iOS 2025 Colored Glass – translucent tinted glass, real blur + saturation */}
+      {/* Neon-Glass: Lila-transparent mit starkem Glow */}
       <div
-        className="relative w-full rounded-[26px] overflow-hidden border border-white/[0.35] h-14"
-        style={{
-          background: 'rgba(126, 87, 255, 0.16)',
-          boxShadow: '0 14px 40px rgba(0,0,0,0.18), 0 2px 10px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.2)',
-          WebkitBackdropFilter: 'blur(10px) saturate(150%)',
-          backdropFilter: 'blur(10px) saturate(150%)',
-        }}
+        className="relative w-full rounded-[26px] overflow-hidden h-14 bg-violet-600/50 backdrop-blur-xl backdrop-saturate-200 border border-white/20 shadow-[0_0_30px_rgba(139,92,246,0.5),inset_0_1px_0_0_rgba(255,255,255,0.3)]"
       >
-        {/* Top reflection: white → transparent, ~18% height */}
-        <div
-          className="absolute inset-x-0 top-0 h-[18%] pointer-events-none rounded-t-[26px]"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.35), transparent)',
-          }}
-          aria-hidden
-        />
         <div className="relative flex justify-evenly items-center h-full px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -58,10 +44,7 @@ export function MobileNav() {
                     )}
                   >
                     <Icon
-                      className={cn(
-                        'w-5 h-5 transition-all duration-300',
-                        isActive ? 'text-white' : 'text-white/70 group-hover:text-white/90'
-                      )}
+                      className="w-5 h-5 text-white transition-all duration-300 group-hover:text-white"
                       strokeWidth={isActive ? 2.5 : 2}
                     />
                   </div>
@@ -74,8 +57,8 @@ export function MobileNav() {
                 </div>
                 <span
                   className={cn(
-                    'text-[10px] font-medium transition-all duration-300',
-                    isActive ? 'text-white font-semibold' : 'text-white/70 group-hover:text-white/90'
+                    'text-[10px] font-medium transition-all duration-300 text-white',
+                    isActive && 'font-semibold'
                   )}
                 >
                   {item.label}
