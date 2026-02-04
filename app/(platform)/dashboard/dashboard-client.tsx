@@ -117,6 +117,18 @@ const HERO_ICON_COLORS: Record<string, string> = {
   social: 'text-pink-500',
 };
 
+/** Live-Badges für Top-4 (Micro-Experience) – Label + Pill-Style */
+const TOOL_LIVE_BADGE: Record<string, { label: string; className: string }> = {
+  recipe: { label: 'Heute: Pasta', className: 'bg-violet-100 text-violet-600' },
+  'shopping-list': { label: '4 offen', className: 'bg-orange-100 text-orange-600' },
+  fitness: { label: '3 geplant', className: 'bg-rose-100 text-rose-600' },
+  travel: { label: '2 Trips', className: 'bg-sky-100 text-sky-600' },
+  calendar: { label: '2 Termine', className: 'bg-amber-100 text-amber-600' },
+  email: { label: 'Entwürfe', className: 'bg-blue-100 text-blue-600' },
+  pdf: { label: 'Bereit', className: 'bg-red-100 text-red-600' },
+  legal: { label: 'Offen', className: 'bg-violet-100 text-violet-600' },
+};
+
 const COLOR_FALLBACK: Record<string, string> = {
   orange: 'text-orange-500',
   pink: 'text-pink-500',
@@ -761,8 +773,8 @@ export default function DashboardClient() {
         </div>
       </div>
 
-      {/* Main Container: Karten starten unter den Stats-Chips (Layering) */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32 -mt-20">
+      {/* Main Container: Grid ragt in den Header (Glass über Orange) */}
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32 -mt-24">
         {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
         {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
@@ -772,36 +784,54 @@ export default function DashboardClient() {
               <div className="grid grid-cols-2 gap-4 md:gap-4">
                 {sortedTools.slice(0, 4).map((tool) => {
                   const Icon = tool.icon;
-                  const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
                   const subtitle = TOOL_SUBTITLES[tool.id];
+                  const liveBadge = TOOL_LIVE_BADGE[tool.id];
                   const card = (
                     <div
                       key={tool.id}
                       className={cn(
-                        'group relative flex flex-col items-center text-center min-h-[44px]',
-                        'bg-white/50 backdrop-blur-2xl rounded-2xl border border-white/50',
-                        'shadow-[0_20px_40px_-15px_rgba(249,115,22,0.3)]',
-                        'hover:bg-white/60 hover:scale-[1.02] hover:shadow-[0_24px_48px_-12px_rgba(249,115,22,0.35)] transition-all duration-300',
-                        'p-4 sm:p-5 min-h-[160px]',
+                        'group relative flex flex-col justify-between h-full items-start min-h-[160px]',
+                        'bg-white/40 backdrop-blur-xl backdrop-saturate-150 rounded-2xl',
+                        'border border-white/50 border-b-white/20',
+                        'shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]',
+                        'hover:bg-white/60 hover:scale-[1.02] hover:shadow-xl transition-all duration-300',
+                        'p-5',
                         tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                       )}
                     >
-                      <div className="flex items-center justify-center shrink-0 mb-1">
-                        {createElement(Icon, { className: cn('w-12 h-12 shrink-0 drop-shadow-lg', iconColor), strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                      {/* Oben: Icon links (Gradient-Fill), Live-Badge rechts */}
+                      <div className="flex w-full justify-between items-start gap-2">
+                        <div className="bg-white/50 rounded-2xl p-3 shadow-sm shrink-0">
+                          <div className="rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center p-2">
+                            {createElement(Icon, { className: 'w-8 h-8 shrink-0 text-white', strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                          </div>
+                        </div>
+                        {(liveBadge || (!tool.available && tool.status === 'soon')) && (
+                          <div className="flex flex-col items-end gap-1">
+                            {liveBadge && (
+                              <span className={cn('text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0', liveBadge.className)}>
+                                {liveBadge.label}
+                              </span>
+                            )}
+                            {!tool.available && tool.status === 'soon' && (
+                              <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Bald</span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <h3 className="font-bold text-lg text-gray-900 mt-3 leading-tight line-clamp-2">{tool.title}</h3>
-                      <p className="text-xs text-gray-500 font-medium mt-1 line-clamp-1">{subtitle}</p>
-                      {!tool.available && tool.status === 'soon' && (
-                        <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Bald</span>
-                      )}
+                      {/* Unten: Titel + Subtext */}
+                      <div className="w-full text-left">
+                        <h3 className="font-bold text-lg text-gray-900 leading-tight line-clamp-2">{tool.title}</h3>
+                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{subtitle}</p>
+                      </div>
                     </div>
                   );
                   return tool.available ? (
-                    <Link key={tool.id} href={tool.href} onClick={async () => { triggerHaptic('light'); await trackToolUsage(tool.id, tool.title); setTimeout(() => getToolUsageStats().then((r) => r.success && r.stats && setUsageStats(r.stats)), 500); }}>
+                    <Link key={tool.id} href={tool.href} className="block h-full min-h-[160px]" onClick={async () => { triggerHaptic('light'); await trackToolUsage(tool.id, tool.title); setTimeout(() => getToolUsageStats().then((r) => r.success && r.stats && setUsageStats(r.stats)), 500); }}>
                       {card}
                     </Link>
                   ) : (
-                    <div key={tool.id}>{card}</div>
+                    <div key={tool.id} className="h-full min-h-[160px]">{card}</div>
                   );
                 })}
               </div>
