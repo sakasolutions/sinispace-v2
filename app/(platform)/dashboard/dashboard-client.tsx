@@ -772,26 +772,24 @@ export default function DashboardClient() {
               <div className="grid grid-cols-2 gap-4 md:gap-4">
                 {sortedTools.slice(0, 4).map((tool) => {
                   const Icon = tool.icon;
-                  const heroGlow = TOOL_GLOW_SHADOW[tool.id];
                   const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
-                  const iconBg = ICON_BG_CLASS[tool.color] ?? 'bg-gray-50';
                   const subtitle = TOOL_SUBTITLES[tool.id];
                   const card = (
                     <div
                       key={tool.id}
                       className={cn(
                         'group relative flex flex-col items-center text-center min-h-[44px]',
-                        'bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-xl',
-                        heroGlow ?? 'shadow-sm',
-                        'hover:bg-white/90 hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300',
-                        'p-5 min-h-[160px]',
+                        'bg-white/50 backdrop-blur-2xl rounded-2xl border border-white/50',
+                        'shadow-[0_20px_40px_-15px_rgba(249,115,22,0.3)]',
+                        'hover:bg-white/60 hover:scale-[1.02] hover:shadow-[0_24px_48px_-12px_rgba(249,115,22,0.35)] transition-all duration-300',
+                        'p-4 sm:p-5 min-h-[160px]',
                         tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                       )}
                     >
-                      <div className={cn('flex items-center justify-center rounded-full p-4 shrink-0', iconBg)}>
-                        {createElement(Icon, { className: cn('w-10 h-10 shrink-0', iconColor), strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                      <div className="flex items-center justify-center shrink-0 mb-1">
+                        {createElement(Icon, { className: cn('w-12 h-12 shrink-0 drop-shadow-lg', iconColor), strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                       </div>
-                      <h3 className="font-bold text-gray-900 mt-4 text-base leading-tight line-clamp-2">{tool.title}</h3>
+                      <h3 className="font-bold text-lg text-gray-900 mt-3 leading-tight line-clamp-2">{tool.title}</h3>
                       <p className="text-xs text-gray-500 font-medium mt-1 line-clamp-1">{subtitle}</p>
                       {!tool.available && tool.status === 'soon' && (
                         <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Bald</span>
@@ -828,24 +826,24 @@ export default function DashboardClient() {
                     {tools.map((tool) => {
                       const Icon = tool.icon;
                       const iconColor = HERO_ICON_COLORS[tool.id] ?? COLOR_FALLBACK[tool.color] ?? 'text-gray-600';
-                      const iconBg = ICON_BG_CLASS[tool.color] ?? 'bg-gray-50';
                       const subtitle = TOOL_SUBTITLES[tool.id];
                       const card = (
                         <div
                           key={tool.id}
                           className={cn(
                             'group relative flex flex-col items-center text-center min-h-[44px]',
-                            'bg-white/80 backdrop-blur-xl rounded-xl border border-white/60 shadow-xl',
-                            'hover:bg-white/90 hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300',
-                            'p-4 min-h-[140px]',
+                            'bg-white/50 backdrop-blur-2xl rounded-2xl border border-white/50',
+                            'shadow-[0_20px_40px_-15px_rgba(249,115,22,0.3)]',
+                            'hover:bg-white/60 hover:scale-[1.02] hover:shadow-[0_24px_48px_-12px_rgba(249,115,22,0.35)] transition-all duration-300',
+                            'p-3 sm:p-4 min-h-[140px]',
                             tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                           )}
                         >
-                          <div className={cn('flex items-center justify-center rounded-full p-3 shrink-0', iconBg)}>
-                            {createElement(Icon, { className: cn('w-8 h-8 shrink-0', iconColor), strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                          <div className="flex items-center justify-center shrink-0 mb-1">
+                            {createElement(Icon, { className: cn('w-10 h-10 shrink-0 drop-shadow-lg', iconColor), strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                           </div>
-                          <h3 className="font-bold text-gray-900 mt-3 text-sm leading-tight line-clamp-2">{tool.title}</h3>
-                          <p className="text-xs text-gray-400 font-medium mt-1 line-clamp-1">{subtitle}</p>
+                          <h3 className="font-bold text-lg text-gray-900 mt-2 leading-tight line-clamp-2">{tool.title}</h3>
+                          <p className="text-xs text-gray-500 font-medium mt-1 line-clamp-1">{subtitle}</p>
                           {!tool.available && tool.status === 'soon' && (
                             <span className="absolute top-2 right-2 text-[10px] uppercase font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Bald</span>
                           )}
