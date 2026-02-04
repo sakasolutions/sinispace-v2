@@ -18,16 +18,16 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-[100] block md:hidden px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+      className="fixed bottom-6 left-4 right-4 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
     >
-      {/* Floating Dock – Kapsel über dem Inhalt */}
+      {/* Floating Glass Dock – schwebende Steuerzentrale */}
       <div
         className={cn(
-          'mx-auto max-w-[90%] md:max-w-md rounded-[32px]',
-          'bg-white/80 backdrop-blur-xl border border-white/40',
-          'shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]'
+          'w-full rounded-[32px]',
+          'bg-white/70 backdrop-blur-2xl border border-white/50',
+          'shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)]'
         )}
-        style={{ WebkitBackdropFilter: 'blur(24px)' }}
+        style={{ WebkitBackdropFilter: 'blur(40px)' }}
       >
         <div className="flex justify-evenly items-center h-14 px-2">
           {navItems.map((item) => {
@@ -42,7 +42,7 @@ export function MobileNav() {
                 className="flex flex-col items-center justify-center gap-1 min-w-[56px] px-2 py-2.5 relative group"
               >
                 <div className="relative flex flex-col items-center">
-                  <div className="h-9 w-9 flex items-center justify-center transition-all duration-300 ease-out">
+                  <div className={cn('h-9 w-9 flex items-center justify-center transition-all duration-300 ease-out', isActive && 'rounded-lg bg-violet-600/10')}>
                     <Icon
                       className={cn(
                         'w-5 h-5 transition-all duration-300',
@@ -54,7 +54,7 @@ export function MobileNav() {
                   {/* Leuchtender Punkt unter dem Icon bei aktivem Tab */}
                   {isActive && (
                     <span
-                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.6)]"
+                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-violet-600"
                       aria-hidden
                     />
                   )}
