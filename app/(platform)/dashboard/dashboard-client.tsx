@@ -729,11 +729,7 @@ export default function DashboardClient() {
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
       }}
     >
-      {/* Ambient Background (Sini-Space Glow) */}
-      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-purple-400/20 blur-[120px]" />
-        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-orange-300/20 blur-[120px]" />
-      </div>
+      {/* Ambient-Blobs liegen im globalen Layout (hinter Sidebar + Content) */}
 
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 50 && (
@@ -751,15 +747,15 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Dashboard-Header – am oberen Rand angedockt, nur unten abgerundet */}
+      {/* Dashboard-Header – Brute-Force Docking: bündig oben/seitlich, nur unten Radius */}
       <div
         className={cn(
           'relative z-[1]',
           'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:mt-0',
+          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8',
           'h-[260px] sm:h-[300px] md:h-[350px]',
           'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200',
-          'rounded-none rounded-b-[40px]',
+          'rounded-t-none rounded-tr-none rounded-tl-none rounded-b-[40px]',
           'overflow-hidden'
         )}
       >

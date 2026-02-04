@@ -95,12 +95,15 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
     <div className="flex h-[100dvh] overflow-x-hidden relative">
       {/* App Background: Warmverlauf + Ambient Brand Blobs (Variante 1+3) */}
       <AppBackground />
-      
-      {/* Fine Grain Texture entfernt – hat als Schleier über dem Content gewirkt */}
-      
-      {/* SIDEBAR (Desktop) - Glassmorphism Modern Redesign */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-white/10 bg-white/80 backdrop-blur-xl md:block z-20 shadow-xl">
-        <div className="flex h-16 items-center border-b border-gray-200/50 px-6">
+      {/* Globale Ambient-Blobs: Lila/Orange – leuchten auch hinter der Sidebar (Crystal Glass) */}
+      <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-purple-400/20 blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-orange-300/20 blur-[120px]" />
+      </div>
+
+      {/* SIDEBAR (Desktop) – Crystal Glass über dem Ambient */}
+      <aside className="fixed inset-y-0 left-0 hidden w-64 md:block z-20 bg-white/60 backdrop-blur-xl border-r border-white/40">
+        <div className="flex h-16 items-center border-b border-white/40 px-6">
           <Link href="/dashboard" className="flex items-center group">
             <div className="relative h-10 w-10 rounded-xl overflow-hidden ring-2 ring-transparent group-hover:ring-orange-200 transition-all duration-300">
               <Image 
@@ -116,7 +119,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         <nav className="flex flex-col gap-1 p-4 pt-6">
           <NavItem href="/dashboard" label="Übersicht" pathname={pathname} />
           <NavItem href="/calendar" label="Kalender" pathname={pathname} />
-          <NavItem href="/chat" label="SiniChat" pathname={pathname} />
+          <NavItem href="/chat" label="SiniChat" pathname={pathname} isChat />
           <div className="my-4 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
           <NavItem href="/settings" label="Einstellungen" pathname={pathname} />
         </nav>
@@ -170,17 +173,17 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
   );
 }
 
-// Hilfskomponente für Desktop Links - Logo Gradient Integration
-function NavItem({ href, label, pathname }: { href: string; label: string; pathname: string | null }) {
-  const isActive = pathname === href;
+// Hilfskomponente für Desktop Links – Active = Squircle/Gradient, Inactive = Kontrast auf Glas
+function NavItem({ href, label, pathname, isChat }: { href: string; label: string; pathname: string | null; isChat?: boolean }) {
+  const isActive = isChat ? (pathname?.startsWith('/chat') ?? false) : pathname === href;
   return (
     <Link
       href={href}
       onClick={() => triggerHaptic('light')}
       className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
         isActive
-          ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md shadow-orange-500/20'
-          : 'text-gray-600 hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 hover:text-gray-900'
+          ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30'
+          : 'text-gray-600 hover:text-violet-600'
       }`}
     >
       {label}
