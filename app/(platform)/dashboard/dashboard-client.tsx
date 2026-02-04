@@ -970,15 +970,15 @@ export default function DashboardClient() {
                         {tools.map((tool) => {
                           const Icon = tool.icon;
                           const subtitle = TOOL_SUBTITLES[tool.id];
-                          const iconStyle = ACCORDION_ICON[tool.id] ?? ACCORDION_ICON_FALLBACK;
+                          const sq = TOOL_SQUIRCLE[tool.id] ?? SQUIRCLE_FALLBACK;
                           const row = (
-                            <div className="flex items-center gap-3 p-4 border-b border-white/20 last:border-0 hover:bg-white/40 transition-colors">
-                              <div className={cn('w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0', iconStyle.bg)}>
-                                {createElement(Icon, { className: cn('w-5 h-5 shrink-0', iconStyle.text), strokeWidth: 2, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                            <div className="flex items-center gap-3 py-4 px-4 border-b border-white/20 last:border-0 hover:bg-white/40 transition-colors">
+                              <div className={cn('w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0 shadow-sm', sq.gradient)}>
+                                {createElement(Icon, { className: 'w-5 h-5 shrink-0 text-white', strokeWidth: 2, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-gray-800 truncate">{tool.title}</p>
-                                <p className="text-xs text-gray-500 truncate">{subtitle}</p>
+                                <p className="text-sm text-gray-500 truncate">{subtitle}</p>
                               </div>
                               <ChevronRight className="w-5 h-5 shrink-0 text-gray-400" />
                             </div>
