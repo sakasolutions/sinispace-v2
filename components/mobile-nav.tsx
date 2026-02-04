@@ -20,13 +20,15 @@ export function MobileNav() {
     <nav
       className="fixed bottom-6 left-6 right-6 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
     >
-      {/* High Visibility – Sini Brand Gradient (Kapsel). Alternative: bg-white/95 border-2 border-violet-100 shadow-lg shadow-violet-200 für Glas-Look. */}
+      {/* Frosted Purple – dezenter, lichtdurchlässig (geschliffener Amethyst) */}
       <div
         className={cn(
           'w-full rounded-full',
-          'bg-gradient-to-r from-violet-600 to-fuchsia-600',
-          'shadow-xl shadow-violet-500/40'
+          'bg-violet-600/85 backdrop-blur-xl',
+          'border border-white/20',
+          'shadow-lg shadow-violet-900/20'
         )}
+        style={{ WebkitBackdropFilter: 'blur(24px)' }}
       >
         <div className="flex justify-evenly items-center h-14 px-2">
           {navItems.map((item) => {
