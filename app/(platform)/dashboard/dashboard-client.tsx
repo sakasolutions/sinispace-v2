@@ -751,32 +751,32 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Soft-Mesh Header – leiser Morgenhimmel, Edge-to-Edge */}
+      {/* Soft Ambient Header – Licht statt Farbe, Edge-to-Edge */}
       <div
         className={cn(
           'relative z-[1]',
           'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(0.5rem,env(safe-area-inset-top))] md:mt-0',
           'h-[260px] sm:h-[300px] md:h-[350px]',
-          'bg-gradient-to-br from-orange-100 via-rose-100 to-violet-100',
+          'bg-white',
           'rounded-none rounded-b-[40px] md:rounded-b-none md:rounded-tl-[30px] md:rounded-br-[50px]',
           'overflow-hidden'
         )}
       >
-        {/* Ambient Blobs – Farbe ohne Schrei */}
-        <div className="absolute top-0 left-0 w-64 h-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-400/30 blur-[80px] pointer-events-none" aria-hidden />
-        <div className="absolute bottom-0 right-0 w-64 h-64 translate-x-1/2 translate-y-1/2 rounded-full bg-purple-400/20 blur-[80px] pointer-events-none" aria-hidden />
+        {/* Weiche Licht-Quellen (Sunrise-Andeutung) */}
+        <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/40 blur-[100px] pointer-events-none" aria-hidden />
+        <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/30 blur-[100px] pointer-events-none" aria-hidden />
         <div className="absolute inset-0 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 flex items-start justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
               {sunriseGreeting.greeting}
             </h1>
-            <p className="text-gray-600 text-sm sm:text-base mt-1 font-medium">
+            <p className="text-gray-500 text-sm sm:text-base mt-1 font-medium">
               {sunriseGreeting.subline}
             </p>
           </div>
-          {/* Sonne dezent im Nebel */}
-          <div className="absolute right-0 top-0 translate-x-[30%] -translate-y-[30%] text-orange-200/40 pointer-events-none" aria-hidden>
+          {/* Sonne als dezentes Licht */}
+          <div className="absolute right-0 top-0 translate-x-[30%] -translate-y-[30%] text-orange-100/60 pointer-events-none" aria-hidden>
             <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
           </div>
         </div>
