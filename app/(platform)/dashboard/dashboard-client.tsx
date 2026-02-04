@@ -782,7 +782,7 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Header: Wrapper bricht aus (negative Margins); Hintergrund absolute = klebt am Bildschirmrand */}
+      {/* Header: Wrapper scrollt mit Seite; Hintergrund absolute (nicht fixed) = scrollt mit */}
       <header
         className={cn(
           'relative z-[1] min-h-[260px] sm:min-h-[300px] md:min-h-[350px]',
@@ -790,9 +790,9 @@ export default function DashboardClient() {
           '-mt-[max(1rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* 1. Nur Hintergrund – fixed = klebt garantiert am physischen oberen Bildschirmrand */}
+        {/* 1. Hintergrund – absolute (im Flow), scrollt mit dem Rest der Seite */}
         <div
-          className="fixed top-0 left-0 right-0 md:left-64 h-[260px] sm:h-[300px] md:h-[350px] z-0 rounded-b-[40px] overflow-hidden bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200"
+          className="absolute top-0 left-0 w-full h-[260px] sm:h-[300px] md:h-[350px] z-0 rounded-b-[40px] overflow-hidden bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200"
           aria-hidden
         >
           <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/60 blur-[100px] pointer-events-none" aria-hidden />
