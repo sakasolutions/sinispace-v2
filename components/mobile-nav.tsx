@@ -20,10 +20,29 @@ export function MobileNav() {
     <nav
       className="fixed bottom-6 left-6 right-6 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
     >
-      {/* Neon-Glass: Lila-transparent mit starkem Glow */}
+      {/* Layered glass: blur → tint → reflection → edge */}
       <div
-        className="relative w-full rounded-[26px] overflow-hidden h-14 bg-violet-600/50 backdrop-blur-xl backdrop-saturate-200 border border-white/20 shadow-[0_0_30px_rgba(139,92,246,0.5),inset_0_1px_0_0_rgba(255,255,255,0.3)]"
+        className="relative w-full rounded-[26px] overflow-hidden h-14"
+        style={{
+          // Layer 1: background blur
+          WebkitBackdropFilter: 'blur(10px)',
+          backdropFilter: 'blur(10px)',
+          // Layer 2: tint film (semi-transparent only, does not replace transparency)
+          background: 'rgba(180, 140, 255, 0.18)',
+          // Layer 4: glass edge
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderTop: '1px solid rgba(255,255,255,0.4)',
+          boxShadow: '0 12px 32px rgba(0,0,0,0.18), 0 3px 8px rgba(0,0,0,0.12)',
+        }}
       >
+        {/* Layer 3: glass reflection – top 18% */}
+        <div
+          className="absolute inset-x-0 top-0 h-[18%] pointer-events-none rounded-t-[26px]"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.35), transparent)',
+          }}
+          aria-hidden
+        />
         <div className="relative flex justify-evenly items-center h-full px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
