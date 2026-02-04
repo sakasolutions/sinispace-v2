@@ -35,6 +35,7 @@ import {
   ChevronRight,
   Calendar,
   CheckCircle,
+  User,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageTransition } from '@/components/ui/PageTransition';
@@ -163,16 +164,16 @@ const ACCORDION_ICON: Record<string, { bg: string; text: string }> = {
 };
 const ACCORDION_ICON_FALLBACK = { bg: 'bg-gray-100', text: 'text-gray-600' };
 
-/** Live-Badges für Top-4 (Micro-Experience) – Label + Pill-Style */
+/** Live-Badges für Top-4 – Micro-Design: subtle oder alarm (z. B. Einkauf voll) */
 const TOOL_LIVE_BADGE: Record<string, { label: string; className: string }> = {
-  recipe: { label: 'Heute: Pasta', className: 'bg-violet-100 text-violet-600' },
-  'shopping-list': { label: '4 offen', className: 'bg-orange-100 text-orange-600' },
-  fitness: { label: '3 geplant', className: 'bg-rose-100 text-rose-600' },
-  travel: { label: '2 Trips', className: 'bg-sky-100 text-sky-600' },
-  calendar: { label: '2 Termine', className: 'bg-amber-100 text-amber-600' },
-  email: { label: 'Entwürfe', className: 'bg-blue-100 text-blue-600' },
-  pdf: { label: 'Bereit', className: 'bg-red-100 text-red-600' },
-  legal: { label: 'Offen', className: 'bg-violet-100 text-violet-600' },
+  recipe: { label: 'Heute: Pasta', className: 'bg-white/50 text-gray-600' },
+  'shopping-list': { label: '4 offen', className: 'bg-orange-100/80 text-orange-600' },
+  fitness: { label: '3 geplant', className: 'bg-white/50 text-gray-600' },
+  travel: { label: '2 Trips', className: 'bg-white/50 text-gray-600' },
+  calendar: { label: '2 Termine', className: 'bg-white/50 text-gray-600' },
+  email: { label: 'Entwürfe', className: 'bg-white/50 text-gray-600' },
+  pdf: { label: 'Bereit', className: 'bg-white/50 text-gray-600' },
+  legal: { label: 'Offen', className: 'bg-white/50 text-gray-600' },
 };
 
 const COLOR_FALLBACK: Record<string, string> = {
@@ -823,8 +824,13 @@ export default function DashboardClient() {
                 </span>
               </div>
             </div>
-            <div className="absolute right-0 top-0 translate-x-[30%] -translate-y-[30%] text-orange-100/60 pointer-events-none" aria-hidden>
-              <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
+            <div className="absolute right-0 top-0 flex items-center gap-3">
+              <Link href="/settings" className="w-10 h-10 rounded-full border-2 border-white/30 bg-white/20 backdrop-blur-md shrink-0 flex items-center justify-center ring-2 ring-transparent hover:ring-white/40 transition-all" aria-label="Profil">
+                <User className="w-5 h-5 text-white/90" strokeWidth={2} aria-hidden />
+              </Link>
+              <div className="translate-x-[30%] -translate-y-[30%] text-orange-100/60 pointer-events-none" aria-hidden>
+                <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
+              </div>
             </div>
           </div>
         </div>
@@ -856,7 +862,20 @@ export default function DashboardClient() {
                         tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                       )}
                     >
-                      {/* Oben: Squircle (App-Icon-Style), Live-Badge rechts */}
+                      {/* Status-Badge: Micro-Design, oben rechts */}
+                      {(liveBadge || (!tool.available && tool.status === 'soon')) && (
+                        <div className="absolute top-4 right-4 flex flex-col items-end gap-0.5">
+                          {liveBadge && (
+                            <span className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md shrink-0', liveBadge.className)}>
+                              {liveBadge.label}
+                            </span>
+                          )}
+                          {!tool.available && tool.status === 'soon' && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-white/50 text-gray-600">Bald</span>
+                          )}
+                        </div>
+                      )}
+                      {/* Squircle (App-Icon-Style) */}
                       <div className="flex w-full justify-between items-start gap-2">
                         {(() => {
                           const sq = TOOL_SQUIRCLE[tool.id] ?? SQUIRCLE_FALLBACK;
@@ -866,18 +885,6 @@ export default function DashboardClient() {
                             </div>
                           );
                         })()}
-                        {(liveBadge || (!tool.available && tool.status === 'soon')) && (
-                          <div className="flex flex-col items-end gap-1">
-                            {liveBadge && (
-                              <span className={cn('text-[10px] font-semibold px-2.5 py-1 rounded-full shrink-0', liveBadge.className)}>
-                                {liveBadge.label}
-                              </span>
-                            )}
-                            {!tool.available && tool.status === 'soon' && (
-                              <span className="text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Bald</span>
-                            )}
-                          </div>
-                        )}
                       </div>
                       {/* Unten: Titel + Subtext */}
                       <div className="w-full text-left">
