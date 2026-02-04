@@ -779,51 +779,54 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Dashboard-Header – Brute-Force Docking: bündig oben/seitlich, nur unten Radius */}
-      <div
+      {/* Header: Wrapper bricht aus (negative Margins); Hintergrund absolute = klebt am Bildschirmrand */}
+      <header
         className={cn(
-          'relative z-[1]',
+          'relative z-[1] min-h-[260px] sm:min-h-[300px] md:min-h-[350px]',
           'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-          '-mt-[max(0.75rem,max(0.5rem,env(safe-area-inset-top)))] md:-mt-6 lg:-mt-8',
-          'h-[260px] sm:h-[300px] md:h-[350px]',
-          'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200',
-          'rounded-t-none rounded-tr-none rounded-tl-none rounded-b-[40px]',
-          'overflow-hidden'
+          '-mt-[max(1rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* Ambient-Blobs – etwas satter (opacity 60) */}
-        <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/60 blur-[100px] pointer-events-none" aria-hidden />
-        <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/60 blur-[100px] pointer-events-none" aria-hidden />
-        <div className="absolute inset-0 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
-              {sunriseGreeting.greeting}
-            </h1>
-            <p className="text-gray-500 text-sm sm:text-base mt-1 font-medium">
-              {sunriseGreeting.subline}
-            </p>
+        {/* 1. Nur Hintergrund – fixed = klebt garantiert am physischen oberen Bildschirmrand */}
+        <div
+          className="fixed top-0 left-0 right-0 md:left-64 h-[260px] sm:h-[300px] md:h-[350px] z-0 rounded-b-[40px] overflow-hidden bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200"
+          aria-hidden
+        >
+          <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/60 blur-[100px] pointer-events-none" aria-hidden />
+          <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/60 blur-[100px] pointer-events-none" aria-hidden />
+        </div>
+        {/* 2. Inhalt darüber: Safe Area + Abstand für Statusleiste */}
+        <div className="relative z-10 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 min-h-[260px] sm:min-h-[300px] md:min-h-[350px] flex flex-col">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
+                {sunriseGreeting.greeting}
+              </h1>
+              <p className="text-gray-500 text-sm sm:text-base mt-1 font-medium">
+                {sunriseGreeting.subline}
+              </p>
+            </div>
+            <div className="absolute right-0 top-0 translate-x-[30%] -translate-y-[30%] text-orange-100/60 pointer-events-none" aria-hidden>
+              <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
+            </div>
           </div>
-          {/* Sonne als dezentes Licht */}
-          <div className="absolute right-0 top-0 translate-x-[30%] -translate-y-[30%] text-orange-100/60 pointer-events-none" aria-hidden>
-            <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
+          {/* Quick-Stats */}
+          <div className="mt-auto pt-4 pb-2 flex flex-wrap gap-2 sm:gap-3">
+            <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
+              <span aria-hidden>📅</span>
+              2 Termine heute
+            </span>
+            <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
+              <span aria-hidden>🛒</span>
+              4 Dinge offen
+            </span>
+            <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
+              <span aria-hidden>🔥</span>
+              1200 kcal
+            </span>
           </div>
         </div>
-        {/* Quick-Stats: lesbar auf hellem Grund */}
-        <div className="absolute bottom-24 left-4 right-4 sm:left-6 sm:right-6 md:left-8 md:right-8 flex flex-wrap gap-2 sm:gap-3">
-          <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
-            <span aria-hidden>📅</span>
-            2 Termine heute
-          </span>
-          <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
-            <span aria-hidden>🛒</span>
-            4 Dinge offen
-          </span>
-          <span className="bg-white/70 backdrop-blur-md border border-gray-200/60 rounded-full px-3 py-1 text-xs text-gray-800 font-medium flex items-center gap-2 shrink-0 shadow-sm">
-            <span aria-hidden>🔥</span>
-            1200 kcal
-          </span>
-        </div>
-      </div>
+      </header>
 
       {/* Main Container: Grid ragt in den Header (Glass über Orange) */}
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-40 md:pb-32 -mt-24">
