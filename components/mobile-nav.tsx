@@ -20,17 +20,25 @@ export function MobileNav() {
     <nav
       className="fixed bottom-6 left-6 right-6 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
     >
-      {/* Deep Glass – geschliffener Amethyst (Icy Edge, innerer Glanz, Schlagschatten) */}
+      {/* iOS 2025 Colored Glass – translucent tinted glass, real blur + saturation */}
       <div
-        className={cn(
-          'w-full rounded-full',
-          'bg-violet-600/60 backdrop-blur-xl backdrop-saturate-150',
-          'border border-white/30',
-          'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.3),0_20px_25px_-5px_rgba(76,29,149,0.4),0_8px_10px_-6px_rgba(76,29,149,0.4)]'
-        )}
-        style={{ WebkitBackdropFilter: 'blur(24px) saturate(150%)' }}
+        className="relative w-full rounded-[26px] overflow-hidden border border-white/[0.35] h-14"
+        style={{
+          background: 'rgba(126, 87, 255, 0.16)',
+          boxShadow: '0 14px 40px rgba(0,0,0,0.18), 0 2px 10px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.2)',
+          WebkitBackdropFilter: 'blur(10px) saturate(150%)',
+          backdropFilter: 'blur(10px) saturate(150%)',
+        }}
       >
-        <div className="flex justify-evenly items-center h-14 px-2">
+        {/* Top reflection: white → transparent, ~18% height */}
+        <div
+          className="absolute inset-x-0 top-0 h-[18%] pointer-events-none rounded-t-[26px]"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.35), transparent)',
+          }}
+          aria-hidden
+        />
+        <div className="relative flex justify-evenly items-center h-full px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.active;
@@ -52,12 +60,11 @@ export function MobileNav() {
                     <Icon
                       className={cn(
                         'w-5 h-5 transition-all duration-300',
-                        isActive ? 'text-white' : 'text-white/80 group-hover:text-white'
+                        isActive ? 'text-white' : 'text-white/70 group-hover:text-white/90'
                       )}
                       strokeWidth={isActive ? 2.5 : 2}
                     />
                   </div>
-                  {/* Weißer Punkt unter dem Icon bei aktivem Tab */}
                   {isActive && (
                     <span
                       className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white"
@@ -68,7 +75,7 @@ export function MobileNav() {
                 <span
                   className={cn(
                     'text-[10px] font-medium transition-all duration-300',
-                    isActive ? 'text-white font-semibold' : 'text-white/80 group-hover:text-white'
+                    isActive ? 'text-white font-semibold' : 'text-white/70 group-hover:text-white/90'
                   )}
                 >
                   {item.label}

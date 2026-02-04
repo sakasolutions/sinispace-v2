@@ -865,14 +865,18 @@ export default function DashboardClient() {
                     <div
                       key={tool.id}
                       className={cn(
-                        'group relative flex flex-col justify-between h-full items-start min-h-[160px]',
-                        'bg-white/40 backdrop-blur-xl backdrop-saturate-150 rounded-2xl',
-                        'border border-white/50 border-b-white/20',
-                        'shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]',
-                        'hover:bg-white/60 hover:scale-[1.02] hover:shadow-xl transition-all duration-300',
+                        'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden',
+                        'hover:scale-[1.02] transition-all duration-300',
                         'p-5',
                         tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                       )}
+                      style={{
+                        background: 'rgba(255,255,255,0.16)',
+                        border: '1px solid rgba(255,255,255,0.22)',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        backdropFilter: 'blur(8px)',
+                      }}
                     >
                       {/* Status-Badge: dezent oben rechts (einheitliches Micro-Design) */}
                       {(liveBadge || (!tool.available && tool.status === 'soon')) && (
@@ -928,7 +932,14 @@ export default function DashboardClient() {
               return (
                 <div
                   key={section.id}
-                  className="bg-white/40 backdrop-blur-md rounded-[24px] border border-white/40 overflow-hidden mb-4"
+                  className="rounded-2xl overflow-hidden mb-4"
+                  style={{
+                    background: 'rgba(255,255,255,0.16)',
+                    border: '1px solid rgba(255,255,255,0.22)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    backdropFilter: 'blur(8px)',
+                  }}
                 >
                   <button
                     type="button"
