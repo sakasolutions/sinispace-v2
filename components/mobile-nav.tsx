@@ -18,16 +18,15 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed bottom-6 left-4 right-4 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-6 left-6 right-6 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
     >
-      {/* Floating Glass Dock – schwebende Steuerzentrale */}
+      {/* High Visibility – Sini Brand Gradient (Kapsel). Alternative: bg-white/95 border-2 border-violet-100 shadow-lg shadow-violet-200 für Glas-Look. */}
       <div
         className={cn(
-          'w-full rounded-[32px]',
-          'bg-white/70 backdrop-blur-2xl border border-white/50',
-          'shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)]'
+          'w-full rounded-full',
+          'bg-gradient-to-r from-violet-600 to-fuchsia-600',
+          'shadow-xl shadow-violet-500/40'
         )}
-        style={{ WebkitBackdropFilter: 'blur(40px)' }}
       >
         <div className="flex justify-evenly items-center h-14 px-2">
           {navItems.map((item) => {
@@ -42,19 +41,24 @@ export function MobileNav() {
                 className="flex flex-col items-center justify-center gap-1 min-w-[56px] px-2 py-2.5 relative group"
               >
                 <div className="relative flex flex-col items-center">
-                  <div className={cn('h-9 w-9 flex items-center justify-center transition-all duration-300 ease-out', isActive && 'rounded-lg bg-violet-600/10')}>
+                  <div
+                    className={cn(
+                      'flex items-center justify-center transition-all duration-300 ease-out',
+                      isActive ? 'rounded-full p-2 bg-white/20' : 'h-9 w-9'
+                    )}
+                  >
                     <Icon
                       className={cn(
                         'w-5 h-5 transition-all duration-300',
-                        isActive ? 'text-violet-600' : 'text-slate-500 group-hover:text-slate-700'
+                        isActive ? 'text-white' : 'text-white/80 group-hover:text-white'
                       )}
                       strokeWidth={isActive ? 2.5 : 2}
                     />
                   </div>
-                  {/* Leuchtender Punkt unter dem Icon bei aktivem Tab */}
+                  {/* Weißer Punkt unter dem Icon bei aktivem Tab */}
                   {isActive && (
                     <span
-                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-violet-600"
+                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white"
                       aria-hidden
                     />
                   )}
@@ -62,7 +66,7 @@ export function MobileNav() {
                 <span
                   className={cn(
                     'text-[10px] font-medium transition-all duration-300',
-                    isActive ? 'text-violet-600 font-semibold' : 'text-slate-500 group-hover:text-slate-700'
+                    isActive ? 'text-white font-semibold' : 'text-white/80 group-hover:text-white'
                   )}
                 >
                   {item.label}
