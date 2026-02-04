@@ -20,23 +20,22 @@ export function MobileNav() {
     <nav
       className="fixed bottom-6 left-6 right-6 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
     >
-      {/* Tinted frosted glass — visibly purple, translucent, hard glass panel */}
+      {/* Clear glass + purple glow aura — no fill, color from light only */}
       <div
         className="relative w-full rounded-[26px] overflow-hidden h-14"
         style={{
-          WebkitBackdropFilter: 'blur(10px)',
-          backdropFilter: 'blur(10px)',
-          background: 'rgba(170, 130, 255, 0.25)',
-          border: '1px solid rgba(255,255,255,0.28)',
-          boxShadow: '0 12px 32px rgba(0,0,0,0.18), 0 3px 8px rgba(0,0,0,0.12)',
+          background: 'rgba(255,255,255,0.06)',
+          WebkitBackdropFilter: 'blur(8px)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0.25)',
+          boxShadow: '0 0 22px rgba(170,120,255,0.35), 0 0 44px rgba(170,120,255,0.18), 0 12px 32px rgba(0,0,0,0.18)',
         }}
       >
-        {/* Crisp top edge + light reflection (~15%) */}
+        {/* Top light reflection (12–16%) */}
         <div
-          className="absolute inset-x-0 top-0 h-[15%] pointer-events-none rounded-t-[26px]"
+          className="absolute inset-x-0 top-0 h-[14%] pointer-events-none rounded-t-[26px]"
           style={{
-            borderTop: '1px solid rgba(255,255,255,0.5)',
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.18), transparent)',
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.35), transparent)',
           }}
           aria-hidden
         />
