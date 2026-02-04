@@ -20,26 +20,23 @@ export function MobileNav() {
     <nav
       className="fixed bottom-6 left-6 right-6 z-[100] block md:hidden max-w-md mx-auto pb-[env(safe-area-inset-bottom)]"
     >
-      {/* Layered glass: blur → tint → reflection → edge */}
+      {/* Tinted frosted glass — hard surface, content behind clearly visible */}
       <div
         className="relative w-full rounded-[26px] overflow-hidden h-14"
         style={{
-          // Layer 1: background blur
           WebkitBackdropFilter: 'blur(10px)',
           backdropFilter: 'blur(10px)',
-          // Layer 2: tint film (semi-transparent only, does not replace transparency)
-          background: 'rgba(180, 140, 255, 0.18)',
-          // Layer 4: glass edge
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderTop: '1px solid rgba(255,255,255,0.4)',
+          background: 'rgba(170, 130, 255, 0.14)',
+          border: '1px solid rgba(255,255,255,0.22)',
           boxShadow: '0 12px 32px rgba(0,0,0,0.18), 0 3px 8px rgba(0,0,0,0.12)',
         }}
       >
-        {/* Layer 3: glass reflection – top 18% */}
+        {/* Top edge highlight + soft reflection (~15%) */}
         <div
-          className="absolute inset-x-0 top-0 h-[18%] pointer-events-none rounded-t-[26px]"
+          className="absolute inset-x-0 top-0 h-[15%] pointer-events-none rounded-t-[26px]"
           style={{
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.35), transparent)',
+            borderTop: '1px solid rgba(255,255,255,0.45)',
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.12), transparent)',
           }}
           aria-hidden
         />
