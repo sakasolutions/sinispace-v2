@@ -164,16 +164,16 @@ const ACCORDION_ICON: Record<string, { bg: string; text: string }> = {
 };
 const ACCORDION_ICON_FALLBACK = { bg: 'bg-gray-100', text: 'text-gray-600' };
 
-/** Live-Badges für Top-4 – Micro-Design: subtle oder alarm (z. B. Einkauf voll) */
-const TOOL_LIVE_BADGE: Record<string, { label: string; className: string }> = {
-  recipe: { label: 'Heute: Pasta', className: 'bg-white/50 text-gray-600' },
-  'shopping-list': { label: '4 offen', className: 'bg-orange-100/80 text-orange-600' },
-  fitness: { label: '3 geplant', className: 'bg-white/50 text-gray-600' },
-  travel: { label: '2 Trips', className: 'bg-white/50 text-gray-600' },
-  calendar: { label: '2 Termine', className: 'bg-white/50 text-gray-600' },
-  email: { label: 'Entwürfe', className: 'bg-white/50 text-gray-600' },
-  pdf: { label: 'Bereit', className: 'bg-white/50 text-gray-600' },
-  legal: { label: 'Offen', className: 'bg-white/50 text-gray-600' },
+/** Live-Badges für Top-4 – einheitlich dezent (oben rechts in der Karte) */
+const TOOL_LIVE_BADGE: Record<string, { label: string }> = {
+  recipe: { label: 'Heute: Pasta' },
+  'shopping-list': { label: '4 offen' },
+  fitness: { label: '3 geplant' },
+  travel: { label: '2 Trips' },
+  calendar: { label: '2 Termine' },
+  email: { label: 'Entwürfe' },
+  pdf: { label: 'Bereit' },
+  legal: { label: 'Offen' },
 };
 
 const COLOR_FALLBACK: Record<string, string> = {
@@ -428,12 +428,12 @@ function getHeaderContent(date: Date): { headline: string; subline: string } {
   };
 }
 
-/** Zeitbasiertes Greeting für Sunrise-Header */
-function getSunriseGreeting(): { greeting: string; subline: string } {
+/** Zeitbasiertes Greeting (ohne Name – Name kommt aus Einstellungen) */
+function getSunriseGreetingBase(): { base: string; subline: string } {
   const h = new Date().getHours();
-  if (h < 12) return { greeting: 'Guten Morgen, Sini! 👋', subline: 'Alles im Griff für heute.' };
-  if (h < 18) return { greeting: 'Guten Tag, Sini! 👋', subline: 'Zeit für Fokus.' };
-  return { greeting: 'Guten Abend, Sini! 👋', subline: 'Alles im Griff für heute.' };
+  if (h < 12) return { base: 'Guten Morgen', subline: 'Alles im Griff für heute.' };
+  if (h < 18) return { base: 'Guten Tag', subline: 'Zeit für Fokus.' };
+  return { base: 'Guten Abend', subline: 'Alles im Griff für heute.' };
 }
 
 // PREMIUM HIGH-FIDELITY: Helper-Funktion für Akzentfarben (RGB-Werte)
@@ -635,6 +635,7 @@ export default function DashboardClient() {
   const [pullDistance, setPullDistance] = useState(0);
   const [usageStats, setUsageStats] = useState<Record<string, { count7d: number; count30d: number; isTrending: boolean }>>({});
   const [openAccordions, setOpenAccordions] = useState<Set<string>>(new Set());
+  const [displayName, setDisplayName] = useState<string>('');
   const toggleAccordion = (id: string) => {
     setOpenAccordions((prev) => {
       const next = new Set(prev);
@@ -645,6 +646,16 @@ export default function DashboardClient() {
   };
   const touchStartRef = useRef<{ y: number; scrollTop: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Display-Name aus Einstellungen (User kann in Profil festlegen)
+  useEffect(() => {
+    fetch('/api/user/display-name')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.displayName) setDisplayName(String(data.displayName).trim());
+      })
+      .catch(() => {});
+  }, []);
 
   // Fetch usage stats AFTER initial render (non-blocking)
   // Delay auf Mobile länger für bessere Performance
@@ -750,7 +761,8 @@ export default function DashboardClient() {
     });
   }, [usageStats]);
 
-  const sunriseGreeting = getSunriseGreeting();
+  const sunriseGreeting = getSunriseGreetingBase();
+  const greetingText = displayName ? `${sunriseGreeting.base}, ${displayName}! 👋` : `${sunriseGreeting.base}! 👋`;
 
   return (
     <div
@@ -803,23 +815,23 @@ export default function DashboardClient() {
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
-                {sunriseGreeting.greeting}
+                {greetingText}
               </h1>
               <p className="text-gray-500 text-sm sm:text-base mt-1 font-medium">
                 {sunriseGreeting.subline}
               </p>
-              {/* Quick-Stats: direkt unter der Begrüßung, Glass Pills */}
-              <div className="mt-3 flex gap-3 overflow-x-auto scrollbar-hide pb-1 -mx-1">
-                <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-4 py-1.5 text-white text-xs font-medium tracking-wide flex items-center shrink-0">
-                  <Calendar className="w-3.5 h-3.5 mr-2 text-white/90 shrink-0" aria-hidden />
+              {/* Info-Chips: Metadaten des Tages direkt unter der Begrüßung */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white font-medium flex items-center shrink-0">
+                  <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
                   2 Termine
                 </span>
-                <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-4 py-1.5 text-white text-xs font-medium tracking-wide flex items-center shrink-0">
-                  <ShoppingCart className="w-3.5 h-3.5 mr-2 text-white/90 shrink-0" aria-hidden />
+                <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white font-medium flex items-center shrink-0">
+                  <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
                   4 Offen
                 </span>
-                <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-4 py-1.5 text-white text-xs font-medium tracking-wide flex items-center shrink-0">
-                  <CheckCircle className="w-3.5 h-3.5 mr-2 text-white/90 shrink-0" aria-hidden />
+                <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white font-medium flex items-center shrink-0">
+                  <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
                   Alles erledigt
                 </span>
               </div>
@@ -862,16 +874,16 @@ export default function DashboardClient() {
                         tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                       )}
                     >
-                      {/* Status-Badge: Micro-Design, oben rechts */}
+                      {/* Status-Badge: dezent oben rechts (einheitliches Micro-Design) */}
                       {(liveBadge || (!tool.available && tool.status === 'soon')) && (
                         <div className="absolute top-4 right-4 flex flex-col items-end gap-0.5">
                           {liveBadge && (
-                            <span className={cn('text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md shrink-0', liveBadge.className)}>
+                            <span className="bg-gray-50/90 text-gray-600 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded shadow-sm shrink-0">
                               {liveBadge.label}
                             </span>
                           )}
                           {!tool.available && tool.status === 'soon' && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-white/50 text-gray-600">Bald</span>
+                            <span className="bg-gray-50/90 text-gray-600 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded shadow-sm">Bald</span>
                           )}
                         </div>
                       )}
