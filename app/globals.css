@@ -60,6 +60,8 @@
     /* Transparent - Gradient kommt von layout.tsx fixed layers */
     background: transparent;
     color: #111827;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     /* Full Coverage */
     height: 100%;
     min-height: 100dvh;
@@ -132,6 +134,148 @@
       padding-left: max(0px, env(safe-area-inset-left));
       padding-right: max(0px, env(safe-area-inset-right));
     }
+  }
+}
+
+/* ============================================
+   PREMIUM TYPOGRAPHY SYSTEM
+   SF Pro–style stack (system on Apple), fallback Inter/Plus Jakarta
+   ============================================ */
+:root {
+  /* Font stack: SF Pro on Apple, else fallback */
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Rounded", "Segoe UI", var(--font-plus-jakarta-sans), var(--font-inter), system-ui, sans-serif;
+
+  /* Headline (Greeting) — 28–32pt */
+  --type-headline-size: clamp(1.75rem, 5vw, 2.125rem);
+  --type-headline-line: 1.2;
+  --type-headline-tracking: -0.5px;
+  --type-headline-color: #0f172a;
+
+  /* Subheadline — 16pt */
+  --type-subheadline-size: 1.0625rem;
+  --type-subheadline-line: 1.5;
+  --type-subheadline-tracking: 0.2px;
+  --type-subheadline-color: rgba(15, 23, 42, 0.6);
+
+  /* Stats pills — 14pt */
+  --type-stats-size: 1.166875rem;
+  --type-stats-line: 1.3;
+  --type-stats-tracking: 0.1px;
+
+  /* Section headers — 18pt */
+  --type-section-size: 1.5rem;
+  --type-section-line: 1.4;
+  --type-section-tracking: 0.3px;
+
+  /* Card titles — 20pt */
+  --type-card-title-size: 1.333rem;
+  --type-card-title-line: 1.3;
+  --type-card-title-tracking: -0.2px;
+
+  /* Card subtitles — 14pt */
+  --type-card-subtitle-size: 1.166875rem;
+  --type-card-subtitle-line: 1.4;
+  --type-card-subtitle-tracking: 0.2px;
+  --type-card-subtitle-color: rgba(15, 23, 42, 0.5);
+
+  /* Status labels (badges) — 11pt */
+  --type-status-size: 0.916875rem;
+  --type-status-line: 1.2;
+  --type-status-tracking: 0.8px;
+
+  /* Navigation labels — 11pt */
+  --type-nav-size: 0.916875rem;
+  --type-nav-line: 1.2;
+}
+
+@layer components {
+  .type-headline {
+    font-family: var(--font-system);
+    font-size: var(--type-headline-size);
+    line-height: var(--type-headline-line);
+    letter-spacing: var(--type-headline-tracking);
+    font-weight: 700;
+    color: var(--type-headline-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .type-subheadline {
+    font-family: var(--font-system);
+    font-size: var(--type-subheadline-size);
+    line-height: var(--type-subheadline-line);
+    letter-spacing: var(--type-subheadline-tracking);
+    font-weight: 400;
+    color: var(--type-subheadline-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .type-stats-pill {
+    font-family: var(--font-system);
+    font-size: var(--type-stats-size);
+    line-height: var(--type-stats-line);
+    letter-spacing: var(--type-stats-tracking);
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .type-section-header {
+    font-family: var(--font-system);
+    font-size: var(--type-section-size);
+    line-height: var(--type-section-line);
+    letter-spacing: var(--type-section-tracking);
+    font-weight: 600;
+    color: #374151;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .type-card-title {
+    font-family: var(--font-system);
+    font-size: var(--type-card-title-size);
+    line-height: var(--type-card-title-line);
+    letter-spacing: var(--type-card-title-tracking);
+    font-weight: 600;
+    color: #111827;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .type-card-subtitle {
+    font-family: var(--font-system);
+    font-size: var(--type-card-subtitle-size);
+    line-height: var(--type-card-subtitle-line);
+    letter-spacing: var(--type-card-subtitle-tracking);
+    font-weight: 400;
+    color: var(--type-card-subtitle-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .type-status-label {
+    font-family: var(--font-system);
+    font-size: var(--type-status-size);
+    line-height: var(--type-status-line);
+    letter-spacing: var(--type-status-tracking);
+    font-weight: 700;
+    text-transform: uppercase;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .type-nav-label {
+    font-family: var(--font-system);
+    font-size: var(--type-nav-size);
+    line-height: var(--type-nav-line);
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .type-nav-label-active {
+    font-weight: 700;
   }
 }
 

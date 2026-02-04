@@ -813,23 +813,23 @@ export default function DashboardClient() {
         <div className="relative z-10 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 min-h-[260px] sm:min-h-[300px] md:min-h-[350px] flex flex-col">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
+              <h1 className="type-headline">
                 {greetingText}
               </h1>
-              <p className="text-gray-500 text-sm sm:text-base mt-1 font-medium">
+              <p className="type-subheadline mt-1">
                 {sunriseGreeting.subline}
               </p>
               {/* Info-Chips: Metadaten des Tages direkt unter der Begrüßung */}
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white font-medium flex items-center shrink-0">
+                <span className="type-stats-pill bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-white flex items-center shrink-0">
                   <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
                   2 Termine
                 </span>
-                <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white font-medium flex items-center shrink-0">
+                <span className="type-stats-pill bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-white flex items-center shrink-0">
                   <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
                   4 Offen
                 </span>
-                <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white font-medium flex items-center shrink-0">
+                <span className="type-stats-pill bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-white flex items-center shrink-0">
                   <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
                   Alles erledigt
                 </span>
@@ -851,7 +851,7 @@ export default function DashboardClient() {
           <div className="space-y-6 md:space-y-8">
             {/* Zuletzt verwendet: Top 4 */}
             <section className="mb-8 md:mb-10">
-              <h2 className="text-sm font-bold text-gray-600 mb-4">Zuletzt verwendet</h2>
+              <h2 className="type-section-header mb-4">Zuletzt verwendet</h2>
               <div className="grid grid-cols-2 gap-4 md:gap-4">
                 {sortedTools.slice(0, 4).map((tool) => {
                   const Icon = tool.icon;
@@ -878,12 +878,12 @@ export default function DashboardClient() {
                       {(liveBadge || (!tool.available && tool.status === 'soon')) && (
                         <div className="absolute top-4 right-4 flex flex-col items-end gap-0.5">
                           {liveBadge && (
-                            <span className="bg-gray-50/90 text-gray-600 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded shadow-sm shrink-0">
+                            <span className="type-status-label bg-gray-50/90 text-gray-700 px-2 py-1 rounded shadow-sm shrink-0">
                               {liveBadge.label}
                             </span>
                           )}
                           {!tool.available && tool.status === 'soon' && (
-                            <span className="bg-gray-50/90 text-gray-600 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded shadow-sm">Bald</span>
+                            <span className="type-status-label bg-gray-50/90 text-gray-700 px-2 py-1 rounded shadow-sm">Bald</span>
                           )}
                         </div>
                       )}
@@ -900,8 +900,8 @@ export default function DashboardClient() {
                       </div>
                       {/* Unten: Titel + Subtext */}
                       <div className="w-full text-left">
-                        <h3 className="font-bold text-lg text-gray-900 leading-tight line-clamp-2">{tool.title}</h3>
-                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{subtitle}</p>
+                        <h3 className="type-card-title leading-tight line-clamp-2">{tool.title}</h3>
+                        <p className="type-card-subtitle mt-0.5 line-clamp-1">{subtitle}</p>
                       </div>
                     </div>
                   );
@@ -942,7 +942,7 @@ export default function DashboardClient() {
                     onClick={() => { triggerHaptic('light'); toggleAccordion(section.id); }}
                     className="w-full flex items-center justify-between p-4 text-left hover:bg-white/30 transition-colors"
                   >
-                    <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <span className="type-section-header text-gray-800 flex items-center gap-2">
                       <SectionIcon className="w-4 h-4 text-gray-500" />
                       {section.label}
                     </span>
@@ -973,8 +973,8 @@ export default function DashboardClient() {
                                 {createElement(Icon, { className: 'w-5 h-5 shrink-0 text-white', strokeWidth: 2, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-800 truncate">{tool.title}</p>
-                                <p className="text-sm text-gray-500 truncate">{subtitle}</p>
+                                <p className="type-section-header text-gray-800 truncate">{tool.title}</p>
+                                <p className="type-card-subtitle truncate">{subtitle}</p>
                               </div>
                               <ChevronRight className="w-5 h-5 shrink-0 text-gray-400" />
                             </div>

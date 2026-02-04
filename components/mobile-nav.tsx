@@ -82,10 +82,8 @@ export function MobileNav() {
                 </div>
                 <span
                   className={cn(
-                    'text-[10px] font-medium transition-all duration-300',
-                    isActive
-                      ? 'text-violet-500 font-semibold'
-                      : 'text-gray-600 opacity-60 group-hover:opacity-80'
+                    'type-nav-label transition-all duration-300',
+                    isActive ? 'type-nav-label-active text-violet-500' : 'text-gray-600 opacity-60 group-hover:opacity-80'
                   )}
                 >
                   {item.label}
