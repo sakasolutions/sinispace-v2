@@ -744,10 +744,25 @@ export default function DashboardClient() {
             <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 text-white" />
           </div>
         </div>
+        {/* Quick-Stats: Brücke zwischen Header und Karten (schweben über dem Grid) */}
+        <div className="absolute bottom-24 left-4 right-4 sm:left-6 sm:right-6 md:left-8 md:right-8 flex flex-wrap gap-2 sm:gap-3">
+          <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-3 py-1 text-xs text-white font-medium flex items-center gap-2 shrink-0">
+            <span aria-hidden>📅</span>
+            2 Termine heute
+          </span>
+          <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-3 py-1 text-xs text-white font-medium flex items-center gap-2 shrink-0">
+            <span aria-hidden>🛒</span>
+            4 Dinge offen
+          </span>
+          <span className="bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-3 py-1 text-xs text-white font-medium flex items-center gap-2 shrink-0">
+            <span aria-hidden>🔥</span>
+            1200 kcal
+          </span>
+        </div>
       </div>
 
-      {/* Main Container: Overlapping Content (überlappt den Header) */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32 -mt-24">
+      {/* Main Container: Karten starten unter den Stats-Chips (Layering) */}
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-28 md:pb-32 -mt-20">
         {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
         {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
