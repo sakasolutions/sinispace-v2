@@ -363,6 +363,16 @@ export default function RecipePage() {
               setShowCockpit(false);
               setActiveTab('create');
             }}
+            onResteZauber={() => {
+              setShowCockpit(false);
+              setActiveTab('create');
+              // Optional: setRestMode(true) oder URL ?mode=reste für Reste-Verwertung
+            }}
+            onTurboKueche={() => {
+              setShowCockpit(false);
+              setActiveTab('create');
+              // Optional: setFilterSchnell(true) oder URL ?filter=schnell
+            }}
           />
         </>
       ) : activeTab === 'week-planner' ? (
