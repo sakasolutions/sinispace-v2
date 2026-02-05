@@ -6,7 +6,7 @@ import { LayoutGrid, Calendar, MessageSquare, Settings } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { cn } from '@/lib/utils';
 
-const EASE_OUT_EXPO = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -19,20 +19,21 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 w-full z-[100] block md:hidden">
+    <nav
+      className="fixed bottom-0 left-0 right-0 w-full z-[100] block md:hidden"
+      aria-label="Hauptnavigation"
+    >
       <div
-        className="flex justify-evenly items-stretch w-full min-h-[72px] px-4 pt-3 pb-3 gap-1 relative rounded-t-[24px]"
+        className="flex justify-around items-center w-full py-3 px-0"
         style={{
-          background: '#F9FAFB',
+          background: 'rgba(255, 255, 255, 0.85)',
+          WebkitBackdropFilter: 'blur(20px)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(168, 85, 247, 0.08)',
+          boxShadow: '0 -2px 16px rgba(0, 0, 0, 0.04)',
           paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
         }}
       >
-        {/* Top border: 2px gradient line */}
-        <div
-          className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[24px]"
-          style={{ background: 'linear-gradient(90deg, #A855F7, #EC4899)' }}
-          aria-hidden
-        />
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.active;
@@ -41,49 +42,50 @@ export function MobileNav() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => triggerHaptic('medium')}
+              onClick={() => triggerHaptic('light')}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'group relative flex flex-col items-center justify-end flex-1 min-w-0 max-w-[80px] py-2 rounded-xl',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 transition-transform duration-300',
-                !isActive && 'hover:bg-violet-500/5',
-                isActive && 'scale-105'
+                'group flex flex-col items-center gap-1.5 min-w-[44px] min-h-[44px] py-2 px-4 pb-3',
+                'transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500'
               )}
-              style={{ transitionTimingFunction: EASE_OUT_EXPO }}
+              style={{ transitionTimingFunction: EASE }}
             >
-              {/* Gradient bar — rises from bottom (0.4s) */}
-              <div
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[72px] rounded-t-[20px] pointer-events-none"
+              <Icon
+                className={cn(
+                  'w-6 h-6 shrink-0 transition-colors duration-300',
+                  isActive ? 'text-[#9333EA]' : 'text-[#CBD5E1] group-hover:text-[#D8B4FE]'
+                )}
+                strokeWidth={2}
+              />
+              <span
+                className={cn(
+                  'text-[13px] whitespace-nowrap truncate max-w-full text-center transition-colors duration-300',
+                  isActive
+                    ? 'font-semibold text-[#9333EA]'
+                    : 'font-medium text-[#94A3B8] group-hover:text-[#A78BFA]'
+                )}
                 style={{
-                  height: isActive ? '100%' : '0%',
+                  letterSpacing: isActive ? '0.2px' : '0.1px',
+                }}
+              >
+                {item.label}
+              </span>
+              {/* Neon underline — 32px, gradient, below label (2px gap), multi-layer glow */}
+              <span
+                className="mt-0.5 h-[3px] rounded-full block origin-center overflow-hidden"
+                style={{
+                  width: isActive ? 32 : 0,
                   opacity: isActive ? 1 : 0,
-                  background: 'linear-gradient(to top, #9333EA, transparent)',
-                  transition: `height 0.4s ${EASE_OUT_EXPO}, opacity 0.4s ${EASE_OUT_EXPO}`,
+                  background: 'linear-gradient(90deg, #A855F7 0%, #EC4899 100%)',
+                  boxShadow: isActive
+                    ? '0 0 8px rgba(168, 85, 247, 0.6), 0 0 16px rgba(168, 85, 247, 0.4), 0 2px 8px rgba(236, 72, 153, 0.3)'
+                    : 'none',
+                  transition: isActive
+                    ? 'width 0.3s ease-out, opacity 0.2s ease-out, box-shadow 0.2s ease-out'
+                    : 'width 0.25s ease-in, opacity 0.15s ease-in',
                 }}
                 aria-hidden
               />
-
-              <div className="relative z-10 flex flex-col items-center w-full">
-                <span
-                  className="flex items-center justify-center mb-1 transition-colors duration-200"
-                  style={isActive ? { filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.5))' } : undefined}
-                >
-                  <Icon
-                    className={cn(
-                      'w-6 h-6 shrink-0',
-                      isActive ? 'text-white' : 'text-[#9CA3AF]'
-                    )}
-                    strokeWidth={2}
-                  />
-                </span>
-                <span
-                  className={cn(
-                    'whitespace-nowrap truncate w-full text-center transition-colors duration-200',
-                    isActive ? 'text-white text-[14px] font-bold' : 'text-[#CBD5E1] text-[12px]'
-                  )}
-                >
-                  {item.label}
-                </span>
-              </div>
             </Link>
           );
         })}
