@@ -136,6 +136,16 @@
 }
 
 @layer utilities {
+  /* Chat input bar: über Navbar auf Mobil, normal auf Desktop */
+  .chat-input-bar {
+    bottom: calc(65px + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 768px) {
+    .chat-input-bar {
+      bottom: 1.5rem;
+    }
+  }
+
   /* BACKUP: Original fade-in-up animation */
   @keyframes fade-in-up {
     0% {

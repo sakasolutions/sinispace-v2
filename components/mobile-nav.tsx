@@ -24,14 +24,14 @@ export function MobileNav() {
       aria-label="Hauptnavigation"
     >
       <div
-        className="flex justify-around items-center w-full py-3 px-0"
+        className="flex justify-around items-center w-full py-2 px-0"
         style={{
           background: 'rgba(255, 255, 255, 0.85)',
           WebkitBackdropFilter: 'blur(20px)',
           backdropFilter: 'blur(20px)',
           borderTop: '1px solid rgba(168, 85, 247, 0.08)',
           boxShadow: '0 -2px 16px rgba(0, 0, 0, 0.04)',
-          paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
+          paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
         }}
       >
         {navItems.map((item) => {
@@ -45,7 +45,7 @@ export function MobileNav() {
               onClick={() => triggerHaptic('light')}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'group flex flex-col items-center gap-1.5 min-w-[44px] min-h-[44px] py-2 px-4 pb-3',
+                'group flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] py-1.5 px-3 pb-2',
                 'transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500'
               )}
               style={{ transitionTimingFunction: EASE }}
@@ -59,13 +59,14 @@ export function MobileNav() {
               />
               <span
                 className={cn(
-                  'text-[13px] whitespace-nowrap truncate max-w-full text-center transition-colors duration-300',
+                  'text-[13px] leading-tight whitespace-nowrap truncate max-w-full text-center transition-colors duration-300',
                   isActive
                     ? 'font-semibold text-[#9333EA]'
                     : 'font-medium text-[#94A3B8] group-hover:text-[#A78BFA]'
                 )}
                 style={{
                   letterSpacing: isActive ? '0.2px' : '0.1px',
+                  lineHeight: 1.2,
                 }}
               >
                 {item.label}

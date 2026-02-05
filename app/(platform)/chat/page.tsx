@@ -592,8 +592,8 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Messages Container - EINZIGER SCROLLBARER BEREICH; pb-48 mobil für Navbar + Input */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white pt-16 pb-48 md:pb-32">
+        {/* Messages Container - pb für Navbar + Input (130px + safe area) */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white pt-16 pb-[calc(130px+env(safe-area-inset-bottom))] md:pb-32">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-6 md:py-8" style={{ maxWidth: '65ch' } as React.CSSProperties}>
             {messages.length === 0 && (
               <div className="flex h-full min-h-[60vh] flex-col items-center justify-center text-gray-400">
@@ -671,12 +671,13 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* INPUT AREA - Mobil: über Navbar (bottom-24); Desktop: bottom-6; z-40 unter Navbar (z-50) */}
-        <div className={`fixed bottom-24 md:bottom-6 left-4 right-4 z-40 transition-all duration-300 ${
-          isSidebarCollapsed 
-            ? 'md:left-[calc(16rem+3rem)]' 
-            : 'md:left-[calc(16rem+20rem)]'
-        }`}>
+        {/* INPUT AREA - Mobil: über Navbar (65px + safe area, 8px Abstand); Desktop: bottom-6; z-90 unter Navbar (z-100) */}
+        <div
+          className={`chat-input-bar fixed left-0 right-0 z-[90] transition-all duration-300 md:left-4 md:right-4 ${
+            isSidebarCollapsed ? 'md:left-[calc(16rem+3rem)]' : 'md:left-[calc(16rem+20rem)]'
+          }`}
+        >
+          <div className="px-4 pb-2 md:px-0 md:pb-0 max-w-4xl mx-auto md:mx-0">
           <div className="max-w-4xl mx-auto px-4 md:px-6">
             <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-lg focus-within:border-orange-500 focus-within:shadow-xl transition-all">
               <input
@@ -717,6 +718,7 @@ export default function ChatPage() {
                 <Send className="w-5 h-5 text-gray-600" />
               </button>
             </form>
+          </div>
           </div>
         </div>
 

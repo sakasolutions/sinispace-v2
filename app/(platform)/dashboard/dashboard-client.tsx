@@ -845,7 +845,7 @@ export default function DashboardClient() {
       </header>
 
       {/* Main Container: Grid ragt in den Header (Glass über Orange) */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-40 md:pb-32 -mt-24">
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-[calc(70px+env(safe-area-inset-bottom))] md:pb-32 -mt-24">
         {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
         {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
