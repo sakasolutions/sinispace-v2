@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { LayoutGrid, Calendar, MessageSquare, Settings } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { cn } from '@/lib/utils';
@@ -25,9 +24,9 @@ export function MobileNav() {
     >
       <div
         className={cn(
-          'flex justify-between items-end py-3 px-6 rounded-[32px] h-auto',
-          'bg-white border border-gray-100',
-          'shadow-[0_8px_30px_rgba(0,0,0,0.12)]'
+          'flex justify-between items-end py-3 px-6 rounded-full h-auto',
+          'bg-white/95 backdrop-blur-md border border-gray-100',
+          'shadow-[0_8px_30px_rgba(0,0,0,0.1)]'
         )}
       >
         {navItems.map((item) => {
@@ -46,50 +45,30 @@ export function MobileNav() {
                 'active:scale-95'
               )}
             >
-              {/* Icon area: bubble when active, plain icon when inactive */}
-              <span className="flex items-center justify-center w-10 h-10">
-                {isActive ? (
-                  <motion.span
-                    layout
-                    initial={false}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              <span className="flex flex-col items-center justify-center">
+                <span
+                  className="flex items-center justify-center"
+                  style={isActive ? { filter: 'drop-shadow(0 0 6px rgba(139, 92, 246, 0.6))' } : undefined}
+                >
+                  <Icon
                     className={cn(
-                      'rounded-full w-10 h-10 flex items-center justify-center',
-                      'bg-gradient-to-br from-violet-500 to-fuchsia-500',
-                      'shadow-md shadow-violet-500/20'
+                      'w-6 h-6 shrink-0 transition-colors duration-300',
+                      isActive ? 'text-violet-600' : 'text-gray-400 group-hover:text-gray-500'
                     )}
-                  >
-                    <motion.span
-                      initial={false}
-                      animate={{ scale: 1.05 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                    >
-                      <Icon className="w-5 h-5 text-white shrink-0" strokeWidth={2} />
-                    </motion.span>
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    layout
-                    initial={false}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex items-center justify-center w-10 h-10 rounded-full group-hover:bg-gray-100/80 transition-colors duration-300"
-                  >
-                    <Icon
-                      className={cn(
-                        'w-6 h-6 shrink-0 transition-colors duration-300',
-                        'text-gray-400 group-hover:text-gray-600'
-                      )}
-                      strokeWidth={2}
-                    />
-                  </motion.span>
+                    strokeWidth={2}
+                  />
+                </span>
+                {isActive && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full bg-violet-600 mb-1 mt-0.5"
+                    aria-hidden
+                  />
                 )}
               </span>
               <span
                 className={cn(
-                  'text-[10px] font-medium mt-1 transition-colors duration-300 whitespace-nowrap truncate w-full text-center',
-                  isActive ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600'
+                  'text-[10px] transition-colors duration-300 whitespace-nowrap truncate w-full text-center',
+                  isActive ? 'text-violet-600 font-medium' : 'text-gray-400 group-hover:text-gray-500'
                 )}
               >
                 {item.label}

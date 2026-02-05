@@ -1,25 +1,26 @@
 ---
-description: Nach Code-Änderungen Git- und Server-Befehle ausgeben (nur bei echten Projektänderungen)
-alwaysApply: true
+description: Auf Anfrage Git- und Server-Befehle 1:1 ausgeben (nur diesen Block, keine anderen Varianten)
+alwaysApply: false
+globs: 
 ---
 
-# Deploy-Reminder nach Änderungen
+# Deploy-Befehle (nur ausgeben, wenn User danach fragt)
 
-**Nur anwenden, wenn am Projekt tatsächlich etwas geändert wurde** (Dateien bearbeitet/erstellt/gelöscht). Nicht bei reinen Diskussionen, Fragen oder Erklärungen ohne Code-Änderung.
-
-Nach jeder Änderung am Projekt am Ende der Antwort ausgeben:
-
-## Git (lokal)
+Wenn der User nach Git-/Deploy- oder "die Befehle" fragt: **Nur diesen Block ausgeben**, sonst nichts dazu. Keine anderen Befehle vorschlagen, nicht ausführen (außer User bittet explizit darum).
 
 ```bash
-git add .
-git status
-git commit -m "Beschreibung der Änderung"
+git add -A
+git commit -m "Fix: Navbar-Höhe reduziert, Chat-Input über Navbar, Content-Padding für Navbar+Input"
 git push origin main
+
+
+cd /var/www/sinispace-v2
+git pull origin main
+npm install
+npx prisma generate
+rm -rf .next
+npm run build
+pm2 restart sinispace
 ```
 
-## Server
-
-```bash
-cd /var/www/sinispace-v2 && git pull origin main && npm run build && pm2 restart sinispace
-```
+Commit-Message bei Bedarf vom User anpassen lassen.
