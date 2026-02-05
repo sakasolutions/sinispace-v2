@@ -16,6 +16,7 @@ import {
   ShieldAlert,
   LogOut,
   ChevronRight,
+  Zap,
 } from 'lucide-react';
 
 type UserData = {
@@ -35,6 +36,7 @@ type SettingsContentProps = {
 export function SettingsContent({ user, userEmail, isPro, params }: SettingsContentProps) {
   const [expandedAccount, setExpandedAccount] = useState<'name' | 'password' | null>(null);
   const [expandedLegal, setExpandedLegal] = useState(false);
+  const [expandedUsage, setExpandedUsage] = useState(false);
 
   const displayName = user?.name || userEmail;
 
@@ -72,10 +74,27 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
         </div>
       </div>
 
-      {/* Token & Stats (Pro) – Glass-Kacheln mit Gradient-Text */}
+      {/* Token & Stats (Pro) – aufklappbar */}
       {isPro && (
-        <div className="mb-8">
-          <UsageDashboard />
+        <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[24px] overflow-hidden mb-6">
+          <button
+            type="button"
+            onClick={() => setExpandedUsage(!expandedUsage)}
+            className="w-full flex items-center px-4 py-4 hover:bg-white/40 transition-colors text-left"
+          >
+            <div className="w-10 h-10 rounded-[12px] flex items-center justify-center mr-4 shrink-0 bg-gradient-to-br from-amber-400 to-orange-500">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-medium text-gray-800 flex-1">Token-Usage & Kosten</span>
+            <ChevronRight
+              className={`w-5 h-5 text-gray-400 shrink-0 transition-transform duration-200 ${expandedUsage ? 'rotate-90' : ''}`}
+            />
+          </button>
+          {expandedUsage && (
+            <div className="px-4 pb-4 pt-0 border-t border-white/30">
+              <UsageDashboard />
+            </div>
+          )}
         </div>
       )}
 
