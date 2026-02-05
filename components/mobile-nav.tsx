@@ -6,8 +6,6 @@ import { LayoutGrid, Calendar, MessageSquare, Settings } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { cn } from '@/lib/utils';
 
-const SPRING = 'cubic-bezier(0.68, -0.55, 0.27, 1.55)';
-
 export function MobileNav() {
   const pathname = usePathname();
 
@@ -19,13 +17,16 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 w-full z-[100] block md:hidden overflow-visible">
+    <nav className="fixed bottom-0 left-0 right-0 w-full z-[100] block md:hidden">
       <div
-        className="flex justify-evenly items-end w-full bg-white pt-6 pr-6 pl-6 gap-1"
+        className="flex justify-evenly items-center w-full py-4 px-6 gap-2"
         style={{
+          background: 'rgba(255, 255, 255, 0.7)',
+          WebkitBackdropFilter: 'blur(20px)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(168, 85, 247, 0.1)',
           borderRadius: '28px 28px 0 0',
-          boxShadow: '0 -4px 24px rgba(0, 0, 0, 0.08)',
-          paddingBottom: 'calc(20px + env(safe-area-inset-bottom))',
+          paddingBottom: 'calc(16px + env(safe-area-inset-bottom))',
         }}
       >
         {navItems.map((item) => {
@@ -36,41 +37,39 @@ export function MobileNav() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => triggerHaptic('light')}
+              onClick={() => triggerHaptic('medium')}
               className={cn(
-                'group flex flex-col items-center justify-end flex-1 min-w-0 max-w-[80px]',
-                'transition-transform duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500',
-                !isActive && 'hover:-translate-y-0.5 active:scale-95'
+                'group flex flex-col items-center justify-center flex-1 min-w-0 max-w-[88px] py-2',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500'
               )}
-              style={{ transitionTimingFunction: SPRING }}
             >
-              {isActive ? (
-                <>
-                  {/* Floating orb — 64px, radial gradient, 3D shadows */}
-                  <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center -translate-y-3 shrink-0 mb-1.5 transition-transform duration-300"
-                    style={{
-                      background: 'radial-gradient(circle at 50% 50%, #9333EA 0%, #A855F7 100%)',
-                      boxShadow: '0 12px 24px rgba(147, 51, 234, 0.5), 0 4px 12px rgba(147, 51, 234, 0.3), 0 -2px 8px rgba(168, 85, 247, 0.2)',
-                      transitionTimingFunction: SPRING,
-                    }}
-                  >
-                    <Icon className="w-7 h-7 text-white shrink-0" strokeWidth={2} />
-                  </div>
-                  <span className="text-xs font-semibold text-gray-900 whitespace-nowrap truncate w-full text-center">
-                    {item.label}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 mb-1 transition-colors duration-200">
-                    <Icon className="w-6 h-6 text-[#9CA3AF] group-hover:text-violet-400 shrink-0" strokeWidth={2} />
-                  </div>
-                  <span className="text-[12px] text-gray-500 opacity-50 whitespace-nowrap truncate w-full text-center">
-                    {item.label}
-                  </span>
-                </>
-              )}
+              <div className="flex flex-col items-center w-full">
+                <Icon
+                  className={cn(
+                    'w-6 h-6 shrink-0 mb-1.5 transition-colors duration-200',
+                    isActive ? 'text-[#9333EA]' : 'text-[#CBD5E1] group-hover:text-[#D8B4FE]'
+                  )}
+                  strokeWidth={2}
+                />
+                <span
+                  className={cn(
+                    'text-[14px] font-semibold whitespace-nowrap truncate max-w-full text-center transition-colors duration-200',
+                    isActive ? 'text-[#9333EA]' : 'text-[#CBD5E1] group-hover:text-[#D8B4FE]'
+                  )}
+                >
+                  {item.label}
+                </span>
+                {/* Neon underline — slides in from left (0.3s ease-out) */}
+                <span
+                  className="mt-1.5 h-[3px] rounded-[2px] origin-left transition-all duration-300 ease-out block min-w-0"
+                  style={{
+                    width: isActive ? '100%' : '0%',
+                    background: 'linear-gradient(90deg, #A855F7, #EC4899)',
+                    boxShadow: isActive ? '0 0 12px rgba(168, 85, 247, 0.8)' : '0 0 12px rgba(168, 85, 247, 0)',
+                  }}
+                  aria-hidden
+                />
+              </div>
             </Link>
           );
         })}
