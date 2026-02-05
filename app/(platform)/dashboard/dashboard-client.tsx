@@ -813,10 +813,10 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Header: eingefrorene Geometrie – h-[400px] für BEIDE Modi, nur Farbe wechselt */}
+      {/* Header: eingefrorene Geometrie – h-[340px], Schnitt durch Karten-Icons */}
       <header
         className={cn(
-          'relative z-[1] h-[400px]',
+          'relative z-[1] h-[340px]',
           'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(1rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
@@ -824,7 +824,7 @@ export default function DashboardClient() {
         {/* 1. Background: Höhe IMMER außerhalb der Bedingung – nur Gradient bedingt */}
         <div
           className={cn(
-            'absolute top-0 left-0 w-full rounded-b-[50px] z-0 overflow-hidden transition-all duration-1000 h-[400px]',
+            'absolute top-0 left-0 w-full rounded-b-[50px] z-0 overflow-hidden transition-all duration-1000 h-[340px]',
             timeOfDay === 'sunrise'
               ? 'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200'
               : 'bg-gradient-to-b from-slate-900 via-[#1e1b4b] to-slate-900 backdrop-blur-xl border-b border-white/5'
@@ -844,7 +844,7 @@ export default function DashboardClient() {
           )}
         </div>
         {/* 2. Content – feste Höhe 400px, Grid-Overlap durch festen -mt-24 */}
-        <div className="relative z-10 h-[400px] pt-[max(5rem,calc(4rem+env(safe-area-inset-top)))] px-4 sm:px-6 md:px-8 flex flex-col">
+        <div className="relative z-10 h-[340px] pt-[max(5rem,calc(4rem+env(safe-area-inset-top)))] px-4 sm:px-6 md:px-8 flex flex-col">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
               <h1
