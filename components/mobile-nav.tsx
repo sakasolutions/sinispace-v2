@@ -6,6 +6,8 @@ import { LayoutGrid, Calendar, MessageSquare, Settings } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { cn } from '@/lib/utils';
 
+const SPRING = 'cubic-bezier(0.68, -0.55, 0.27, 1.55)';
+
 export function MobileNav() {
   const pathname = usePathname();
 
@@ -17,10 +19,9 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 w-full z-[100] block md:hidden">
-      {/* Docked bar — fluid pill morph */}
+    <nav className="fixed bottom-0 left-0 right-0 w-full z-[100] block md:hidden overflow-visible">
       <div
-        className="flex justify-evenly items-center w-full bg-white pt-4 pr-6 pl-6 gap-2"
+        className="flex justify-evenly items-end w-full bg-white pt-6 pr-6 pl-6 gap-1"
         style={{
           borderRadius: '28px 28px 0 0',
           boxShadow: '0 -4px 24px rgba(0, 0, 0, 0.08)',
@@ -37,33 +38,38 @@ export function MobileNav() {
               href={item.href}
               onClick={() => triggerHaptic('light')}
               className={cn(
-                'group flex items-center justify-center gap-2 shrink-0',
-                'transition-all duration-500 ease-in-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500',
-                isActive
-                  ? 'rounded-[28px] py-4 px-7 hover:scale-[1.02] active:scale-[0.98]'
-                  : 'w-12 h-12 rounded-full bg-[rgba(168,85,247,0.06)] hover:scale-110 hover:bg-[rgba(168,85,247,0.12)] active:scale-95'
+                'group flex flex-col items-center justify-end flex-1 min-w-0 max-w-[80px]',
+                'transition-transform duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500',
+                !isActive && 'hover:-translate-y-0.5 active:scale-95'
               )}
-              style={
-                isActive
-                  ? {
-                      background: 'linear-gradient(135deg, #A855F7 0%, #C084FC 100%)',
-                      boxShadow: '0 0 32px rgba(168, 85, 247, 0.6), 0 8px 24px rgba(168, 85, 247, 0.4)',
-                      color: '#FFFFFF',
-                    }
-                  : undefined
-              }
+              style={{ transitionTimingFunction: SPRING }}
             >
-              <Icon
-                className={cn(
-                  'w-6 h-6 shrink-0 transition-colors duration-300',
-                  isActive ? 'text-white' : 'text-[#D8B4FE] group-hover:text-[#D8B4FE]'
-                )}
-                strokeWidth={2}
-              />
-              {isActive && (
-                <span className="font-semibold text-base text-white whitespace-nowrap">
-                  {item.label}
-                </span>
+              {isActive ? (
+                <>
+                  {/* Floating orb — 64px, radial gradient, 3D shadows */}
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center -translate-y-3 shrink-0 mb-1.5 transition-transform duration-300"
+                    style={{
+                      background: 'radial-gradient(circle at 50% 50%, #9333EA 0%, #A855F7 100%)',
+                      boxShadow: '0 12px 24px rgba(147, 51, 234, 0.5), 0 4px 12px rgba(147, 51, 234, 0.3), 0 -2px 8px rgba(168, 85, 247, 0.2)',
+                      transitionTimingFunction: SPRING,
+                    }}
+                  >
+                    <Icon className="w-7 h-7 text-white shrink-0" strokeWidth={2} />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-900 whitespace-nowrap truncate w-full text-center">
+                    {item.label}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 mb-1 transition-colors duration-200">
+                    <Icon className="w-6 h-6 text-[#9CA3AF] group-hover:text-violet-400 shrink-0" strokeWidth={2} />
+                  </div>
+                  <span className="text-[12px] text-gray-500 opacity-50 whitespace-nowrap truncate w-full text-center">
+                    {item.label}
+                  </span>
+                </>
               )}
             </Link>
           );
