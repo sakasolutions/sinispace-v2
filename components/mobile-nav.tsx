@@ -65,25 +65,27 @@ export function MobileNav() {
                 'active:scale-95 transition-transform'
               )}
             >
-              {/* Active: leuchtender Ring (Glowing Ring), layoutId für Sliding-Animation */}
+              {/* Active: Ambient Light – weiche Lichtwolke, layoutId für Sliding-Animation */}
               {isActive && (
                 <motion.div
                   layoutId="active-nav-pill"
-                  className="absolute inset-1 rounded-[20px] z-0 bg-transparent border-2 border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.7),_inset_0_0_10px_rgba(139,92,246,0.2)]"
+                  className="absolute inset-1 z-0 flex items-center justify-center pointer-events-none"
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                />
+                >
+                  <span className="rounded-full bg-violet-500/20 blur-lg w-8 h-8 scale-110" aria-hidden />
+                </motion.div>
               )}
               <Icon
                 className={cn(
                   'relative z-10 w-6 h-6 shrink-0 transition-colors duration-300',
-                  isActive ? 'text-violet-500' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
+                  isActive ? 'text-violet-600 drop-shadow-md' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
                 )}
                 strokeWidth={2}
               />
               <span
                 className={cn(
                   'relative z-10 text-[10px] font-medium transition-colors duration-300 whitespace-nowrap truncate max-w-full',
-                  isActive ? 'text-violet-500' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
+                  isActive ? 'text-violet-600' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
                 )}
               >
                 {item.label}
