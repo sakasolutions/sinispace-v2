@@ -821,14 +821,14 @@ export default function DashboardClient() {
           '-mt-[max(1rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* 1. Hintergrund – absolut, kein weißer Rand (h-[450px] für Overscroll), z-0 */}
+        {/* 1. Hintergrund – absolut, Night = weiches Twilight-Glas (backdrop-blur, feiner Rand) */}
         <div
           className={cn(
             'absolute top-0 left-0 w-full z-0 rounded-b-[40px] overflow-hidden',
             'h-[450px] min-h-[260px] sm:min-h-[300px] md:min-h-[350px]',
             timeOfDay === 'sunrise'
               ? 'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200'
-              : 'bg-gradient-to-br from-slate-900 via-violet-900 to-slate-900'
+              : 'bg-gradient-to-br from-slate-800 via-indigo-900 to-slate-900 backdrop-blur-xl border-b border-white/5'
           )}
           aria-hidden
         >
@@ -839,8 +839,8 @@ export default function DashboardClient() {
             </>
           ) : (
             <>
-              <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-indigo-500/20 blur-[100px] pointer-events-none" aria-hidden />
-              <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-500/20 blur-[100px] pointer-events-none" aria-hidden />
+              <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-blue-500/20 blur-[100px] pointer-events-none" aria-hidden />
+              <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-violet-500/20 blur-[100px] pointer-events-none" aria-hidden />
             </>
           )}
         </div>
