@@ -673,13 +673,13 @@ export default function ChatPage() {
 
         {/* INPUT AREA - Mobil: über Navbar (65px + safe area, 8px Abstand); Desktop: bottom-6; z-90 unter Navbar (z-100) */}
         <div
-          className={`chat-input-bar fixed left-0 right-0 z-[90] transition-all duration-300 md:left-4 md:right-4 ${
+          className={`chat-input-bar fixed left-0 right-0 z-[50] transition-all duration-300 md:left-4 md:right-4 md:z-40 ${
             isSidebarCollapsed ? 'md:left-[calc(16rem+3rem)]' : 'md:left-[calc(16rem+20rem)]'
           }`}
         >
           <div className="px-4 pb-2 md:px-0 md:pb-0 max-w-4xl mx-auto md:mx-0">
           <div className="max-w-4xl mx-auto px-4 md:px-6">
-            <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex items-center gap-2 bg-white rounded-xl border-2 border-gray-300 shadow-lg focus-within:border-orange-500 focus-within:shadow-xl transition-all">
+            <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex items-center gap-2 bg-white/95 backdrop-blur-md rounded-xl border border-gray-200/80 shadow-xl shadow-black/5 transition-all focus-within:border-violet-300 focus-within:shadow-violet-500/10">
               <input
                 ref={fileInputRef}
                 type="file"

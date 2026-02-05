@@ -664,7 +664,7 @@ export function CalendarClient() {
 
       {/* Floating Command Bar – Mobile: zentriert über Navbar, Desktop: im Content-Bereich (rechts der Sidebar) */}
       <motion.div
-        className="fixed bottom-24 left-0 right-0 px-4 md:bottom-8 md:left-64 md:right-0 md:px-6 z-[100] pb-[env(safe-area-inset-bottom)] pointer-events-none"
+        className="fixed left-0 right-0 px-4 md:bottom-8 md:left-64 md:right-0 md:px-6 z-[60] pb-[env(safe-area-inset-bottom)] pointer-events-none bottom-[calc(100px+env(safe-area-inset-bottom))] md:bottom-8"
         initial={false}
         animate={{
           y: eventModal.open ? '100%' : 0,

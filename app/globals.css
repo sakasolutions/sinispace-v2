@@ -136,9 +136,9 @@
 }
 
 @layer utilities {
-  /* Chat input bar: über Navbar auf Mobil, normal auf Desktop */
+  /* Chat input bar: über Floating-Navbar auf Mobil (bottom-24), normal auf Desktop */
   .chat-input-bar {
-    bottom: calc(65px + env(safe-area-inset-bottom));
+    bottom: calc(100px + env(safe-area-inset-bottom));
   }
   @media (min-width: 768px) {
     .chat-input-bar {

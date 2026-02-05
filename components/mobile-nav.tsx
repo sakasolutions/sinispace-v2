@@ -42,7 +42,7 @@ export function MobileNav() {
               aria-current={isActive ? 'page' : undefined}
               aria-label={item.label}
               className={cn(
-                'group relative flex flex-1 items-center justify-center min-h-[44px] min-w-0',
+                'group relative flex flex-1 flex-col items-center justify-center min-h-[52px] min-w-0 gap-0.5',
                 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500',
                 'active:scale-95 transition-transform'
               )}
@@ -62,6 +62,14 @@ export function MobileNav() {
                 )}
                 strokeWidth={2}
               />
+              <span
+                className={cn(
+                  'relative z-10 text-[10px] font-medium transition-colors duration-300 whitespace-nowrap truncate max-w-full',
+                  isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
+                )}
+              >
+                {item.label}
+              </span>
             </Link>
           );
         })}

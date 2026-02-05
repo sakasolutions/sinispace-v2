@@ -82,7 +82,7 @@ export default function RootLayout({
           aria-hidden="true"
         />
         
-        <div className="relative z-10">
+        <div className="relative z-10 pb-32">
           {children}
         </div>
       </body>
