@@ -813,18 +813,18 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Header: Dynamic Day/Night – gleiche Geometrie (h-[380px]), weicher Night-Gradient */}
+      {/* Header: 100% statische Geometrie – nur Farben wechseln (Day/Night), Kartenposition fix */}
       <header
         className={cn(
-          'relative z-[1] min-h-[380px]',
+          'relative z-[1] min-h-[420px]',
           'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(1rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* 1. Hintergrund – feste Höhe für beide Modi (kein Vorhang-Effekt), top-0 = kein weißer Spalt */}
+        {/* 1. Statischer Background – feste Höhe, nur Gradient/Blobs dynamisch + transition */}
         <div
           className={cn(
-            'absolute top-0 left-0 w-full z-0 h-[380px] rounded-b-[50px] overflow-hidden',
+            'absolute top-0 left-0 w-full z-0 h-[420px] rounded-b-[50px] overflow-hidden transition-colors duration-1000',
             timeOfDay === 'sunrise'
               ? 'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200'
               : 'bg-gradient-to-b from-slate-900 via-[#1e1b4b] to-slate-900 backdrop-blur-xl border-b border-white/5'
@@ -833,18 +833,18 @@ export default function DashboardClient() {
         >
           {timeOfDay === 'sunrise' ? (
             <>
-              <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/60 blur-[100px] pointer-events-none" aria-hidden />
-              <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/60 blur-[100px] pointer-events-none" aria-hidden />
+              <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/60 blur-[100px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+              <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/60 blur-[100px] pointer-events-none transition-opacity duration-1000" aria-hidden />
             </>
           ) : (
             <>
-              <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-blue-500/20 blur-[100px] pointer-events-none" aria-hidden />
-              <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-violet-500/20 blur-[100px] pointer-events-none" aria-hidden />
+              <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-blue-500/20 blur-[100px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+              <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-violet-500/20 blur-[100px] pointer-events-none transition-opacity duration-1000" aria-hidden />
             </>
           )}
         </div>
-        {/* 2. Inhalt darüber: z-10, min-h passt zur festen Header-Höhe */}
-        <div className="relative z-10 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 min-h-[380px] flex flex-col">
+        {/* 2. Statischer Content – festes Padding (pt-20 + Safe Area), Grid-Overlap durch festen -mt am Grid-Container */}
+        <div className="relative z-10 pt-[max(5rem,calc(4rem+env(safe-area-inset-top)))] px-4 sm:px-6 md:px-8 min-h-[420px] flex flex-col">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
               <h1
@@ -865,8 +865,8 @@ export default function DashboardClient() {
               >
                 {sunriseGreeting.subline}
               </p>
-              {/* Info-Chips */}
-              <div className="mt-4 flex flex-wrap gap-2">
+              {/* Info-Chips – fester Abstand für statisches Layout */}
+              <div className="mt-8 flex flex-wrap gap-2">
                 <span
                   className={cn(
                     'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
@@ -921,6 +921,7 @@ export default function DashboardClient() {
       </header>
 
       {/* Main Container: Grid ragt in den Header (Glass über Orange) */}
+      {/* Grid: fester -mt-24 Overlap – Karten gleiten immer gleich in den Header (Schnitt durch Kartenmitte), unabhängig vom Theme */}
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-[calc(70px+env(safe-area-inset-bottom))] md:pb-32 -mt-24">
         {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
         {sortedTools.length > 0 ? (
