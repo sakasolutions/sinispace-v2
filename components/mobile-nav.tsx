@@ -65,28 +65,25 @@ export function MobileNav() {
                 'active:scale-95 transition-transform'
               )}
             >
-              {/* Active Pill (Wassertropfen) – Night: etwas mehr Glow */}
+              {/* Active: leuchtender Ring (Glowing Ring), layoutId für Sliding-Animation */}
               {isActive && (
                 <motion.div
                   layoutId="active-nav-pill"
-                  className={cn(
-                    'absolute inset-1 rounded-[20px] bg-gradient-to-tr from-violet-600 to-fuchsia-500 z-0',
-                    isNight ? 'shadow-lg shadow-violet-500/50' : 'shadow-lg shadow-violet-500/40'
-                  )}
+                  className="absolute inset-1 rounded-[20px] z-0 bg-transparent border-2 border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.7),_inset_0_0_10px_rgba(139,92,246,0.2)]"
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 />
               )}
               <Icon
                 className={cn(
                   'relative z-10 w-6 h-6 shrink-0 transition-colors duration-300',
-                  isActive ? 'text-white' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
+                  isActive ? 'text-violet-500' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
                 )}
                 strokeWidth={2}
               />
               <span
                 className={cn(
                   'relative z-10 text-[10px] font-medium transition-colors duration-300 whitespace-nowrap truncate max-w-full',
-                  isActive ? 'text-white' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
+                  isActive ? 'text-violet-500' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
                 )}
               >
                 {item.label}
