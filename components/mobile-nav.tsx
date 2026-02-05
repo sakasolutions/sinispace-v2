@@ -65,27 +65,35 @@ export function MobileNav() {
                 'active:scale-95 transition-transform'
               )}
             >
-              {/* Active: Ambient Light – weiche Lichtwolke, layoutId für Sliding-Animation */}
+              {/* Active: Aurora – weiche Lichtwolke, z-0 damit Icons (z-10) darüber schweben */}
               {isActive && (
                 <motion.div
                   layoutId="active-nav-pill"
-                  className="absolute inset-1 z-0 flex items-center justify-center pointer-events-none"
+                  className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none"
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 >
-                  <span className="rounded-full bg-violet-500/20 blur-lg w-8 h-8 scale-110" aria-hidden />
+                  <span className="rounded-full bg-violet-500/15 blur-xl w-8 h-8 scale-125" aria-hidden />
                 </motion.div>
               )}
               <Icon
                 className={cn(
                   'relative z-10 w-6 h-6 shrink-0 transition-colors duration-300',
-                  isActive ? 'text-violet-600 drop-shadow-md' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
+                  isActive
+                    ? 'text-violet-600 drop-shadow-md'
+                    : isNight
+                      ? 'text-slate-400 group-hover:text-slate-300'
+                      : 'text-gray-500 group-hover:text-gray-600'
                 )}
                 strokeWidth={2}
               />
               <span
                 className={cn(
                   'relative z-10 text-[10px] font-medium transition-colors duration-300 whitespace-nowrap truncate max-w-full',
-                  isActive ? 'text-violet-600' : isNight ? 'text-white/50 group-hover:text-white/70' : 'text-gray-400 group-hover:text-gray-500'
+                  isActive
+                    ? 'text-violet-600'
+                    : isNight
+                      ? 'text-slate-400 group-hover:text-slate-300'
+                      : 'text-gray-500 group-hover:text-gray-600'
                 )}
               >
                 {item.label}
