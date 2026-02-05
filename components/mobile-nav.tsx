@@ -6,6 +6,8 @@ import { LayoutGrid, Calendar, MessageSquare, Settings } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { cn } from '@/lib/utils';
 
+const EASE_OUT_EXPO = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
 export function MobileNav() {
   const pathname = usePathname();
 
@@ -19,16 +21,18 @@ export function MobileNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 w-full z-[100] block md:hidden">
       <div
-        className="flex justify-evenly items-center w-full py-4 px-6 gap-2"
+        className="flex justify-evenly items-stretch w-full min-h-[72px] px-4 pt-3 pb-3 gap-1 relative rounded-t-[24px]"
         style={{
-          background: 'rgba(255, 255, 255, 0.7)',
-          WebkitBackdropFilter: 'blur(20px)',
-          backdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(168, 85, 247, 0.1)',
-          borderRadius: '28px 28px 0 0',
-          paddingBottom: 'calc(16px + env(safe-area-inset-bottom))',
+          background: '#F9FAFB',
+          paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
         }}
       >
+        {/* Top border: 2px gradient line */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[2px] rounded-t-[24px]"
+          style={{ background: 'linear-gradient(90deg, #A855F7, #EC4899)' }}
+          aria-hidden
+        />
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.active;
@@ -39,36 +43,46 @@ export function MobileNav() {
               href={item.href}
               onClick={() => triggerHaptic('medium')}
               className={cn(
-                'group flex flex-col items-center justify-center flex-1 min-w-0 max-w-[88px] py-2',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500'
+                'group relative flex flex-col items-center justify-end flex-1 min-w-0 max-w-[80px] py-2 rounded-xl',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 transition-transform duration-300',
+                !isActive && 'hover:bg-violet-500/5',
+                isActive && 'scale-105'
               )}
+              style={{ transitionTimingFunction: EASE_OUT_EXPO }}
             >
-              <div className="flex flex-col items-center w-full">
-                <Icon
-                  className={cn(
-                    'w-6 h-6 shrink-0 mb-1.5 transition-colors duration-200',
-                    isActive ? 'text-[#9333EA]' : 'text-[#CBD5E1] group-hover:text-[#D8B4FE]'
-                  )}
-                  strokeWidth={2}
-                />
+              {/* Gradient bar — rises from bottom (0.4s) */}
+              <div
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[72px] rounded-t-[20px] pointer-events-none"
+                style={{
+                  height: isActive ? '100%' : '0%',
+                  opacity: isActive ? 1 : 0,
+                  background: 'linear-gradient(to top, #9333EA, transparent)',
+                  transition: `height 0.4s ${EASE_OUT_EXPO}, opacity 0.4s ${EASE_OUT_EXPO}`,
+                }}
+                aria-hidden
+              />
+
+              <div className="relative z-10 flex flex-col items-center w-full">
+                <span
+                  className="flex items-center justify-center mb-1 transition-colors duration-200"
+                  style={isActive ? { filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.5))' } : undefined}
+                >
+                  <Icon
+                    className={cn(
+                      'w-6 h-6 shrink-0',
+                      isActive ? 'text-white' : 'text-[#9CA3AF]'
+                    )}
+                    strokeWidth={2}
+                  />
+                </span>
                 <span
                   className={cn(
-                    'text-[14px] font-semibold whitespace-nowrap truncate max-w-full text-center transition-colors duration-200',
-                    isActive ? 'text-[#9333EA]' : 'text-[#CBD5E1] group-hover:text-[#D8B4FE]'
+                    'whitespace-nowrap truncate w-full text-center transition-colors duration-200',
+                    isActive ? 'text-white text-[14px] font-bold' : 'text-[#CBD5E1] text-[12px]'
                   )}
                 >
                   {item.label}
                 </span>
-                {/* Neon underline — slides in from left (0.3s ease-out) */}
-                <span
-                  className="mt-1.5 h-[3px] rounded-[2px] origin-left transition-all duration-300 ease-out block min-w-0"
-                  style={{
-                    width: isActive ? '100%' : '0%',
-                    background: 'linear-gradient(90deg, #A855F7, #EC4899)',
-                    boxShadow: isActive ? '0 0 12px rgba(168, 85, 247, 0.8)' : '0 0 12px rgba(168, 85, 247, 0)',
-                  }}
-                  aria-hidden
-                />
               </div>
             </Link>
           );
