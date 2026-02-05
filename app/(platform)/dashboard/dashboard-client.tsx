@@ -813,22 +813,21 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Header: Dynamic Day/Night – sunrise (06–18) / night (18–06) */}
+      {/* Header: Dynamic Day/Night – gleiche Geometrie (h-[380px]), weicher Night-Gradient */}
       <header
         className={cn(
-          'relative z-[1] min-h-[260px] sm:min-h-[300px] md:min-h-[350px]',
+          'relative z-[1] min-h-[380px]',
           'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(1rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* 1. Hintergrund – absolut, Night = weiches Twilight-Glas (backdrop-blur, feiner Rand) */}
+        {/* 1. Hintergrund – feste Höhe für beide Modi (kein Vorhang-Effekt), top-0 = kein weißer Spalt */}
         <div
           className={cn(
-            'absolute top-0 left-0 w-full z-0 rounded-b-[40px] overflow-hidden',
-            'h-[450px] min-h-[260px] sm:min-h-[300px] md:min-h-[350px]',
+            'absolute top-0 left-0 w-full z-0 h-[380px] rounded-b-[50px] overflow-hidden',
             timeOfDay === 'sunrise'
               ? 'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200'
-              : 'bg-gradient-to-br from-slate-800 via-indigo-900 to-slate-900 backdrop-blur-xl border-b border-white/5'
+              : 'bg-gradient-to-b from-slate-900 via-[#1e1b4b] to-slate-900 backdrop-blur-xl border-b border-white/5'
           )}
           aria-hidden
         >
@@ -844,8 +843,8 @@ export default function DashboardClient() {
             </>
           )}
         </div>
-        {/* 2. Inhalt darüber: z-10 */}
-        <div className="relative z-10 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 min-h-[260px] sm:min-h-[300px] md:min-h-[350px] flex flex-col">
+        {/* 2. Inhalt darüber: z-10, min-h passt zur festen Header-Höhe */}
+        <div className="relative z-10 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 min-h-[380px] flex flex-col">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
               <h1
