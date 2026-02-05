@@ -26,7 +26,7 @@ export function MobileNav() {
         className={cn(
           'flex justify-between items-end py-3 px-6 rounded-full h-auto',
           'bg-white/95 backdrop-blur-md border border-gray-100',
-          'shadow-[0_8px_30px_rgba(0,0,0,0.1)]'
+          'shadow-lg'
         )}
       >
         {navItems.map((item) => {
@@ -46,29 +46,31 @@ export function MobileNav() {
               )}
             >
               <span className="flex flex-col items-center justify-center">
-                <span
-                  className="flex items-center justify-center"
-                  style={isActive ? { filter: 'drop-shadow(0 0 6px rgba(139, 92, 246, 0.6))' } : undefined}
-                >
-                  <Icon
-                    className={cn(
-                      'w-6 h-6 shrink-0 transition-colors duration-300',
-                      isActive ? 'text-violet-600' : 'text-gray-400 group-hover:text-gray-500'
-                    )}
-                    strokeWidth={2}
-                  />
-                </span>
-                {isActive && (
+                {isActive ? (
                   <span
-                    className="w-1.5 h-1.5 rounded-full bg-violet-600 mb-1 mt-0.5"
-                    aria-hidden
+                    className="bg-gradient-to-tr from-violet-600 to-fuchsia-500 bg-clip-text text-transparent inline-flex items-center justify-center [&_svg]:fill-current"
+                    style={{
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
+                    <Icon
+                      className="w-6 h-6 shrink-0 fill-current stroke-[1.5]"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                    />
+                  </span>
+                ) : (
+                  <Icon
+                    className="w-6 h-6 shrink-0 text-gray-400 group-hover:text-gray-500 transition-colors duration-300"
+                    strokeWidth={2}
                   />
                 )}
               </span>
               <span
                 className={cn(
-                  'text-[10px] transition-colors duration-300 whitespace-nowrap truncate w-full text-center',
-                  isActive ? 'text-violet-600 font-medium' : 'text-gray-400 group-hover:text-gray-500'
+                  'text-[10px] transition-colors duration-300 whitespace-nowrap truncate w-full text-center mt-1',
+                  isActive ? 'text-gray-900 font-bold' : 'text-gray-400 group-hover:text-gray-500'
                 )}
               >
                 {item.label}
