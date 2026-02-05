@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { deleteAccount } from '@/actions/auth-actions';
 import { AlertTriangle } from 'lucide-react';
 
-export function DeleteAccount() {
+type DeleteAccountProps = { embedded?: boolean };
+
+export function DeleteAccount({ embedded }: DeleteAccountProps) {
   const router = useRouter();
   const [isConfirming, setIsConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -42,12 +44,12 @@ export function DeleteAccount() {
     }
   };
 
-  return (
-    <div className="mt-4 sm:mt-6 rounded-2xl border border-red-100 bg-red-50/50 p-6 sm:p-8 shadow-sm">
+  const content = (
+    <>
       <div className="flex items-start gap-3 mb-4">
-        <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+        {!embedded && <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />}
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-bold text-gray-900 mb-2">Konto endgültig löschen</h2>
+          {!embedded && <h2 className="text-lg font-bold text-gray-900 mb-2">Konto endgültig löschen</h2>}
           <p className="text-sm text-gray-600 mb-3">
             Wenn du dein Konto löschst, werden <strong className="text-red-600">alle deine Daten unwiderruflich gelöscht</strong>:
           </p>
@@ -103,6 +105,15 @@ export function DeleteAccount() {
           </div>
         </div>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="pt-4">{content}</div>;
+  }
+  return (
+    <div className="mt-4 sm:mt-6 rounded-2xl border border-red-100 bg-red-50/50 p-6 sm:p-8 shadow-sm">
+      {content}
     </div>
   );
 }

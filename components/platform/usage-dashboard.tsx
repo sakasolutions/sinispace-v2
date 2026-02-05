@@ -68,7 +68,7 @@ export function UsageDashboard() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm">
+      <div className="rounded-[24px] border border-white/40 bg-white/40 backdrop-blur-md p-6 sm:p-8 shadow-lg">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/3"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -83,7 +83,7 @@ export function UsageDashboard() {
 
   if (!data) {
     return (
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm">
+      <div className="rounded-[24px] border border-white/40 bg-white/40 backdrop-blur-md p-6 sm:p-8 shadow-lg">
         <p className="text-gray-500">Usage-Daten konnten nicht geladen werden.</p>
       </div>
     );
@@ -95,7 +95,7 @@ export function UsageDashboard() {
   const showWarning = usagePercentage >= 80;
 
   return (
-    <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm">
+    <div className="space-y-6 rounded-[24px] border border-white/40 bg-white/40 backdrop-blur-md p-6 sm:p-8 shadow-lg">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -119,7 +119,7 @@ export function UsageDashboard() {
       </div>
 
       {showWarning && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <div className="rounded-xl border border-amber-200/80 bg-amber-50/80 backdrop-blur-sm p-4">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
             <div>
@@ -134,7 +134,7 @@ export function UsageDashboard() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 sm:p-5 shadow-sm">
+        <div className="rounded-[20px] border border-white/50 bg-white/50 backdrop-blur-sm p-4 sm:p-5 shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 mb-1">Heute</p>
@@ -144,7 +144,7 @@ export function UsageDashboard() {
             <Clock className="w-8 h-8 text-orange-400 opacity-60" />
           </div>
         </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 sm:p-5 shadow-sm">
+        <div className="rounded-[20px] border border-white/50 bg-white/50 backdrop-blur-sm p-4 sm:p-5 shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 mb-1">Diese Woche</p>
@@ -154,17 +154,17 @@ export function UsageDashboard() {
             <TrendingUp className="w-8 h-8 text-green-500 opacity-60" />
           </div>
         </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 sm:p-5 shadow-sm">
+        <div className="rounded-[20px] border border-white/50 bg-white/50 backdrop-blur-sm p-4 sm:p-5 shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 mb-1">Gesamt ({timeRange}d)</p>
-              <p className="text-2xl font-bold text-gray-900">{formatNumber(data.total.tokens)}</p>
+              <p className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{formatNumber(data.total.tokens)}</p>
               <p className="text-xs text-gray-500 mt-1">{data.total.requests} Requests</p>
             </div>
             <BarChart3 className="w-8 h-8 text-indigo-500 opacity-60" />
           </div>
         </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 sm:p-5 shadow-sm">
+        <div className="rounded-[20px] border border-white/50 bg-white/50 backdrop-blur-sm p-4 sm:p-5 shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 mb-1">Geschätzte Kosten</p>

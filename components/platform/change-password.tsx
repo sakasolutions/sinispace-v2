@@ -5,21 +5,17 @@ import { useActionState } from 'react';
 import { changePassword } from '@/actions/auth-actions';
 import { Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 
-export function ChangePassword() {
+type ChangePasswordProps = { embedded?: boolean };
+
+export function ChangePassword({ embedded }: ChangePasswordProps) {
   // @ts-ignore
   const [state, formAction] = useActionState(changePassword, null);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  return (
-    <div className="mt-4 sm:mt-6 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm">
-      <h2 className="text-lg font-bold text-gray-900 mb-4">Passwort ändern</h2>
-      <p className="text-sm text-gray-500 mb-4">
-        Ändere dein Passwort, um dein Konto sicher zu halten.
-      </p>
-
-      <form action={formAction} className="space-y-4">
+  const form = (
+    <form action={formAction} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Aktuelles Passwort
@@ -132,6 +128,18 @@ export function ChangePassword() {
           )}
         </button>
       </form>
+  );
+
+  if (embedded) {
+    return <div className="pt-4">{form}</div>;
+  }
+  return (
+    <div className="mt-4 sm:mt-6 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm">
+      <h2 className="text-lg font-bold text-gray-900 mb-4">Passwort ändern</h2>
+      <p className="text-sm text-gray-500 mb-4">
+        Ändere dein Passwort, um dein Konto sicher zu halten.
+      </p>
+      {form}
     </div>
   );
 }

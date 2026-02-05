@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation';
 import { changeName } from '@/actions/auth-actions';
 import { User, Eye, EyeOff } from 'lucide-react';
 
-export function ChangeName() {
+type ChangeNameProps = { embedded?: boolean };
+
+export function ChangeName({ embedded }: ChangeNameProps) {
   const router = useRouter();
-  const [showInput, setShowInput] = useState(false);
+  const [showInput, setShowInput] = useState(embedded ?? false);
   const [newName, setNewName] = useState('');
 
   // @ts-ignore
@@ -19,19 +21,23 @@ export function ChangeName() {
     if (state?.success) {
       const timer = setTimeout(() => {
         router.refresh();
-        setShowInput(false);
+        setShowInput(embedded ?? false);
         setNewName('');
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [state?.success, router]);
+  }, [state?.success, router, embedded]);
 
-  return (
-    <div className="mt-4 sm:mt-6 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm">
-      <h2 className="text-lg font-bold text-gray-900 mb-4">Nutzernamen ändern</h2>
-      <p className="text-sm text-gray-500 mb-4">
-        Ändere deinen Anzeigenamen. Dieser wird in deinem Profil und in Chats angezeigt.
-      </p>
+  const inner = (
+    <>
+      {!embedded && (
+        <>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Nutzernamen ändern</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Ändere deinen Anzeigenamen. Dieser wird in deinem Profil und in Chats angezeigt.
+          </p>
+        </>
+      )}
 
       {!showInput ? (
         <button
@@ -93,6 +99,15 @@ export function ChangeName() {
           </div>
         </form>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="pt-4">{inner}</div>;
+  }
+  return (
+    <div className="mt-4 sm:mt-6 rounded-2xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm">
+      {inner}
     </div>
   );
 }
