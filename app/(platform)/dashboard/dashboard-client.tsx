@@ -31,6 +31,7 @@ import {
   ShoppingCart,
   FileImage,
   Sun,
+  Moon,
   ChevronDown,
   ChevronRight,
   Calendar,
@@ -435,6 +436,12 @@ function getSunriseGreetingBase(): { base: string; subline: string } {
   return { base: 'Guten Abend', subline: 'Alles im Griff für heute.' };
 }
 
+/** Day (06:00–18:00) = sunrise, Night (18:00–06:00) = night */
+function getTimeOfDay(): 'sunrise' | 'night' {
+  const h = new Date().getHours();
+  return h >= 6 && h < 18 ? 'sunrise' : 'night';
+}
+
 // PREMIUM HIGH-FIDELITY: Helper-Funktion für Akzentfarben (RGB-Werte)
 const getAccentColorRGB = (accentColor: string): { r: number; g: number; b: number } => {
   const colorMap: Record<string, { r: number; g: number; b: number }> = {
@@ -635,6 +642,14 @@ export default function DashboardClient() {
   const [usageStats, setUsageStats] = useState<Record<string, { count7d: number; count30d: number; isTrending: boolean }>>({});
   const [openAccordions, setOpenAccordions] = useState<Set<string>>(new Set());
   const [displayName, setDisplayName] = useState<string>('');
+  const [timeOfDay, setTimeOfDay] = useState<'sunrise' | 'night'>(() => getTimeOfDay());
+
+  // Time-of-day aktualisieren (z. B. jede Minute), damit Theme wechselt
+  useEffect(() => {
+    setTimeOfDay(getTimeOfDay());
+    const interval = setInterval(() => setTimeOfDay(getTimeOfDay()), 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
   const toggleAccordion = (id: string) => {
     setOpenAccordions((prev) => {
       const next = new Set(prev);
@@ -779,21 +794,26 @@ export default function DashboardClient() {
 
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 50 && (
-        <div className="fixed top-0 left-0 right-0 flex items-center justify-center h-16 bg-white z-50">
+        <div
+          className={cn(
+            'fixed top-0 left-0 right-0 flex items-center justify-center h-16 z-50',
+            timeOfDay === 'sunrise' ? 'bg-white' : 'bg-slate-900'
+          )}
+        >
           {pullDistance >= 150 ? (
-            <div className="flex items-center gap-2 text-orange-500">
-              <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm font-medium text-gray-700">Loslassen zum Aktualisieren</span>
+            <div className={cn('flex items-center gap-2', timeOfDay === 'sunrise' ? 'text-orange-500' : 'text-violet-400')}>
+              <div className={cn('w-5 h-5 border-2 border-t-transparent rounded-full animate-spin', timeOfDay === 'sunrise' ? 'border-orange-500' : 'border-violet-400')} />
+              <span className={cn('text-sm font-medium', timeOfDay === 'sunrise' ? 'text-gray-700' : 'text-white/90')}>Loslassen zum Aktualisieren</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-gray-500">
+            <div className={cn('flex items-center gap-2', timeOfDay === 'sunrise' ? 'text-gray-500' : 'text-white/70')}>
               <span className="text-sm font-medium">Ziehen zum Aktualisieren</span>
             </div>
           )}
         </div>
       )}
 
-      {/* Header: Wrapper scrollt mit Seite; Hintergrund absolute (nicht fixed) = scrollt mit */}
+      {/* Header: Dynamic Day/Night – sunrise (06–18) / night (18–06) */}
       <header
         className={cn(
           'relative z-[1] min-h-[260px] sm:min-h-[300px] md:min-h-[350px]',
@@ -801,44 +821,101 @@ export default function DashboardClient() {
           '-mt-[max(1rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* 1. Hintergrund – absolute (im Flow), scrollt mit dem Rest der Seite */}
+        {/* 1. Hintergrund – absolut, kein weißer Rand (h-[450px] für Overscroll), z-0 */}
         <div
-          className="absolute top-0 left-0 w-full h-[260px] sm:h-[300px] md:h-[350px] z-0 rounded-b-[40px] overflow-hidden bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200"
+          className={cn(
+            'absolute top-0 left-0 w-full z-0 rounded-b-[40px] overflow-hidden',
+            'h-[450px] min-h-[260px] sm:min-h-[300px] md:min-h-[350px]',
+            timeOfDay === 'sunrise'
+              ? 'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200'
+              : 'bg-gradient-to-br from-slate-900 via-violet-900 to-slate-900'
+          )}
           aria-hidden
         >
-          <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/60 blur-[100px] pointer-events-none" aria-hidden />
-          <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/60 blur-[100px] pointer-events-none" aria-hidden />
+          {timeOfDay === 'sunrise' ? (
+            <>
+              <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/60 blur-[100px] pointer-events-none" aria-hidden />
+              <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/60 blur-[100px] pointer-events-none" aria-hidden />
+            </>
+          ) : (
+            <>
+              <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-indigo-500/20 blur-[100px] pointer-events-none" aria-hidden />
+              <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-500/20 blur-[100px] pointer-events-none" aria-hidden />
+            </>
+          )}
         </div>
-        {/* 2. Inhalt darüber: Safe Area + Abstand für Statusleiste */}
+        {/* 2. Inhalt darüber: z-10 */}
         <div className="relative z-10 pt-[max(3rem,env(safe-area-inset-top))] md:pt-14 px-4 sm:px-6 md:px-8 min-h-[260px] sm:min-h-[300px] md:min-h-[350px] flex flex-col">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <h1 className="text-[1.625rem] sm:text-[1.9375rem] md:text-[2.125rem] font-medium text-gray-900 tracking-tight mt-0" style={{ letterSpacing: '-0.3px' }}>
+              <h1
+                className={cn(
+                  'text-[1.625rem] sm:text-[1.9375rem] md:text-[2.125rem] font-medium tracking-tight mt-0',
+                  timeOfDay === 'sunrise' ? 'text-gray-900' : 'text-white'
+                )}
+                style={{ letterSpacing: '-0.3px' }}
+              >
                 {greetingText}
               </h1>
-              <p className="text-gray-500 text-sm sm:text-base mt-1 font-normal opacity-65" style={{ letterSpacing: '0.1px' }}>
+              <p
+                className={cn(
+                  'text-sm sm:text-base mt-1 font-normal',
+                  timeOfDay === 'sunrise' ? 'text-gray-500 opacity-65' : 'text-white/80'
+                )}
+                style={{ letterSpacing: '0.1px' }}
+              >
                 {sunriseGreeting.subline}
               </p>
-              {/* Info-Chips: Metadaten des Tages direkt unter der Begrüßung */}
+              {/* Info-Chips */}
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white font-medium flex items-center shrink-0">
+                <span
+                  className={cn(
+                    'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
+                    timeOfDay === 'sunrise'
+                      ? 'bg-white/20 border border-white/20 text-gray-800'
+                      : 'bg-white/10 border border-white/20 text-white/80'
+                  )}
+                >
                   <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
                   2 Termine
                 </span>
-                <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white font-medium flex items-center shrink-0">
+                <span
+                  className={cn(
+                    'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
+                    timeOfDay === 'sunrise'
+                      ? 'bg-white/20 border border-white/20 text-gray-800'
+                      : 'bg-white/10 border border-white/20 text-white/80'
+                  )}
+                >
                   <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
                   4 Offen
                 </span>
-                <span className="bg-white/20 backdrop-blur-md border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white font-medium flex items-center shrink-0">
+                <span
+                  className={cn(
+                    'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
+                    timeOfDay === 'sunrise'
+                      ? 'bg-white/20 border border-white/20 text-gray-800'
+                      : 'bg-white/10 border border-white/20 text-white/80'
+                  )}
+                >
                   <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
                   Alles erledigt
                 </span>
               </div>
             </div>
             <div className="absolute right-0 top-0 pointer-events-none" aria-hidden>
-              <div className="translate-x-[30%] -translate-y-[30%] text-orange-100/60">
-                <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
-              </div>
+              {timeOfDay === 'sunrise' ? (
+                <div className="translate-x-[30%] -translate-y-[30%] text-orange-500">
+                  <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
+                </div>
+              ) : (
+                <div
+                  className="translate-x-[30%] -translate-y-[30%] text-yellow-100"
+                  style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,200,0.5))' }}
+                >
+                  <Moon className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
+                </div>
+              )}
             </div>
           </div>
         </div>
