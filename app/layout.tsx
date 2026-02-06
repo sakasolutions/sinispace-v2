@@ -76,9 +76,9 @@ export default function RootLayout({
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
       } as React.CSSProperties}>
-        {/* Einheitlicher App-Hintergrund (weiß = clean, kein grauer Streifen unten bei Mobile Nav) */}
+        {/* Hintergrund nur für Non-Platform-Seiten (Login etc.) - Platform nutzt AppBackground */}
         <div 
-          className="fixed inset-0 z-[-3] h-full w-full pointer-events-none bg-white"
+          className="fixed inset-0 z-[-3] h-full w-full pointer-events-none bg-gray-50"
           aria-hidden="true"
         />
         
