@@ -62,7 +62,7 @@ const TOOL_SUBTITLES: Record<string, string> = {
 /** Hero Glow – farbiger Schatten für Top-4 (stärkerer Colored Shadow) */
 const TOOL_GLOW_SHADOW: Record<string, string> = {
   recipe: 'shadow-[0_4px_24px_-2px_rgba(249,115,22,0.3)]',
-  'shopping-list': 'shadow-[0_4px_24px_-2px_rgba(239,68,68,0.3)]',
+  'shopping-list': 'shadow-[0_4px_24px_-2px_rgba(234,88,12,0.35)]',
   pdf: 'shadow-[0_4px_24px_-2px_rgba(239,68,68,0.3)]',
   email: 'shadow-[0_4px_24px_-2px_rgba(59,130,246,0.3)]',
   polish: 'shadow-[0_4px_24px_-2px_rgba(20,184,166,0.3)]',
@@ -107,7 +107,7 @@ const ICON_BG_CLASS: Record<string, string> = {
 /** Icon-Farben – Brand pro Tool (Solid-Look) */
 const HERO_ICON_COLORS: Record<string, string> = {
   recipe: 'text-orange-500',
-  'shopping-list': 'text-red-500',
+  'shopping-list': 'text-orange-600',
   pdf: 'text-red-500',
   email: 'text-blue-500',
   polish: 'text-teal-500',
@@ -126,7 +126,7 @@ const HERO_ICON_COLORS: Record<string, string> = {
 /** Squircle-Container pro Tool – Apple Vision Style (Gradient + Glow) */
 const TOOL_SQUIRCLE: Record<string, { gradient: string; shadow: string }> = {
   recipe: { gradient: 'bg-gradient-to-br from-orange-500 to-amber-500', shadow: 'shadow-lg shadow-orange-500/30' },
-  'shopping-list': { gradient: 'bg-gradient-to-br from-orange-400 to-pink-500', shadow: 'shadow-lg shadow-orange-500/30' },
+  'shopping-list': { gradient: 'bg-gradient-to-br from-orange-600 to-rose-500', shadow: 'shadow-lg shadow-orange-600/30' },
   fitness: { gradient: 'bg-gradient-to-br from-rose-500 to-purple-600', shadow: 'shadow-lg shadow-rose-500/30' },
   travel: { gradient: 'bg-gradient-to-br from-sky-400 to-indigo-500', shadow: 'shadow-lg shadow-sky-500/30' },
   pdf: { gradient: 'bg-gradient-to-br from-red-400 to-rose-400', shadow: 'shadow-lg shadow-red-500/30' },
@@ -324,7 +324,7 @@ const allTools: Tool[] = [
     icon: ShoppingCart,
     color: 'orange',
     category: 'lifestyle',
-    href: '/tools/shopping-list',
+    href: '/tools/shopping',
     available: true,
     size: 'medium',
     priority: 'medium',

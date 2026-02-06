@@ -229,9 +229,9 @@ export function GourmetCockpit({
               </div>
             </div>
 
-            {/* Karte 4: Einkaufsliste – Glass */}
+            {/* Karte 4: Einkaufsliste – Glass (Blutorange) */}
             <Link
-              href="/tools/shopping-list"
+              href="/tools/shopping"
               className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
               style={DASHBOARD_CARD_STYLE}
             >
@@ -241,7 +241,7 @@ export function GourmetCockpit({
                 </span>
               </div>
               <div className="flex w-full justify-between items-start gap-2">
-                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-400 to-pink-500 shadow-lg shadow-orange-500/30">
+                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-600 to-rose-500 shadow-lg shadow-orange-600/30">
                   <ShoppingBasket className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
                 </div>
               </div>

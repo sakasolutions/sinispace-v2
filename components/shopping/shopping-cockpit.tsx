@@ -147,7 +147,7 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
             </div>
             <Link
               href="/tools/shopping-list"
-              className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-600/30 hover:from-orange-700 hover:to-rose-600 transition-all"
             >
               <Plus className="w-5 h-5" />
               Neue Liste erstellen
@@ -169,7 +169,7 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
                 {loading ? '—' : activeList ? `${openCount} offen` : 'Keine Liste'}
               </span>
             </div>
-            <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30 mb-3">
+            <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-600 to-rose-500 shadow-lg shadow-orange-600/30 mb-3">
               <ShoppingBasket className="w-8 h-8 text-white" strokeWidth={2.5} aria-hidden />
             </div>
             <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight">
@@ -264,14 +264,14 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
                       style={DASHBOARD_CARD_STYLE}
                     >
                       <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
-                        <ShoppingBasket className="w-5 h-5 text-orange-600" />
+                        <ShoppingBasket className="w-5 h-5 text-orange-600" aria-hidden />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-900 truncate">{list.name}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <div className="flex-1 h-1.5 bg-white/40 rounded-full overflow-hidden max-w-[120px]">
                             <div
-                              className="h-full bg-orange-500 rounded-full transition-all"
+                              className="h-full bg-gradient-to-r from-orange-600 to-rose-500 rounded-full transition-all"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
