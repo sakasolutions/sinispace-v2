@@ -82,64 +82,50 @@ export function GourmetCockpit({
           '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* Layer 0: Hintergrund – wie Dashboard Sunrise (Orange/Rose/Violet + Blobs + Sun) */}
+        {/* Layer 0: Bild + Overlay (Gourmet-Header) */}
         <div
-          className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] transition-all duration-1000 bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200"
+          className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
+          style={{ backgroundImage: "url('/gourmet-header.webp')" }}
           aria-hidden
         >
-          <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-orange-200/60 blur-[80px] pointer-events-none" aria-hidden />
-          <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-purple-200/60 blur-[80px] pointer-events-none" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-b from-orange-900/60 to-amber-800/50 z-0" aria-hidden />
         </div>
 
-        {/* Layer 1: Titel, Subline, Chips – wie Dashboard */}
-        <div className="dashboard-header-pt md:pt-24 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
+        {/* Layer 1: Titel, Text, Button – reduziertes Padding, weiße Schrift */}
+        <div className="pt-16 md:pt-20 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-2xl min-w-0">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-gray-900" style={{ letterSpacing: '-0.3px' }}>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
                 Gourmet Planer
               </h1>
-              <p className="text-sm sm:text-base mt-1 font-normal text-gray-500 opacity-65" style={{ letterSpacing: '0.1px' }}>
+              <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
                 Was kochen wir heute?
               </p>
-              {/* Info-Chips wie Dashboard (Gourmet-Daten) */}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/20 border border-white/20 text-gray-800">
-                  <CalendarDays className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-                  {data != null ? `${data.plannedDays}/7 Tage` : '…'}
-                </span>
-                <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/20 border border-white/20 text-gray-800">
-                  <BookHeart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-                  {data != null ? `${data.recipeCount} Rezepte` : '…'}
-                </span>
-                <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/20 border border-white/20 text-gray-800">
-                  <ShoppingBasket className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-                  {data != null ? (data.shoppingCount > 0 ? `${data.shoppingCount} offen` : 'Alles da') : '…'}
-                </span>
-              </div>
-              {/* CTA: Vorschlag generieren – Glas-Button wie Dashboard */}
+              <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+                Lass dich inspirieren.
+              </p>
               <button
                 type="button"
                 onClick={onVorschlagGenerieren}
-                className="mt-4 inline-flex items-center gap-2 backdrop-blur-md rounded-xl px-4 py-3 bg-white/25 border border-white/30 text-gray-800 font-semibold hover:bg-white/35 transition-colors"
+                className="mt-8 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
               >
-                <Sparkles className="w-5 h-5 text-orange-500" />
+                <Sparkles className="w-5 h-5" />
                 Vorschlag generieren
               </button>
             </div>
-            {/* Rechts: Info + Suche wie Dashboard-Optik */}
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 aria-label="Info"
                 onClick={() => setInfoOpen(true)}
-                className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-gray-700 bg-white/20 hover:bg-white/30 transition-colors"
+                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
               >
                 <HelpCircle className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 aria-label="Suchen"
-                className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-gray-700 bg-white/20 hover:bg-white/30 transition-colors"
+                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
               >
                 <Search className="w-4 h-4" />
               </button>
@@ -172,11 +158,9 @@ export function GourmetCockpit({
         </div>
       )}
 
-      {/* Main: Grid ragt in den Header (wie Dashboard -mt-20) */}
+      {/* Main: Grid ragt in den Header (-mt-20) */}
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
-        <section className="mb-8 md:mb-10">
-          <h2 className="text-sm font-bold text-gray-600 mb-4">Schnellzugriff</h2>
-          <div className="grid grid-cols-2 gap-4 md:gap-4">
+        <div className="grid grid-cols-2 gap-4 md:gap-4 mb-8 md:mb-10">
             {/* Karte 1: Woche planen */}
             <button
               type="button"
@@ -267,7 +251,6 @@ export function GourmetCockpit({
               </div>
             </Link>
           </div>
-        </section>
 
         {/* Zuletzt angesehen – wie Dashboard Sektion */}
         {data && data.recentRecipes.length > 0 && (
