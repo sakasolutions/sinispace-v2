@@ -12,7 +12,13 @@ import {
   BookHeart,
   Utensils,
   ShoppingBasket,
+  ChefHat,
+  Wheat,
+  Carrot,
+  UtensilsCrossed,
+  Croissant,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGourmetDashboardData, type GourmetDashboardData } from '@/actions/gourmet-dashboard-actions';
 import { PageTransition } from '@/components/ui/PageTransition';
@@ -36,16 +42,22 @@ function formatMealLabel(dateStr: string): string {
   return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'short' });
 }
 
-/** Bild für "Zuletzt angesehen" anhand Rezeptname wählen (Food-Vibes) */
-function getFoodImageForRecipe(recipeName: string): string {
+/** Kategorie-Icons für "Zuletzt angesehen" (name-/kategoriebasiert) */
+function getCategoryVisuals(recipeName: string): { icon: LucideIcon; color: string; bg: string } {
   const name = recipeName.toLowerCase();
-  if (/\b(lasagne|pasta|nudel|spaghetti|penne|fusilli|tagliatelle|ravioli|gnocchi)\b/.test(name)) {
-    return '/assets/food/pasta.webp';
+  if (/\b(lasagne|pasta|nudel|spaghetti|penne|fusilli|tagliatelle|ravioli|gnocchi|nudeln)\b/.test(name)) {
+    return { icon: Wheat, color: 'text-amber-600', bg: 'bg-amber-100' };
   }
-  if (/\b(salat|bowl|green)\b/.test(name)) {
-    return '/assets/food/salad.webp';
+  if (/\b(salat|bowl|veggie|vegetarisch|vegan|green|gemüse)\b/.test(name)) {
+    return { icon: Carrot, color: 'text-emerald-600', bg: 'bg-emerald-100' };
   }
-  return '/assets/food/generic.webp';
+  if (/\b(fleisch|steak|huhn|hack|braten|schwein|rind|deftig)\b/.test(name)) {
+    return { icon: UtensilsCrossed, color: 'text-rose-600', bg: 'bg-rose-100' };
+  }
+  if (/\b(süß|süss|dessert|kuchen|kekse|croissant|torte|muffin|cake)\b/.test(name)) {
+    return { icon: Croissant, color: 'text-pink-600', bg: 'bg-pink-100' };
+  }
+  return { icon: ChefHat, color: 'text-orange-600', bg: 'bg-orange-100' };
 }
 
 /** Gleiche Glass-Karten-Styles wie Dashboard (1:1) */
@@ -263,30 +275,31 @@ export function GourmetCockpit({
           </div>
         </section>
 
-        {/* Zuletzt angesehen – Food-Thumbnails statt Icons */}
+        {/* Zuletzt angesehen – Kategorie-Icons (Ingredient Icons) */}
         {data && data.recentRecipes.length > 0 && (
           <section className="mb-8 md:mb-10">
             <h2 className="text-sm font-bold text-gray-600 mb-4">Zuletzt angesehen</h2>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1">
-              {data.recentRecipes.map((r) => (
-                <Link
-                  key={r.id}
-                  href={`/tools/recipe?open=${encodeURIComponent(r.id)}`}
-                  className="flex-shrink-0 w-[200px] rounded-xl overflow-hidden"
-                >
-                  <div className="rounded-xl p-3 hover:opacity-95 transition-opacity flex items-center gap-3" style={DASHBOARD_CARD_STYLE}>
-                    <img
-                      src={getFoodImageForRecipe(r.recipeName)}
-                      alt=""
-                      className="w-16 h-16 rounded-xl object-cover shrink-0 bg-gray-200"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-800 truncate">{r.recipeName}</p>
-                      <p className="text-xs text-gray-500">— kcal</p>
+              {data.recentRecipes.map((r) => {
+                const { icon: Icon, color, bg } = getCategoryVisuals(r.recipeName);
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/tools/recipe?open=${encodeURIComponent(r.id)}`}
+                    className="flex-shrink-0 w-[200px] rounded-xl overflow-hidden"
+                  >
+                    <div className="rounded-xl p-3 hover:opacity-95 transition-opacity flex items-center gap-3" style={DASHBOARD_CARD_STYLE}>
+                      <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center shrink-0', bg)}>
+                        <Icon className={cn('w-7 h-7 shrink-0', color)} strokeWidth={2} aria-hidden />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-800 truncate">{r.recipeName}</p>
+                        <p className="text-xs text-gray-500">— kcal</p>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </section>
         )}
