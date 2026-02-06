@@ -78,7 +78,12 @@ export function GourmetCockpit({
   const hasMealToday = data?.nextMeal && data.nextMeal.date === today;
 
   return (
-    <div className="w-full" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+    <div className="relative w-full min-h-screen overflow-hidden" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+      {/* Orange Atmosphere – Ambient-Blobs nur für diese Seite */}
+      <div className="absolute top-0 left-0 w-[80vw] max-w-[500px] h-[400px] rounded-full bg-orange-400/30 blur-3xl -translate-x-1/4 -translate-y-1/4 pointer-events-none z-0" aria-hidden />
+      <div className="absolute bottom-0 right-0 w-[70vw] max-w-[450px] h-[350px] rounded-full bg-amber-300/30 blur-3xl translate-x-1/4 translate-y-1/4 pointer-events-none z-0" aria-hidden />
+
+      <div className="relative z-10">
       {/* Top Bar: Titel + Search */}
       <div className="flex items-center justify-between pt-16 px-6 mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
@@ -87,18 +92,18 @@ export function GourmetCockpit({
         <button
           type="button"
           aria-label="Suchen"
-          className="w-10 h-10 rounded-full bg-white/20 dark:bg-white/10 backdrop-blur flex items-center justify-center border border-white/30 dark:border-white/20 text-gray-700 dark:text-white/90 hover:bg-white/30 dark:hover:bg-white/20 transition-colors"
+          className="w-10 h-10 rounded-full bg-orange-50/50 backdrop-blur flex items-center justify-center border border-orange-200/50 text-orange-500 hover:bg-orange-50/70 transition-colors"
         >
           <Search className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Smart Hero Card */}
+      {/* Smart Hero Card – Premium Glass */}
       <div className="w-full px-4 sm:px-6 mb-6">
-        <div className="w-full p-6 rounded-[32px] bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-sm">
+        <div className="w-full p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-white/80 dark:border-white/30 shadow-md">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
             </div>
           ) : hasMealToday && data?.nextMeal ? (
             /* Szenario B: Essen geplant – Bild links, Name rechts, Zeit-Badge */
@@ -107,7 +112,7 @@ export function GourmetCockpit({
                 <ChefHat className="w-10 h-10 sm:w-12 sm:h-12 text-orange-500 dark:text-orange-400" />
               </div>
               <div className="min-w-0 flex-1">
-                <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-medium bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 mb-2">
+                <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 mb-2">
                   {formatMealLabel(data.nextMeal.date)}
                 </span>
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">
@@ -119,7 +124,7 @@ export function GourmetCockpit({
                     onClick={() =>
                       router.push(`/tools/recipe?open=${encodeURIComponent(data.nextMeal!.resultId!)}`)
                     }
-                    className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white text-sm font-semibold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/30 transition-all"
+                    className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all"
                   >
                     <ChefHat className="w-4 h-4" />
                     Jetzt kochen
@@ -141,7 +146,7 @@ export function GourmetCockpit({
               <button
                 type="button"
                 onClick={onVorschlagGenerieren}
-                className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white font-semibold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/30 transition-all"
+                className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all"
               >
                 <Sparkles className="w-5 h-5" />
                 Vorschlag generieren
@@ -157,9 +162,9 @@ export function GourmetCockpit({
           <button
             type="button"
             onClick={onWochePlanen}
-            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/10 relative overflow-hidden text-left hover:bg-white/50 dark:hover:bg-white/15 transition-colors"
+            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-white/80 dark:border-white/30 shadow-md relative overflow-hidden text-left hover:bg-white/70 dark:hover:bg-white/25 transition-colors"
           >
-            <GlossyIcon icon={CalendarDays} gradient="bg-gradient-to-br from-violet-500 to-fuchsia-500" />
+            <GlossyIcon icon={CalendarDays} gradient="bg-gradient-to-br from-orange-500 to-amber-500" />
             <span className="font-semibold text-gray-900 dark:text-white">Woche planen</span>
             <span className="text-sm text-gray-600 dark:text-gray-400">Dein Essensplan</span>
             {data != null && (
@@ -172,7 +177,7 @@ export function GourmetCockpit({
           <button
             type="button"
             onClick={onMeineGerichte}
-            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/10 relative overflow-hidden text-left hover:bg-white/50 dark:hover:bg-white/15 transition-colors"
+            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-white/80 dark:border-white/30 shadow-md relative overflow-hidden text-left hover:bg-white/70 dark:hover:bg-white/25 transition-colors"
           >
             <GlossyIcon icon={BookHeart} gradient="bg-gradient-to-br from-rose-500 to-pink-500" />
             <span className="font-semibold text-gray-900 dark:text-white">Sammlung</span>
@@ -184,8 +189,8 @@ export function GourmetCockpit({
             )}
           </button>
 
-          {/* Karte 3: Heute – Status (geplant / nichts geplant), leichter Orange-Tint */}
-          <div className="flex flex-col items-start gap-3 p-6 rounded-[32px] bg-orange-50/50 dark:bg-orange-900/20 backdrop-blur-md border border-orange-100/50 dark:border-orange-800/30 relative overflow-hidden text-left">
+          {/* Karte 3: Heute – Status (geplant / nichts geplant), Premium Glass + Orange-Tint */}
+          <div className="flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-orange-200/60 dark:border-orange-700/40 shadow-md relative overflow-hidden text-left">
             <GlossyIcon icon={Utensils} gradient="bg-gradient-to-br from-amber-500 to-orange-500" />
             <span className="font-semibold text-gray-900 dark:text-white">Heute</span>
             {loading ? (
@@ -204,10 +209,10 @@ export function GourmetCockpit({
             )}
           </div>
 
-          {/* Karte 4: Einkauf – Status (Zutaten fehlen / Alles da), verlinkt zur Einkaufsliste, leichter Rose-Tint */}
+          {/* Karte 4: Einkauf – Status, verlinkt zur Einkaufsliste, Premium Glass + Rose-Tint */}
           <Link
             href="/tools/shopping-list"
-            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-rose-50/50 dark:bg-rose-900/20 backdrop-blur-md border border-rose-100/50 dark:border-rose-800/30 relative overflow-hidden text-left hover:bg-rose-50/70 dark:hover:bg-rose-900/30 transition-colors"
+            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-rose-200/60 dark:border-rose-700/40 shadow-md relative overflow-hidden text-left hover:bg-white/70 dark:hover:bg-white/25 transition-colors"
           >
             <GlossyIcon icon={ShoppingBasket} gradient="bg-gradient-to-br from-rose-500 to-pink-500" />
             <span className="font-semibold text-gray-900 dark:text-white">Einkaufsliste</span>
@@ -238,13 +243,13 @@ export function GourmetCockpit({
                 href={`/tools/recipe?open=${encodeURIComponent(r.id)}`}
                 className="flex-shrink-0 w-[160px] rounded-xl overflow-hidden group"
               >
-                <div className="bg-white/30 dark:bg-white/10 backdrop-blur-sm rounded-xl p-3 mb-2 border border-white/40 dark:border-white/10">
+                <div className="bg-white/60 dark:bg-white/20 backdrop-blur-xl rounded-[32px] p-3 mb-2 border border-white/80 dark:border-white/30 shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-rose-100 dark:from-orange-900/40 dark:to-rose-900/40 flex items-center justify-center shrink-0 shadow-inner">
                       <ChefHat className="w-6 h-6 text-orange-500 dark:text-orange-400" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                         {r.recipeName}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">— kcal</p>
@@ -258,6 +263,7 @@ export function GourmetCockpit({
       )}
 
       <div className="h-12" />
+      </div>
     </div>
   );
 }
