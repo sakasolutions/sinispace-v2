@@ -336,9 +336,9 @@ export default function RecipePage() {
 
   return (
     <>
-      {/* Cockpit (Landing) – ohne Wrapper, wie Main-Dashboard */}
+      {/* Cockpit (Landing) – 1:1 wie Main-Dashboard (min-h-screen, overflow für Desktop-Header) */}
       {showCockpit ? (
-        <div className="w-full h-full">
+        <div className="min-h-screen w-full relative overflow-x-hidden">
           <GourmetCockpit
             onVorschlagGenerieren={() => {
               setShowCockpit(false);
@@ -383,10 +383,10 @@ export default function RecipePage() {
               '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
             )}
           >
-            {/* Layer 0: identisch Gourmet-Cockpit – gleicher Hintergrund + Overlay */}
+            {/* Layer 0: cooking-action Bild + Overlay (nur Rezept-Generator) */}
             <div
               className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
-              style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
+              style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-orange-950/80 via-orange-900/70 to-amber-900/60 z-0" aria-hidden />
             </div>
