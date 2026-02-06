@@ -74,24 +74,24 @@ export function GourmetCockpit({
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
-      {/* Header: Höherer Bereich (420/460px), Button hat Platz; ohne .dashboard-header-pt */}
+      {/* Header: kompakt (320/380px), Content weit oben (pt-14 / md:pt-16) */}
       <header
         className={cn(
-          'relative z-[1] min-h-[420px] md:min-h-[460px]',
+          'relative z-[1] min-h-[320px] md:min-h-[380px]',
           'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* Layer 0: Hintergrund – höher für Button-Luft (420/460px) */}
+        {/* Layer 0: Hintergrund – kompakte Höhe */}
         <div
-          className="absolute top-0 left-0 w-full h-[420px] md:h-[460px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
+          className="absolute top-0 left-0 w-full h-[320px] md:h-[380px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
           style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-orange-900/50 to-amber-800/40 z-0" aria-hidden />
         </div>
 
-        {/* Layer 1: Mobile First pt (Safe Area + 2rem), Desktop md:pt-24; kein .dashboard-header-pt */}
-        <div className="pt-[max(5rem,calc(env(safe-area-inset-top)+2rem))] md:pt-24 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-8">
+        {/* Layer 1: Content-Lift – wenig pt, Text & Button weit oben */}
+        <div className="pt-[max(3.5rem,calc(env(safe-area-inset-top)+1rem))] md:pt-16 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-2xl min-w-0">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
@@ -106,7 +106,7 @@ export function GourmetCockpit({
               <button
                 type="button"
                 onClick={onVorschlagGenerieren}
-                className="mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
               >
                 <Sparkles className="w-5 h-5" />
                 Vorschlag generieren
@@ -157,8 +157,8 @@ export function GourmetCockpit({
         </div>
       )}
 
-      {/* Main: Grid -mt-20 schneidet unter dem Button; Header höher → Button frei sichtbar */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
+      {/* Main: Grid -mt-12, Header kompakt → Karten schneiden unter Button, ohne abzuschneiden */}
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-12">
         <section className="mb-8 md:mb-10">
           <div className="grid grid-cols-2 gap-4 md:gap-4">
             {/* Karte 1: Woche planen */}
