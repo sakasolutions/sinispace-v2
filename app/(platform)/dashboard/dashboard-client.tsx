@@ -813,18 +813,18 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Header: eingefrorene Geometrie – h-[340px]; mobil: kantenbündig, kein Überhang (app-tauglich) */}
+      {/* Header: Zwei Ebenen – Layer 0 Hintergrund+Sonne, Layer 1 Text (kein Padding-Domino) */}
       <header
         className={cn(
-          'relative z-[1] h-[340px]',
+          'relative z-[1] min-h-[380px]',
           'w-full max-w-[100vw] -mx-3 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
+          '-mt-[max(0,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* 1. Background: Höhe IMMER außerhalb der Bedingung – nur Gradient bedingt */}
+        {/* Layer 0: Hintergrund – klebt oben, KEIN Margin; Sonne/Mond Deko INNERHALB, wird an Rundung abgeschnitten */}
         <div
           className={cn(
-            'absolute top-0 left-0 w-full rounded-b-[50px] z-0 overflow-hidden transition-all duration-1000 h-[340px]',
+            'absolute top-0 left-0 w-full h-[380px] z-0 overflow-hidden rounded-b-[40px] transition-all duration-1000',
             timeOfDay === 'sunrise'
               ? 'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200'
               : 'bg-gradient-to-b from-slate-900 via-[#1e1b4b] to-slate-900 backdrop-blur-xl border-b border-white/5'
@@ -835,87 +835,78 @@ export default function DashboardClient() {
             <>
               <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-orange-200/60 blur-[100px] pointer-events-none transition-opacity duration-1000" aria-hidden />
               <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-purple-200/60 blur-[100px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+              {/* Sonne als subtile Deko in der Ecke – overflow-hidden schneidet an Rundung ab */}
+              <div className="absolute -top-12 -right-12 text-orange-300/20 pointer-events-none" aria-hidden>
+                <Sun className="w-48 h-48 md:w-64 md:h-64" />
+              </div>
             </>
           ) : (
             <>
               <div className="absolute top-0 left-0 w-[80%] h-[300px] rounded-full bg-blue-500/20 blur-[100px] pointer-events-none transition-opacity duration-1000" aria-hidden />
               <div className="absolute bottom-0 right-0 w-[60%] h-[300px] rounded-full bg-violet-500/20 blur-[100px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+              <div className="absolute -top-12 -right-12 text-white/10 pointer-events-none" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,200,0.3))' }} aria-hidden>
+                <Moon className="w-48 h-48 md:w-64 md:h-64" />
+              </div>
             </>
           )}
         </div>
-        {/* 2. Content – feste Höhe 400px, Grid-Overlap durch festen -mt-24 */}
-        <div className="relative z-10 h-[340px] pt-[max(5rem,calc(4rem+env(safe-area-inset-top)))] px-4 sm:px-6 md:px-8 flex flex-col">
-          <div className="flex items-start justify-between">
-            <div className="min-w-0 flex-1">
-              <h1
-                className={cn(
-                  'text-[1.625rem] sm:text-[1.9375rem] md:text-[2.125rem] font-medium tracking-tight mt-0',
-                  timeOfDay === 'sunrise' ? 'text-gray-900' : 'text-white'
-                )}
-                style={{ letterSpacing: '-0.3px' }}
-              >
-                {greetingText}
-              </h1>
-              <p
-                className={cn(
-                  'text-sm sm:text-base mt-1 font-normal',
-                  timeOfDay === 'sunrise' ? 'text-gray-500 opacity-65' : 'text-white/80'
-                )}
-                style={{ letterSpacing: '0.1px' }}
-              >
-                {sunriseGreeting.subline}
-              </p>
-              {/* Info-Chips – fester Abstand für statisches Layout */}
-              <div className="mt-8 flex flex-wrap gap-2">
-                <span
-                  className={cn(
-                    'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
-                    timeOfDay === 'sunrise'
-                      ? 'bg-white/20 border border-white/20 text-gray-800'
-                      : 'bg-white/10 border border-white/20 text-white/80'
-                  )}
-                >
-                  <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-                  2 Termine
-                </span>
-                <span
-                  className={cn(
-                    'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
-                    timeOfDay === 'sunrise'
-                      ? 'bg-white/20 border border-white/20 text-gray-800'
-                      : 'bg-white/10 border border-white/20 text-white/80'
-                  )}
-                >
-                  <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-                  4 Offen
-                </span>
-                <span
-                  className={cn(
-                    'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
-                    timeOfDay === 'sunrise'
-                      ? 'bg-white/20 border border-white/20 text-gray-800'
-                      : 'bg-white/10 border border-white/20 text-white/80'
-                  )}
-                >
-                  <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-                  Alles erledigt
-                </span>
-              </div>
-            </div>
-            {/* Sonne/Mond: kleiner und vollständig im Bild (app-tauglich, kein Abschnitt) */}
-            <div className="absolute right-2 top-0 sm:right-4 sm:top-2 pointer-events-none shrink-0" aria-hidden>
-              {timeOfDay === 'sunrise' ? (
-                <div className="text-orange-500">
-                  <Sun className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" />
-                </div>
-              ) : (
-                <div
-                  className="text-yellow-100"
-                  style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,200,0.5))' }}
-                >
-                  <Moon className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" />
-                </div>
+
+        {/* Layer 1: Inhalt – sauberer Abstand (pt-16 / md:pt-24), kein riesiges Padding */}
+        <div className="relative z-10 w-full pt-16 md:pt-24 px-4 sm:px-6 md:px-8 pb-6">
+          <div className="max-w-2xl">
+            <h1
+              className={cn(
+                'text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0',
+                timeOfDay === 'sunrise' ? 'text-gray-900' : 'text-white'
               )}
+              style={{ letterSpacing: '-0.3px' }}
+            >
+              {greetingText}
+            </h1>
+            <p
+              className={cn(
+                'text-sm sm:text-base mt-1 font-normal',
+                timeOfDay === 'sunrise' ? 'text-gray-500 opacity-65' : 'text-white/80'
+              )}
+              style={{ letterSpacing: '0.1px' }}
+            >
+              {sunriseGreeting.subline}
+            </p>
+            {/* Info-Chips */}
+            <div className="mt-6 flex flex-wrap gap-2">
+              <span
+                className={cn(
+                  'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
+                  timeOfDay === 'sunrise'
+                    ? 'bg-white/20 border border-white/20 text-gray-800'
+                    : 'bg-white/10 border border-white/20 text-white/80'
+                )}
+              >
+                <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                2 Termine
+              </span>
+              <span
+                className={cn(
+                  'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
+                  timeOfDay === 'sunrise'
+                    ? 'bg-white/20 border border-white/20 text-gray-800'
+                    : 'bg-white/10 border border-white/20 text-white/80'
+                )}
+              >
+                <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                4 Offen
+              </span>
+              <span
+                className={cn(
+                  'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
+                  timeOfDay === 'sunrise'
+                    ? 'bg-white/20 border border-white/20 text-gray-800'
+                    : 'bg-white/10 border border-white/20 text-white/80'
+                )}
+              >
+                <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                Alles erledigt
+              </span>
             </div>
           </div>
         </div>
