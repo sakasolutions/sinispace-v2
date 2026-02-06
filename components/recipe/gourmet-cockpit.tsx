@@ -78,14 +78,17 @@ export function GourmetCockpit({
   const hasMealToday = data?.nextMeal && data.nextMeal.date === today;
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-      {/* Orange Atmosphere – Ambient-Blobs nur für diese Seite */}
-      <div className="absolute top-0 left-0 w-[80vw] max-w-[500px] h-[400px] rounded-full bg-orange-400/30 blur-3xl -translate-x-1/4 -translate-y-1/4 pointer-events-none z-0" aria-hidden />
-      <div className="absolute bottom-0 right-0 w-[70vw] max-w-[450px] h-[350px] rounded-full bg-amber-300/30 blur-3xl translate-x-1/4 translate-y-1/4 pointer-events-none z-0" aria-hidden />
+    <div className="relative w-full" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+      {/* Infinite Canvas: Fixed Fullscreen-Hintergrund, Blobs immer sichtbar, kein Abschneiden */}
+      <div className="fixed inset-0 z-0 w-full h-full overflow-hidden pointer-events-none bg-orange-50/30" aria-hidden>
+        <div className="absolute top-0 left-0 w-[80vw] max-w-[500px] h-[400px] rounded-full bg-orange-400/30 blur-3xl -translate-x-1/4 -translate-y-1/4" aria-hidden />
+        <div className="absolute bottom-0 right-0 w-[70vw] max-w-[450px] h-[350px] rounded-full bg-amber-300/30 blur-3xl translate-x-1/4 translate-y-1/4" aria-hidden />
+      </div>
 
-      <div className="relative z-10">
+      {/* Content über dem Hintergrund: Notch-Fix + Footer-Gap */}
+      <div className="relative z-10 min-h-screen pt-[80px] md:pt-24 pb-32">
       {/* Top Bar: Titel + Search */}
-      <div className="flex items-center justify-between pt-16 px-6 mb-6">
+      <div className="flex items-center justify-between px-6 mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
           Gourmet Planer
         </h1>
