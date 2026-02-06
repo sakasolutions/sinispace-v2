@@ -68,9 +68,9 @@ export function GourmetCockpit({
   const hasMealToday = data?.nextMeal && data.nextMeal.date === today;
 
   return (
-    <div className="relative w-full min-h-screen" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-      {/* Hintergrund an Content gebunden (nicht fixed): geht bis ganz unten mit, kein Verziehen beim Scrollen */}
-      <div className="absolute inset-0 z-0 min-h-full overflow-hidden pointer-events-none bg-orange-50/30" aria-hidden>
+    <div className="relative w-full min-h-screen min-h-[100dvh] bg-orange-50/30" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+      {/* Hintergrund: Creme + Blobs, immer bis ganz unten (min-h-full), auf allen Geräten */}
+      <div className="absolute inset-0 top-0 left-0 right-0 bottom-0 z-0 min-h-full overflow-hidden pointer-events-none bg-orange-50/30" aria-hidden>
         <div className="absolute top-0 left-0 w-[80vw] max-w-[500px] h-[400px] rounded-full bg-orange-400/30 blur-3xl -translate-x-1/4 -translate-y-1/4" aria-hidden />
         <div className="absolute bottom-0 right-0 w-[70vw] max-w-[450px] h-[350px] rounded-full bg-amber-300/30 blur-3xl translate-x-1/4 translate-y-1/4" aria-hidden />
       </div>
@@ -125,17 +125,17 @@ export function GourmetCockpit({
         </div>
       )}
 
-      {/* Smart Hero Card – Tasty: Textur-Bild + Orange-Overlay */}
+      {/* Smart Hero Card – Tasty: Textur-Bild + Orange-Overlay; Desktop höher, Bild kommt zur Geltung */}
       <div className="w-full px-4 sm:px-6 mb-6">
         <div
-          className="relative w-full p-6 rounded-[32px] overflow-hidden border border-white/80 dark:border-white/30 shadow-sm shadow-orange-500/5"
+          className="relative w-full min-h-[200px] md:min-h-[380px] p-6 rounded-[32px] overflow-hidden border border-white/80 dark:border-white/30 shadow-sm shadow-orange-500/5 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80)',
+            backgroundImage: 'url(https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1200&q=85)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
         >
-          <div className="absolute inset-0 bg-orange-500/80 dark:bg-orange-600/85" aria-hidden />
+          <div className="absolute inset-0 bg-orange-500/75 dark:bg-orange-600/80" aria-hidden />
           <div className="relative z-10">
             {loading ? (
               <div className="flex items-center justify-center py-8">
@@ -193,13 +193,13 @@ export function GourmetCockpit({
         </div>
       </div>
 
-      {/* 2x2 Grid – Mobile-kompakt, Desktop luftig; App-Icons mit Emojis */}
+      {/* 2x2 Grid – Alle 4 Karten gleich groß (Höhe wie Heute/Einkauf), items-stretch + h-full */}
       <div className="px-4 sm:px-6 mb-6">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 gap-3 md:gap-4">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 grid-rows-2 gap-3 md:gap-4 items-stretch h-[240px] md:h-[260px]">
           <button
             type="button"
             onClick={onWochePlanen}
-            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-pointer relative overflow-hidden text-left"
+            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-pointer relative overflow-hidden text-left h-full min-h-0"
           >
             <AppIcon emoji="📅" />
             <span className="font-semibold text-sm md:text-lg text-gray-900 dark:text-white">Woche planen</span>
@@ -214,7 +214,7 @@ export function GourmetCockpit({
           <button
             type="button"
             onClick={onMeineGerichte}
-            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-pointer relative overflow-hidden text-left"
+            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-pointer relative overflow-hidden text-left h-full min-h-0"
           >
             <AppIcon emoji="📖" />
             <span className="font-semibold text-sm md:text-lg text-gray-900 dark:text-white">Sammlung</span>
@@ -227,7 +227,7 @@ export function GourmetCockpit({
           </button>
 
           {/* Karte 3: Heute */}
-          <div className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-default relative overflow-hidden text-left">
+          <div className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-default relative overflow-hidden text-left h-full min-h-0">
             <AppIcon emoji="🍝" />
             <span className="font-semibold text-sm md:text-lg text-gray-900 dark:text-white">Heute</span>
             {loading ? (
@@ -249,7 +249,7 @@ export function GourmetCockpit({
           {/* Karte 4: Einkauf */}
           <Link
             href="/tools/shopping-list"
-            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-pointer relative overflow-hidden text-left"
+            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-pointer relative overflow-hidden text-left h-full min-h-0"
           >
             <AppIcon emoji="🛒" />
             <span className="font-semibold text-sm md:text-lg text-gray-900 dark:text-white">Einkaufsliste</span>
