@@ -390,7 +390,7 @@ export default function RecipePage() {
               />
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500/80 to-amber-500/70" aria-hidden />
             </div>
-            <div className="dashboard-header-pt md:pt-16 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6 flex items-center justify-between">
+            <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link
                   href="/tools/recipe"

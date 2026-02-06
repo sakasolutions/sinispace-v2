@@ -112,8 +112,8 @@ export function GourmetCockpit({
           <div className="absolute inset-0 bg-gradient-to-b from-orange-950/80 via-orange-900/70 to-amber-900/60 z-0" aria-hidden />
         </div>
 
-        {/* Layer 1: Content – gleicher Schnittpunkt wie Dashboard (dashboard-header-pt md:pt-16), pb-12 damit Button im Header bleibt */}
-        <div className="dashboard-header-pt md:pt-16 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
+        {/* Layer 1: Content höher (dashboard-header-pt md:pt-12), pb-12 damit Button im Header sichtbar bleibt */}
+        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-2xl min-w-0">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
@@ -128,7 +128,7 @@ export function GourmetCockpit({
               <button
                 type="button"
                 onClick={onVorschlagGenerieren}
-                className="mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
               >
                 <Sparkles className="w-5 h-5" />
                 Vorschlag generieren
