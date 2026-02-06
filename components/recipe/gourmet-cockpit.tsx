@@ -82,13 +82,12 @@ export function GourmetCockpit({
           '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* Layer 0: Bild + Overlay (Gourmet-Header) */}
+        {/* Layer 0: Bild (public/gourmet-header.webp) + Overlay, damit Bild sichtbar bleibt */}
         <div
           className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
-          style={{ backgroundImage: "url('/gourmet-header.webp')" }}
-          aria-hidden
+          style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-orange-900/60 to-amber-800/50 z-0" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-b from-orange-900/50 to-amber-800/40 z-0" aria-hidden />
         </div>
 
         {/* Layer 1: Titel, Text, Button – reduziertes Padding, weiße Schrift */}
