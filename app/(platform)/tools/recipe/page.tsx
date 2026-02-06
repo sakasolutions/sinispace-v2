@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
+import { cn } from '@/lib/utils';
 import { toolInfoMap } from '@/lib/tool-info';
 import { getWorkspaceResults, deleteResult, cleanupOldResults, getResultById } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
@@ -358,31 +359,38 @@ export default function RecipePage() {
             }}
           />
         </div>
-      ) : (
+      ) : activeTab === 'week-planner' ? (
+        /* Planer-Modus: nur WeekPlanner */
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-      {activeTab === 'week-planner' ? (
-        /* Planer-Modus: nur WeekPlanner, keine Tabs / kein doppelter Zurück-Text */
-        <WeekPlanner
-          myRecipes={myRecipes}
-          workspaceId={undefined}
-          onBackToCockpit={() => setShowCockpit(true)}
-          onRequestNewRecipe={() => {
-            setShowCockpit(false);
-            setActiveTab('create');
-          }}
-        />
+          <WeekPlanner
+            myRecipes={myRecipes}
+            workspaceId={undefined}
+            onBackToCockpit={() => setShowCockpit(true)}
+            onRequestNewRecipe={() => {
+              setShowCockpit(false);
+              setActiveTab('create');
+            }}
+          />
+        </div>
       ) : (
+        /* Create / Meine Rezepte: Golden Standard – Header 1:1 wie Dashboard, kein max-w um Header */
         <div className="min-h-screen w-full bg-gradient-to-b from-rose-50 via-white to-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-          {/* Compact Utility Header – volle Breite, kein einschränkender Container */}
-          <div className="relative h-[180px] md:h-[220px] w-full">
-            <div className="absolute top-0 inset-x-0 h-[180px] md:h-[220px] rounded-b-[32px] overflow-hidden z-0" aria-hidden>
+          {/* Header: exakt wie Main-Dashboard (h-[280px], rounded-b-[40px], gleicher Schnittpunkt) */}
+          <header
+            className={cn(
+              'relative z-[1] min-h-[280px]',
+              'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
+              '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
+            )}
+          >
+            <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px]" aria-hidden>
               <div
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: "url('/assets/images/cooking-action.webp'), url('/gourmet-header.webp')" }}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500/80 to-amber-500/70" aria-hidden />
             </div>
-            <div className="relative z-10 pt-6 px-6 md:px-8 flex items-center justify-between">
+            <div className="dashboard-header-pt md:pt-16 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link
                   href="/tools/recipe"
@@ -391,13 +399,16 @@ export default function RecipePage() {
                   <ArrowLeft className="w-4 h-4" />
                   Zurück
                 </Link>
-                <h1 className="text-2xl font-bold text-white tracking-tight">Rezept Generator</h1>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white" style={{ letterSpacing: '-0.3px' }}>
+                  Rezept Generator
+                </h1>
               </div>
               <div />
             </div>
-          </div>
+          </header>
 
-          <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+          {/* Content: gleicher Overlap wie Dashboard (-mt-20), max-w-7xl nur hier */}
+          <div className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-8 -mt-20">
           {/* Tab-System – Segmented Control (Gourmet Orange) */}
           <div className="mb-4 inline-flex p-1 rounded-full bg-gray-100/50 overflow-x-auto scrollbar-hide">
             {(['create', 'my-recipes', 'week-planner'] as const).map((tab) => {
@@ -422,8 +433,8 @@ export default function RecipePage() {
           {/* Tab Content */}
       {activeTab === 'create' ? (
         <>
-      {/* Generator-Container: Überlappung – schneidet die untere Header-Rundung */}
-      <div className="relative z-20 -mt-16 md:-mt-24 bg-white border border-gray-200 shadow-xl rounded-[32px] p-6 sm:p-8">
+      {/* Generator-Container: weiße Karte (Overlap kommt vom Content-Wrapper -mt-20) */}
+      <div className="relative z-20 bg-white border border-gray-200 shadow-xl rounded-[32px] p-6 sm:p-8">
           <div className="mb-6 p-4 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-900">
             💡 <strong>Tipp:</strong> Gib Zutaten ein → Rezept aus Resten. Oder Feld leer lassen → <strong>Inspiriere mich</strong> für eine Überraschung.
           </div>
@@ -835,9 +846,7 @@ export default function RecipePage() {
         )
             ) : null}
 
-        </div>
-        </div>
-      )}
+          </div>
         </div>
       )}
 

@@ -96,24 +96,24 @@ export function GourmetCockpit({
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
-      {/* Header: kompakt (320/380px), Content weit oben (pt-14 / md:pt-16) */}
+      {/* Header: 1:1 Golden Standard – exakt wie Main-Dashboard (h-[280px], rounded-b-[40px]) */}
       <header
         className={cn(
-          'relative z-[1] min-h-[320px] md:min-h-[380px]',
+          'relative z-[1] min-h-[280px]',
           'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* Layer 0: Hintergrund – kompakte Höhe */}
+        {/* Layer 0: Hintergrund – exakt Dashboard-Höhe */}
         <div
-          className="absolute top-0 left-0 w-full h-[320px] md:h-[380px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
+          className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
           style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-orange-950/80 via-orange-900/70 to-amber-900/60 z-0" aria-hidden />
         </div>
 
-        {/* Layer 1: Content-Lift – wenig pt, Text & Button weit oben */}
-        <div className="pt-[max(3.5rem,calc(env(safe-area-inset-top)+1rem))] md:pt-16 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-8">
+        {/* Layer 1: Content – gleicher Schnittpunkt wie Dashboard (dashboard-header-pt md:pt-16), pb-12 damit Button im Header bleibt */}
+        <div className="dashboard-header-pt md:pt-16 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-2xl min-w-0">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
@@ -179,8 +179,8 @@ export function GourmetCockpit({
         </div>
       )}
 
-      {/* Main: Grid -mt-12, Header kompakt → Karten schneiden unter Button, ohne abzuschneiden */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-12">
+      {/* Main: Grid – gleicher Overlap wie Dashboard (-mt-20) */}
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         <section className="mb-8 md:mb-10">
           <div className="grid grid-cols-2 gap-4 md:gap-4">
             {/* Karte 1: Woche planen – Glass */}
