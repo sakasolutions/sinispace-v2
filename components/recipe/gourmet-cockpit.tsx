@@ -6,12 +6,13 @@ import { useRouter } from 'next/navigation';
 import {
   CalendarDays,
   BookHeart,
-  Refrigerator,
-  Zap,
+  Utensils,
+  ShoppingBasket,
   ChefHat,
   Loader2,
   Sparkles,
   Search,
+  Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGourmetDashboardData, type GourmetDashboardData } from '@/actions/gourmet-dashboard-actions';
@@ -57,8 +58,6 @@ type Props = {
   onWochePlanen: () => void;
   onMeineGerichte: () => void;
   onAICreator: () => void;
-  onResteZauber?: () => void;
-  onTurboKueche?: () => void;
 };
 
 export function GourmetCockpit({
@@ -66,8 +65,6 @@ export function GourmetCockpit({
   onWochePlanen,
   onMeineGerichte,
   onAICreator,
-  onResteZauber,
-  onTurboKueche,
 }: Props) {
   const router = useRouter();
   const [data, setData] = useState<GourmetDashboardData | null>(null);
@@ -187,25 +184,46 @@ export function GourmetCockpit({
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={onResteZauber ?? onVorschlagGenerieren}
-            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/10 relative overflow-hidden text-left hover:bg-white/50 dark:hover:bg-white/15 transition-colors"
-          >
-            <GlossyIcon icon={Refrigerator} gradient="bg-gradient-to-br from-blue-500 to-cyan-500" />
-            <span className="font-semibold text-gray-900 dark:text-white">Reste-Zauber</span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">Was ist im Kühlschrank?</span>
-          </button>
+          {/* Karte 3: Heute – Status (geplant / nichts geplant), leichter Orange-Tint */}
+          <div className="flex flex-col items-start gap-3 p-6 rounded-[32px] bg-orange-50/50 dark:bg-orange-900/20 backdrop-blur-md border border-orange-100/50 dark:border-orange-800/30 relative overflow-hidden text-left">
+            <GlossyIcon icon={Utensils} gradient="bg-gradient-to-br from-amber-500 to-orange-500" />
+            <span className="font-semibold text-gray-900 dark:text-white">Heute</span>
+            {loading ? (
+              <span className="text-sm text-gray-500 dark:text-gray-500">…</span>
+            ) : hasMealToday && data?.nextMeal ? (
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {data.nextMeal.title}
+                </p>
+                <span className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-300 font-medium">
+                  {formatMealLabel(data.nextMeal.date)}
+                </span>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400">Noch nichts geplant</p>
+            )}
+          </div>
 
-          <button
-            type="button"
-            onClick={onTurboKueche ?? onVorschlagGenerieren}
-            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/10 relative overflow-hidden text-left hover:bg-white/50 dark:hover:bg-white/15 transition-colors"
+          {/* Karte 4: Einkauf – Status (Zutaten fehlen / Alles da), verlinkt zur Einkaufsliste, leichter Rose-Tint */}
+          <Link
+            href="/tools/shopping-list"
+            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-rose-50/50 dark:bg-rose-900/20 backdrop-blur-md border border-rose-100/50 dark:border-rose-800/30 relative overflow-hidden text-left hover:bg-rose-50/70 dark:hover:bg-rose-900/30 transition-colors"
           >
-            <GlossyIcon icon={Zap} gradient="bg-gradient-to-br from-amber-500 to-orange-500" />
-            <span className="font-semibold text-gray-900 dark:text-white">Turbo-Küche</span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">Unter 20 Minuten</span>
-          </button>
+            <GlossyIcon icon={ShoppingBasket} gradient="bg-gradient-to-br from-rose-500 to-pink-500" />
+            <span className="font-semibold text-gray-900 dark:text-white">Einkaufsliste</span>
+            {data == null ? (
+              <span className="text-sm text-gray-500 dark:text-gray-500">…</span>
+            ) : data.shoppingCount > 0 ? (
+              <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                {data.shoppingCount} {data.shoppingCount === 1 ? 'Zutat fehlt' : 'Zutaten fehlen'}
+              </p>
+            ) : (
+              <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <Check className="w-4 h-4 shrink-0" />
+                Alles da
+              </p>
+            )}
+          </Link>
         </div>
       </div>
 

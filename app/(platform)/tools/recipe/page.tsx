@@ -10,7 +10,6 @@ import { useFormStatus } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { toolInfoMap } from '@/lib/tool-info';
-import { BackButton } from '@/components/ui/back-button';
 import { getWorkspaceResults, deleteResult, cleanupOldResults, getResultById } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
@@ -334,14 +333,8 @@ export default function RecipePage() {
     },
   ];
 
-  const showPageBackButton = showCockpit || activeTab !== 'week-planner';
-
   return (
     <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-      {showPageBackButton && (
-        <BackButton className="text-gray-600 hover:text-gray-900 mb-4" />
-      )}
-
       {/* Cockpit (Landing) – Default-Ansicht */}
       {showCockpit ? (
         <>
@@ -362,16 +355,6 @@ export default function RecipePage() {
             onAICreator={() => {
               setShowCockpit(false);
               setActiveTab('create');
-            }}
-            onResteZauber={() => {
-              setShowCockpit(false);
-              setActiveTab('create');
-              // Optional: setRestMode(true) oder URL ?mode=reste für Reste-Verwertung
-            }}
-            onTurboKueche={() => {
-              setShowCockpit(false);
-              setActiveTab('create');
-              // Optional: setFilterSchnell(true) oder URL ?filter=schnell
             }}
           />
         </>
