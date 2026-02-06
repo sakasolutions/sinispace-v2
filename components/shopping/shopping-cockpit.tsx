@@ -115,9 +115,8 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-x-visible bg-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-      {/* Universal Header – identisch Gourmet-Standard, Maße wie spezifiziert */}
-      {/* Universal Header – gleiche Maße wie Gourmet-Planer & Dashboard (h-[280px], rounded-b-[40px]) */}
+    <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
+      {/* Header: 1:1 home dashboard – same height, overlay, container, pb-6 */}
       <header
         className={cn(
           'relative z-[1] min-h-[280px]',
@@ -131,40 +130,37 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/55 to-black/35 z-0" aria-hidden />
         </div>
-        {/* Layer 1: 1:1 wie Gourmet – dashboard-header-pt, pb-12, gleiche Positionen */}
-        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
-          <div className="flex items-start justify-between gap-4">
-            <div className="max-w-2xl min-w-0">
-              <Link
-                href="/tools/shopping-list"
-                className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
-              >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                Zurück
-              </Link>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-                Smarte Einkaufsliste
-              </h1>
-              <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
-                Dein intelligenter Begleiter im Supermarkt.
-              </p>
-              <Link
-                href="/tools/shopping-list"
-                className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                Neue Liste erstellen
-              </Link>
-            </div>
-            <div className="shrink-0" />
+        {/* Layer 1: same as home dashboard – dashboard-header-pt md:pt-12, px-3 sm:px-6 md:px-8, pb-6 */}
+        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
+          <div className="max-w-2xl">
+            <Link
+              href="/tools/shopping-list"
+              className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Zurück
+            </Link>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
+              Smarte Einkaufsliste
+            </h1>
+            <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+              Dein intelligenter Begleiter im Supermarkt.
+            </p>
+            <Link
+              href="/tools/shopping-list"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              Neue Liste erstellen
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* Main: 1:1 wie Gourmet – gleicher Overlap (-mt-20), gleicher Abstand (h-5 mb-4), gleiches Grid */}
+      {/* Main: 1:1 home dashboard – same container, padding, section, grid, card structure */}
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         <section className="mb-8 md:mb-10">
-          <div className="h-5 mb-4" aria-hidden />
+          <h2 className="text-sm font-bold text-gray-600 mb-4">Übersicht</h2>
           <div className="grid grid-cols-2 gap-4 md:gap-4">
             {/* Karte 1: Aktive Liste – 1:1 Karten-Layout wie Gourmet */}
             <Link
