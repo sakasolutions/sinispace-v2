@@ -50,6 +50,15 @@ import { CustomSelect } from '@/components/ui/custom-select';
 import { PageTransition } from '@/components/ui/PageTransition';
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
+import {
+  StickyListBar,
+  SummaryCard,
+  QuickAddCard,
+  CategoryCard,
+  ItemRow,
+  ItemRowCheckbox,
+  QuantityPill,
+} from '@/components/shopping/list-detail-ui';
 
 const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   Leaf,
@@ -621,271 +630,168 @@ export default function ShoppingListPage() {
       </header>
 
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
-        {/* Sticky action bar: list selector + Was ist das? + Neue Liste (minimal) */}
-        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 mb-4 py-2 -mx-1 bg-gradient-to-b from-rose-50/95 via-white/95 to-transparent backdrop-blur-sm">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="min-w-0 flex-1 max-w-[200px] sm:max-w-[240px]">
-              <CustomSelect
-                value={activeListId ?? ''}
-                onChange={(v) => setActiveListId(v)}
-                options={lists.map((l) => ({ value: l.id, label: l.name }))}
-                placeholder="Liste wählen…"
-                theme="light"
-                icon={ListChecks}
-                dropdownInPortal
+        <div className="space-y-4">
+        <StickyListBar
+          left={
+            <>
+              <div className="min-w-0 flex-1 max-w-[200px] sm:max-w-[240px]">
+                <CustomSelect
+                  value={activeListId ?? ''}
+                  onChange={(v) => setActiveListId(v)}
+                  options={lists.map((l) => ({ value: l.id, label: l.name }))}
+                  placeholder="Liste wählen…"
+                  theme="light"
+                  icon={ListChecks}
+                  dropdownInPortal
+                />
+              </div>
+              <WhatIsThisModal
+                title="Smart Einkaufsliste"
+                content={
+                  <div className="space-y-3 text-gray-700">
+                    <p>
+                      Deine intelligente Einkaufsliste mit <strong>KI-gestützter Analyse</strong>. Tippe einfach ein Produkt ein – die AI erkennt automatisch Kategorien, korrigiert Tippfehler und sortiert alles nach Supermarkt-Route.
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <strong>Keine Mengen?</strong> Kein Problem. Gib nur an, was du brauchst ("Milch") oder mit Mengen ("3 Tomaten"). Die AI passt sich an.
+                    </p>
+                  </div>
+                }
+                examples={[
+                  '3 Tomaten → AI: 3x Tomaten (Obst/Gemüse)',
+                  'Milch → AI: Milch (Kühlregal)',
+                  'Kusbasi → AI: Kusbasi (Fleisch) - keine Korrektur!',
+                ]}
+                useCases={[
+                  'Einzelne Produkte eintippen oder ganze Listen einfügen (z.B. aus WhatsApp)',
+                  'AI korrigiert Tippfehler, behält aber kulturelle Begriffe bei',
+                  'Automatische Sortierung nach Supermarkt-Gang (Obst/Gemüse → Fleisch → Kühlregal...)',
+                  'Store-Modus: Große Checkboxen für einfaches Abhaken beim Einkaufen',
+                ]}
+                tips={[
+                  'Füge mehrere Produkte mit Zeilenumbrüchen oder Kommas ein',
+                  'Die AI merkt sich häufig gekaufte Artikel (Chips "Oft gekauft")',
+                  'Im Store-Modus sind alle Bearbeitungs-Funktionen ausgeblendet',
+                ]}
+                trigger={
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 text-xs font-medium transition-colors shrink-0">
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    Was ist das?
+                  </span>
+                }
               />
-            </div>
-            <WhatIsThisModal
-              title="Smart Einkaufsliste"
-              content={
-                <div className="space-y-3 text-gray-700">
-                  <p>
-                    Deine intelligente Einkaufsliste mit <strong>KI-gestützter Analyse</strong>. Tippe einfach ein Produkt ein – die AI erkennt automatisch Kategorien, korrigiert Tippfehler und sortiert alles nach Supermarkt-Route.
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Keine Mengen?</strong> Kein Problem. Gib nur an, was du brauchst ("Milch") oder mit Mengen ("3 Tomaten"). Die AI passt sich an.
-                  </p>
-                </div>
-              }
-              examples={[
-                '3 Tomaten → AI: 3x Tomaten (Obst/Gemüse)',
-                'Milch → AI: Milch (Kühlregal)',
-                'Kusbasi → AI: Kusbasi (Fleisch) - keine Korrektur!',
-              ]}
-              useCases={[
-                'Einzelne Produkte eintippen oder ganze Listen einfügen (z.B. aus WhatsApp)',
-                'AI korrigiert Tippfehler, behält aber kulturelle Begriffe bei',
-                'Automatische Sortierung nach Supermarkt-Gang (Obst/Gemüse → Fleisch → Kühlregal...)',
-                'Store-Modus: Große Checkboxen für einfaches Abhaken beim Einkaufen',
-              ]}
-              tips={[
-                'Füge mehrere Produkte mit Zeilenumbrüchen oder Kommas ein',
-                'Die AI merkt sich häufig gekaufte Artikel (Chips "Oft gekauft")',
-                'Im Store-Modus sind alle Bearbeitungs-Funktionen ausgeblendet',
-              ]}
-              trigger={
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 hover:bg-white border border-gray-200/80 text-gray-600 hover:text-gray-900 text-xs font-medium transition-colors shrink-0">
-                  <HelpCircle className="w-3.5 h-3.5" />
-                  Was ist das?
-                </span>
-              }
-            />
-            {activeList && !storeMode && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => openRename(activeList)}
-                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0"
-                  title="Umbenennen"
-                  aria-label="Liste umbenennen"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={shareList}
-                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0"
-                  title="Liste teilen"
-                  aria-label="Liste teilen"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openDelete(activeList)}
-                  className="p-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors shrink-0"
-                  title="Liste löschen"
-                  aria-label="Liste löschen"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => { setPendingName(''); setModalNewList(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            Neue Liste
-          </button>
-        </div>
+              {activeList && !storeMode && (
+                <>
+                  <button type="button" onClick={() => openRename(activeList)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 shrink-0" title="Umbenennen" aria-label="Liste umbenennen"><Pencil className="w-4 h-4" /></button>
+                  <button type="button" onClick={shareList} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 shrink-0" title="Teilen" aria-label="Liste teilen"><Share2 className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => openDelete(activeList)} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 shrink-0" title="Löschen" aria-label="Liste löschen"><Trash2 className="w-4 h-4" /></button>
+                </>
+              )}
+            </>
+          }
+          right={
+            <button
+              type="button"
+              onClick={() => { setPendingName(''); setModalNewList(true); }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Neue Liste
+            </button>
+          }
+        />
 
         {saveErrorMessage && (
-          <div className="mb-4 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
+          <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
             <div className="font-medium mb-1">Sync fehlgeschlagen.</div>
             <div className="text-red-700 mb-3">{saveErrorMessage}</div>
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  const { success, error } = await saveShoppingLists(lists);
-                  setSaveErrorMessage(success ? null : (error ?? 'Unbekannter Fehler'));
-                }}
-                className="px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-medium text-sm transition-colors"
-              >
-                Erneut versuchen
-              </button>
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
-              >
-                Seite neu laden
-              </button>
+              <button type="button" onClick={async () => { const { success, error } = await saveShoppingLists(lists); setSaveErrorMessage(success ? null : (error ?? 'Unbekannter Fehler')); }} className="px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-medium text-sm transition-colors">Erneut versuchen</button>
+              <button type="button" onClick={() => window.location.reload()} className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors">Seite neu laden</button>
             </div>
           </div>
         )}
 
-        <div className="flex-1 min-w-0 rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden flex flex-col" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08)' }}>
-          {activeList ? (
+        {activeList ? (
             <>
-              {/* Progress + Einkauf starten (red accent) */}
-              <div className="px-4 sm:px-6 py-3 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm font-medium text-gray-700">
-                    {checked.length}/{activeList.items.length} erledigt
-                  </span>
-                  <div className="flex-1 min-w-[80px] max-w-[120px] h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-orange-600 to-rose-500 transition-all duration-300"
-                      style={{ width: activeList.items.length ? `${(checked.length / activeList.items.length) * 100}%` : '0%' }}
-                    />
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStoreMode((m) => !m);
-                    if (!storeMode) { setEditingItemId(null); setEditingQtyItemId(null); }
-                  }}
-                  className={cn(
-                    'shrink-0 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all shadow-md',
-                    storeMode
-                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      : 'bg-gradient-to-r from-orange-600 to-rose-500 text-white hover:from-orange-700 hover:to-rose-600 shadow-orange-500/25'
-                  )}
-                >
-                  {storeMode ? 'Beenden' : 'Einkauf starten'}
-                </button>
-              </div>
+              <SummaryCard
+                progressLabel={`${checked.length}/${activeList.items.length} erledigt`}
+                progressPercent={activeList.items.length ? (checked.length / activeList.items.length) * 100 : 0}
+                storeMode={storeMode}
+                onToggleStoreMode={() => {
+                  setStoreMode((m) => !m);
+                  if (!storeMode) { setEditingItemId(null); setEditingQtyItemId(null); }
+                }}
+              />
 
-              <div className="p-4 sm:p-6 border-b border-gray-100">
-                {!storeMode && (
-                <>
-                <div ref={inputContainerRef} className="relative flex gap-2">
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      value={newItemInput}
-                      onChange={(e) => setNewItemInput(e.target.value)}
-                      onFocus={() => {
-                        setInputFocused(true);
-                        if (!newItemInput.trim()) loadFrequentItems();
-                      }}
-                      onBlur={() => {
-                        setTimeout(() => {
-                          setInputFocused(false);
-                          setTypeAheadOpen(false);
-                        }, 180);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          if (typeAheadOpen && typeAheadSuggestions.length > 0) {
-                            const first = typeAheadSuggestions[0]!.itemLabel;
-                            processChunk(first, activeList.id, setLists, (t) => recordFrequentItem(t));
-                            setNewItemInput('');
-                            setTypeAheadOpen(false);
-                            return;
+              {!storeMode && (
+                <QuickAddCard
+                  inputSlot={
+                    <div ref={inputContainerRef} className="relative">
+                      <input
+                        type="text"
+                        value={newItemInput}
+                        onChange={(e) => setNewItemInput(e.target.value)}
+                        onFocus={() => { setInputFocused(true); if (!newItemInput.trim()) loadFrequentItems(); }}
+                        onBlur={() => { setTimeout(() => { setInputFocused(false); setTypeAheadOpen(false); }, 180); }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (typeAheadOpen && typeAheadSuggestions.length > 0) {
+                              const first = typeAheadSuggestions[0]!.itemLabel;
+                              processChunk(first, activeList.id, setLists, (t) => recordFrequentItem(t));
+                              setNewItemInput(''); setTypeAheadOpen(false);
+                              return;
+                            }
+                            submitSmartInput();
                           }
-                          submitSmartInput();
-                        }
-                        if (e.key === 'Escape') setTypeAheadOpen(false);
-                      }}
-                      onPaste={(e) => {
-                        const pasted = (e.clipboardData?.getData?.('text') ?? '').trim();
-                        const chunks = splitInput(pasted);
-                        if (chunks.length > 0 && activeListId) {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          chunks.forEach((raw) =>
-                            processChunk(raw, activeListId, setLists, (text) =>
-                              recordFrequentItem(text)
-                            )
-                          );
-                          setNewItemInput('');
-                          setTypeAheadOpen(false);
-                        }
-                      }}
-                      placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
-                    />
-                    {typeAheadOpen && typeAheadSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
-                        {typeAheadSuggestions.map((s) => (
-                          <button
-                            key={s.itemLabel}
-                            type="button"
-                            className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-orange-50 transition-colors"
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              processChunk(s.itemLabel, activeList.id, setLists, (t) =>
-                                recordFrequentItem(t)
-                              );
-                              setNewItemInput('');
-                              setTypeAheadOpen(false);
-                            }}
-                          >
-                            {capitalizeLabel(s.itemLabel)}
+                          if (e.key === 'Escape') setTypeAheadOpen(false);
+                        }}
+                        onPaste={(e) => {
+                          const pasted = (e.clipboardData?.getData?.('text') ?? '').trim();
+                          const chunks = splitInput(pasted);
+                          if (chunks.length > 0 && activeListId) {
+                            e.preventDefault(); e.stopPropagation();
+                            chunks.forEach((raw) => processChunk(raw, activeListId, setLists, (text) => recordFrequentItem(text)));
+                            setNewItemInput(''); setTypeAheadOpen(false);
+                          }
+                        }}
+                        placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
+                      />
+                      {typeAheadOpen && typeAheadSuggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
+                          {typeAheadSuggestions.map((s) => (
+                            <button key={s.itemLabel} type="button" className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-orange-50 transition-colors" onMouseDown={(e) => { e.preventDefault(); processChunk(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); setNewItemInput(''); setTypeAheadOpen(false); }}>
+                              {capitalizeLabel(s.itemLabel)}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  }
+                  addButton={
+                    <button type="button" onClick={submitSmartInput} disabled={!splitInput(newItemInput).length} className="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-r from-orange-600 to-rose-500 text-white flex items-center justify-center hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-orange-500/25" title="Hinzufügen">
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  }
+                  helperText="Liste aus WhatsApp einfügen → Zeilen/Kommas werden erkannt, jedes Item einzeln analysiert."
+                  frequentChips={inputFocused && !newItemInput.trim() && frequentItems.length > 0 ? (
+                    <div className="mt-3">
+                      <p className="text-xs font-medium text-gray-500 mb-2">Oft gekauft</p>
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {frequentItems.map((f) => (
+                          <button key={f.itemLabel} type="button" onClick={() => { processChunk(f.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); loadFrequentItems(); }} className="shrink-0 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-700 text-sm font-medium transition-colors">
+                            {capitalizeLabel(f.itemLabel)}
                           </button>
                         ))}
                       </div>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={submitSmartInput}
-                    disabled={!splitInput(newItemInput).length}
-                    className="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-r from-orange-600 to-rose-500 text-white flex items-center justify-center hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-orange-500/30"
-                    title="Hinzufügen"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-                {inputFocused && !newItemInput.trim() && frequentItems.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs font-medium text-gray-500 mb-2">Oft gekauft ↺</p>
-                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-                      {frequentItems.map((f) => (
-                        <button
-                          key={f.itemLabel}
-                          type="button"
-                          onClick={() => {
-                            processChunk(f.itemLabel, activeList.id, setLists, (t) =>
-                              recordFrequentItem(t)
-                            );
-                            loadFrequentItems();
-                          }}
-                          className="shrink-0 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-orange-100 text-gray-800 hover:text-orange-800 text-sm font-medium transition-colors"
-                        >
-                          {capitalizeLabel(f.itemLabel)}
-                        </button>
-                      ))}
                     </div>
-                  </div>
-                )}
-                <p className="text-xs text-gray-500 mt-2">
-                  Tipp: Liste aus WhatsApp einfügen → Zeilen/Kommas werden erkannt, jedes Item wird
-                  einzeln analysiert.
-                </p>
-                </>
-                )}
+                  ) : undefined}
+                />
+              )}
 
-              </div>
-
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto min-h-0">
                 {unchecked.length === 0 && checked.length === 0 ? (
                   <div className="p-8 sm:p-12 text-center">
                     <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
@@ -902,22 +808,14 @@ export default function ShoppingListPage() {
                       const theme = getCategoryTheme(cat);
                       const CatIcon = CATEGORY_ICON_MAP[theme.icon] ?? Package;
                       return (
-                        <div
+                        <CategoryCard
                           key={cat}
-                          className={cn(
-                            'rounded-2xl border overflow-hidden mb-3 last:mb-0 shadow-sm',
-                            theme.bg,
-                            theme.border
-                          )}
+                          title={theme.label}
+                          count={items.length}
+                          icon={<CatIcon className="w-4 h-4" aria-hidden />}
+                          className="mb-4 last:mb-0"
                         >
-                          <div className="px-4 sm:px-5 py-2.5 flex items-center gap-2">
-                            <CatIcon className={cn('w-4 h-4 shrink-0', theme.iconColor)} aria-hidden />
-                            <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                              {theme.label}
-                            </span>
-                            <span className="text-xs text-gray-500 ml-0.5">{items.length}</span>
-                          </div>
-                          <AnimatedList as="div" className="divide-y divide-gray-100/80">
+                          <AnimatedList as="div">
                             {items.map((item) => {
                               const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                               const isEditingQty = !storeMode && editingQtyItemId === item.id;
@@ -929,55 +827,34 @@ export default function ShoppingListPage() {
                                   : hasQty
                                     ? `${qtyDisplay} ${item.text}`.trim()
                                     : item.text;
-                              const itemTheme = getCategoryTheme(item.category);
-                              const ItemIcon = CATEGORY_ICON_MAP[itemTheme.icon] ?? Package;
                               const isStriking = checkingId === item.id;
                               const showActions = !storeMode && !isEditingText;
                               const canEdit = item.status !== 'analyzing';
                               return (
-                                <AnimatedListItem
-                                  key={item.id}
-                                  layout={false}
-                                  as="div"
-                                  className={cn(
-                                    'px-4 sm:px-6 transition-all duration-300 group',
-                                    storeMode ? 'py-4' : 'py-3',
-                                    isStriking && 'opacity-70'
-                                  )}
-                                >
-                                  <div
-                                    className="flex items-center gap-3 w-full"
-                                    {...(isEditingText ? { 'data-item-edit': '' } : {})}
+                                <AnimatedListItem key={item.id} layout={false} as="div" className={cn('transition-all duration-300', isStriking && 'opacity-70')}>
+                                  <ItemRow
+                                    isChecked={false}
+                                    checkbox={
+                                      <ItemRowCheckbox
+                                        checked={false}
+                                        isStriking={isStriking}
+                                        onToggle={() => handleToggleItem(activeList.id, item.id)}
+                                        storeMode={storeMode}
+                                        ariaLabel="Abhaken"
+                                      />
+                                    }
+                                    actions={
+                                      showActions ? (
+                                        <>
+                                          {canEdit && (
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, displayLabel); }} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
+                                          )}
+                                          <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList.id, item.id); }} className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
+                                        </>
+                                      ) : null
+                                    }
                                   >
-                                    <button
-                                      type="button"
-                                      onClick={() => handleToggleItem(activeList.id, item.id)}
-                                      className={cn(
-                                        'rounded-lg border-2 flex items-center justify-center shrink-0 transition-all duration-300',
-                                        storeMode ? 'w-8 h-8' : 'w-6 h-6',
-                                        isStriking
-                                          ? 'border-transparent bg-gradient-to-br from-orange-500 to-rose-500 text-white'
-                                          : 'border-gray-300 hover:border-orange-400 hover:bg-orange-50'
-                                      )}
-                                      aria-label="Abhaken"
-                                    >
-                                      {isStriking && <Check className={cn('text-white', storeMode ? 'w-5 h-5' : 'w-3.5 h-3.5')} />}
-                                    </button>
-                                    <span
-                                      className={cn(
-                                        'shrink-0 flex items-center justify-center',
-                                        storeMode ? 'w-8' : 'w-6',
-                                        itemTheme.iconColor
-                                      )}
-                                      aria-hidden
-                                    >
-                                      {item.status === 'analyzing' ? (
-                                        <Loader2 className={cn('text-orange-500 animate-spin', storeMode ? 'w-6 h-6' : 'w-5 h-5')} />
-                                      ) : (
-                                        <ItemIcon className={storeMode ? 'w-5 h-5' : 'w-4 h-4'} />
-                                      )}
-                                    </span>
-                                    <div className="flex-1 min-w-0 flex items-center gap-2">
+                                    <div className="flex-1 min-w-0 flex items-center gap-2" {...(isEditingText ? { 'data-item-edit': '' } : {})}>
                                       {isEditingText ? (
                                         <>
                                           <input
@@ -994,7 +871,7 @@ export default function ShoppingListPage() {
                                           <button
                                             type="button"
                                             onClick={saveEditItem}
-                                            className="p-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 shrink-0"
+                                            className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0"
                                             title="Speichern"
                                             aria-label="Speichern"
                                           >
@@ -1041,93 +918,36 @@ export default function ShoppingListPage() {
                                       ) : (
                                         <>
                                           {!storeMode && hasQty ? (
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                setEditingQtyItemId(item.id);
-                                                setEditingQtyValue(qtyDisplay);
-                                              }}
-                                              className="text-gray-500 hover:text-orange-500 hover:underline text-left shrink-0"
-                                            >
-                                              {item.quantity != null && !(item.unit?.trim())
-                                                ? `${item.quantity}x`
-                                                : qtyDisplay}
-                                            </button>
+                                            <QuantityPill
+                                              label={item.quantity != null && !(item.unit?.trim()) ? `${item.quantity}x` : qtyDisplay}
+                                              onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(qtyDisplay); }}
+                                            />
                                           ) : !storeMode && !hasQty ? (
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                setEditingQtyItemId(item.id);
-                                                setEditingQtyValue('');
-                                              }}
-                                              className="px-2 py-0.5 rounded-full bg-gray-100 hover:bg-orange-100 text-gray-500 hover:text-orange-600 text-xs font-medium shrink-0"
-                                            >
-                                              + Menge
-                                            </button>
+                                            <QuantityPill label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
                                           ) : null}
-                                          <span
-                                            className={cn(
-                                              'text-gray-900 font-medium transition-all duration-300',
-                                              storeMode ? 'text-base' : '',
-                                              isStriking && 'line-through'
-                                            )}
-                                          >
+                                          <span className={cn('text-gray-900 font-medium transition-all duration-300', storeMode ? 'text-base' : '', isStriking && 'line-through')}>
                                             {hasQty ? item.text : displayLabel}
                                           </span>
                                         </>
                                       )}
                                     </div>
-                                    {showActions && (
-                                      <>
-                                        {canEdit && (
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              e.preventDefault();
-                                              startEditItem(item, displayLabel);
-                                            }}
-                                            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all shrink-0"
-                                            title="Bearbeiten"
-                                            aria-label="Bearbeiten"
-                                          >
-                                            <Pencil className="w-4 h-4" />
-                                          </button>
-                                        )}
-                                        <button
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            deleteItem(activeList.id, item.id);
-                                          }}
-                                          className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
-                                          title="Entfernen"
-                                          aria-label="Entfernen"
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                        </button>
-                                      </>
-                                    )}
-                                  </div>
+                                  </ItemRow>
                                 </AnimatedListItem>
-                            );
-                          })}
+                              );
+                            })}
                           </AnimatedList>
-                        </div>
+                        </CategoryCard>
                       );
                     })}
 
                     {checked.length > 0 && (
-                      <div className="rounded-2xl border border-gray-100 bg-gray-50/60 mt-3 overflow-hidden shadow-sm">
-                        <div className="px-4 sm:px-5 py-2.5 flex items-center gap-2">
-                          <Check className="w-4 h-4 text-orange-500 shrink-0" aria-hidden />
-                          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Erledigt
-                          </span>
-                          <span className="text-xs text-gray-400">{checked.length}</span>
-                        </div>
-                        <AnimatedList as="div" className="divide-y divide-gray-100/80">
+                      <CategoryCard
+                        title="Erledigt"
+                        count={checked.length}
+                        icon={<Check className="w-4 h-4 text-orange-500" aria-hidden />}
+                        className="mt-4"
+                      >
+                        <AnimatedList as="div">
                           {checked.map((item) => {
                             const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                             const qtyD = formatQtyDisplay(item);
@@ -1136,122 +956,49 @@ export default function ShoppingListPage() {
                                 ? `${item.quantity}x ${item.text}`
                                 : `${qtyD} ${item.text}`.trim())
                               : item.text;
-                            const itemTheme = getCategoryTheme(item.category);
-                            const ItemIcon = CATEGORY_ICON_MAP[itemTheme.icon] ?? Package;
                             const justChecked = justCheckedIds.has(item.id);
                             const isEditingText = editingItemId === item.id;
                             const showActions = !storeMode && !isEditingText;
                             return (
-                              <AnimatedListItem
-                                key={item.id}
-                                layout={false}
-                                as="div"
-                                className={cn(
-                                  'px-4 sm:px-6 transition-all duration-300 group',
-                                  storeMode ? 'py-4' : 'py-3',
-                                  'hover:bg-gray-100/80',
-                                  justChecked && 'animate-[slideIn_0.4s_ease-out]'
-                                )}
-                              >
-                                <div
-                                  className="flex items-center gap-3 w-full"
-                                  {...(isEditingText ? { 'data-item-edit': '' } : {})}
+                              <AnimatedListItem key={item.id} layout={false} as="div" className={cn('transition-all duration-300', justChecked && 'animate-[slideIn_0.4s_ease-out]')}>
+                                <ItemRow
+                                  isChecked
+                                  checkbox={
+                                    <ItemRowCheckbox checked onToggle={() => handleToggleItem(activeList!.id, item.id)} storeMode={storeMode} ariaLabel="Rückgängig" />
+                                  }
+                                  actions={
+                                    showActions ? (
+                                      <>
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, erledigtLabel); }} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList!.id, item.id); }} className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
+                                      </>
+                                    ) : null
+                                  }
                                 >
-                                  <button
-                                    type="button"
-                                    onClick={() => handleToggleItem(activeList!.id, item.id)}
-                                    className={cn(
-                                      'rounded-lg border-2 border-transparent bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center shrink-0 hover:from-orange-600 hover:to-rose-600 transition-colors',
-                                      storeMode ? 'w-8 h-8' : 'w-6 h-6'
-                                    )}
-                                    aria-label="Rückgängig"
-                                  >
-                                    <Check className={cn('text-white', storeMode ? 'w-5 h-5' : 'w-3.5 h-3.5')} />
-                                  </button>
-                                  <span
-                                    className={cn(
-                                      'shrink-0 flex items-center justify-center opacity-60',
-                                      storeMode ? 'w-8' : 'w-6',
-                                      itemTheme.iconColor
-                                    )}
-                                    aria-hidden
-                                  >
-                                    <ItemIcon className={storeMode ? 'w-5 h-5' : 'w-4 h-4'} />
-                                  </span>
                                   {isEditingText ? (
-                                    <>
-                                      <input
-                                        type="text"
-                                        value={editingItemValue}
-                                        onChange={(e) => setEditingItemValue(e.target.value)}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); }
-                                          if (e.key === 'Escape') cancelEditItem();
-                                        }}
-                                        className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
-                                        autoFocus
-                                      />
-                                      <button
-                                        type="button"
-                                        onClick={saveEditItem}
-                                        className="p-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 shrink-0"
-                                        title="Speichern"
-                                        aria-label="Speichern"
-                                      >
-                                        <Check className="w-4 h-4" />
-                                      </button>
-                                    </>
+                                    <div className="flex items-center gap-2" data-item-edit="">
+                                      <input type="text" value={editingItemValue} onChange={(e) => setEditingItemValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); } if (e.key === 'Escape') cancelEditItem(); }} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400" autoFocus />
+                                      <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
+                                    </div>
                                   ) : (
-                                    <span className={cn('flex-1 text-gray-500 line-through opacity-80', storeMode && 'text-base')}>
-                                      {erledigtLabel}
-                                    </span>
+                                    <span className="text-gray-500 line-through opacity-80">{erledigtLabel}</span>
                                   )}
-                                  {showActions && (
-                                    <>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          e.preventDefault();
-                                          startEditItem(item, erledigtLabel);
-                                        }}
-                                        className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all shrink-0"
-                                        title="Bearbeiten"
-                                        aria-label="Bearbeiten"
-                                      >
-                                        <Pencil className="w-4 h-4" />
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          e.preventDefault();
-                                          deleteItem(activeList!.id, item.id);
-                                        }}
-                                        className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shrink-0"
-                                        title="Entfernen"
-                                        aria-label="Entfernen"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
+                                </ItemRow>
                               </AnimatedListItem>
                             );
                           })}
                         </AnimatedList>
-                      </div>
+                      </CategoryCard>
                     )}
                   </>
                 )}
               </div>
               {checked.length > 0 && (
-                <div className="shrink-0 border-t border-gray-100 px-4 py-3 flex justify-center">
+                <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3 flex justify-center shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_-4px_rgba(0,0,0,0.08)]">
                   <button
                     type="button"
                     onClick={() => activeListId && resetChecked(activeListId)}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                    className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
                     title="Erledigte wiederherstellen"
                   >
                     <RotateCcw className="w-4 h-4" />
