@@ -166,86 +166,102 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
         <section className="mb-8 md:mb-10">
           <div className="h-5 mb-4" aria-hidden />
           <div className="grid grid-cols-2 gap-4 md:gap-4">
-          {/* Karte 1: Aktive Liste */}
-          <Link
-            href={activeList ? `/tools/shopping-list?listId=${activeList.id}` : '/tools/shopping-list'}
-            className="group relative flex flex-col min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
-            style={DASHBOARD_CARD_STYLE}
-          >
-            <div className="absolute top-4 right-4">
-              <span className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
-                {loading ? '—' : activeList ? `${openCount} offen` : 'Keine Liste'}
-              </span>
-            </div>
-            <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-600 to-rose-500 shadow-lg shadow-orange-600/30 mb-3">
-              <ShoppingBasket className="w-8 h-8 text-white" strokeWidth={2.5} aria-hidden />
-            </div>
-            <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight">
-              {activeList?.name ?? 'Wocheneinkauf'}
-            </h3>
-            <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">
-              {loading ? '…' : previewItems.length > 0 ? previewItems.join(', ') + (openCount > 3 ? '…' : '') : 'Keine offenen Artikel'}
-            </p>
-          </Link>
+            {/* Karte 1: Aktive Liste – 1:1 Karten-Layout wie Gourmet */}
+            <Link
+              href={activeList ? `/tools/shopping-list?listId=${activeList.id}` : '/tools/shopping-list'}
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
+              style={DASHBOARD_CARD_STYLE}
+            >
+              <div className="absolute top-4 right-4">
+                <span className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
+                  {loading ? '—' : activeList ? `${openCount} offen` : 'Keine Liste'}
+                </span>
+              </div>
+              <div className="flex w-full justify-between items-start gap-2">
+                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-600 to-rose-500 shadow-lg shadow-orange-600/30">
+                  <ShoppingBasket className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                </div>
+              </div>
+              <div className="w-full text-left">
+                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">
+                  {activeList?.name ?? 'Wocheneinkauf'}
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">
+                  {loading ? '…' : previewItems.length > 0 ? previewItems.join(', ') + (openCount > 3 ? '…' : '') : 'Keine offenen Artikel'}
+                </p>
+              </div>
+            </Link>
 
-          {/* Karte 2: Smart History (Quick Add) */}
-          <div
-            className="relative flex flex-col min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full"
-            style={DASHBOARD_CARD_STYLE}
-          >
-            <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-500 to-yellow-500 shadow-lg shadow-amber-500/30 mb-3">
-              <History className="w-8 h-8 text-white" strokeWidth={2.5} aria-hidden />
+            {/* Karte 2: Smart History – 1:1 Karten-Layout wie Gourmet */}
+            <div
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full"
+              style={DASHBOARD_CARD_STYLE}
+            >
+              <div className="flex w-full justify-between items-start gap-2">
+                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-500 to-yellow-500 shadow-lg shadow-amber-500/30">
+                  <History className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                </div>
+              </div>
+              <div className="w-full text-left">
+                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Oft gekauft</h3>
+                <p className="text-sm text-gray-500 mt-0.5 mb-2">Schnell hinzufügen</p>
+                <div className="flex flex-wrap gap-2">
+                  {loading ? (
+                    <span className="text-sm text-gray-400">…</span>
+                  ) : (
+                    frequentItems.slice(0, 3).map(({ itemLabel }) => (
+                      <button
+                        key={itemLabel}
+                        type="button"
+                        onClick={() => handleQuickAdd(itemLabel)}
+                        disabled={!!quickAddPending}
+                        className="px-3 py-1.5 rounded-full bg-white/60 border border-white/50 text-gray-700 text-sm font-medium hover:bg-white/80 active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        {quickAddPending === itemLabel ? '…' : itemLabel}
+                      </button>
+                    ))
+                  )}
+                  {!loading && frequentItems.length === 0 && (
+                    <span className="text-sm text-gray-400">Noch keine History</span>
+                  )}
+                </div>
+              </div>
             </div>
-            <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight">Oft gekauft</h3>
-            <p className="text-sm text-gray-500 mt-0.5 mb-3">Schnell hinzufügen</p>
-            <div className="flex flex-wrap gap-2">
-              {loading ? (
-                <span className="text-sm text-gray-400">…</span>
-              ) : (
-                frequentItems.slice(0, 3).map(({ itemLabel }) => (
-                  <button
-                    key={itemLabel}
-                    type="button"
-                    onClick={() => handleQuickAdd(itemLabel)}
-                    disabled={!!quickAddPending}
-                    className="px-3 py-1.5 rounded-full bg-white/60 border border-white/50 text-gray-700 text-sm font-medium hover:bg-white/80 active:scale-95 transition-all disabled:opacity-50"
-                  >
-                    {quickAddPending === itemLabel ? '…' : itemLabel}
-                  </button>
-                ))
-              )}
-              {!loading && frequentItems.length === 0 && (
-                <span className="text-sm text-gray-400">Noch keine History</span>
-              )}
+
+            {/* Karte 3: Aus Rezepten – 1:1 Karten-Layout wie Gourmet */}
+            <Link
+              href="/tools/recipe"
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
+              style={DASHBOARD_CARD_STYLE}
+            >
+              <div className="flex w-full justify-between items-start gap-2">
+                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30">
+                  <ChefHat className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                </div>
+              </div>
+              <div className="w-full text-left">
+                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Zutaten importieren</h3>
+                <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Vom Gourmet-Planer</p>
+                <p className="text-xs text-gray-400 mt-1">3 Rezepte im Wochenplan</p>
+              </div>
+            </Link>
+
+            {/* Karte 4: Budget – 1:1 Karten-Layout wie Gourmet */}
+            <div
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full cursor-default"
+              style={DASHBOARD_CARD_STYLE}
+            >
+              <div className="flex w-full justify-between items-start gap-2">
+                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30">
+                  <Percent className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                </div>
+              </div>
+              <div className="w-full text-left">
+                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Budget Übersicht</h3>
+                <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Spar-Tipps (demnächst)</p>
+              </div>
             </div>
           </div>
-
-          {/* Karte 3: Aus Rezepten */}
-          <Link
-            href="/tools/recipe"
-            className="group relative flex flex-col min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
-            style={DASHBOARD_CARD_STYLE}
-          >
-            <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30 mb-3">
-              <ChefHat className="w-8 h-8 text-white" strokeWidth={2.5} aria-hidden />
-            </div>
-            <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight">Zutaten importieren</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Vom Gourmet-Planer</p>
-            <p className="text-xs text-gray-400 mt-1">3 Rezepte im Wochenplan</p>
-          </Link>
-
-          {/* Karte 4: Budget / Spar-Tipps (Placeholder) */}
-          <div
-            className="relative flex flex-col min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full cursor-default"
-            style={DASHBOARD_CARD_STYLE}
-          >
-            <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30 mb-3">
-              <Percent className="w-8 h-8 text-white" strokeWidth={2.5} aria-hidden />
-            </div>
-            <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight">Budget Übersicht</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Spar-Tipps (demnächst)</p>
-          </div>
-        </div>
         </section>
 
         {/* Meine Listen */}
