@@ -157,42 +157,47 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
         </div>
       </header>
 
-      {/* Main: 1:1 home dashboard – same container, padding, section, grid, card structure */}
+      {/* Main: 1:1 Gourmet/Home – same hero overlap (-mt-20), same spacer (h-5 mb-4), same grid/card structure */}
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         <section className="mb-8 md:mb-10">
-          <h2 className="text-sm font-bold text-gray-600 mb-4">Übersicht</h2>
+          <div className="h-5 mb-4" aria-hidden />
           <div className="grid grid-cols-2 gap-4 md:gap-4">
-            {/* Karte 1: Aktive Liste – 1:1 Karten-Layout wie Gourmet */}
+            {/* Karte 1: Aktive Liste – same card as Home/Gourmet (icon 16x16 rounded-[22px], typography, equal height) */}
             <Link
               href={activeList ? `/tools/shopping-list?listId=${activeList.id}` : '/tools/shopping-list'}
-              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
-              style={DASHBOARD_CARD_STYLE}
+              className="block h-full min-h-[160px]"
             >
-              <div className="absolute top-4 right-4">
-                <span className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
-                  {loading ? '—' : activeList ? `${openCount} offen` : 'Keine Liste'}
-                </span>
-              </div>
-              <div className="flex w-full justify-between items-start gap-2">
-                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-600 to-rose-500 shadow-lg shadow-orange-600/30">
-                  <ShoppingBasket className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+              <div
+                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
+                style={DASHBOARD_CARD_STYLE}
+              >
+                <div className="absolute top-4 right-4">
+                  <span className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
+                    {loading ? '—' : activeList ? `${openCount} offen` : 'Keine Liste'}
+                  </span>
                 </div>
-              </div>
-              <div className="w-full text-left">
-                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">
-                  {activeList?.name ?? 'Wocheneinkauf'}
-                </h3>
-                <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">
-                  {loading ? '…' : previewItems.length > 0 ? previewItems.join(', ') + (openCount > 3 ? '…' : '') : 'Keine offenen Artikel'}
-                </p>
+                <div className="flex w-full justify-between items-start gap-2">
+                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-600 to-rose-500 shadow-lg shadow-orange-600/30">
+                    <ShoppingBasket className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                  </div>
+                </div>
+                <div className="w-full text-left">
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">
+                    {activeList?.name ?? 'Wocheneinkauf'}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
+                    {loading ? '…' : previewItems.length > 0 ? previewItems.join(', ') + (openCount > 3 ? '…' : '') : 'Keine offenen Artikel'}
+                  </p>
+                </div>
               </div>
             </Link>
 
-            {/* Karte 2: Smart History – 1:1 Karten-Layout wie Gourmet */}
-            <div
-              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full"
-              style={DASHBOARD_CARD_STYLE}
-            >
+            {/* Karte 2: Oft gekauft – same card structure, equal height */}
+            <div className="h-full min-h-[160px]">
+              <div
+                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full h-full"
+                style={DASHBOARD_CARD_STYLE}
+              >
               <div className="flex w-full justify-between items-start gap-2">
                 <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-500 to-yellow-500 shadow-lg shadow-amber-500/30">
                   <History className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
@@ -200,8 +205,8 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
               </div>
               <div className="w-full text-left">
                 <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Oft gekauft</h3>
-                <p className="text-sm text-gray-500 mt-0.5 mb-2">Schnell hinzufügen</p>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Schnell hinzufügen</p>
+                <div className="flex flex-wrap gap-2 mt-1">
                   {loading ? (
                     <span className="text-sm text-gray-400">…</span>
                   ) : (
@@ -222,39 +227,42 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
                   )}
                 </div>
               </div>
+              </div>
             </div>
 
-            {/* Karte 3: Aus Rezepten – 1:1 Karten-Layout wie Gourmet */}
-            <Link
-              href="/tools/recipe"
-              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
-              style={DASHBOARD_CARD_STYLE}
-            >
-              <div className="flex w-full justify-between items-start gap-2">
-                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30">
-                  <ChefHat className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+            {/* Karte 3: Zutaten importieren – same card structure, equal height */}
+            <Link href="/tools/recipe" className="block h-full min-h-[160px]">
+              <div
+                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
+                style={DASHBOARD_CARD_STYLE}
+              >
+                <div className="flex w-full justify-between items-start gap-2">
+                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30">
+                    <ChefHat className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                  </div>
                 </div>
-              </div>
-              <div className="w-full text-left">
-                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Zutaten importieren</h3>
-                <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Vom Gourmet-Planer</p>
-                <p className="text-xs text-gray-400 mt-1">3 Rezepte im Wochenplan</p>
+                <div className="w-full text-left">
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Zutaten importieren</h3>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Vom Gourmet-Planer</p>
+                </div>
               </div>
             </Link>
 
-            {/* Karte 4: Budget – 1:1 Karten-Layout wie Gourmet */}
-            <div
-              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full cursor-default"
-              style={DASHBOARD_CARD_STYLE}
-            >
-              <div className="flex w-full justify-between items-start gap-2">
-                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30">
-                  <Percent className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+            {/* Karte 4: Budget – same card structure, equal height */}
+            <div className="h-full min-h-[160px]">
+              <div
+                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full h-full cursor-default"
+                style={DASHBOARD_CARD_STYLE}
+              >
+                <div className="flex w-full justify-between items-start gap-2">
+                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30">
+                    <Percent className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                  </div>
                 </div>
-              </div>
-              <div className="w-full text-left">
-                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Budget Übersicht</h3>
-                <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Spar-Tipps (demnächst)</p>
+                <div className="w-full text-left">
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Budget Übersicht</h3>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Spar-Tipps (demnächst)</p>
+                </div>
               </div>
             </div>
           </div>
