@@ -161,13 +161,13 @@ export function GourmetCockpit({
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-12">
         <section className="mb-8 md:mb-10">
           <div className="grid grid-cols-2 gap-4 md:gap-4">
-            {/* Karte 1: Woche planen */}
+            {/* Karte 1: Woche planen – getöntes Glas, heller Tint */}
             <button
               type="button"
               onClick={onWochePlanen}
-              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full bg-[url('/assets/cards-img/wochenplaner.webp')] bg-cover bg-center"
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-[32px] overflow-hidden border border-white/50 shadow-md hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full bg-[url('/assets/cards-img/wochenplaner.webp')] bg-cover bg-center"
             >
-              <div className="absolute inset-0 z-0 bg-gradient-to-br from-orange-700/90 to-amber-700/85" aria-hidden />
+              <div className="absolute inset-0 z-0 bg-gradient-to-br from-white/20 to-orange-500/40" aria-hidden />
               <div className="relative z-10 flex flex-col justify-between h-full w-full items-start">
                 <div className="absolute top-4 right-4">
                   <span className="bg-white/90 text-gray-800 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
@@ -180,19 +180,19 @@ export function GourmetCockpit({
                   </div>
                 </div>
                 <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-white leading-tight line-clamp-2">Woche planen</h3>
-                  <p className="text-sm text-white/90 mt-0.5 line-clamp-1">Dein Essensplan</p>
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-800 leading-tight line-clamp-2">Woche planen</h3>
+                  <p className="text-sm text-gray-600 mt-0.5 line-clamp-1">Dein Essensplan</p>
                 </div>
               </div>
             </button>
 
-            {/* Karte 2: Sammlung */}
+            {/* Karte 2: Sammlung – getöntes Glas */}
             <button
               type="button"
               onClick={onMeineGerichte}
-              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full bg-[url('/assets/cards-img/sammlung.webp')] bg-cover bg-center"
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-[32px] overflow-hidden border border-white/50 shadow-md hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full bg-[url('/assets/cards-img/sammlung.webp')] bg-cover bg-center"
             >
-              <div className="absolute inset-0 z-0 bg-gradient-to-br from-amber-700/90 to-yellow-700/85" aria-hidden />
+              <div className="absolute inset-0 z-0 bg-gradient-to-br from-white/20 to-amber-500/40" aria-hidden />
               <div className="relative z-10 flex flex-col justify-between h-full w-full items-start">
                 <div className="absolute top-4 right-4">
                   <span className="bg-white/90 text-gray-800 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
@@ -205,17 +205,17 @@ export function GourmetCockpit({
                   </div>
                 </div>
                 <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-white leading-tight line-clamp-2">Sammlung</h3>
-                  <p className="text-sm text-white/90 mt-0.5 line-clamp-1">Deine Favoriten</p>
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-800 leading-tight line-clamp-2">Sammlung</h3>
+                  <p className="text-sm text-gray-600 mt-0.5 line-clamp-1">Deine Favoriten</p>
                 </div>
               </div>
             </button>
 
-            {/* Karte 3: Heute */}
+            {/* Karte 3: Heute – getöntes Glas */}
             <div
-              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full cursor-default bg-[url('/assets/cards-img/heute.webp')] bg-cover bg-center"
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-[32px] overflow-hidden border border-white/50 shadow-md p-5 text-left w-full cursor-default bg-[url('/assets/cards-img/heute.webp')] bg-cover bg-center"
             >
-              <div className="absolute inset-0 z-0 bg-gradient-to-br from-rose-800/90 to-red-700/85" aria-hidden />
+              <div className="absolute inset-0 z-0 bg-gradient-to-br from-white/20 to-rose-600/40" aria-hidden />
               <div className="relative z-10 flex flex-col justify-between h-full w-full items-start">
                 <div className="flex w-full justify-between items-start gap-2">
                   <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/30">
@@ -223,24 +223,24 @@ export function GourmetCockpit({
                   </div>
                 </div>
                 <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-white leading-tight line-clamp-2">Heute</h3>
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-800 leading-tight line-clamp-2">Heute</h3>
                   {loading ? (
-                    <p className="text-sm text-white/90 mt-0.5">…</p>
+                    <p className="text-sm text-gray-600 mt-0.5">…</p>
                   ) : hasMealToday && data?.nextMeal ? (
-                    <p className="text-sm text-white/90 mt-0.5 line-clamp-1">{data.nextMeal.title}</p>
+                    <p className="text-sm text-gray-600 mt-0.5 line-clamp-1">{data.nextMeal.title}</p>
                   ) : (
-                    <p className="text-sm text-white/90 mt-0.5 line-clamp-1">Noch nichts geplant</p>
+                    <p className="text-sm text-gray-600 mt-0.5 line-clamp-1">Noch nichts geplant</p>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Karte 4: Einkaufsliste */}
+            {/* Karte 4: Einkaufsliste – getöntes Glas */}
             <Link
               href="/tools/shopping-list"
-              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full bg-[url('/assets/cards-img/einkaufsliste.webp')] bg-cover bg-center"
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-[32px] overflow-hidden border border-white/50 shadow-md hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full bg-[url('/assets/cards-img/einkaufsliste.webp')] bg-cover bg-center"
             >
-              <div className="absolute inset-0 z-0 bg-gradient-to-br from-emerald-800/90 to-teal-700/85" aria-hidden />
+              <div className="absolute inset-0 z-0 bg-gradient-to-br from-white/20 to-teal-600/40" aria-hidden />
               <div className="relative z-10 flex flex-col justify-between h-full w-full items-start">
                 <div className="absolute top-4 right-4">
                   <span className="bg-white/90 text-gray-800 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
@@ -253,8 +253,8 @@ export function GourmetCockpit({
                   </div>
                 </div>
                 <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-white leading-tight line-clamp-2">Einkaufsliste</h3>
-                  <p className="text-sm text-white/90 mt-0.5 line-clamp-1">Smarte Listen</p>
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-800 leading-tight line-clamp-2">Einkaufsliste</h3>
+                  <p className="text-sm text-gray-600 mt-0.5 line-clamp-1">Smarte Listen</p>
                 </div>
               </div>
             </Link>
