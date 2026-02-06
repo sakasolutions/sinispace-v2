@@ -68,9 +68,9 @@ export function GourmetCockpit({
   const hasMealToday = data?.nextMeal && data.nextMeal.date === today;
 
   return (
-    <div className="relative w-full" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-      {/* Infinite Canvas: Fixed Fullscreen-Hintergrund, Blobs immer sichtbar, kein Abschneiden */}
-      <div className="fixed inset-0 z-0 w-full h-full overflow-hidden pointer-events-none bg-orange-50/30" aria-hidden>
+    <div className="relative w-full min-h-screen" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+      {/* Hintergrund an Content gebunden (nicht fixed): geht bis ganz unten mit, kein Verziehen beim Scrollen */}
+      <div className="absolute inset-0 z-0 min-h-full overflow-hidden pointer-events-none bg-orange-50/30" aria-hidden>
         <div className="absolute top-0 left-0 w-[80vw] max-w-[500px] h-[400px] rounded-full bg-orange-400/30 blur-3xl -translate-x-1/4 -translate-y-1/4" aria-hidden />
         <div className="absolute bottom-0 right-0 w-[70vw] max-w-[450px] h-[350px] rounded-full bg-amber-300/30 blur-3xl translate-x-1/4 translate-y-1/4" aria-hidden />
       </div>
