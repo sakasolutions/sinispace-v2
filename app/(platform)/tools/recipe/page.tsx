@@ -391,29 +391,20 @@ export default function RecipePage() {
             >
               <div className="absolute inset-0 bg-gradient-to-b from-orange-950/80 via-orange-900/70 to-amber-900/60 z-0" aria-hidden />
             </div>
-            {/* Layer 1: gleiche Abstände wie Cockpit (dashboard-header-pt md:pt-12 pb-12) */}
-            <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
-              <div className="flex items-start justify-between gap-4">
-                <div className="max-w-2xl min-w-0 flex items-center gap-4">
-                  <Link
-                    href="/tools/recipe"
-                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium shrink-0"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Zurück
-                  </Link>
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-                    Rezept Generator
-                  </h1>
-                  {activeTab === 'create' && (
-                    <p className="text-white/90 text-sm mt-1">
-                      {wizardStep === 1 && 'Worauf hast du heute Lust?'}
-                      {wizardStep === 2 && 'Was gibt der Kühlschrank her?'}
-                      {wizardStep === 3 && 'Letzte Wünsche vor dem Zaubern.'}
-                    </p>
-                  )}
+            {/* Layer 1: Inhalt – klare Hierarchie, linksbündig */}
+            <div className="relative z-10 pt-8 px-6 md:px-8 pb-24">
+              <div className="flex flex-col items-start gap-4">
+                <Link
+                  href="/tools/recipe"
+                  className="group flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10"
+                >
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                  Zurück zur Übersicht
+                </Link>
+                <div className="mt-2">
+                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Rezept Generator</h1>
+                  <p className="text-orange-50 text-lg md:text-xl opacity-90">Dein Smart-Chef für den Kühlschrank.</p>
                 </div>
-                <div />
               </div>
             </div>
           </header>
@@ -444,8 +435,10 @@ export default function RecipePage() {
           {/* Tab Content */}
       {activeTab === 'create' ? (
         <>
-      {/* Gourmet Wizard: weißer Container mit Progress + 3 Steps */}
-      <div className="relative z-20 bg-white border border-gray-200 shadow-xl rounded-[32px] p-6 sm:p-8">
+      {/* Gourmet Wizard: Premium-Glas-Karte (Frosted Glass), satt über Header */}
+      <div className="relative z-20 -mt-16 md:-mt-20 mx-4 md:mx-auto max-w-3xl bg-white/70 backdrop-blur-[40px] border border-white/80 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] rounded-[40px] p-6 sm:p-8 overflow-hidden">
+        {/* Innen-Schein: Lichtreflexion am oberen Rand */}
+        <div className="inset-0 bg-gradient-to-b from-white/40 to-transparent rounded-[40px] pointer-events-none absolute" aria-hidden />
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
