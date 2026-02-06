@@ -439,11 +439,11 @@ export default function RecipePage() {
       <div className="relative z-20 -mt-16 md:-mt-20 mx-4 md:mx-auto max-w-3xl bg-white/70 backdrop-blur-[40px] border border-white/80 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] rounded-[40px] p-6 sm:p-8 overflow-hidden">
         {/* Innen-Schein: Lichtreflexion am oberen Rand */}
         <div className="inset-0 bg-gradient-to-b from-white/40 to-transparent rounded-[40px] pointer-events-none absolute" aria-hidden />
-        {/* Progress Bar */}
+        {/* Progress Bar – Glowing Glass Tube */}
         <div className="mb-6">
-          <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-1 bg-white/20 rounded-full overflow-hidden">
             <div
-              className="h-1 bg-orange-500 rounded-full transition-all duration-300"
+              className="h-1 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(249,115,22,0.6)]"
               style={{ width: wizardStep === 1 ? '33%' : wizardStep === 2 ? '66%' : '100%' }}
             />
           </div>
@@ -473,10 +473,10 @@ export default function RecipePage() {
                       key={option.id}
                       type="button"
                       onClick={() => setMealType(option.value)}
-                      className={`rounded-2xl p-4 text-left transition-all border-2 ${
+                      className={`rounded-2xl p-4 text-left transition-all backdrop-blur-md shadow-sm ${
                         mealType === option.value
-                          ? 'bg-orange-50 border-orange-500 text-orange-700 font-bold ring-1 ring-orange-500'
-                          : 'bg-white border-gray-200 text-gray-600 hover:border-orange-200 hover:bg-gray-50'
+                          ? 'bg-orange-500/10 border border-orange-500/50 text-orange-700 font-bold shadow-[inset_0_0_15px_rgba(249,115,22,0.1)]'
+                          : 'bg-white/30 border border-white/40 text-gray-600 hover:bg-white/50'
                       }`}
                     >
                       <span className="text-sm font-medium block">{option.label}</span>
@@ -486,12 +486,12 @@ export default function RecipePage() {
               </section>
               <section>
                 <h3 className="text-gray-700 font-semibold mb-3 block">Anzahl Personen</h3>
-                <div className="inline-flex items-center gap-0">
+                <div className="inline-flex items-center gap-0 bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-2 py-1">
                   <button
                     type="button"
                     onClick={() => setServings(Math.max(1, servings - 1))}
                     disabled={servings <= 1}
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-white/40 hover:bg-white/60 text-orange-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
                     <Minus className="w-6 h-6" />
                   </button>
@@ -501,7 +501,7 @@ export default function RecipePage() {
                   <button
                     type="button"
                     onClick={() => setServings(servings + 1)}
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-all"
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-white/40 hover:bg-white/60 text-orange-600 transition-all"
                   >
                     <Plus className="w-6 h-6" />
                   </button>
@@ -533,7 +533,7 @@ export default function RecipePage() {
                   value={ingredients}
                   onChange={(e) => setIngredients(e.target.value)}
                   placeholder="z.B. Eier, Tomaten, Nudeln... (leer = Überraschung)"
-                  className="w-full rounded-2xl bg-amber-50/50 border border-gray-200 text-gray-900 placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-orange-500 p-4 text-lg resize-none transition-all min-h-[220px] shadow-inner"
+                  className="w-full rounded-2xl bg-white/40 border border-white/30 text-gray-900 placeholder:text-gray-500 focus:bg-white/60 focus:border-orange-300 focus:ring-4 focus:ring-orange-500/10 p-4 text-lg resize-none transition-all min-h-[220px]"
                   rows={6}
                 />
               </section>
@@ -545,7 +545,7 @@ export default function RecipePage() {
                       key={tag}
                       type="button"
                       onClick={() => setIngredients(prev => prev ? `${prev}, ${tag}` : tag)}
-                      className="px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-600 text-sm hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 transition-all"
+                      className="px-3 py-1.5 rounded-full bg-white/30 backdrop-blur-md border border-white/40 shadow-sm text-gray-600 text-sm hover:bg-white/50 transition-all"
                     >
                       + {tag}
                     </button>
@@ -557,11 +557,11 @@ export default function RecipePage() {
                   <h3 className="text-gray-700 font-semibold mb-2 block">Darf eingekauft werden?</h3>
                   <div className="flex flex-wrap gap-3">
                     <button type="button" onClick={() => setShoppingMode('strict')}
-                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${shoppingMode === 'strict' ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 font-bold' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all backdrop-blur-md shadow-sm ${shoppingMode === 'strict' ? 'bg-orange-500/10 border border-orange-500/50 text-orange-700 font-bold shadow-[inset_0_0_15px_rgba(249,115,22,0.1)]' : 'bg-white/30 border border-white/40 text-gray-600 hover:bg-white/50'}`}>
                       Nein, Reste verwerten 🦊
                     </button>
                     <button type="button" onClick={() => setShoppingMode('shopping')}
-                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${shoppingMode === 'shopping' ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 font-bold' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all backdrop-blur-md shadow-sm ${shoppingMode === 'shopping' ? 'bg-orange-500/10 border border-orange-500/50 text-orange-700 font-bold shadow-[inset_0_0_15px_rgba(249,115,22,0.1)]' : 'bg-white/30 border border-white/40 text-gray-600 hover:bg-white/50'}`}>
                       Ja, fehlendes ergänzen 🛒
                     </button>
                   </div>
@@ -596,8 +596,8 @@ export default function RecipePage() {
                               key={option.value}
                               type="button"
                               onClick={() => toggleFilter(option.value)}
-                              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                                isActive ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 font-bold' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all backdrop-blur-md shadow-sm ${
+                                isActive ? 'bg-orange-500/10 border border-orange-500/50 text-orange-700 font-bold shadow-[inset_0_0_15px_rgba(249,115,22,0.1)]' : 'bg-white/30 border border-white/40 text-gray-600 hover:bg-white/50'
                               }`}
                             >
                               {option.label}
