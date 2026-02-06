@@ -4,11 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  ChefHat,
   Loader2,
   Sparkles,
   Search,
-  Check,
   HelpCircle,
   CalendarDays,
   BookHeart,
@@ -36,6 +34,18 @@ function formatMealLabel(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'short' });
+}
+
+/** Bild für "Zuletzt angesehen" anhand Rezeptname wählen (Food-Vibes) */
+function getFoodImageForRecipe(recipeName: string): string {
+  const name = recipeName.toLowerCase();
+  if (/\b(lasagne|pasta|nudel|spaghetti|penne|fusilli|tagliatelle|ravioli|gnocchi)\b/.test(name)) {
+    return '/assets/food/pasta.webp';
+  }
+  if (/\b(salat|bowl|green)\b/.test(name)) {
+    return '/assets/food/salad.webp';
+  }
+  return '/assets/food/generic.webp';
 }
 
 /** Gleiche Glass-Karten-Styles wie Dashboard (1:1) */
@@ -253,7 +263,7 @@ export function GourmetCockpit({
           </div>
         </section>
 
-        {/* Zuletzt angesehen – wie Dashboard Sektion */}
+        {/* Zuletzt angesehen – Food-Thumbnails statt Icons */}
         {data && data.recentRecipes.length > 0 && (
           <section className="mb-8 md:mb-10">
             <h2 className="text-sm font-bold text-gray-600 mb-4">Zuletzt angesehen</h2>
@@ -262,17 +272,17 @@ export function GourmetCockpit({
                 <Link
                   key={r.id}
                   href={`/tools/recipe?open=${encodeURIComponent(r.id)}`}
-                  className="flex-shrink-0 w-[160px] rounded-xl overflow-hidden"
+                  className="flex-shrink-0 w-[200px] rounded-xl overflow-hidden"
                 >
-                  <div className="rounded-xl p-3 hover:opacity-90 transition-opacity" style={DASHBOARD_CARD_STYLE}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-500 to-amber-500 shadow-sm">
-                        <ChefHat className="w-5 h-5 text-white" strokeWidth={2} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-800 truncate">{r.recipeName}</p>
-                        <p className="text-xs text-gray-500">— kcal</p>
-                      </div>
+                  <div className="rounded-xl p-3 hover:opacity-95 transition-opacity flex items-center gap-3" style={DASHBOARD_CARD_STYLE}>
+                    <img
+                      src={getFoodImageForRecipe(r.recipeName)}
+                      alt=""
+                      className="w-16 h-16 rounded-xl object-cover shrink-0 bg-gray-200"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-800 truncate">{r.recipeName}</p>
+                      <p className="text-xs text-gray-500">— kcal</p>
                     </div>
                   </div>
                 </Link>
