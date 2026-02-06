@@ -134,9 +134,9 @@
 }
 
 @layer utilities {
-  /* Dashboard Header: Mobile pt erzwingen (unter Notch), Desktop nutzt md:pt-24 */
+  /* Dashboard Header: Mehr Luft über H1 (unter Notch), Desktop nutzt md:pt-24 */
   .dashboard-header-pt {
-    padding-top: max(80px, calc(env(safe-area-inset-top) + 20px));
+    padding-top: max(96px, calc(env(safe-area-inset-top) + 28px));
   }
   @media (min-width: 768px) {
     .dashboard-header-pt {

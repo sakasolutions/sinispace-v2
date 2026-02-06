@@ -15,7 +15,7 @@ export function AppBackground() {
       <div 
         className="absolute inset-0 w-full h-full"
         style={{
-          background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #eef2f7 100%)',
+          background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 40%, #ffffff 70%, #ffffff 100%)',
         }}
       />
       {/* ULTRA-SOFT ATMOSPHERE - Clip-path, kein Hartkanten-Effekt */}
