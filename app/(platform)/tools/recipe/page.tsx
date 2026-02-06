@@ -336,9 +336,9 @@ export default function RecipePage() {
 
   return (
     <>
-      {/* Cockpit (Landing) – 1:1 wie Main-Dashboard (min-h-screen, overflow für Desktop-Header) */}
+      {/* Cockpit (Landing) – Header bricht auf Desktop aus (data-header-full-bleed verhindert overflow-x-hidden im Layout) */}
       {showCockpit ? (
-        <div className="min-h-screen w-full relative overflow-x-hidden">
+        <div data-header-full-bleed className="min-h-screen w-full relative overflow-x-visible">
           <GourmetCockpit
             onVorschlagGenerieren={() => {
               setShowCockpit(false);

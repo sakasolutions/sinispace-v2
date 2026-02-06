@@ -72,7 +72,7 @@ export function GourmetCockpit({
   const hasMealToday = data?.nextMeal && data.nextMeal.date === today;
 
   return (
-    <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
+    <div className="min-h-screen w-full relative overflow-x-visible bg-gradient-to-b from-rose-50 via-white to-white">
       {/* Header: 1:1 Golden Standard – exakt wie Main-Dashboard (h-[280px], rounded-b-[40px]) */}
       <header
         className={cn(

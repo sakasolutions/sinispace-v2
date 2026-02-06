@@ -154,7 +154,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         {/* MOBILE: More breathing room um bottom navigation + Safe Area */}
         {/* WICHTIG: data-no-padding Seiten (Chat) haben eigenen Scroll-Container, hier NICHT scrollbar! */}
         <div 
-          className="flex-1 overflow-hidden [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-32 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:md:pt-0 [&>*:not([data-no-padding])]:scrollbar-hide" 
+          className="flex-1 overflow-hidden [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding]):not([data-header-full-bleed])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-32 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:md:pt-0 [&>*:not([data-no-padding])]:scrollbar-hide" 
           data-scroll-container
           style={{
             minHeight: 0,
