@@ -138,8 +138,8 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         </div>
       </aside>
 
-      {/* MAIN CONTENT – relative z-10 damit über HeroBackground (z-0), kein Schleier */}
-      <main className="relative z-10 flex-1 md:ml-64 flex flex-col overflow-hidden" style={{ height: '100%', maxHeight: '100dvh', overflowY: 'hidden', overflowX: 'hidden' } as React.CSSProperties}>
+      {/* MAIN CONTENT – bg-white volle Breite/Höhe, damit keine Ambient-Blobs (Lila/Rosa) durchscheinen */}
+      <main className="relative z-10 flex-1 md:ml-64 flex flex-col overflow-hidden bg-white" style={{ height: '100%', maxHeight: '100dvh', overflowY: 'hidden', overflowX: 'hidden' } as React.CSSProperties}>
         {/* Mobile Header - AUSGEBLENDET (ersetzt durch Bottom Nav) */}
         {/* <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl px-4 md:hidden z-10">
           ...
@@ -160,7 +160,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
             minHeight: 0,
           } as React.CSSProperties}
         >
-          <div className="h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8 ">
+          <div className="h-full w-full bg-white [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8 ">
             {children}
           </div>
         </div>
