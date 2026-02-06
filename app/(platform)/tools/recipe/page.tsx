@@ -435,8 +435,8 @@ export default function RecipePage() {
           {/* Tab Content */}
       {activeTab === 'create' ? (
         <>
-      {/* Gourmet Wizard: Premium-Glas-Karte (Frosted Glass), satt über Header */}
-      <div className="relative z-20 -mt-16 md:-mt-20 mx-4 md:mx-auto max-w-3xl bg-white/70 backdrop-blur-[40px] border border-white/80 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] rounded-[40px] p-6 sm:p-8 overflow-hidden">
+      {/* Gourmet Wizard: Vision Glass – Premium-Glas-Bühne */}
+      <div className="relative z-20 -mt-16 md:-mt-20 mx-4 md:mx-auto max-w-3xl bg-white/80 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 rounded-[40px] p-6 sm:p-8 overflow-hidden">
         {/* Innen-Schein: Lichtreflexion am oberen Rand */}
         <div className="inset-0 bg-gradient-to-b from-white/40 to-transparent rounded-[40px] pointer-events-none absolute" aria-hidden />
         {/* Progress Bar – Glowing Glass Tube */}
@@ -462,21 +462,21 @@ export default function RecipePage() {
             <input key={f} type="hidden" name="filters" value={f} />
           ))}
 
-          {/* Step 1: Die Basis */}
+          {/* Step 1: Die Basis – Vision Glass */}
           {wizardStep === 1 && (
             <div className="space-y-8 animate-in fade-in duration-200">
               <section>
-                <h3 className="text-gray-700 font-semibold mb-3 block">Gericht-Typ</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <h3 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3 ml-1">Gericht-Typ</h3>
+                <div className="grid grid-cols-2 gap-4">
                   {mealTypeOptions.map((option) => (
                     <button
                       key={option.id}
                       type="button"
                       onClick={() => setMealType(option.value)}
-                      className={`rounded-2xl p-4 text-left transition-all backdrop-blur-md shadow-sm ${
+                      className={`rounded-2xl py-4 px-4 text-left transition-all ${
                         mealType === option.value
-                          ? 'bg-orange-500/10 border border-orange-500/50 text-orange-700 font-bold shadow-[inset_0_0_15px_rgba(249,115,22,0.1)]'
-                          : 'bg-white/30 border border-white/40 text-gray-600 hover:bg-white/50'
+                          ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 border border-transparent scale-[1.02]'
+                          : 'bg-white/50 hover:bg-white/80 border border-white/20 shadow-sm text-slate-700 font-medium'
                       }`}
                     >
                       <span className="text-sm font-medium block">{option.label}</span>
@@ -485,25 +485,25 @@ export default function RecipePage() {
                 </div>
               </section>
               <section>
-                <h3 className="text-gray-700 font-semibold mb-3 block">Anzahl Personen</h3>
-                <div className="inline-flex items-center gap-0 bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-2 py-1">
+                <h3 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3 ml-1">Anzahl Personen</h3>
+                <div className="inline-flex items-center justify-between bg-white/50 rounded-full p-1 border border-white/40 shadow-inner">
                   <button
                     type="button"
                     onClick={() => setServings(Math.max(1, servings - 1))}
                     disabled={servings <= 1}
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-white/40 hover:bg-white/60 text-orange-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm text-orange-600 hover:scale-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 transition-transform"
                   >
-                    <Minus className="w-6 h-6" />
+                    <Minus className="w-5 h-5" />
                   </button>
-                  <span className="text-2xl font-bold text-gray-800 min-w-[140px] text-center py-3 px-4">
+                  <span className="font-bold text-xl text-slate-800 min-w-[120px] text-center">
                     {servings} {servings === 1 ? 'Person' : 'Personen'}
                   </span>
                   <button
                     type="button"
                     onClick={() => setServings(servings + 1)}
-                    className="flex items-center justify-center w-14 h-14 rounded-full bg-white/40 hover:bg-white/60 text-orange-600 transition-all"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm text-orange-600 hover:scale-110 transition-transform"
                   >
-                    <Plus className="w-6 h-6" />
+                    <Plus className="w-5 h-5" />
                   </button>
                 </div>
               </section>
