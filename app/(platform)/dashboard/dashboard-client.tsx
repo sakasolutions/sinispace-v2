@@ -850,8 +850,8 @@ export default function DashboardClient() {
           )}
         </div>
 
-        {/* Layer 1: pt-[80px] + Safe-Area (Mobile), damit Text unter Notch sitzt; Desktop: md:pt-24 */}
-        <div className="dashboard-header-pt md:pt-24 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
+        {/* Layer 1: Header-Content nach oben (md:pt-16), wie Gourmet-Dashboard */}
+        <div className="dashboard-header-pt md:pt-16 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
           <div className="max-w-2xl">
             <h1
               className={cn(
