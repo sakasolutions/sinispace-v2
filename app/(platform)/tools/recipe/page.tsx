@@ -3,7 +3,7 @@
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -101,21 +101,21 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
 
 function SubmitButton({ inspirationMode }: { inspirationMode: boolean }) {
   const { pending } = useFormStatus();
-  const label = inspirationMode ? 'Inspiriere mich ✨' : 'Rezept aus Zutaten zaubern 🍳';
+  const label = inspirationMode ? 'Inspiriere mich' : 'Rezept aus Zutaten zaubern';
   return (
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-3.5 text-sm font-bold text-white hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
+      className="w-full py-4 rounded-2xl text-lg font-bold text-white shadow-lg shadow-orange-500/25 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-transform active:scale-95 flex items-center justify-center gap-2"
     >
       {pending ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <Loader2 className="w-5 h-5 animate-spin" />
           <span>Rezept wird gezaubert...</span>
         </>
       ) : (
         <>
-          <ChefHat className="w-4 h-4" />
+          <Sparkles className="w-5 h-5" />
           <span>{label}</span>
         </>
       )}
@@ -372,11 +372,12 @@ export default function RecipePage() {
           }}
         />
       ) : (
-        <>
+        <div className="min-h-screen w-full bg-gradient-to-b from-rose-50 via-white to-white">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8 pt-4" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
           <button
             type="button"
             onClick={() => setShowCockpit(true)}
-            className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-violet-600 hover:text-violet-700"
+            className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700"
           >
             <LayoutDashboard className="w-4 h-4" />
             Zurück zum Cockpit
@@ -389,8 +390,8 @@ export default function RecipePage() {
             </p>
           </div>
 
-          {/* Tab-System – nur bei Create / Meine Rezepte, nicht im Wochenplaner */}
-          <div className="mb-6 flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+          {/* Tab-System – Segmented Control (Gourmet Orange) */}
+          <div className="mb-6 inline-flex p-1 rounded-full bg-gray-100/50 overflow-x-auto scrollbar-hide">
             {(['create', 'my-recipes', 'week-planner'] as const).map((tab) => {
               const labels = { create: 'Neues Rezept', 'my-recipes': 'Meine Rezepte', 'week-planner': 'Wochenplaner' };
               const active = activeTab === tab;
@@ -400,8 +401,8 @@ export default function RecipePage() {
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                     active
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:text-gray-900'
+                      ? 'bg-white text-orange-600 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   {labels[tab]}
@@ -413,11 +414,12 @@ export default function RecipePage() {
           {/* Tab Content */}
       {activeTab === 'create' ? (
         <>
-          <div className="mt-4 mb-8 p-4 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-900">
+          <div className="mt-4 mb-6 p-4 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-900">
             💡 <strong>Tipp:</strong> Gib Zutaten ein → Rezept aus Resten. Oder Feld leer lassen → <strong>Inspiriere mich</strong> für eine Überraschung.
           </div>
 
-      {/* Formular direkt auf hellem Hintergrund – keine dunklen Container */}
+      {/* Glass-Container (Gourmet Orange Branding) */}
+      <div className="bg-white/60 backdrop-blur-xl border border-white/60 shadow-xl rounded-[40px] p-6 sm:p-8">
       <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12">
         {/* LINKE SEITE: EINGABE – direkt auf bg-white, Sektionen mit H3 + Divider */}
         <div className="h-fit">
@@ -430,10 +432,10 @@ export default function RecipePage() {
                     key={option.id}
                     type="button"
                     onClick={() => setMealType(option.value)}
-                    className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
+                    className={`px-5 py-3 rounded-2xl text-sm font-medium transition-all ${
                       mealType === option.value
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white border border-transparent shadow-lg shadow-orange-500/30'
-                        : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-white hover:-translate-y-0.5'
+                        ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 shadow-md shadow-orange-500/10'
+                        : 'bg-white border border-transparent shadow-sm text-gray-700 hover:border-orange-200'
                     }`}
                   >
                     {option.label}
@@ -445,22 +447,22 @@ export default function RecipePage() {
 
             <section className="pb-8 border-b border-gray-100">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Anzahl Personen</h3>
-              <div className="inline-flex items-center rounded-full bg-white border border-gray-200 overflow-hidden">
+              <div className="inline-flex items-center gap-0 rounded-2xl overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setServings(Math.max(1, servings - 1))}
                   disabled={servings <= 1}
-                  className="flex items-center justify-center w-14 h-14 text-gray-600 hover:bg-gray-50 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-600 transition-all"
+                  className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-orange-100 transition-all"
                 >
                   <Minus className="w-6 h-6" />
                 </button>
-                <span className="text-2xl font-bold text-gray-900 min-w-[140px] text-center py-3 px-4">
+                <span className="text-2xl font-bold text-gray-800 min-w-[140px] text-center py-3 px-4">
                   {servings} {servings === 1 ? 'Person' : 'Personen'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setServings(servings + 1)}
-                  className="flex items-center justify-center w-14 h-14 text-gray-600 hover:bg-gray-50 hover:text-orange-500 transition-all"
+                  className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-all"
                 >
                   <Plus className="w-6 h-6" />
                 </button>
@@ -469,13 +471,16 @@ export default function RecipePage() {
             </section>
 
             <section className="pb-8 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Was hast du im Kühlschrank?</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900">Was hast du im Kühlschrank?</h3>
+                <Refrigerator className="w-5 h-5 text-orange-500 shrink-0" aria-hidden />
+              </div>
               <textarea
                 name="ingredients"
                 value={ingredients}
                 onChange={(e) => setIngredients(e.target.value)}
                 placeholder="z.B. Eier, Tomaten, Reis... (leer lassen für Überraschung)"
-                className="w-full rounded-2xl border border-gray-200 bg-white px-5 py-4 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 resize-none transition-all min-h-[200px]"
+                className="w-full rounded-2xl border-none shadow-inner bg-white p-4 text-lg text-gray-800 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-400 focus:outline-none resize-none transition-all min-h-[200px]"
                 rows={6}
               />
             </section>
@@ -490,10 +495,10 @@ export default function RecipePage() {
                   <button
                     type="button"
                     onClick={() => setShoppingMode('strict')}
-                    className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
+                    className={`px-5 py-3 rounded-2xl text-sm font-medium transition-all ${
                       shoppingMode === 'strict'
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30'
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 shadow-md shadow-orange-500/10'
+                        : 'bg-white border border-transparent shadow-sm text-gray-700 hover:border-orange-200'
                     }`}
                   >
                     Nein, Reste verwerten 🦊
@@ -501,10 +506,10 @@ export default function RecipePage() {
                   <button
                     type="button"
                     onClick={() => setShoppingMode('shopping')}
-                    className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
+                    className={`px-5 py-3 rounded-2xl text-sm font-medium transition-all ${
                       shoppingMode === 'shopping'
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30'
-                        : 'bg-gray-50 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 shadow-md shadow-orange-500/10'
+                        : 'bg-white border border-transparent shadow-sm text-gray-700 hover:border-orange-200'
                     }`}
                   >
                     Ja, fehlendes ergänzen 🛒
@@ -535,10 +540,10 @@ export default function RecipePage() {
                             key={option.value}
                             type="button"
                             onClick={() => toggleFilter(option.value)}
-                            className={`relative h-20 rounded-xl flex items-center justify-start w-full px-4 text-left transition-all duration-200 active:scale-[0.98] ${
+                            className={`relative h-20 rounded-2xl flex items-center justify-start w-full px-4 text-left transition-all duration-200 active:scale-[0.98] ${
                               isActive
-                                ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md shadow-orange-500/25'
-                                : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 shadow-md shadow-orange-500/10'
+                                : 'bg-white border border-transparent shadow-sm text-gray-700 hover:border-orange-200'
                             }`}
                           >
                             <span className="text-sm font-medium pr-8 line-clamp-2">{option.label}</span>
@@ -705,6 +710,7 @@ export default function RecipePage() {
           )}
         </div>
       </div>
+      </div>
       </>
       ) : activeTab === 'my-recipes' ? (
         selectedRecipe ? (
@@ -822,7 +828,8 @@ export default function RecipePage() {
         )
             ) : null}
 
-        </>
+        </div>
+        </div>
       )}
         </div>
       )}
