@@ -90,8 +90,8 @@ export function GourmetCockpit({
           <div className="absolute inset-0 bg-gradient-to-b from-orange-900/50 to-amber-800/40 z-0" aria-hidden />
         </div>
 
-        {/* Layer 1: Titel, Text, Button – reduziertes Padding, weiße Schrift */}
-        <div className="pt-16 md:pt-20 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
+        {/* Layer 1: wie Dashboard – gleiches Padding (dashboard-header-pt md:pt-24), damit Karten gleiche Tiefe haben */}
+        <div className="dashboard-header-pt md:pt-24 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-2xl min-w-0">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
