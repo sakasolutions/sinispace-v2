@@ -334,10 +334,10 @@ export default function RecipePage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-      {/* Cockpit (Landing) – Default-Ansicht */}
+    <>
+      {/* Cockpit (Landing) – ohne Wrapper, wie Main-Dashboard */}
       {showCockpit ? (
-        <>
+        <div className="w-full h-full">
           <GourmetCockpit
             onVorschlagGenerieren={() => {
               setShowCockpit(false);
@@ -357,8 +357,10 @@ export default function RecipePage() {
               setActiveTab('create');
             }}
           />
-        </>
-      ) : activeTab === 'week-planner' ? (
+        </div>
+      ) : (
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+      {activeTab === 'week-planner' ? (
         /* Planer-Modus: nur WeekPlanner, keine Tabs / kein doppelter Zurück-Text */
         <WeekPlanner
           myRecipes={myRecipes}
@@ -822,6 +824,8 @@ export default function RecipePage() {
 
         </>
       )}
+        </div>
+      )}
 
       {/* Shopping List Modal (Export) */}
       {recipe && recipe.shoppingList && recipe.shoppingList.length > 0 && (
@@ -855,6 +859,6 @@ export default function RecipePage() {
           {addToListToast.message}
         </div>
       )}
-    </div>
+    </>
   );
 }
