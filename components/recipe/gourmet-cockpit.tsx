@@ -74,7 +74,7 @@ export function GourmetCockpit({
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
-      {/* Header: 1:1 wie Dashboard – komprimierte Höhe, Layer 0 + Layer 1 */}
+      {/* Header: 1:1 wie Dashboard – exakt gleiche Höhe (280px) und Layer-Struktur */}
       <header
         className={cn(
           'relative z-[1] min-h-[280px]',
@@ -82,7 +82,7 @@ export function GourmetCockpit({
           '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
-        {/* Layer 0: Bild (public/gourmet-header.webp) + Overlay, damit Bild sichtbar bleibt */}
+        {/* Layer 0: Bild (public/gourmet-header.webp) + Overlay – Höhe exakt wie Dashboard */}
         <div
           className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
           style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
@@ -90,8 +90,8 @@ export function GourmetCockpit({
           <div className="absolute inset-0 bg-gradient-to-b from-orange-900/50 to-amber-800/40 z-0" aria-hidden />
         </div>
 
-        {/* Layer 1: wie Dashboard – gleiches Padding (dashboard-header-pt md:pt-24), damit Karten gleiche Tiefe haben */}
-        <div className="dashboard-header-pt md:pt-24 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
+        {/* Layer 1: Header-Content über Grid (z-20), damit Text/Button nicht von Karten verdeckt werden */}
+        <div className="dashboard-header-pt md:pt-24 relative z-20 w-full px-3 sm:px-6 md:px-8 pb-8">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-2xl min-w-0">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
@@ -157,7 +157,7 @@ export function GourmetCockpit({
         </div>
       )}
 
-      {/* Main: Grid ragt in den Header (-mt-20) */}
+      {/* Main: Grid-Overlap exakt wie Dashboard (-mt-20), Grid z-10 unter Header-Content */}
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         <div className="grid grid-cols-2 gap-4 md:gap-4 mb-8 md:mb-10">
             {/* Karte 1: Woche planen */}
