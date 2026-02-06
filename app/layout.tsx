@@ -71,7 +71,7 @@ export default function RootLayout({
         padding: 0,
         minHeight: '100dvh',
         height: '100%',
-        paddingTop: 'env(safe-area-inset-top)',
+        paddingTop: 0,
         paddingBottom: 'env(safe-area-inset-bottom)',
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',

@@ -95,11 +95,13 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
     <div className="flex h-[100dvh] overflow-x-hidden relative">
       {/* App Background: Warmverlauf + Ambient Brand Blobs (Variante 1+3) */}
       <AppBackground />
-      {/* Globale Ambient-Blobs: Lila/Orange – leuchten auch hinter der Sidebar (Crystal Glass) */}
+      {/* Globale Ambient-Blobs: Lila/Orange – unten auf Mobile aus, sonst orangener Streifen unter Nav */}
       <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
         <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-purple-400/20 blur-[120px]" />
-        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-orange-300/20 blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-orange-300/20 blur-[120px] hidden md:block" />
       </div>
+      {/* Mobile: fester weißer Streifen unten (Safe-Area), deckt Rest ab */}
+      <div className="fixed bottom-0 left-0 right-0 h-[env(safe-area-inset-bottom)] bg-white -z-[1] pointer-events-none md:hidden" aria-hidden />
 
       {/* SIDEBAR (Desktop) – Crystal Glass über dem Ambient */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 md:block z-20 bg-white/60 backdrop-blur-xl border-r border-white/40">
@@ -152,13 +154,13 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         {/* MOBILE: More breathing room um bottom navigation + Safe Area */}
         {/* WICHTIG: data-no-padding Seiten (Chat) haben eigenen Scroll-Container, hier NICHT scrollbar! */}
         <div 
-          className="flex-1 overflow-hidden [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-32 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:pt-[max(0.5rem,env(safe-area-inset-top))] [&>*:not([data-no-padding])]:md:pt-0 [&>*:not([data-no-padding])]:scrollbar-hide" 
+          className="flex-1 overflow-hidden [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-32 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:md:pt-0 [&>*:not([data-no-padding])]:scrollbar-hide" 
           data-scroll-container
           style={{
             minHeight: 0,
           } as React.CSSProperties}
         >
-          <div className="h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8 [&>*:not([data-no-padding])]:-mt-[env(safe-area-inset-top)] [&>*:not([data-no-padding])]:md:mt-0">
+          <div className="h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8 ">
             {children}
           </div>
         </div>
