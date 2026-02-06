@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { BackButton } from '@/components/ui/back-button';
 import {
   Plus,
@@ -188,6 +189,7 @@ function formatItemExport(item: ShoppingItem): string {
 }
 
 export default function ShoppingListPage() {
+  const searchParams = useSearchParams();
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [activeListId, setActiveListId] = useState<string | null>(null);
   const [newItemInput, setNewItemInput] = useState('');
@@ -225,9 +227,11 @@ export default function ShoppingListPage() {
       const loaded = await getShoppingLists();
       if (cancelled) return;
       hasInitiallyLoaded.current = true;
+      const listIdFromUrl = searchParams.get('listId');
       if (loaded.length > 0) {
         setLists(loaded);
-        setActiveListId(loaded[0]!.id);
+        const preferredId = listIdFromUrl && loaded.some((l) => l.id === listIdFromUrl) ? listIdFromUrl : loaded[0]!.id;
+        setActiveListId(preferredId);
         setHydrated(true);
         return;
       }
