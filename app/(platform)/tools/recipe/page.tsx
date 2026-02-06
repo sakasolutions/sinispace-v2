@@ -422,24 +422,6 @@ export default function RecipePage() {
                     </p>
                   )}
                 </div>
-                {/* Tab-Navigation im Header (nicht im Glas-Container) */}
-                <div className="mt-4 inline-flex p-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 overflow-x-auto scrollbar-hide">
-                  {(['create', 'my-recipes', 'week-planner'] as const).map((tab) => {
-                    const labels = { create: 'Neues Rezept', 'my-recipes': 'Meine Rezepte', 'week-planner': 'Wochenplaner' };
-                    const active = activeTab === tab;
-                    return (
-                      <button
-                        key={tab}
-                        onClick={() => { setActiveTab(tab); if (tab === 'create') setWizardStep(1); }}
-                        className={`px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                          active ? 'bg-white/90 text-orange-600 shadow-sm' : 'text-white/80 hover:text-white hover:bg-white/20'
-                        }`}
-                      >
-                        {labels[tab]}
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
             </div>
           </header>
