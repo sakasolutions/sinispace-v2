@@ -3,7 +3,7 @@
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -143,6 +143,7 @@ export default function RecipePage() {
   const [isAddToListOpen, setIsAddToListOpen] = useState(false);
   const [addToListToast, setAddToListToast] = useState<{ message: string } | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; resultId: string; createdAt: Date } | null>(null);
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
 
   // ?open=resultId: Rezept direkt öffnen (z. B. von Kalender „Jetzt kochen“)
   useEffect(() => {
@@ -404,6 +405,13 @@ export default function RecipePage() {
                   <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
                     Rezept Generator
                   </h1>
+                  {activeTab === 'create' && (
+                    <p className="text-white/90 text-sm mt-1">
+                      {wizardStep === 1 && 'Worauf hast du heute Lust?'}
+                      {wizardStep === 2 && 'Was gibt der Kühlschrank her?'}
+                      {wizardStep === 3 && 'Letzte Wünsche vor dem Zaubern.'}
+                    </p>
+                  )}
                 </div>
                 <div />
               </div>
@@ -420,7 +428,7 @@ export default function RecipePage() {
               return (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => { setActiveTab(tab); if (tab === 'create') setWizardStep(1); }}
                   className={`px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                     active
                       ? 'bg-white text-orange-600 shadow-sm'
@@ -436,166 +444,195 @@ export default function RecipePage() {
           {/* Tab Content */}
       {activeTab === 'create' ? (
         <>
-      {/* Generator-Container: weiße Karte (Overlap kommt vom Content-Wrapper -mt-20) */}
+      {/* Gourmet Wizard: weißer Container mit Progress + 3 Steps */}
       <div className="relative z-20 bg-white border border-gray-200 shadow-xl rounded-[32px] p-6 sm:p-8">
-          <div className="mb-6 p-4 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-900">
-            💡 <strong>Tipp:</strong> Gib Zutaten ein → Rezept aus Resten. Oder Feld leer lassen → <strong>Inspiriere mich</strong> für eine Überraschung.
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-1 bg-orange-500 rounded-full transition-all duration-300"
+              style={{ width: wizardStep === 1 ? '33%' : wizardStep === 2 ? '66%' : '100%' }}
+            />
           </div>
-      <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12">
-        {/* LINKE SEITE: EINGABE – direkt auf bg-white, Sektionen mit H3 + Divider */}
-        <div className="h-fit">
-          <form action={formAction} className="flex flex-col gap-8">
-            <section className="pb-8 border-b border-gray-100">
-              <h3 className="text-gray-700 font-semibold mb-2 block">Gericht-Typ</h3>
-              <div className="flex flex-wrap gap-3">
-                {mealTypeOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => setMealType(option.value)}
-                    className={`px-5 py-3 rounded-xl text-sm font-medium transition-all ${
-                      mealType === option.value
-                        ? 'bg-orange-50 border border-orange-500 text-orange-700 font-bold ring-1 ring-orange-500'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <input type="hidden" name="mealType" value={mealType} />
-            </section>
-
-            <section className="pb-8 border-b border-gray-100">
-              <h3 className="text-gray-700 font-semibold mb-2 block">Anzahl Personen</h3>
-              <div className="inline-flex items-center gap-0 rounded-2xl overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setServings(Math.max(1, servings - 1))}
-                  disabled={servings <= 1}
-                  className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-orange-100 transition-all"
-                >
-                  <Minus className="w-6 h-6" />
-                </button>
-                <span className="text-2xl font-bold text-gray-800 min-w-[140px] text-center py-3 px-4">
-                  {servings} {servings === 1 ? 'Person' : 'Personen'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setServings(servings + 1)}
-                  className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-all"
-                >
-                  <Plus className="w-6 h-6" />
-                </button>
-              </div>
-              <input type="hidden" name="servings" value={servings} />
-            </section>
-
-            <section className="pb-8 border-b border-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-gray-700 font-semibold block">Was hast du im Kühlschrank?</label>
-                <Refrigerator className="w-5 h-5 text-orange-500 shrink-0" aria-hidden />
-              </div>
-              <textarea
-                name="ingredients"
-                value={ingredients}
-                onChange={(e) => setIngredients(e.target.value)}
-                placeholder="z.B. Eier, Tomaten, Reis... (leer lassen für Überraschung)"
-                className="w-full rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent p-4 text-base resize-none transition-all min-h-[200px]"
-                rows={6}
-              />
-            </section>
-
-            {ingredients.trim().length > 0 && (
-              <section
-                className="pb-8 border-b border-gray-100 animate-in fade-in duration-300"
-                key="darf-einkaufen"
-              >
-                <h3 className="text-gray-700 font-semibold mb-2 block">Darf eingekauft werden?</h3>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShoppingMode('strict')}
-                    className={`px-5 py-3 rounded-xl text-sm font-medium transition-all ${
-                      shoppingMode === 'strict'
-                        ? 'bg-orange-50 border border-orange-500 text-orange-700 font-bold ring-1 ring-orange-500'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    Nein, Reste verwerten 🦊
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShoppingMode('shopping')}
-                    className={`px-5 py-3 rounded-xl text-sm font-medium transition-all ${
-                      shoppingMode === 'shopping'
-                        ? 'bg-orange-50 border border-orange-500 text-orange-700 font-bold ring-1 ring-orange-500'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    Ja, fehlendes ergänzen 🛒
-                  </button>
-                </div>
-                {shoppingMode === 'shopping' && (
-                  <p className="text-sm text-gray-500 mt-3">
-                    Es werden fehlende Zutaten für ein besseres Gericht vorgeschlagen.
-                  </p>
-                )}
-              </section>
-            )}
-            <input type="hidden" name="shoppingMode" value={shoppingMode} />
-
-            <section>
-              <h3 className="text-gray-700 font-semibold mb-2 block">Filter & Präferenzen</h3>
-              <div className="space-y-6">
-                {filterGroups.map((group) => (
-                  <div key={group.label}>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                      {group.label}
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                      {group.options.map((option) => {
-                        const isActive = filters.includes(option.value);
-                        return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => toggleFilter(option.value)}
-                            className={`relative h-20 rounded-xl flex items-center justify-start w-full px-4 text-left transition-all duration-200 active:scale-[0.98] ${
-                              isActive
-                                ? 'bg-orange-50 border border-orange-500 text-orange-700 font-bold ring-1 ring-orange-500'
-                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                            }`}
-                          >
-                            <span className="text-sm font-medium pr-8 line-clamp-2">{option.label}</span>
-                            {isActive && (
-                              <span className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center">
-                                <Check className="w-3 h-3" />
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {filters.map((f) => (
-                <input key={f} type="hidden" name="filters" value={f} />
-              ))}
-            </section>
-
-            <div className="pt-2">
-              <SubmitButton inspirationMode={ingredients.trim().length === 0} />
-            </div>
-          </form>
-          
-          {state?.error && (
-            <p className="mt-4 text-sm font-semibold text-red-600">{state.error}</p>
-          )}
+          <h2 className="text-lg font-bold text-gray-800 mt-3">
+            {wizardStep === 1 && 'Schritt 1/3: Die Basis'}
+            {wizardStep === 2 && 'Schritt 2/3: Der Kühlschrank'}
+            {wizardStep === 3 && 'Schritt 3/3: Feinschliff'}
+          </h2>
         </div>
 
-        {/* RECHTE SEITE: ERGEBNIS – hell, clean, border-gray-100 */}
+        <form action={formAction} className="flex flex-col">
+          <input type="hidden" name="mealType" value={mealType} />
+          <input type="hidden" name="servings" value={servings} />
+          <input type="hidden" name="shoppingMode" value={shoppingMode} />
+          {filters.map((f) => (
+            <input key={f} type="hidden" name="filters" value={f} />
+          ))}
+
+          {/* Step 1: Die Basis */}
+          {wizardStep === 1 && (
+            <div className="space-y-8 animate-in fade-in duration-200">
+              <section>
+                <h3 className="text-gray-700 font-semibold mb-3 block">Gericht-Typ</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {mealTypeOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setMealType(option.value)}
+                      className={`rounded-2xl p-4 text-left transition-all border-2 ${
+                        mealType === option.value
+                          ? 'bg-orange-50 border-orange-500 text-orange-700 font-bold ring-1 ring-orange-500'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-orange-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="text-sm font-medium block">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <h3 className="text-gray-700 font-semibold mb-3 block">Anzahl Personen</h3>
+                <div className="inline-flex items-center gap-0">
+                  <button
+                    type="button"
+                    onClick={() => setServings(Math.max(1, servings - 1))}
+                    disabled={servings <= 1}
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    <Minus className="w-6 h-6" />
+                  </button>
+                  <span className="text-2xl font-bold text-gray-800 min-w-[140px] text-center py-3 px-4">
+                    {servings} {servings === 1 ? 'Person' : 'Personen'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setServings(servings + 1)}
+                    className="flex items-center justify-center w-14 h-14 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-all"
+                  >
+                    <Plus className="w-6 h-6" />
+                  </button>
+                </div>
+              </section>
+              <div className="flex justify-end pt-4">
+                <button
+                  type="button"
+                  onClick={() => setWizardStep(2)}
+                  className="inline-flex items-center gap-2 text-orange-600 font-semibold hover:text-orange-700"
+                >
+                  Weiter zu den Zutaten
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Der Kühlschrank */}
+          {wizardStep === 2 && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <section>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-gray-700 font-semibold block">Was hast du da?</label>
+                  <Refrigerator className="w-5 h-5 text-orange-500 shrink-0" aria-hidden />
+                </div>
+                <textarea
+                  name="ingredients"
+                  value={ingredients}
+                  onChange={(e) => setIngredients(e.target.value)}
+                  placeholder="z.B. Eier, Tomaten, Nudeln... (leer = Überraschung)"
+                  className="w-full rounded-2xl bg-amber-50/50 border border-gray-200 text-gray-900 placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-orange-500 p-4 text-lg resize-none transition-all min-h-[220px] shadow-inner"
+                  rows={6}
+                />
+              </section>
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Schnell hinzufügen</p>
+                <div className="flex flex-wrap gap-2">
+                  {['Tomaten', 'Eier', 'Nudeln', 'Zwiebeln', 'Käse', 'Reis', 'Hackfleisch', 'Paprika', 'Kartoffeln'].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setIngredients(prev => prev ? `${prev}, ${tag}` : tag)}
+                      className="px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-600 text-sm hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 transition-all"
+                    >
+                      + {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {ingredients.trim().length > 0 && (
+                <section className="pt-4 border-t border-gray-100">
+                  <h3 className="text-gray-700 font-semibold mb-2 block">Darf eingekauft werden?</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <button type="button" onClick={() => setShoppingMode('strict')}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${shoppingMode === 'strict' ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 font-bold' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                      Nein, Reste verwerten 🦊
+                    </button>
+                    <button type="button" onClick={() => setShoppingMode('shopping')}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${shoppingMode === 'shopping' ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 font-bold' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                      Ja, fehlendes ergänzen 🛒
+                    </button>
+                  </div>
+                </section>
+              )}
+              <div className="flex justify-between pt-4">
+                <button type="button" onClick={() => setWizardStep(1)} className="text-gray-600 font-medium hover:text-gray-800">
+                  Zurück
+                </button>
+                <button type="button" onClick={() => setWizardStep(3)} className="inline-flex items-center gap-2 text-orange-600 font-semibold hover:text-orange-700">
+                  Weiter zum Feinschliff
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Feinschliff */}
+          {wizardStep === 3 && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <section>
+                <h3 className="text-gray-700 font-semibold mb-3 block">Diät & Filter</h3>
+                <div className="space-y-4">
+                  {filterGroups.map((group) => (
+                    <div key={group.label}>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{group.label}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {group.options.map((option) => {
+                          const isActive = filters.includes(option.value);
+                          return (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => toggleFilter(option.value)}
+                              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                                isActive ? 'bg-orange-50 border-2 border-orange-500 text-orange-700 font-bold' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <div className="space-y-4 pt-6">
+                <button type="button" onClick={() => setWizardStep(2)} className="text-gray-600 font-medium hover:text-gray-800">
+                  Zurück
+                </button>
+                <SubmitButton inspirationMode={ingredients.trim().length === 0} />
+              </div>
+            </div>
+          )}
+        </form>
+
+        {state?.error && (
+          <p className="mt-4 text-sm font-semibold text-red-600">{state.error}</p>
+        )}
+
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 mt-8">
+          <div className="h-fit min-h-0" />
+          {/* RECHTE SEITE: ERGEBNIS – nur sichtbar wenn Platz (Desktop) oder unter Wizard */}
         <div className="rounded-xl border border-gray-100 bg-white min-h-[300px] sm:min-h-[400px] overflow-hidden">
           {state?.result && state.result.includes('🔒 Premium Feature') ? (
             <div className="p-4 sm:p-5 md:p-6">
