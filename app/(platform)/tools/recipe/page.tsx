@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect } from 'react';
@@ -11,6 +12,15 @@ import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { cn } from '@/lib/utils';
 import { toolInfoMap } from '@/lib/tool-info';
+
+/** Gleiche Glass-Karten-Styles wie Home (GourmetCockpit / Dashboard) */
+const DASHBOARD_CARD_STYLE: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.16)',
+  border: '1px solid rgba(255,255,255,0.22)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
+  WebkitBackdropFilter: 'blur(8px)',
+  backdropFilter: 'blur(8px)',
+};
 import { getWorkspaceResults, deleteResult, cleanupOldResults, getResultById } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
@@ -402,8 +412,15 @@ export default function RecipePage() {
                   Zurück zur Übersicht
                 </Link>
                 <div className="mt-2">
-                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Rezept Generator</h1>
-                  <p className="text-orange-50 text-lg md:text-xl opacity-90">Dein Smart-Chef für den Kühlschrank.</p>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1" style={{ letterSpacing: '-0.3px' }}>
+                    Rezept Generator
+                  </h1>
+                  <p className="text-white/90 text-lg md:text-xl">Dein Smart-Chef für den Kühlschrank.</p>
+                  {activeTab === 'create' && (
+                    <p className="text-white/70 text-sm font-medium mt-2" style={{ letterSpacing: '0.05em' }}>
+                      Schritt {wizardStep} von 3
+                    </p>
+                  )}
                 </div>
                 {/* Tab-Navigation im Header (nicht im Glas-Container) */}
                 <div className="mt-4 inline-flex p-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 overflow-x-auto scrollbar-hide">
@@ -430,29 +447,10 @@ export default function RecipePage() {
           {/* Content: Wizard startet direkt mit Glas-Bühne (keine Select Bar mehr davor) */}
           <div className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
 
-          {/* Tab Content */}
+          {/* Tab Content – One decision per screen, floating cards, sticky CTA */}
       {activeTab === 'create' ? (
-        <>
-      {/* Gourmet Wizard: Premium-Glas-Bühne (Dashboard-Look) */}
-      <div className="relative z-20 -mt-16 md:-mt-20 mx-4 md:mx-auto max-w-3xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl rounded-[32px] p-6 sm:p-8 overflow-hidden">
-        {/* Innen-Schein: Lichtreflexion am oberen Rand */}
-        <div className="inset-0 bg-gradient-to-b from-white/40 to-transparent rounded-[32px] pointer-events-none absolute" aria-hidden />
-        {/* Progress Bar – Glowing Glass Tube */}
-        <div className="mb-6">
-          <div className="h-1 bg-white/20 rounded-full overflow-hidden">
-            <div
-              className="h-1 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(249,115,22,0.6)]"
-              style={{ width: wizardStep === 1 ? '33%' : wizardStep === 2 ? '66%' : '100%' }}
-            />
-          </div>
-          <h2 className="text-lg font-bold text-gray-800 mt-3">
-            {wizardStep === 1 && 'Schritt 1/3: Die Basis'}
-            {wizardStep === 2 && 'Schritt 2/3: Der Kühlschrank'}
-            {wizardStep === 3 && 'Schritt 3/3: Feinschliff'}
-          </h2>
-        </div>
-
-        <form action={formAction} className="flex flex-col">
+        <React.Fragment>
+        <form action={formAction} id="recipe-wizard-form" className="flex flex-col min-h-[50vh]">
           <input type="hidden" name="mealType" value={mealType} />
           <input type="hidden" name="servings" value={servings} />
           <input type="hidden" name="shoppingMode" value={shoppingMode} />
@@ -460,171 +458,201 @@ export default function RecipePage() {
             <input key={f} type="hidden" name="filters" value={f} />
           ))}
 
-          {/* Step 1: Die Basis – Dashboard-Glas-Buttons */}
+          {/* Step 1: Nur Gericht-Typ – schwebende Premium-Karten wie Home */}
           {wizardStep === 1 && (
-            <div className="space-y-8 animate-in fade-in duration-200">
-              <section>
-                <h3 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3 ml-1">Gericht-Typ</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {mealTypeOptions.map((option) => {
-                    const isActive = mealType === option.value;
-                    const Icon = option.Icon;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => setMealType(option.value)}
-                        className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${
-                          isActive
-                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border border-transparent shadow-lg shadow-orange-500/20 scale-[1.02]'
-                            : 'bg-white/60 backdrop-blur-md border border-white/70 shadow-sm text-slate-700 font-medium hover:bg-white/80 hover:scale-[1.02]'
-                        }`}
-                      >
-                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-600'}`} />
-                        <span className="text-sm font-medium">{option.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-              <section>
-                <h3 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3 ml-1">Anzahl Personen</h3>
-                <div className="inline-flex items-center justify-between bg-white/60 border border-white/70 rounded-full p-2 shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => setServings(Math.max(1, servings - 1))}
-                    disabled={servings <= 1}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 hover:bg-white text-orange-600 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <span className="font-bold text-xl text-slate-800 min-w-[120px] text-center">
-                    {servings} {servings === 1 ? 'Person' : 'Personen'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setServings(servings + 1)}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 hover:bg-white text-orange-600 shadow-sm transition-all"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-              </section>
-              <div className="flex justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={() => setWizardStep(2)}
-                  className="inline-flex items-center gap-2 text-orange-600 font-semibold hover:text-orange-700"
-                >
-                  Weiter zu den Zutaten
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+            <section
+              className="relative z-20 -mt-16 md:-mt-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
+              key="step1"
+            >
+              <div className="h-5 mb-4" aria-hidden />
+              <div className="grid grid-cols-2 gap-4 md:gap-5 max-w-3xl mx-auto">
+                {mealTypeOptions.map((option) => {
+                  const isActive = mealType === option.value;
+                  const Icon = option.Icon;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setMealType(option.value)}
+                      className={cn(
+                        'group relative flex flex-col items-start min-h-[140px] rounded-2xl overflow-hidden p-5 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
+                        isActive
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 scale-[1.02] border border-transparent'
+                          : 'hover:scale-[1.02]'
+                      )}
+                      style={isActive ? undefined : DASHBOARD_CARD_STYLE}
+                    >
+                      <div className={cn(
+                        'w-14 h-14 rounded-[20px] flex items-center justify-center shrink-0 mb-3',
+                        isActive ? 'bg-white/20' : 'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30'
+                      )}>
+                        <Icon className={cn('w-7 h-7 shrink-0', isActive ? 'text-white' : 'text-white')} strokeWidth={2.5} aria-hidden />
+                      </div>
+                      <h3 className={cn('font-semibold text-[1rem] leading-tight line-clamp-2', isActive ? 'text-white' : 'text-gray-900')}>
+                        {option.label}
+                      </h3>
+                    </button>
+                  );
+                })}
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Step 2: Der Kühlschrank */}
+          {/* Step 2: Nur Personenanzahl – eine Karte */}
           {wizardStep === 2 && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <section>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-gray-700 font-semibold block">Was hast du da?</label>
-                  <Refrigerator className="w-5 h-5 text-orange-500 shrink-0" aria-hidden />
-                </div>
-                <textarea
-                  name="ingredients"
-                  value={ingredients}
-                  onChange={(e) => setIngredients(e.target.value)}
-                  placeholder="z.B. Eier, Tomaten, Nudeln... (leer = Überraschung)"
-                  className="w-full rounded-2xl bg-white/40 border border-white/30 text-gray-900 placeholder:text-gray-500 focus:bg-white/60 focus:border-orange-300 focus:ring-4 focus:ring-orange-500/10 p-4 text-lg resize-none transition-all min-h-[220px]"
-                  rows={6}
-                />
-              </section>
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Schnell hinzufügen</p>
-                <div className="flex flex-wrap gap-2">
-                  {['Tomaten', 'Eier', 'Nudeln', 'Zwiebeln', 'Käse', 'Reis', 'Hackfleisch', 'Paprika', 'Kartoffeln'].map((tag) => (
+            <section
+              className="relative z-20 -mt-16 md:-mt-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
+              key="step2"
+            >
+              <div className="h-5 mb-4" aria-hidden />
+              <div className="max-w-md mx-auto">
+                <div
+                  className="rounded-2xl overflow-hidden p-6 sm:p-8 flex flex-col items-center justify-center min-h-[200px]"
+                  style={DASHBOARD_CARD_STYLE}
+                >
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 mb-4">Für wie viele Personen?</h3>
+                  <div className="inline-flex items-center justify-between bg-white/60 rounded-full p-2 border border-white/40 shadow-inner gap-2">
                     <button
-                      key={tag}
                       type="button"
-                      onClick={() => setIngredients(prev => prev ? `${prev}, ${tag}` : tag)}
-                      className="px-3 py-1.5 rounded-full bg-white/30 backdrop-blur-md border border-white/40 shadow-sm text-gray-600 text-sm hover:bg-white/50 transition-all"
+                      onClick={() => setServings(Math.max(1, servings - 1))}
+                      disabled={servings <= 1}
+                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 shadow-sm text-orange-600 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-transform"
                     >
-                      + {tag}
+                      <Minus className="w-6 h-6" />
                     </button>
-                  ))}
-                </div>
-              </div>
-              {ingredients.trim().length > 0 && (
-                <section className="pt-4 border-t border-gray-100">
-                  <h3 className="text-gray-700 font-semibold mb-2 block">Darf eingekauft werden?</h3>
-                  <div className="flex flex-wrap gap-3">
-                    <button type="button" onClick={() => setShoppingMode('strict')}
-                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all backdrop-blur-md shadow-sm ${shoppingMode === 'strict' ? 'bg-orange-500/10 border border-orange-500/50 text-orange-700 font-bold shadow-[inset_0_0_15px_rgba(249,115,22,0.1)]' : 'bg-white/30 border border-white/40 text-gray-600 hover:bg-white/50'}`}>
-                      Nein, Reste verwerten 🦊
-                    </button>
-                    <button type="button" onClick={() => setShoppingMode('shopping')}
-                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all backdrop-blur-md shadow-sm ${shoppingMode === 'shopping' ? 'bg-orange-500/10 border border-orange-500/50 text-orange-700 font-bold shadow-[inset_0_0_15px_rgba(249,115,22,0.1)]' : 'bg-white/30 border border-white/40 text-gray-600 hover:bg-white/50'}`}>
-                      Ja, fehlendes ergänzen 🛒
+                    <span className="font-bold text-2xl text-gray-900 min-w-[100px] text-center">
+                      {servings} {servings === 1 ? 'Person' : 'Personen'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setServings(servings + 1)}
+                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 shadow-sm text-orange-600 hover:scale-105 active:scale-95 transition-transform"
+                    >
+                      <Plus className="w-6 h-6" />
                     </button>
                   </div>
-                </section>
-              )}
-              <div className="flex justify-between pt-4">
-                <button type="button" onClick={() => setWizardStep(1)} className="text-gray-600 font-medium hover:text-gray-800">
-                  Zurück
-                </button>
-                <button type="button" onClick={() => setWizardStep(3)} className="inline-flex items-center gap-2 text-orange-600 font-semibold hover:text-orange-700">
-                  Weiter zum Feinschliff
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+                </div>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Step 3: Feinschliff */}
+          {/* Step 3: Nur Zutaten + Optionen – eine Karte, minimal lines */}
           {wizardStep === 3 && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <section>
-                <h3 className="text-gray-700 font-semibold mb-3 block">Diät & Filter</h3>
-                <div className="space-y-4">
-                  {filterGroups.map((group) => (
-                    <div key={group.label}>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{group.label}</p>
+            <section
+              className="relative z-20 -mt-16 md:-mt-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
+              key="step3"
+            >
+              <div className="h-5 mb-4" aria-hidden />
+              <div className="max-w-2xl mx-auto space-y-4">
+                <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={DASHBOARD_CARD_STYLE}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Refrigerator className="w-5 h-5 text-orange-500 shrink-0" aria-hidden />
+                    <h3 className="font-semibold text-[1.0625rem] text-gray-900">Was hast du da?</h3>
+                  </div>
+                  <textarea
+                    name="ingredients"
+                    value={ingredients}
+                    onChange={(e) => setIngredients(e.target.value)}
+                    placeholder="z.B. Eier, Tomaten, Nudeln… (leer = Überraschung)"
+                    className="w-full rounded-xl bg-white/50 border border-white/40 text-gray-900 placeholder:text-gray-500 focus:bg-white/70 focus:border-orange-300 focus:ring-2 focus:ring-orange-500/20 p-4 text-base resize-none transition-all min-h-[160px]"
+                    rows={4}
+                  />
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-3 mb-2">Schnell hinzufügen</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Tomaten', 'Eier', 'Nudeln', 'Zwiebeln', 'Käse', 'Reis', 'Hackfleisch', 'Paprika', 'Kartoffeln'].map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setIngredients(prev => prev ? `${prev}, ${tag}` : tag)}
+                        className="px-3 py-1.5 rounded-full bg-white/40 border border-white/50 text-gray-700 text-sm font-medium hover:bg-white/60 active:scale-95 transition-all"
+                      >
+                        + {tag}
+                      </button>
+                    ))}
+                  </div>
+                  {ingredients.trim().length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-white/30">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Darf eingekauft werden?</p>
                       <div className="flex flex-wrap gap-2">
-                        {group.options.map((option) => {
-                          const isActive = filters.includes(option.value);
-                          return (
-                            <button
-                              key={option.value}
-                              type="button"
-                              onClick={() => toggleFilter(option.value)}
-                              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all backdrop-blur-md shadow-sm ${
-                                isActive ? 'bg-orange-500/10 border border-orange-500/50 text-orange-700 font-bold shadow-[inset_0_0_15px_rgba(249,115,22,0.1)]' : 'bg-white/30 border border-white/40 text-gray-600 hover:bg-white/50'
-                              }`}
-                            >
-                              {option.label}
-                            </button>
-                          );
-                        })}
+                        <button type="button" onClick={() => setShoppingMode('strict')}
+                          className={cn(
+                            'px-4 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95',
+                            shoppingMode === 'strict' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white/40 border border-white/50 text-gray-700 hover:bg-white/60'
+                          )}>
+                          Reste verwerten
+                        </button>
+                        <button type="button" onClick={() => setShoppingMode('shopping')}
+                          className={cn(
+                            'px-4 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95',
+                            shoppingMode === 'shopping' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white/40 border border-white/50 text-gray-700 hover:bg-white/60'
+                          )}>
+                          Fehlendes ergänzen
+                        </button>
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              </section>
-              <div className="space-y-4 pt-6">
-                <button type="button" onClick={() => setWizardStep(2)} className="text-gray-600 font-medium hover:text-gray-800">
+                {/* Filter als zweite Karte, kompakt */}
+                <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={DASHBOARD_CARD_STYLE}>
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 mb-3">Diät & Filter</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {filterGroups.flatMap((g) => g.options).map((option) => {
+                      const isActive = filters.includes(option.value);
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => toggleFilter(option.value)}
+                          className={cn(
+                            'px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95',
+                            isActive ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white/40 border border-white/50 text-gray-700 hover:bg-white/60'
+                          )}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {state?.error && (
+            <p className="mt-4 mx-4 text-sm font-semibold text-red-600 text-center">{state.error}</p>
+          )}
+
+          {/* Sticky Bottom CTA – wie „Vorschlag generieren“ auf Home */}
+          <div className="sticky bottom-0 left-0 right-0 z-30 mt-auto pt-6 pb-8 px-4 sm:px-6 md:px-8 bg-gradient-to-t from-white via-white/95 to-transparent pt-12">
+            <div className="max-w-3xl mx-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              {wizardStep > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setWizardStep((s) => s - 1 as 1 | 2 | 3)}
+                  className="order-2 sm:order-1 px-5 py-3.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-all active:scale-[0.98]"
+                >
                   Zurück
                 </button>
-                <SubmitButton inspirationMode={ingredients.trim().length === 0} />
+              )}
+              <div className={cn('flex-1 flex', wizardStep > 1 ? 'order-1 sm:order-2' : '')}>
+                {wizardStep < 3 ? (
+                  <button
+                    type="button"
+                    onClick={() => setWizardStep((s) => s + 1 as 1 | 2 | 3)}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all active:scale-[0.98]"
+                  >
+                    {wizardStep === 1 ? 'Weiter' : 'Weiter zu Zutaten'}
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <div className="w-full">
+                    <SubmitButton inspirationMode={ingredients.trim().length === 0} />
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
         </form>
-
-        {state?.error && (
-          <p className="mt-4 text-sm font-semibold text-red-600">{state.error}</p>
-        )}
 
         <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 mt-8">
           <div className="h-fit min-h-0" />
@@ -764,8 +792,7 @@ export default function RecipePage() {
           )}
         </div>
       </div>
-      </div>
-      </>
+      </React.Fragment>
       ) : activeTab === 'my-recipes' ? (
         selectedRecipe ? (
           /* Rezept-Detail-View */
