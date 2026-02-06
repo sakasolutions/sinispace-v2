@@ -48,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className="h-full" style={{ 
+    <html lang="de" className="h-full bg-white" style={{ 
       margin: 0, 
       padding: 0,
       height: '100%',
@@ -60,7 +60,7 @@ export default function RootLayout({
       WebkitTouchCallout: 'none',
       scrollBehavior: 'smooth',
     } as React.CSSProperties}>
-      <body className={`${inter.variable} ${plusJakartaSans.variable} ${plusJakartaSans.className} text-gray-900 antialiased tracking-tight relative`} style={{ 
+      <body className={`${inter.variable} bg-white ${plusJakartaSans.variable} ${plusJakartaSans.className} text-gray-900 antialiased tracking-tight relative`} style={{ 
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
         WebkitOverflowScrolling: 'touch',
@@ -76,9 +76,9 @@ export default function RootLayout({
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
       } as React.CSSProperties}>
-        {/* Globaler Hintergrund: oben dezent warm, unten sauber weiß (kein dunkler Footer-Balken) */}
+        {/* Globaler Hintergrund: oben dezent warm, unten zwingend weiß (to-white killt beigen Balken) */}
         <div 
-          className="fixed inset-0 z-[-3] h-full w-full pointer-events-none bg-gradient-to-b from-orange-50/40 via-white to-white"
+          className="fixed inset-0 z-[-3] h-full w-full pointer-events-none bg-gradient-to-b from-rose-50 via-white to-white"
           aria-hidden="true"
         />
         
