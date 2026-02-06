@@ -781,7 +781,7 @@ export default function DashboardClient() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full relative bg-gray-50/50 overflow-x-hidden"
+      className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-orange-50/30 via-white to-white"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -850,8 +850,8 @@ export default function DashboardClient() {
           )}
         </div>
 
-        {/* Layer 1: Text höher (pt-12 mobil), weniger Abstand nach unten */}
-        <div className="relative z-10 w-full pt-12 md:pt-20 px-3 sm:px-6 md:px-8 pb-4">
+        {/* Layer 1: Mehr Luft nach oben (pt-20), Hintergrund bleibt top-0 */}
+        <div className="relative z-10 w-full pt-20 md:pt-24 px-3 sm:px-6 md:px-8 pb-4">
           <div className="max-w-2xl">
             <h1
               className={cn(
@@ -912,7 +912,7 @@ export default function DashboardClient() {
       </header>
 
       {/* Main Container: Grid ragt in den komprimierten Header (gleicher optischer Schnitt in die oberen Karten) */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-[calc(70px+env(safe-area-inset-bottom))] md:pb-32 -mt-20">
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
         {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">

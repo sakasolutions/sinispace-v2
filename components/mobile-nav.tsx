@@ -36,7 +36,7 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed left-0 right-0 z-50 w-full px-3 block md:hidden"
+      className="fixed left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[400px] block md:hidden"
       style={{ bottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
       aria-label="Hauptnavigation"
     >

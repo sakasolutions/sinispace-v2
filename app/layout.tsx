@@ -76,9 +76,9 @@ export default function RootLayout({
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
       } as React.CSSProperties}>
-        {/* Hintergrund nur für Non-Platform-Seiten (Login etc.) - Platform nutzt AppBackground */}
+        {/* Globaler Hintergrund: oben dezent warm, unten sauber weiß (kein dunkler Footer-Balken) */}
         <div 
-          className="fixed inset-0 z-[-3] h-full w-full pointer-events-none bg-gray-50"
+          className="fixed inset-0 z-[-3] h-full w-full pointer-events-none bg-gradient-to-b from-orange-50/40 via-white to-white"
           aria-hidden="true"
         />
         
