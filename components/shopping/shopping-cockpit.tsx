@@ -117,15 +117,16 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
   return (
     <div className="min-h-screen w-full relative overflow-x-visible bg-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
       {/* Universal Header – identisch Gourmet-Standard, Maße wie spezifiziert */}
+      {/* Universal Header – gleiche Maße wie Gourmet-Planer & Dashboard (h-[280px], rounded-b-[40px]) */}
       <header
         className={cn(
-          'relative z-[1] h-[480px]',
+          'relative z-[1] min-h-[280px]',
           'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
         <div
-          className="absolute top-0 left-0 w-full h-[480px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
+          className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
           style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-transparent z-0" aria-hidden />
