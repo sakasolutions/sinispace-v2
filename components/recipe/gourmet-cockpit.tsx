@@ -4,15 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  CalendarDays,
-  BookHeart,
-  Utensils,
-  ShoppingBasket,
   ChefHat,
   Loader2,
   Sparkles,
   Search,
   Check,
+  HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGourmetDashboardData, type GourmetDashboardData } from '@/actions/gourmet-dashboard-actions';
@@ -36,19 +33,11 @@ function formatMealLabel(dateStr: string): string {
   return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'short' });
 }
 
-/** Glossy Icon (Water Drop): Squircle + Gradient + Glanz + Shadow */
-function GlossyIcon({
-  icon: Icon,
-  gradient,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  gradient: string;
-}) {
+/** App-Icon: Emoji auf weichem weißen Kreis, skaliert bei group-hover */
+function AppIcon({ emoji }: { emoji: string }) {
   return (
-    <div className="relative w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner drop-shadow-md">
-      <div className={cn('absolute inset-0', gradient)} aria-hidden />
-      <div className="absolute top-0 left-0 w-full h-1/2 bg-white/30 rounded-t-2xl" aria-hidden />
-      <Icon className="relative z-10 w-6 h-6 text-white" />
+    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shrink-0">
+      <span className="text-xl md:text-2xl leading-none" aria-hidden>{emoji}</span>
     </div>
   );
 }
@@ -69,6 +58,7 @@ export function GourmetCockpit({
   const router = useRouter();
   const [data, setData] = useState<GourmetDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   useEffect(() => {
     getGourmetDashboardData().then(setData).finally(() => setLoading(false));
@@ -87,92 +77,136 @@ export function GourmetCockpit({
 
       {/* Content über dem Hintergrund: Notch-Fix + Footer-Gap */}
       <div className="relative z-10 min-h-screen pt-[80px] md:pt-24 pb-32">
-      {/* Top Bar: Titel + Search */}
-      <div className="flex items-center justify-between px-6 mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-          Gourmet Planer
+      {/* Top Bar: Titel + Info + Search */}
+      <div className="flex items-center justify-between gap-3 px-6 mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mt-1">
+          Deine Küche
         </h1>
-        <button
-          type="button"
-          aria-label="Suchen"
-          className="w-10 h-10 rounded-full bg-orange-50/50 backdrop-blur flex items-center justify-center border border-orange-200/50 text-orange-500 hover:bg-orange-50/70 transition-colors"
-        >
-          <Search className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Smart Hero Card – Premium Glass */}
-      <div className="w-full px-4 sm:px-6 mb-6">
-        <div className="w-full p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-white/80 dark:border-white/30 shadow-md">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-            </div>
-          ) : hasMealToday && data?.nextMeal ? (
-            /* Szenario B: Essen geplant – Bild links, Name rechts, Zeit-Badge */
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-orange-100 to-rose-100 dark:from-orange-900/40 dark:to-rose-900/40 flex items-center justify-center shrink-0 overflow-hidden">
-                <ChefHat className="w-10 h-10 sm:w-12 sm:h-12 text-orange-500 dark:text-orange-400" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 mb-2">
-                  {formatMealLabel(data.nextMeal.date)}
-                </span>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">
-                  {data.nextMeal.title}
-                </h2>
-                {data.nextMeal.resultId && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      router.push(`/tools/recipe?open=${encodeURIComponent(data.nextMeal!.resultId!)}`)
-                    }
-                    className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all"
-                  >
-                    <ChefHat className="w-4 h-4" />
-                    Jetzt kochen
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Szenario A: Nichts geplant */
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h2 className="font-bold text-lg text-gray-900 dark:text-white">
-                  Was kochen wir heute?
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                  Lass dich inspirieren.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={onVorschlagGenerieren}
-                className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all"
-              >
-                <Sparkles className="w-5 h-5" />
-                Vorschlag generieren
-              </button>
-            </div>
-          )}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Info"
+            onClick={() => setInfoOpen(true)}
+            className="w-8 h-8 rounded-full border border-gray-300/50 flex items-center justify-center text-gray-500 hover:bg-white/50 transition-colors shrink-0"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Suchen"
+            className="w-10 h-10 rounded-full bg-orange-50/50 backdrop-blur flex items-center justify-center border border-orange-200/50 text-orange-500 hover:bg-orange-50/70 transition-colors"
+          >
+            <Search className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
-      {/* 2x2 Grid – direkt unter der Hero Card */}
+      {/* Info-Modal */}
+      {infoOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => setInfoOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl max-w-sm w-full shadow-2xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+              Hier planst du deine Woche, verwaltest Rezepte und erstellst Einkaufslisten.
+            </p>
+            <button
+              type="button"
+              onClick={() => setInfoOpen(false)}
+              className="mt-4 w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 transition-colors"
+            >
+              Verstanden
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Smart Hero Card – Tasty: Textur-Bild + Orange-Overlay */}
+      <div className="w-full px-4 sm:px-6 mb-6">
+        <div
+          className="relative w-full p-6 rounded-[32px] overflow-hidden border border-white/80 dark:border-white/30 shadow-sm shadow-orange-500/5"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          <div className="absolute inset-0 bg-orange-500/80 dark:bg-orange-600/85" aria-hidden />
+          <div className="relative z-10">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-white" />
+              </div>
+            ) : hasMealToday && data?.nextMeal ? (
+              /* Szenario B: Essen geplant */
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 overflow-hidden border border-white/30">
+                  <ChefHat className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-medium bg-white/25 text-white border border-white/30 mb-2">
+                    {formatMealLabel(data.nextMeal.date)}
+                  </span>
+                  <h2 className="text-lg font-bold text-white truncate">
+                    {data.nextMeal.title}
+                  </h2>
+                  {data.nextMeal.resultId && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(`/tools/recipe?open=${encodeURIComponent(data.nextMeal!.resultId!)}`)
+                      }
+                      className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-orange-600 font-semibold text-sm shadow-lg hover:bg-white/90 transition-all"
+                    >
+                      <ChefHat className="w-4 h-4" />
+                      Jetzt kochen
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Szenario A: Nichts geplant */
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="font-bold text-lg text-white">
+                    Was kochen wir heute?
+                  </h2>
+                  <p className="text-sm text-white/90 mt-0.5">
+                    Lass dich inspirieren.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onVorschlagGenerieren}
+                  className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white text-orange-600 font-semibold shadow-lg hover:bg-white/90 transition-all"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  Vorschlag generieren
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 2x2 Grid – Mobile-kompakt, Desktop luftig; App-Icons mit Emojis */}
       <div className="px-4 sm:px-6 mb-6">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 gap-4">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 gap-3 md:gap-4">
           <button
             type="button"
             onClick={onWochePlanen}
-            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-white/80 dark:border-white/30 shadow-md relative overflow-hidden text-left hover:bg-white/70 dark:hover:bg-white/25 transition-colors"
+            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-pointer relative overflow-hidden text-left"
           >
-            <GlossyIcon icon={CalendarDays} gradient="bg-gradient-to-br from-orange-500 to-amber-500" />
-            <span className="font-semibold text-gray-900 dark:text-white">Woche planen</span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">Dein Essensplan</span>
+            <AppIcon emoji="📅" />
+            <span className="font-semibold text-sm md:text-lg text-gray-900 dark:text-white">Woche planen</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400 hidden md:block">Dein Essensplan</span>
             {data != null && (
-              <span className="text-xs text-gray-500 dark:text-gray-500 absolute bottom-4 right-4">
-                {data.plannedDays}/7 Tage
+              <span className="text-xs text-gray-500 dark:text-gray-500 absolute bottom-3 right-3 md:bottom-4 md:right-4">
+                {data.plannedDays}/7
               </span>
             )}
           </button>
@@ -180,26 +214,26 @@ export function GourmetCockpit({
           <button
             type="button"
             onClick={onMeineGerichte}
-            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-white/80 dark:border-white/30 shadow-md relative overflow-hidden text-left hover:bg-white/70 dark:hover:bg-white/25 transition-colors"
+            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-pointer relative overflow-hidden text-left"
           >
-            <GlossyIcon icon={BookHeart} gradient="bg-gradient-to-br from-rose-500 to-pink-500" />
-            <span className="font-semibold text-gray-900 dark:text-white">Sammlung</span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">Deine Favoriten</span>
+            <AppIcon emoji="📖" />
+            <span className="font-semibold text-sm md:text-lg text-gray-900 dark:text-white">Sammlung</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400 hidden md:block">Deine Favoriten</span>
             {data != null && (
-              <span className="text-xs text-gray-500 dark:text-gray-500 absolute bottom-4 right-4">
+              <span className="text-xs text-gray-500 dark:text-gray-500 absolute bottom-3 right-3 md:bottom-4 md:right-4">
                 {data.recipeCount} Rezepte
               </span>
             )}
           </button>
 
-          {/* Karte 3: Heute – Status (geplant / nichts geplant), Premium Glass + Orange-Tint */}
-          <div className="flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-orange-200/60 dark:border-orange-700/40 shadow-md relative overflow-hidden text-left">
-            <GlossyIcon icon={Utensils} gradient="bg-gradient-to-br from-amber-500 to-orange-500" />
-            <span className="font-semibold text-gray-900 dark:text-white">Heute</span>
+          {/* Karte 3: Heute */}
+          <div className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-default relative overflow-hidden text-left">
+            <AppIcon emoji="🍝" />
+            <span className="font-semibold text-sm md:text-lg text-gray-900 dark:text-white">Heute</span>
             {loading ? (
               <span className="text-sm text-gray-500 dark:text-gray-500">…</span>
             ) : hasMealToday && data?.nextMeal ? (
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                   {data.nextMeal.title}
                 </p>
@@ -212,13 +246,13 @@ export function GourmetCockpit({
             )}
           </div>
 
-          {/* Karte 4: Einkauf – Status, verlinkt zur Einkaufsliste, Premium Glass + Rose-Tint */}
+          {/* Karte 4: Einkauf */}
           <Link
             href="/tools/shopping-list"
-            className="group flex flex-col items-start gap-3 p-6 rounded-[32px] bg-white/60 dark:bg-white/20 backdrop-blur-xl border border-rose-200/60 dark:border-rose-700/40 shadow-md relative overflow-hidden text-left hover:bg-white/70 dark:hover:bg-white/25 transition-colors"
+            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] bg-white/70 dark:bg-white/25 backdrop-blur-xl border border-white dark:border-white/30 shadow-sm shadow-orange-500/5 transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/10 cursor-pointer relative overflow-hidden text-left"
           >
-            <GlossyIcon icon={ShoppingBasket} gradient="bg-gradient-to-br from-rose-500 to-pink-500" />
-            <span className="font-semibold text-gray-900 dark:text-white">Einkaufsliste</span>
+            <AppIcon emoji="🛒" />
+            <span className="font-semibold text-sm md:text-lg text-gray-900 dark:text-white">Einkaufsliste</span>
             {data == null ? (
               <span className="text-sm text-gray-500 dark:text-gray-500">…</span>
             ) : data.shoppingCount > 0 ? (
