@@ -10,9 +10,14 @@ import {
   Search,
   Check,
   HelpCircle,
+  CalendarDays,
+  BookHeart,
+  Utensils,
+  ShoppingBasket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGourmetDashboardData, type GourmetDashboardData } from '@/actions/gourmet-dashboard-actions';
+import { PageTransition } from '@/components/ui/PageTransition';
 
 function getTodayStr(): string {
   const d = new Date();
@@ -33,14 +38,14 @@ function formatMealLabel(dateStr: string): string {
   return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'short' });
 }
 
-/** App-Icon: Emoji auf weichem weißen Kreis, skaliert bei group-hover */
-function AppIcon({ emoji }: { emoji: string }) {
-  return (
-    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shrink-0">
-      <span className="text-xl md:text-2xl leading-none" aria-hidden>{emoji}</span>
-    </div>
-  );
-}
+/** Gleiche Glass-Karten-Styles wie Dashboard (1:1) */
+const DASHBOARD_CARD_STYLE: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.16)',
+  border: '1px solid rgba(255,255,255,0.22)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
+  WebkitBackdropFilter: 'blur(8px)',
+  backdropFilter: 'blur(8px)',
+};
 
 type Props = {
   onVorschlagGenerieren: () => void;
@@ -67,86 +72,81 @@ export function GourmetCockpit({
   const today = getTodayStr();
   const hasMealToday = data?.nextMeal && data.nextMeal.date === today;
 
-  const heroImageUrl = 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1200&q=85';
-
   return (
-    <div className="relative w-full min-h-screen min-h-[100dvh] bg-orange-50/30" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-      {/* Hintergrund: Creme + Blobs (z-0), liegt unter dem Hero */}
-      <div className="absolute inset-0 z-0 min-h-full overflow-hidden pointer-events-none bg-orange-50/30" aria-hidden>
-        <div className="absolute top-0 left-0 w-[80vw] max-w-[500px] h-[400px] rounded-full bg-orange-400/30 blur-3xl -translate-x-1/4 -translate-y-1/4" aria-hidden />
-        <div className="absolute bottom-0 right-0 w-[70vw] max-w-[450px] h-[350px] rounded-full bg-amber-300/30 blur-3xl translate-x-1/4 translate-y-1/4" aria-hidden />
-      </div>
-
-      {/* Hero Header (Dashboard-Stil): Full Width, absolute, rounded-b-[50px], Bild + Gradient, über Creme */}
-      <div
-        className="absolute top-0 left-0 w-full h-[420px] md:h-[500px] z-[1] rounded-b-[50px] overflow-hidden bg-cover bg-center"
-        style={{ backgroundImage: `url(${heroImageUrl})` }}
+    <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
+      {/* Header: 1:1 wie Dashboard – komprimierte Höhe, Layer 0 + Layer 1 */}
+      <header
+        className={cn(
+          'relative z-[1] min-h-[280px]',
+          'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
+          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
+        )}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-600/90 to-amber-600/80" aria-hidden />
-      </div>
-
-      {/* Header Content: Titel, Icons, Hero-Text, CTA (weiß auf Orange) */}
-      <div className="relative z-10 pt-[80px] md:pt-20 px-4 sm:px-6 text-white">
-        {/* Top Row: Gourmet Planer + Info + Suche (Glas-Optik) */}
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold tracking-tight">Gourmet Planer</h1>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Info"
-              onClick={() => setInfoOpen(true)}
-              className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/20 transition-colors shrink-0"
-            >
-              <HelpCircle className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              aria-label="Suchen"
-              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center border border-white/40 text-white hover:bg-white/30 transition-colors"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-          </div>
+        {/* Layer 0: Hintergrund – wie Dashboard Sunrise (Orange/Rose/Violet + Blobs + Sun) */}
+        <div
+          className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] transition-all duration-1000 bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200"
+          aria-hidden
+        >
+          <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-orange-200/60 blur-[80px] pointer-events-none" aria-hidden />
+          <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-purple-200/60 blur-[80px] pointer-events-none" aria-hidden />
         </div>
 
-        {/* Hero Text + CTA (im Header, unter dem Titel) */}
-        <div className="mt-10 max-w-xl">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-white" />
-            </div>
-          ) : hasMealToday && data?.nextMeal ? (
-            <>
-              <h2 className="text-2xl font-semibold">Was kochen wir heute?</h2>
-              <p className="text-orange-100 mt-1">Geplant: {data.nextMeal.title}</p>
-              <button
-                type="button"
-                onClick={() =>
-                  data.nextMeal?.resultId &&
-                  router.push(`/tools/recipe?open=${encodeURIComponent(data.nextMeal.resultId)}`)
-                }
-                className="w-full py-4 rounded-xl mt-6 bg-white text-orange-600 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform flex items-center justify-center gap-2"
-              >
-                <ChefHat className="w-5 h-5" />
-                Jetzt kochen
-              </button>
-            </>
-          ) : (
-            <>
-              <h2 className="text-2xl font-semibold">Was kochen wir heute?</h2>
-              <p className="text-orange-100 mt-1">Lass dich inspirieren.</p>
+        {/* Layer 1: Titel, Subline, Chips – wie Dashboard */}
+        <div className="dashboard-header-pt md:pt-24 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="max-w-2xl min-w-0">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-gray-900" style={{ letterSpacing: '-0.3px' }}>
+                Gourmet Planer
+              </h1>
+              <p className="text-sm sm:text-base mt-1 font-normal text-gray-500 opacity-65" style={{ letterSpacing: '0.1px' }}>
+                Was kochen wir heute?
+              </p>
+              {/* Info-Chips wie Dashboard (Gourmet-Daten) */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/20 border border-white/20 text-gray-800">
+                  <CalendarDays className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                  {data != null ? `${data.plannedDays}/7 Tage` : '…'}
+                </span>
+                <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/20 border border-white/20 text-gray-800">
+                  <BookHeart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                  {data != null ? `${data.recipeCount} Rezepte` : '…'}
+                </span>
+                <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/20 border border-white/20 text-gray-800">
+                  <ShoppingBasket className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                  {data != null ? (data.shoppingCount > 0 ? `${data.shoppingCount} offen` : 'Alles da') : '…'}
+                </span>
+              </div>
+              {/* CTA: Vorschlag generieren – Glas-Button wie Dashboard */}
               <button
                 type="button"
                 onClick={onVorschlagGenerieren}
-                className="w-full py-4 rounded-xl mt-6 bg-white text-orange-600 font-bold shadow-lg shadow-orange-900/20 active:scale-95 transition-transform flex items-center justify-center gap-2"
+                className="mt-4 inline-flex items-center gap-2 backdrop-blur-md rounded-xl px-4 py-3 bg-white/25 border border-white/30 text-gray-800 font-semibold hover:bg-white/35 transition-colors"
               >
-                <Sparkles className="w-5 h-5 text-orange-600" />
+                <Sparkles className="w-5 h-5 text-orange-500" />
                 Vorschlag generieren
               </button>
-            </>
-          )}
+            </div>
+            {/* Rechts: Info + Suche wie Dashboard-Optik */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                aria-label="Info"
+                onClick={() => setInfoOpen(true)}
+                className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-gray-700 bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="Suchen"
+                className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center text-gray-700 bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Info-Modal */}
       {infoOpen && (
@@ -172,133 +172,131 @@ export function GourmetCockpit({
         </div>
       )}
 
-      {/* Grid: Overlap-Effekt (ragt in den Header), z-20, Image+Overlay-Karten */}
-      <div className="relative z-20 px-4 sm:px-6 -mt-16 mb-6">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 grid-rows-2 gap-3 md:gap-4 items-stretch h-[240px] md:h-[260px]">
-          <button
-            type="button"
-            onClick={onWochePlanen}
-            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] h-full min-h-0 relative overflow-hidden text-left bg-cover bg-center transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-orange-500/15 cursor-pointer border border-white/20 shadow-md"
-            style={{ backgroundImage: `url(${heroImageUrl})` }}
-          >
-            <div className="absolute inset-0 z-0 opacity-90 bg-gradient-to-br from-orange-600 to-amber-600" aria-hidden />
-            <div className="relative z-10 flex flex-col items-start gap-2 md:gap-3 h-full w-full">
-              <AppIcon emoji="📅" />
-              <span className="font-semibold text-sm md:text-lg text-white">Woche planen</span>
-              <span className="text-sm text-white/90 hidden md:block">Dein Essensplan</span>
-              {data != null && (
-                <span className="text-xs text-white/80 mt-auto absolute bottom-3 right-3 md:bottom-4 md:right-4">
-                  {data.plannedDays}/7
+      {/* Main: Grid ragt in den Header (wie Dashboard -mt-20) */}
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
+        <section className="mb-8 md:mb-10">
+          <h2 className="text-sm font-bold text-gray-600 mb-4">Schnellzugriff</h2>
+          <div className="grid grid-cols-2 gap-4 md:gap-4">
+            {/* Karte 1: Woche planen */}
+            <button
+              type="button"
+              onClick={onWochePlanen}
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
+              style={DASHBOARD_CARD_STYLE}
+            >
+              <div className="absolute top-4 right-4">
+                <span className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
+                  {data != null ? `${data.plannedDays}/7` : '—'}
                 </span>
-              )}
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={onMeineGerichte}
-            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] h-full min-h-0 relative overflow-hidden text-left bg-cover bg-center transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-amber-500/15 cursor-pointer border border-white/20 shadow-md"
-            style={{ backgroundImage: `url(${heroImageUrl})` }}
-          >
-            <div className="absolute inset-0 z-0 opacity-90 bg-gradient-to-br from-amber-600 to-yellow-600" aria-hidden />
-            <div className="relative z-10 flex flex-col items-start gap-2 md:gap-3 h-full w-full">
-              <AppIcon emoji="📖" />
-              <span className="font-semibold text-sm md:text-lg text-white">Sammlung</span>
-              <span className="text-sm text-white/90 hidden md:block">Deine Favoriten</span>
-              {data != null && (
-                <span className="text-xs text-white/80 mt-auto absolute bottom-3 right-3 md:bottom-4 md:right-4">
-                  {data.recipeCount} Rezepte
-                </span>
-              )}
-            </div>
-          </button>
-
-          {/* Karte 3: Heute */}
-          <div
-            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] h-full min-h-0 relative overflow-hidden text-left bg-cover bg-center transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-rose-500/15 cursor-default border border-white/20 shadow-md"
-            style={{ backgroundImage: `url(${heroImageUrl})` }}
-          >
-            <div className="absolute inset-0 z-0 opacity-90 bg-gradient-to-br from-rose-600 to-red-600" aria-hidden />
-            <div className="relative z-10 flex flex-col items-start gap-2 md:gap-3 h-full w-full">
-              <AppIcon emoji="🍝" />
-              <span className="font-semibold text-sm md:text-lg text-white">Heute</span>
-              {loading ? (
-                <span className="text-sm text-white/90">…</span>
-              ) : hasMealToday && data?.nextMeal ? (
-                <div className="flex flex-col gap-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{data.nextMeal.title}</p>
-                  <span className="inline-flex items-center gap-1 text-xs text-white/90 font-medium">
-                    {formatMealLabel(data.nextMeal.date)}
-                  </span>
+              </div>
+              <div className="flex w-full justify-between items-start gap-2">
+                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30">
+                  <CalendarDays className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
                 </div>
-              ) : (
-                <p className="text-sm text-white/90">Noch nichts geplant</p>
-              )}
+              </div>
+              <div className="w-full text-left">
+                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Woche planen</h3>
+                <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Dein Essensplan</p>
+              </div>
+            </button>
+
+            {/* Karte 2: Sammlung */}
+            <button
+              type="button"
+              onClick={onMeineGerichte}
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
+              style={DASHBOARD_CARD_STYLE}
+            >
+              <div className="absolute top-4 right-4">
+                <span className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
+                  {data != null ? `${data.recipeCount} Rezepte` : '—'}
+                </span>
+              </div>
+              <div className="flex w-full justify-between items-start gap-2">
+                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-400 to-pink-500 shadow-lg shadow-orange-500/30">
+                  <BookHeart className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                </div>
+              </div>
+              <div className="w-full text-left">
+                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Sammlung</h3>
+                <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Deine Favoriten</p>
+              </div>
+            </button>
+
+            {/* Karte 3: Heute */}
+            <div
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full cursor-default"
+              style={DASHBOARD_CARD_STYLE}
+            >
+              <div className="flex w-full justify-between items-start gap-2">
+                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/30">
+                  <Utensils className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                </div>
+              </div>
+              <div className="w-full text-left">
+                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Heute</h3>
+                {loading ? (
+                  <p className="text-sm text-gray-500 mt-0.5">…</p>
+                ) : hasMealToday && data?.nextMeal ? (
+                  <p className="text-sm text-gray-700 mt-0.5 line-clamp-1">{data.nextMeal.title}</p>
+                ) : (
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Noch nichts geplant</p>
+                )}
+              </div>
             </div>
+
+            {/* Karte 4: Einkaufsliste */}
+            <Link
+              href="/tools/shopping-list"
+              className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full"
+              style={DASHBOARD_CARD_STYLE}
+            >
+              <div className="absolute top-4 right-4">
+                <span className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>
+                  {data != null ? (data.shoppingCount > 0 ? `${data.shoppingCount} offen` : 'Alles da') : '—'}
+                </span>
+              </div>
+              <div className="flex w-full justify-between items-start gap-2">
+                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-400 to-pink-500 shadow-lg shadow-orange-500/30">
+                  <ShoppingBasket className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                </div>
+              </div>
+              <div className="w-full text-left">
+                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Einkaufsliste</h3>
+                <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Smarte Listen</p>
+              </div>
+            </Link>
           </div>
+        </section>
 
-          {/* Karte 4: Einkauf */}
-          <Link
-            href="/tools/shopping-list"
-            className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-6 rounded-[24px] md:rounded-[32px] h-full min-h-0 relative overflow-hidden text-left bg-cover bg-center transition-all duration-300 ease-out hover:scale-[1.03] hover:shadow-lg hover:shadow-emerald-500/15 cursor-pointer border border-white/20 shadow-md"
-            style={{ backgroundImage: `url(${heroImageUrl})` }}
-          >
-            <div className="absolute inset-0 z-0 opacity-90 bg-gradient-to-br from-emerald-600 to-teal-600" aria-hidden />
-            <div className="relative z-10 flex flex-col items-start gap-2 md:gap-3 h-full w-full">
-              <AppIcon emoji="🛒" />
-              <span className="font-semibold text-sm md:text-lg text-white">Einkaufsliste</span>
-              {data == null ? (
-                <span className="text-sm text-white/90">…</span>
-              ) : data.shoppingCount > 0 ? (
-                <p className="text-sm font-medium text-white">
-                  {data.shoppingCount} {data.shoppingCount === 1 ? 'Zutat fehlt' : 'Zutaten fehlen'}
-                </p>
-              ) : (
-                <p className="text-sm font-medium text-white flex items-center gap-1.5">
-                  <Check className="w-4 h-4 shrink-0" />
-                  Alles da
-                </p>
-              )}
-            </div>
-          </Link>
-        </div>
-      </div>
-
-      {/* Restlicher Content: Abstand nach Grid, Footer-Gap */}
-      <div className="relative z-10 pb-32">
-
-      {/* Footer: Zuletzt angesehen */}
-      {data && data.recentRecipes.length > 0 && (
-        <div className="px-4 sm:px-6 space-y-4">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Zuletzt angesehen</h2>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1">
-            {data.recentRecipes.map((r) => (
-              <Link
-                key={r.id}
-                href={`/tools/recipe?open=${encodeURIComponent(r.id)}`}
-                className="flex-shrink-0 w-[160px] rounded-xl overflow-hidden group"
-              >
-                <div className="bg-white/60 dark:bg-white/20 backdrop-blur-xl rounded-[32px] p-3 mb-2 border border-white/80 dark:border-white/30 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-rose-100 dark:from-orange-900/40 dark:to-rose-900/40 flex items-center justify-center shrink-0 shadow-inner">
-                      <ChefHat className="w-6 h-6 text-orange-500 dark:text-orange-400" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                        {r.recipeName}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">— kcal</p>
+        {/* Zuletzt angesehen – wie Dashboard Sektion */}
+        {data && data.recentRecipes.length > 0 && (
+          <section className="mb-8 md:mb-10">
+            <h2 className="text-sm font-bold text-gray-600 mb-4">Zuletzt angesehen</h2>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-1">
+              {data.recentRecipes.map((r) => (
+                <Link
+                  key={r.id}
+                  href={`/tools/recipe?open=${encodeURIComponent(r.id)}`}
+                  className="flex-shrink-0 w-[160px] rounded-xl overflow-hidden"
+                >
+                  <div className="rounded-xl p-3 hover:opacity-90 transition-opacity" style={DASHBOARD_CARD_STYLE}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-500 to-amber-500 shadow-sm">
+                        <ChefHat className="w-5 h-5 text-white" strokeWidth={2} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-800 truncate">{r.recipeName}</p>
+                        <p className="text-xs text-gray-500">— kcal</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="h-12" />
-      </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+      </PageTransition>
     </div>
   );
 }
