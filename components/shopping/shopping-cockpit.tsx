@@ -81,7 +81,7 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
           className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
           style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/55 to-black/35 z-0" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0" aria-hidden />
         </div>
         {/* Layer 1: same as home dashboard – dashboard-header-pt md:pt-12, px-3 sm:px-6 md:px-8, pb-6 */}
         <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
