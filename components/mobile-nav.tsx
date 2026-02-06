@@ -36,9 +36,11 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed left-0 right-0 z-50 w-full px-3 block md:hidden"
-      style={{ bottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
+      className="fixed left-0 right-0 bottom-0 z-50 w-full px-3 pt-3 pb-[env(safe-area-inset-bottom)] block md:hidden"
       aria-label="Hauptnavigation"
+      style={{
+        background: isNight ? 'rgb(15 23 42)' : 'rgb(255 255 255)',
+      }}
     >
       <div
         className={cn(
