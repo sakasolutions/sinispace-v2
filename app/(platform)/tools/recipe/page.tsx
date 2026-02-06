@@ -3,7 +3,7 @@
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, Salad, Coffee, Cake, Droplets, Wine } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -288,13 +288,13 @@ export default function RecipePage() {
     );
   };
 
-  const mealTypeOptions = [
-    { id: 'main', label: '🥘 Hauptgericht', value: 'Hauptgericht' },
-    { id: 'salad', label: '🥗 Salat / Bowl', value: 'Salat / Bowl' },
-    { id: 'breakfast', label: '🥪 Frühstück / Snack', value: 'Frühstück / Snack' },
-    { id: 'dessert', label: '🍰 Dessert', value: 'Dessert' },
-    { id: 'sauce', label: '🥣 Soße / Dip', value: 'Soße / Dip' },
-    { id: 'drink', label: '🥤 Drink / Shake', value: 'Drink / Shake' },
+  const mealTypeOptions: { id: string; label: string; value: string; Icon: typeof Utensils }[] = [
+    { id: 'main', label: 'Hauptgericht', value: 'Hauptgericht', Icon: Utensils },
+    { id: 'salad', label: 'Salat / Bowl', value: 'Salat / Bowl', Icon: Salad },
+    { id: 'breakfast', label: 'Frühstück / Snack', value: 'Frühstück / Snack', Icon: Coffee },
+    { id: 'dessert', label: 'Dessert', value: 'Dessert', Icon: Cake },
+    { id: 'sauce', label: 'Soße / Dip', value: 'Soße / Dip', Icon: Droplets },
+    { id: 'drink', label: 'Drink / Shake', value: 'Drink / Shake', Icon: Wine },
   ];
 
   const filterGroups: { label: string; options: { value: string; label: string }[] }[] = [
@@ -405,40 +405,38 @@ export default function RecipePage() {
                   <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Rezept Generator</h1>
                   <p className="text-orange-50 text-lg md:text-xl opacity-90">Dein Smart-Chef für den Kühlschrank.</p>
                 </div>
+                {/* Tab-Navigation im Header (nicht im Glas-Container) */}
+                <div className="mt-4 inline-flex p-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 overflow-x-auto scrollbar-hide">
+                  {(['create', 'my-recipes', 'week-planner'] as const).map((tab) => {
+                    const labels = { create: 'Neues Rezept', 'my-recipes': 'Meine Rezepte', 'week-planner': 'Wochenplaner' };
+                    const active = activeTab === tab;
+                    return (
+                      <button
+                        key={tab}
+                        onClick={() => { setActiveTab(tab); if (tab === 'create') setWizardStep(1); }}
+                        className={`px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+                          active ? 'bg-white/90 text-orange-600 shadow-sm' : 'text-white/80 hover:text-white hover:bg-white/20'
+                        }`}
+                      >
+                        {labels[tab]}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </header>
 
-          {/* Content: 1:1 wie Dashboard – gleicher Overlap (-mt-20), gleiches Padding (pb-32) */}
+          {/* Content: Wizard startet direkt mit Glas-Bühne (keine Select Bar mehr davor) */}
           <div className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
-          {/* Tab-System – Segmented Control (Gourmet Orange) */}
-          <div className="mb-4 inline-flex p-1 rounded-full bg-gray-100/50 overflow-x-auto scrollbar-hide">
-            {(['create', 'my-recipes', 'week-planner'] as const).map((tab) => {
-              const labels = { create: 'Neues Rezept', 'my-recipes': 'Meine Rezepte', 'week-planner': 'Wochenplaner' };
-              const active = activeTab === tab;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => { setActiveTab(tab); if (tab === 'create') setWizardStep(1); }}
-                  className={`px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                    active
-                      ? 'bg-white text-orange-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {labels[tab]}
-                </button>
-              );
-            })}
-          </div>
 
           {/* Tab Content */}
       {activeTab === 'create' ? (
         <>
-      {/* Gourmet Wizard: Vision Glass – Premium-Glas-Bühne */}
-      <div className="relative z-20 -mt-16 md:-mt-20 mx-4 md:mx-auto max-w-3xl bg-white/80 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 rounded-[40px] p-6 sm:p-8 overflow-hidden">
+      {/* Gourmet Wizard: Premium-Glas-Bühne (Dashboard-Look) */}
+      <div className="relative z-20 -mt-16 md:-mt-20 mx-4 md:mx-auto max-w-3xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl rounded-[32px] p-6 sm:p-8 overflow-hidden">
         {/* Innen-Schein: Lichtreflexion am oberen Rand */}
-        <div className="inset-0 bg-gradient-to-b from-white/40 to-transparent rounded-[40px] pointer-events-none absolute" aria-hidden />
+        <div className="inset-0 bg-gradient-to-b from-white/40 to-transparent rounded-[32px] pointer-events-none absolute" aria-hidden />
         {/* Progress Bar – Glowing Glass Tube */}
         <div className="mb-6">
           <div className="h-1 bg-white/20 rounded-full overflow-hidden">
@@ -462,36 +460,41 @@ export default function RecipePage() {
             <input key={f} type="hidden" name="filters" value={f} />
           ))}
 
-          {/* Step 1: Die Basis – Vision Glass */}
+          {/* Step 1: Die Basis – Dashboard-Glas-Buttons */}
           {wizardStep === 1 && (
             <div className="space-y-8 animate-in fade-in duration-200">
               <section>
                 <h3 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3 ml-1">Gericht-Typ</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {mealTypeOptions.map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => setMealType(option.value)}
-                      className={`rounded-2xl py-4 px-4 text-left transition-all ${
-                        mealType === option.value
-                          ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 border border-transparent scale-[1.02]'
-                          : 'bg-white/50 hover:bg-white/80 border border-white/20 shadow-sm text-slate-700 font-medium'
-                      }`}
-                    >
-                      <span className="text-sm font-medium block">{option.label}</span>
-                    </button>
-                  ))}
+                  {mealTypeOptions.map((option) => {
+                    const isActive = mealType === option.value;
+                    const Icon = option.Icon;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setMealType(option.value)}
+                        className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${
+                          isActive
+                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border border-transparent shadow-lg shadow-orange-500/20 scale-[1.02]'
+                            : 'bg-white/60 backdrop-blur-md border border-white/70 shadow-sm text-slate-700 font-medium hover:bg-white/80 hover:scale-[1.02]'
+                        }`}
+                      >
+                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-600'}`} />
+                        <span className="text-sm font-medium">{option.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </section>
               <section>
                 <h3 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3 ml-1">Anzahl Personen</h3>
-                <div className="inline-flex items-center justify-between bg-white/50 rounded-full p-1 border border-white/40 shadow-inner">
+                <div className="inline-flex items-center justify-between bg-white/60 border border-white/70 rounded-full p-2 shadow-sm">
                   <button
                     type="button"
                     onClick={() => setServings(Math.max(1, servings - 1))}
                     disabled={servings <= 1}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm text-orange-600 hover:scale-110 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 transition-transform"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 hover:bg-white text-orange-600 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
                     <Minus className="w-5 h-5" />
                   </button>
@@ -501,7 +504,7 @@ export default function RecipePage() {
                   <button
                     type="button"
                     onClick={() => setServings(servings + 1)}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm text-orange-600 hover:scale-110 transition-transform"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 hover:bg-white text-orange-600 shadow-sm transition-all"
                   >
                     <Plus className="w-5 h-5" />
                   </button>
