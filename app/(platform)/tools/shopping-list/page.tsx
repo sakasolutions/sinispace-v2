@@ -1270,7 +1270,6 @@ export default function ShoppingListPage() {
             </div>
           )}
         </div>
-      </div>
 
       {toast && (
         <div
