@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ShoppingBasket,
-  History,
+  Sparkles,
   ChefHat,
   Percent,
   Plus,
@@ -12,9 +12,8 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getShoppingLists, getFrequentItems, saveShoppingLists, recordFrequentItem } from '@/actions/shopping-list-actions';
+import { getShoppingLists, getSmartNachkaufenSuggestions } from '@/actions/shopping-list-actions';
 import type { ShoppingList } from '@/lib/shopping-lists-storage';
-import { generateId } from '@/lib/shopping-lists-storage';
 import { PageTransition } from '@/components/ui/PageTransition';
 
 /** Gleiche Glass-Karten-Styles wie Main-Dashboard / Gourmet-Cockpit */
@@ -44,20 +43,19 @@ function getActiveList(lists: ShoppingList[]): ShoppingList | null {
 
 export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
   const [lists, setLists] = useState<ShoppingList[]>([]);
-  const [frequentItems, setFrequentItems] = useState<{ itemLabel: string }[]>([]);
+  const [smartSuggestions, setSmartSuggestions] = useState<{ label: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [quickAddPending, setQuickAddPending] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [loadedLists, frequent] = await Promise.all([
+      const [loadedLists, suggestions] = await Promise.all([
         getShoppingLists(),
-        getFrequentItems(10),
+        getSmartNachkaufenSuggestions(3),
       ]);
       if (cancelled) return;
       setLists(loadedLists);
-      setFrequentItems(frequent);
+      setSmartSuggestions(suggestions);
       setLoading(false);
     })();
     return () => { cancelled = true; };
@@ -68,51 +66,6 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
   const previewItems = activeList
     ? activeList.items.filter((i) => !i.checked).slice(0, 3).map((i) => i.text)
     : [];
-
-  /** Quick-Add: Item zu aktiver Liste hinzufügen, nur append – keine Daten löschen */
-  const handleQuickAdd = async (itemLabel: string) => {
-    setQuickAddPending(itemLabel);
-    try {
-      let nextLists = lists.length > 0 ? [...lists] : [];
-      let targetListId: string;
-
-      if (nextLists.length === 0) {
-        const newList: ShoppingList = {
-          id: generateId(),
-          name: 'Allgemein',
-          items: [{ id: generateId(), text: itemLabel, checked: false }],
-        };
-        nextLists = [newList];
-        targetListId = newList.id;
-      } else {
-        const target = getActiveList(nextLists) ?? nextLists[0]!;
-        targetListId = target.id;
-        const idx = nextLists.findIndex((l) => l.id === targetListId);
-        if (idx >= 0) {
-          nextLists = nextLists.map((l, i) =>
-            i === idx
-              ? {
-                  ...l,
-                  items: [
-                    ...l.items,
-                    { id: generateId(), text: itemLabel, checked: false },
-                  ],
-                }
-              : l
-          );
-        }
-      }
-
-      const res = await saveShoppingLists(nextLists);
-      if (res.success) {
-        setLists(nextLists);
-        await recordFrequentItem(itemLabel);
-      }
-      onSchnellHinzufuegen?.();
-    } finally {
-      setQuickAddPending(null);
-    }
-  };
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
@@ -161,14 +114,14 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         <section className="mb-8 md:mb-10">
           <div className="h-5 mb-4" aria-hidden />
-          <div className="grid grid-cols-2 gap-4 md:gap-4">
-            {/* Karte 1: Aktive Liste – same card as Home/Gourmet (icon 16x16 rounded-[22px], typography, equal height) */}
+          <div className="grid grid-cols-2 gap-4 md:gap-4 grid-rows-[168px_168px]">
+            {/* Karte 1: Aktive Liste – gleiche Höhe wie untere Karten */}
             <Link
               href={activeList ? `/tools/shopping-list?listId=${activeList.id}` : '/tools/shopping-list'}
-              className="block h-full min-h-[160px]"
+              className="block h-full min-h-0"
             >
               <div
-                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
+                className="group relative flex flex-col justify-between h-full items-start min-h-0 rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
                 style={DASHBOARD_CARD_STYLE}
               >
                 <div className="absolute top-4 right-4">
@@ -192,48 +145,35 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
               </div>
             </Link>
 
-            {/* Karte 2: Oft gekauft – same card structure, equal height */}
-            <div className="h-full min-h-[160px]">
+            {/* Karte 2: Smart Nachkaufen – KI-Vorschläge, gleiche Kartenhöhe wie alle anderen */}
+            <Link href="/tools/shopping/smart-nachkaufen" className="block h-full min-h-0">
               <div
-                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full h-full"
+                className="group relative flex flex-col justify-between h-full items-start min-h-0 rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
                 style={DASHBOARD_CARD_STYLE}
               >
-              <div className="flex w-full justify-between items-start gap-2">
-                <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-500 to-yellow-500 shadow-lg shadow-amber-500/30">
-                  <History className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                <div className="flex w-full justify-between items-start gap-2 shrink-0">
+                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-indigo-500 to-violet-500 shadow-lg shadow-indigo-500/30">
+                    <Sparkles className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                  </div>
+                </div>
+                <div className="w-full text-left min-w-0 min-h-0 flex flex-col">
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2 shrink-0">Smart Nachkaufen</h3>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1 shrink-0">KI erkennt, was bald fehlt</p>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1 min-h-0">
+                    {loading
+                      ? '…'
+                      : smartSuggestions.length === 0
+                        ? 'Noch keine Vorschläge'
+                        : smartSuggestions.slice(0, 3).map(({ label }) => label).join(', ')}
+                  </p>
                 </div>
               </div>
-              <div className="w-full text-left">
-                <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Oft gekauft</h3>
-                <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Schnell hinzufügen</p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {loading ? (
-                    <span className="text-sm text-gray-400">…</span>
-                  ) : (
-                    frequentItems.slice(0, 3).map(({ itemLabel }) => (
-                      <button
-                        key={itemLabel}
-                        type="button"
-                        onClick={() => handleQuickAdd(itemLabel)}
-                        disabled={!!quickAddPending}
-                        className="px-3 py-1.5 rounded-full bg-white/60 border border-white/50 text-gray-700 text-sm font-medium hover:bg-white/80 active:scale-95 transition-all disabled:opacity-50"
-                      >
-                        {quickAddPending === itemLabel ? '…' : itemLabel}
-                      </button>
-                    ))
-                  )}
-                  {!loading && frequentItems.length === 0 && (
-                    <span className="text-sm text-gray-400">Noch keine History</span>
-                  )}
-                </div>
-              </div>
-              </div>
-            </div>
+            </Link>
 
-            {/* Karte 3: Zutaten importieren – same card structure, equal height */}
-            <Link href="/tools/recipe" className="block h-full min-h-[160px]">
+            {/* Karte 3: Zutaten importieren – gleiche Höhe wie Karte 1/2/4 */}
+            <Link href="/tools/recipe" className="block h-full min-h-0">
               <div
-                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
+                className="group relative flex flex-col justify-between h-full items-start min-h-0 rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
                 style={DASHBOARD_CARD_STYLE}
               >
                 <div className="flex w-full justify-between items-start gap-2">
@@ -248,10 +188,10 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
               </div>
             </Link>
 
-            {/* Karte 4: Budget – same card structure, equal height */}
-            <div className="h-full min-h-[160px]">
+            {/* Karte 4: Budget – gleiche Höhe wie alle anderen */}
+            <div className="h-full min-h-0">
               <div
-                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full h-full cursor-default"
+                className="group relative flex flex-col justify-between h-full items-start min-h-0 rounded-2xl overflow-hidden p-5 text-left w-full h-full cursor-default"
                 style={DASHBOARD_CARD_STYLE}
               >
                 <div className="flex w-full justify-between items-start gap-2">

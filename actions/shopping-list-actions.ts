@@ -111,3 +111,17 @@ export async function searchFrequentItems(
     return [];
   }
 }
+
+/** Smart Nachkaufen: KI-Vorschläge „was bald fehlt“. Placeholder/mock für jetzt; echte Logik später einbaubar. */
+export async function getSmartNachkaufenSuggestions(
+  limit = 10
+): Promise<{ label: string }[]> {
+  await auth();
+  // TODO: Replace with real logic (e.g. ML, purchase history, pantry expiry).
+  const mock: { label: string }[] = [
+    { label: 'milch' },
+    { label: 'kaffee' },
+    { label: 'eier' },
+  ];
+  return mock.slice(0, limit);
+}
