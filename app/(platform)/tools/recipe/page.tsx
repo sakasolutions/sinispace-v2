@@ -410,8 +410,8 @@ export default function RecipePage() {
             </div>
           </header>
 
-          {/* Content: gleicher Overlap wie Dashboard (-mt-20), max-w-7xl nur hier */}
-          <div className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-8 -mt-20">
+          {/* Content: 1:1 wie Dashboard – gleicher Overlap (-mt-20), gleiches Padding (pb-32) */}
+          <div className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
           {/* Tab-System – Segmented Control (Gourmet Orange) */}
           <div className="mb-4 inline-flex p-1 rounded-full bg-gray-100/50 overflow-x-auto scrollbar-hide">
             {(['create', 'my-recipes', 'week-planner'] as const).map((tab) => {
