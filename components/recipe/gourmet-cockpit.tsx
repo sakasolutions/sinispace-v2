@@ -182,7 +182,7 @@ export function GourmetCockpit({
       {/* Main: 1:1 wie Dashboard – gleicher Overlap (-mt-20) + gleicher Abstand bis zum Grid (h2 + mb-4) */}
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         <section className="mb-8 md:mb-10">
-          <h2 className="text-sm font-bold text-gray-600 mb-4">Zuletzt verwendet</h2>
+          <div className="h-5 mb-4" aria-hidden />
           <div className="grid grid-cols-2 gap-4 md:gap-4">
             {/* Karte 1: Woche planen – Glass */}
             <button

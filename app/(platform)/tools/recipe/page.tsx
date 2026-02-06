@@ -375,7 +375,7 @@ export default function RecipePage() {
       ) : (
         /* Create / Meine Rezepte: Golden Standard – Header 1:1 wie Dashboard, kein max-w um Header */
         <div className="min-h-screen w-full bg-gradient-to-b from-rose-50 via-white to-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-          {/* Header: exakt wie Main-Dashboard (h-[280px], rounded-b-[40px], gleicher Schnittpunkt) */}
+          {/* Header: 1:1 Standard wie Dashboard & Gourmet-Cockpit (Helfer-Standard) */}
           <header
             className={cn(
               'relative z-[1] min-h-[280px]',
@@ -383,27 +383,30 @@ export default function RecipePage() {
               '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
             )}
           >
-            <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px]" aria-hidden>
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: "url('/assets/images/cooking-action.webp'), url('/gourmet-header.webp')" }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/80 to-amber-500/70" aria-hidden />
+            {/* Layer 0: identisch Gourmet-Cockpit – gleicher Hintergrund + Overlay */}
+            <div
+              className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
+              style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-orange-950/80 via-orange-900/70 to-amber-900/60 z-0" aria-hidden />
             </div>
-            <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/tools/recipe"
-                  className="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Zurück
-                </Link>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white" style={{ letterSpacing: '-0.3px' }}>
-                  Rezept Generator
-                </h1>
+            {/* Layer 1: gleiche Abstände wie Cockpit (dashboard-header-pt md:pt-12 pb-12) */}
+            <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
+              <div className="flex items-start justify-between gap-4">
+                <div className="max-w-2xl min-w-0 flex items-center gap-4">
+                  <Link
+                    href="/tools/recipe"
+                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium shrink-0"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Zurück
+                  </Link>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
+                    Rezept Generator
+                  </h1>
+                </div>
+                <div />
               </div>
-              <div />
             </div>
           </header>
 
