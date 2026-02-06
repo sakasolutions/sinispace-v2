@@ -129,9 +129,9 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
           className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
           style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-transparent z-0" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/45 to-black/25 z-0" aria-hidden />
         </div>
-        <div className="relative z-10 pt-8 px-6 md:px-8 pb-24 h-full flex flex-col justify-end">
+        <div className="relative z-10 pt-8 px-6 md:px-8 pb-12 h-full flex flex-col justify-end">
           <div className="flex flex-col items-start gap-4">
             <Link
               href="/tools/shopping-list"
@@ -144,7 +144,7 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mb-1" style={{ letterSpacing: '-0.3px' }}>
                 Smarte Einkaufsliste
               </h1>
-              <p className="text-white/80 text-lg md:text-xl">Dein intelligenter Begleiter im Supermarkt.</p>
+              <p className="text-white/90 text-lg md:text-xl">Dein intelligenter Begleiter im Supermarkt.</p>
             </div>
             <Link
               href="/tools/shopping-list"
@@ -157,7 +157,7 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
         </div>
       </header>
 
-      <PageTransition className="relative z-20 -mt-24 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32">
+      <PageTransition className="relative z-20 -mt-20 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Karte 1: Aktive Liste */}
           <Link
