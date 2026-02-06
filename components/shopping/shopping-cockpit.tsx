@@ -129,36 +129,43 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
           className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
           style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/45 to-black/25 z-0" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/55 to-black/35 z-0" aria-hidden />
         </div>
-        <div className="relative z-10 pt-8 px-6 md:px-8 pb-12 h-full flex flex-col justify-end">
-          <div className="flex flex-col items-start gap-4">
-            <Link
-              href="/tools/shopping-list"
-              className="group flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Zurück
-            </Link>
-            <div className="mt-2">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mb-1" style={{ letterSpacing: '-0.3px' }}>
+        {/* Layer 1: 1:1 wie Gourmet – dashboard-header-pt, pb-12, gleiche Positionen */}
+        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
+          <div className="flex items-start justify-between gap-4">
+            <div className="max-w-2xl min-w-0">
+              <Link
+                href="/tools/shopping-list"
+                className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                Zurück
+              </Link>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
                 Smarte Einkaufsliste
               </h1>
-              <p className="text-white/90 text-lg md:text-xl">Dein intelligenter Begleiter im Supermarkt.</p>
+              <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
+                Dein intelligenter Begleiter im Supermarkt.
+              </p>
+              <Link
+                href="/tools/shopping-list"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Neue Liste erstellen
+              </Link>
             </div>
-            <Link
-              href="/tools/shopping-list"
-              className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-600/30 hover:from-orange-700 hover:to-rose-600 transition-all"
-            >
-              <Plus className="w-5 h-5" />
-              Neue Liste erstellen
-            </Link>
+            <div className="shrink-0" />
           </div>
         </div>
       </header>
 
-      <PageTransition className="relative z-20 -mt-20 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Main: 1:1 wie Gourmet – gleicher Overlap (-mt-20), gleicher Abstand (h-5 mb-4), gleiches Grid */}
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
+        <section className="mb-8 md:mb-10">
+          <div className="h-5 mb-4" aria-hidden />
+          <div className="grid grid-cols-2 gap-4 md:gap-4">
           {/* Karte 1: Aktive Liste */}
           <Link
             href={activeList ? `/tools/shopping-list?listId=${activeList.id}` : '/tools/shopping-list'}
@@ -239,6 +246,7 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
             <p className="text-sm text-gray-500 mt-0.5">Spar-Tipps (demnächst)</p>
           </div>
         </div>
+        </section>
 
         {/* Meine Listen */}
         <section className="mt-10">
