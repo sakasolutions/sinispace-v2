@@ -781,7 +781,7 @@ export default function DashboardClient() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full relative bg-gray-50/50"
+      className="min-h-screen w-full relative bg-gray-50/50 overflow-x-hidden"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -813,12 +813,12 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Header: eingefrorene Geometrie – h-[340px], Schnitt durch Karten-Icons */}
+      {/* Header: eingefrorene Geometrie – h-[340px]; mobil: kantenbündig, kein Überhang (app-tauglich) */}
       <header
         className={cn(
           'relative z-[1] h-[340px]',
-          'w-[calc(100%+1.5rem)] -mx-3 sm:w-[calc(100%+2rem)] sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-          '-mt-[max(1rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
+          'w-full max-w-[100vw] -mx-3 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
+          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
         {/* 1. Background: Höhe IMMER außerhalb der Bedingung – nur Gradient bedingt */}
@@ -902,17 +902,18 @@ export default function DashboardClient() {
                 </span>
               </div>
             </div>
-            <div className="absolute right-0 top-0 pointer-events-none" aria-hidden>
+            {/* Sonne/Mond: kleiner und vollständig im Bild (app-tauglich, kein Abschnitt) */}
+            <div className="absolute right-2 top-0 sm:right-4 sm:top-2 pointer-events-none shrink-0" aria-hidden>
               {timeOfDay === 'sunrise' ? (
-                <div className="translate-x-[30%] -translate-y-[30%] text-orange-500">
-                  <Sun className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
+                <div className="text-orange-500">
+                  <Sun className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" />
                 </div>
               ) : (
                 <div
-                  className="translate-x-[30%] -translate-y-[30%] text-yellow-100"
+                  className="text-yellow-100"
                   style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,200,0.5))' }}
                 >
-                  <Moon className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
+                  <Moon className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" />
                 </div>
               )}
             </div>
