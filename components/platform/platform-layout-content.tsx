@@ -158,7 +158,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
             minHeight: 0,
           } as React.CSSProperties}
         >
-          <div className="h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:p-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
+          <div className="h-full [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
             {children}
           </div>
         </div>

@@ -813,11 +813,11 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Header: Zwei Ebenen – Layer 0 Hintergrund+Sonne, Layer 1 Text (kein Padding-Domino) */}
+      {/* Header: Zwei Ebenen – Layer 0 Hintergrund+Sonne, Layer 1 Text; mobil: full-bleed (kein seitliches Padding) */}
       <header
         className={cn(
           'relative z-[1] min-h-[380px]',
-          'w-full max-w-[100vw] -mx-3 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
+          'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
           '-mt-[max(0,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
         )}
       >
@@ -852,7 +852,7 @@ export default function DashboardClient() {
         </div>
 
         {/* Layer 1: Inhalt – sauberer Abstand (pt-16 / md:pt-24), kein riesiges Padding */}
-        <div className="relative z-10 w-full pt-16 md:pt-24 px-4 sm:px-6 md:px-8 pb-6">
+        <div className="relative z-10 w-full pt-16 md:pt-24 px-3 sm:px-6 md:px-8 pb-6">
           <div className="max-w-2xl">
             <h1
               className={cn(
@@ -914,7 +914,7 @@ export default function DashboardClient() {
 
       {/* Main Container: Grid ragt in den Header (Glass über Orange) */}
       {/* Grid: fester -mt-24 Overlap – Karten gleiten immer gleich in den Header (Schnitt durch Kartenmitte), unabhängig vom Theme */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-4 sm:px-4 md:px-6 lg:px-8 pb-[calc(70px+env(safe-area-inset-bottom))] md:pb-32 -mt-24">
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-[calc(70px+env(safe-area-inset-bottom))] md:pb-32 -mt-24">
         {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
         {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
