@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-  
+
   // Statische Assets und Next.js interne Routen erlauben (früh zurückkehren)
   if (
     pathname.startsWith("/_next") ||

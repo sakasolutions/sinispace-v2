@@ -91,19 +91,20 @@ export function GourmetCockpit({
             <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
               Lass dich inspirieren.
             </p>
-            <p className="text-white/90 text-sm font-bold mt-2">Schnellzugriff</p>
           </>
         }
         subtitle={null}
         headerPrimaryCTA={
-          <button
-            type="button"
-            onClick={onVorschlagGenerieren}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
-          >
-            <Sparkles className="w-5 h-5" />
-            Vorschlag generieren
-          </button>
+          <div className="mt-4 md:flex md:justify-center">
+            <button
+              type="button"
+              onClick={onVorschlagGenerieren}
+              className="inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
+            >
+              <Sparkles className="w-5 h-5" />
+              Vorschlag generieren
+            </button>
+          </div>
         }
         headerActionsRight={
           <div className="flex items-center gap-2">
