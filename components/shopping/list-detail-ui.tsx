@@ -275,7 +275,7 @@ export function UnifiedListSheet({
   );
 }
 
-/** Sticky category header – dezent, farbig (theme.headerTextColor) */
+/** Sticky category header – Regalboden mit grauem Balken, farbigem Akzent, volle Breite */
 export function StickyCategoryHeader({
   title,
   count,
@@ -284,18 +284,21 @@ export function StickyCategoryHeader({
 }: {
   title: string;
   count: number;
-  theme: { headerTextColor: string };
+  theme: { headerTextColor: string; checkboxBg?: string };
   className?: string;
 }) {
   return (
     <div
       className={cn(
-        'sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 px-5 flex items-center gap-2',
+        'sticky top-0 z-10 w-full bg-gray-50/80 border-y border-gray-100 py-2 px-4 flex items-center gap-2',
         theme.headerTextColor,
         className
       )}
     >
-      <span className="text-xs font-bold tracking-wider uppercase">
+      {theme.checkboxBg && (
+        <span className={cn('w-2 h-2 rounded-full shrink-0', theme.checkboxBg)} aria-hidden />
+      )}
+      <span className="text-xs font-black tracking-widest uppercase">
         {title}
       </span>
       <span className="text-xs opacity-80">{count}</span>
@@ -352,7 +355,7 @@ export function UnifiedItemRow({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 p-4 hover:bg-gray-50 transition-colors group',
+        'flex items-center justify-between gap-3 p-4 bg-white hover:bg-gray-50 transition-colors group',
         isChecked && 'opacity-90',
         className
       )}

@@ -822,13 +822,13 @@ export default function ShoppingListPage() {
               ) : (
                 <div className="mt-8">
                   <UnifiedListSheet>
-                    {sortedCategories.map((cat) => {
+                    {sortedCategories.map((cat, index) => {
                       const items = grouped[cat] ?? [];
                       if (items.length === 0) return null;
                       const theme = getCategoryTheme(cat);
                       return (
                         <Fragment key={cat}>
-                          <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} />
+                          <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} className={index === 0 ? undefined : 'mt-8'} />
                           {items.map((item) => {
                             const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                             const isEditingQty = !storeMode && editingQtyItemId === item.id;
@@ -923,7 +923,7 @@ export default function ShoppingListPage() {
                     })}
                     {checked.length > 0 && (
                       <Fragment key="erledigt">
-                        <StickyCategoryHeader title="Erledigt" count={checked.length} theme={getCategoryTheme('sonstiges')} />
+                        <StickyCategoryHeader title="Erledigt" count={checked.length} theme={getCategoryTheme('sonstiges')} className="mt-8" />
                         {checked.map((item) => {
                           const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                           const qtyD = formatQtyDisplay(item);
