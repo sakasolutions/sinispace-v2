@@ -612,7 +612,7 @@ export default function ShoppingListPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0" aria-hidden />
         </div>
         <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-end justify-between gap-4">
             <div className="max-w-2xl min-w-0">
               <Link
                 href="/tools/shopping"
@@ -636,7 +636,7 @@ export default function ShoppingListPage() {
                 Neue Liste
               </button>
             </div>
-            <div className="flex flex-col items-end gap-3 shrink-0 min-h-[120px] justify-between">
+            <div className="flex flex-col items-end justify-end gap-3 shrink-0">
               <div className="flex items-center gap-2">
               <WhatIsThisModal
                 title="Smart Einkaufsliste"
@@ -725,6 +725,7 @@ export default function ShoppingListPage() {
       </header>
 
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
+        <div className="h-5 mb-4" aria-hidden />
         <div className="space-y-4">
 
         {saveErrorMessage && (
