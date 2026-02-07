@@ -718,10 +718,8 @@ export default function ShoppingListPage() {
           </div>
         }
       >
-        <div className="min-h-[calc(100vh-14rem)] flex flex-col">
-        <section className="flex-1 min-h-0 flex flex-col mb-8 md:mb-10">
-          <div className="flex-1 min-h-0 overflow-y-auto p-8 md:p-10">
-            <div className="space-y-4 md:max-w-3xl md:mx-auto">
+        <section className="mb-8 md:mb-10">
+          <div className="space-y-4 md:max-w-3xl md:mx-auto px-6 sm:px-8 md:px-10">
 
         {saveErrorMessage && (
           <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
@@ -813,7 +811,8 @@ export default function ShoppingListPage() {
                 />
               )}
 
-              {unchecked.length === 0 && checked.length === 0 ? (
+              <div className="flex-1 w-full min-w-0 overflow-y-auto min-h-0 pt-12 pb-16">
+                {unchecked.length === 0 && checked.length === 0 ? (
                   <div className="p-8 sm:p-12 text-center">
                     <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
                     <p className="text-gray-500 font-medium">Noch keine Einträge.</p>
@@ -1013,6 +1012,7 @@ export default function ShoppingListPage() {
                     )}
                   </>
                 )}
+              </div>
               {checked.length > 0 && (
                 <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3 flex justify-center shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_-4px_rgba(0,0,0,0.08)]">
                   <button
@@ -1036,10 +1036,8 @@ export default function ShoppingListPage() {
               </p>
             </div>
           )}
-            </div>
           </div>
         </section>
-        </div>
 
       {toast && (
         <div
