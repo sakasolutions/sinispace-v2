@@ -60,7 +60,7 @@ export function SummaryCard({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl overflow-hidden',
+        'flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl',
         className
       )}
       style={GLASS_CARD_STYLE}
@@ -92,7 +92,7 @@ export function SummaryCard({
   );
 }
 
-/** 3) Quick Add Card – input row + add button + helper line (Glass-Style) */
+/** 3) Quick Add Card – input row + add button + helper line (Glass-Style, weicher Schatten) */
 export function QuickAddCard({
   inputSlot,
   addButton,
@@ -109,7 +109,7 @@ export function QuickAddCard({
   return (
     <div
       className={cn(
-        'p-4 rounded-2xl overflow-hidden',
+        'p-4 rounded-2xl',
         className
       )}
       style={GLASS_CARD_STYLE}
@@ -128,7 +128,7 @@ export function QuickAddCard({
   );
 }
 
-/** 4) Category Card – gleiches Design wie QuickAddCard (Glass, p-4, eine Box) */
+/** 4) Category Card – gleiches Design wie QuickAddCard (Glass, weicher Schatten, p-4) */
 export function CategoryCard({
   title,
   count,
@@ -145,7 +145,7 @@ export function CategoryCard({
   return (
     <div
       className={cn(
-        'p-4 rounded-2xl overflow-hidden',
+        'p-4 rounded-2xl',
         className
       )}
       style={GLASS_CARD_STYLE}
@@ -160,7 +160,7 @@ export function CategoryCard({
         <span className="text-xs text-gray-500">{count}</span>
         <ChevronDown className="w-4 h-4 text-gray-500 shrink-0 ml-auto" aria-hidden />
       </div>
-      <div className="divide-y divide-white/20 -mx-4">{children}</div>
+      <div className="divide-y divide-white/20 -mx-4 overflow-hidden">{children}</div>
     </div>
   );
 }

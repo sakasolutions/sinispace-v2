@@ -811,7 +811,7 @@ export default function ShoppingListPage() {
                 />
               )}
 
-              <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="flex-1 overflow-y-auto min-h-0 pt-2 pr-4 pb-8">
                 {unchecked.length === 0 && checked.length === 0 ? (
                   <div className="p-8 sm:p-12 text-center">
                     <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
