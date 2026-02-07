@@ -429,13 +429,14 @@ export default function RecipePage() {
             <input key={f} type="hidden" name="filters" value={f} />
           ))}
 
-          {/* Step 1: Nur Gericht-Typ – schwebende Premium-Karten wie Home */}
+          {/* Step 1: Nur Gericht-Typ – Overlap, dann sofort Section → Grid (wie Dashboard) */}
           {wizardStep === 1 && (
             <section
-              className="relative z-20 mb-8 md:mb-10 animate-in fade-in slide-in-from-right-4 duration-300"
+              className="relative z-20 animate-in fade-in slide-in-from-right-4 duration-300"
               key="step1"
             >
-              <div className="grid grid-cols-2 gap-4 md:gap-4 max-w-3xl mx-auto">
+              <h2 className="text-sm font-bold text-gray-600 mb-4 sr-only">Gerichttyp wählen</h2>
+              <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
                 {mealTypeOptions.map((option) => {
                   const isActive = mealType === option.value;
                   const Icon = option.Icon;

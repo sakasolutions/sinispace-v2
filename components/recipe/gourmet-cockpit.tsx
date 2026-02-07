@@ -148,8 +148,10 @@ export function GourmetCockpit({
         </div>
       )}
 
-        <section className="mb-8 md:mb-10">
-          <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
+        <div className="space-y-6 md:space-y-8">
+          <section>
+            <h2 className="text-sm font-bold text-gray-600 mb-4">Schnellzugriff</h2>
+            <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
             {/* Karte 1: Woche planen – Glass */}
             <button
               type="button"
@@ -239,8 +241,9 @@ export function GourmetCockpit({
                 <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Smarte Listen</p>
               </div>
             </Link>
-          </div>
-        </section>
+            </div>
+          </section>
+        </div>
       </DashboardShell>
     </div>
   );
