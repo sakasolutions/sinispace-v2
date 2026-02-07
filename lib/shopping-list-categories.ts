@@ -39,6 +39,10 @@ export type CategoryTheme = {
   bg: string;
   border: string;
   iconColor: string;
+  /** Sticky header + checkbox accent (Apple Reminders / Bring! style) */
+  headerTextColor: string;
+  checkboxBorder: string;
+  checkboxBg: string;
 };
 
 const THEMES: Record<string, CategoryTheme> = {
@@ -48,6 +52,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-green-50/50',
     border: 'border-green-100',
     iconColor: 'text-green-600',
+    headerTextColor: 'text-emerald-600',
+    checkboxBorder: 'border-emerald-500',
+    checkboxBg: 'bg-emerald-500',
   },
   fleisch: {
     icon: 'Beef',
@@ -55,6 +62,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-rose-50/50',
     border: 'border-rose-100',
     iconColor: 'text-rose-600',
+    headerTextColor: 'text-rose-600',
+    checkboxBorder: 'border-rose-500',
+    checkboxBg: 'bg-rose-500',
   },
   kuhlregal: {
     icon: 'Milk',
@@ -62,6 +72,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-sky-50/50',
     border: 'border-sky-100',
     iconColor: 'text-sky-600',
+    headerTextColor: 'text-sky-600',
+    checkboxBorder: 'border-sky-500',
+    checkboxBg: 'bg-sky-500',
   },
   brot: {
     icon: 'Croissant',
@@ -69,6 +82,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-amber-50/50',
     border: 'border-amber-100',
     iconColor: 'text-amber-600',
+    headerTextColor: 'text-amber-600',
+    checkboxBorder: 'border-amber-500',
+    checkboxBg: 'bg-amber-500',
   },
   backwaren: {
     icon: 'Croissant',
@@ -76,6 +92,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-amber-50/50',
     border: 'border-amber-100',
     iconColor: 'text-amber-600',
+    headerTextColor: 'text-amber-600',
+    checkboxBorder: 'border-amber-500',
+    checkboxBg: 'bg-amber-500',
   },
   getraenke: {
     icon: 'Wine',
@@ -83,6 +102,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-blue-50/50',
     border: 'border-blue-100',
     iconColor: 'text-blue-600',
+    headerTextColor: 'text-blue-600',
+    checkboxBorder: 'border-blue-500',
+    checkboxBg: 'bg-blue-500',
   },
   vorrat: {
     icon: 'Package',
@@ -90,6 +112,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-orange-50/50',
     border: 'border-orange-100',
     iconColor: 'text-orange-600',
+    headerTextColor: 'text-orange-600',
+    checkboxBorder: 'border-orange-500',
+    checkboxBg: 'bg-orange-500',
   },
   haushalt: {
     icon: 'Home',
@@ -97,6 +122,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-slate-50/50',
     border: 'border-slate-100',
     iconColor: 'text-slate-600',
+    headerTextColor: 'text-slate-600',
+    checkboxBorder: 'border-slate-500',
+    checkboxBg: 'bg-slate-500',
   },
   tiefkuhl: {
     icon: 'Snowflake',
@@ -104,6 +132,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-cyan-50/50',
     border: 'border-cyan-100',
     iconColor: 'text-cyan-600',
+    headerTextColor: 'text-cyan-600',
+    checkboxBorder: 'border-cyan-500',
+    checkboxBg: 'bg-cyan-500',
   },
   sonstiges: {
     icon: 'Package',
@@ -111,6 +142,9 @@ const THEMES: Record<string, CategoryTheme> = {
     bg: 'bg-gray-50/50',
     border: 'border-gray-100',
     iconColor: 'text-gray-600',
+    headerTextColor: 'text-gray-600',
+    checkboxBorder: 'border-gray-400',
+    checkboxBg: 'bg-gray-400',
   },
 };
 

@@ -252,3 +252,166 @@ export function QuantityPill({
   }
   return <span className={cn(base, className)}>{label}</span>;
 }
+
+// ─── Tier 1 Redesign: Apple Reminders / Bring! – Continuous Sheet ─────────────────────────────
+
+/** Unified list container: one white sheet, divide-y between items/categories */
+export function UnifiedListSheet({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        'bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100',
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Sticky category header – dezent, farbig (theme.headerTextColor) */
+export function StickyCategoryHeader({
+  title,
+  count,
+  theme,
+  className,
+}: {
+  title: string;
+  count: number;
+  theme: { headerTextColor: string };
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        'sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 px-5 flex items-center gap-2',
+        theme.headerTextColor,
+        className
+      )}
+    >
+      <span className="text-xs font-bold tracking-wider uppercase">
+        {title}
+      </span>
+      <span className="text-xs opacity-80">{count}</span>
+    </div>
+  );
+}
+
+/** Category-colored circular checkbox (no native checkbox) */
+export function UnifiedCheckbox({
+  checked,
+  onToggle,
+  theme,
+  ariaLabel,
+  disabled,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+  theme: { checkboxBorder: string; checkboxBg: string };
+  ariaLabel: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className={cn(
+        'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200',
+        theme.checkboxBorder,
+        checked ? theme.checkboxBg + ' border-transparent' : 'bg-transparent hover:bg-gray-50'
+      )}
+    >
+      {checked && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+    </button>
+  );
+}
+
+/** Single list row: clean, tactile, actions on hover */
+export function UnifiedItemRow({
+  checkbox,
+  children,
+  actions,
+  isChecked,
+  className,
+}: {
+  checkbox: React.ReactNode;
+  children: React.ReactNode;
+  actions: React.ReactNode;
+  isChecked?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        'flex items-center justify-between gap-3 p-4 hover:bg-gray-50 transition-colors group',
+        isChecked && 'opacity-90',
+        className
+      )}
+    >
+      <div className="shrink-0">{checkbox}</div>
+      <div className="flex-1 min-w-0 flex items-center gap-2">{children}</div>
+      <div className="shrink-0 flex items-center gap-0.5 text-gray-300 group-hover:text-gray-500 transition-colors">
+        {actions}
+      </div>
+    </div>
+  );
+}
+
+/** Quantity badge for unified row (small gray badge) */
+export function UnifiedQuantityBadge({
+  label,
+  onClick,
+  className,
+}: {
+  label: string;
+  onClick?: () => void;
+  className?: string;
+}) {
+  const base = 'bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md shrink-0';
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={cn(base, 'hover:bg-gray-200 transition-colors', className)}>
+        {label}
+      </button>
+    );
+  }
+  return <span className={cn(base, className)}>{label}</span>;
+}
+
+/** Floating input card – schwebt, shadow-md, großer Add-Button */
+export function FloatingQuickAddCard({
+  inputSlot,
+  addButton,
+  helperText,
+  frequentChips,
+  className,
+}: {
+  inputSlot: React.ReactNode;
+  addButton: React.ReactNode;
+  helperText?: string;
+  frequentChips?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('mb-6', className)}>
+      <div className="bg-white border-0 shadow-md rounded-2xl p-4 flex gap-3 items-stretch">
+        <div className="flex-1 min-w-0 flex items-center">{inputSlot}</div>
+        <div className="shrink-0 flex items-center">{addButton}</div>
+      </div>
+      {frequentChips}
+      {helperText && (
+        <p className="text-xs text-gray-500 mt-2 leading-relaxed px-1">
+          {helperText}
+        </p>
+      )}
+    </div>
+  );
+}

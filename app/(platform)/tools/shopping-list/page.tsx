@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { BackButton } from '@/components/ui/back-button';
@@ -49,15 +49,15 @@ import {
 import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
-import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import {
   SummaryCard,
-  QuickAddCard,
-  CategoryCard,
-  ItemRow,
-  ItemRowCheckbox,
-  QuantityPill,
+  FloatingQuickAddCard,
+  UnifiedListSheet,
+  StickyCategoryHeader,
+  UnifiedItemRow,
+  UnifiedCheckbox,
+  UnifiedQuantityBadge,
 } from '@/components/shopping/list-detail-ui';
 
 const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
@@ -718,8 +718,8 @@ export default function ShoppingListPage() {
           </div>
         }
       >
-        <section className="mb-8 md:mb-10">
-          <div className="space-y-4 md:max-w-3xl md:mx-auto px-6 sm:px-8 md:px-10">
+        <section className="mb-8 md:mb-10 bg-gray-50/50 min-h-[50vh]">
+          <div className="space-y-4 md:max-w-3xl md:mx-auto px-4 sm:px-6 md:px-8">
 
         {saveErrorMessage && (
           <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
@@ -745,9 +745,9 @@ export default function ShoppingListPage() {
               />
 
               {!storeMode && (
-                <QuickAddCard
+                <FloatingQuickAddCard
                   inputSlot={
-                    <div ref={inputContainerRef} className="relative">
+                    <div ref={inputContainerRef} className="relative w-full">
                       <input
                         type="text"
                         value={newItemInput}
@@ -777,7 +777,7 @@ export default function ShoppingListPage() {
                           }
                         }}
                         placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
-                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
+                        className="w-full bg-transparent border-none text-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0 px-0"
                       />
                       {typeAheadOpen && typeAheadSuggestions.length > 0 && (
                         <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
@@ -791,8 +791,8 @@ export default function ShoppingListPage() {
                     </div>
                   }
                   addButton={
-                    <button type="button" onClick={submitSmartInput} disabled={!splitInput(newItemInput).length} className="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-r from-orange-600 to-rose-500 text-white flex items-center justify-center hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-orange-500/25" title="Hinzufügen">
-                      <Plus className="w-5 h-5" />
+                    <button type="button" onClick={submitSmartInput} disabled={!splitInput(newItemInput).length} className="w-12 h-12 shrink-0 aspect-square rounded-xl bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-orange-500/20" title="Hinzufügen">
+                      <Plus className="w-6 h-6" />
                     </button>
                   }
                   helperText="Liste aus WhatsApp einfügen → Zeilen/Kommas werden erkannt, jedes Item einzeln analysiert."
@@ -821,196 +821,148 @@ export default function ShoppingListPage() {
                     </p>
                   </div>
                 ) : (
-                  <>
+                  <UnifiedListSheet>
                     {sortedCategories.map((cat) => {
                       const items = grouped[cat] ?? [];
                       if (items.length === 0) return null;
                       const theme = getCategoryTheme(cat);
-                      const CatIcon = CATEGORY_ICON_MAP[theme.icon] ?? Package;
                       return (
-                        <CategoryCard
-                          key={cat}
-                          title={theme.label}
-                          count={items.length}
-                          icon={<CatIcon className="w-4 h-4" aria-hidden />}
-                          className="mb-4 last:mb-0"
-                        >
-                          <AnimatedList as="div">
-                            {items.map((item) => {
-                              const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
-                              const isEditingQty = !storeMode && editingQtyItemId === item.id;
-                              const isEditingText = editingItemId === item.id;
-                              const qtyDisplay = formatQtyDisplay(item);
-                              const displayLabel =
-                                item.quantity != null && !(item.unit?.trim())
-                                  ? `${item.quantity}x ${item.text}`
-                                  : hasQty
-                                    ? `${qtyDisplay} ${item.text}`.trim()
-                                    : item.text;
-                              const isStriking = checkingId === item.id;
-                              const showActions = !storeMode && !isEditingText;
-                              const canEdit = item.status !== 'analyzing';
-                              return (
-                                <AnimatedListItem key={item.id} layout={false} as="div" className={cn('transition-all duration-300', isStriking && 'opacity-70')}>
-                                  <ItemRow
-                                    isChecked={false}
-                                    checkbox={
-                                      <ItemRowCheckbox
-                                        checked={false}
-                                        isStriking={isStriking}
-                                        onToggle={() => handleToggleItem(activeList.id, item.id)}
-                                        storeMode={storeMode}
-                                        ariaLabel="Abhaken"
-                                      />
-                                    }
-                                    actions={
-                                      showActions ? (
-                                        <>
-                                          {canEdit && (
-                                            <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, displayLabel); }} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
-                                          )}
-                                          <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList.id, item.id); }} className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
-                                        </>
-                                      ) : null
-                                    }
-                                  >
-                                    <div className="flex-1 min-w-0 flex items-center gap-2" {...(isEditingText ? { 'data-item-edit': '' } : {})}>
-                                      {isEditingText ? (
-                                        <>
-                                          <input
-                                            type="text"
-                                            value={editingItemValue}
-                                            onChange={(e) => setEditingItemValue(e.target.value)}
-                                            onKeyDown={(e) => {
-                                              if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); }
-                                              if (e.key === 'Escape') cancelEditItem();
-                                            }}
-                                            className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
-                                            autoFocus
-                                          />
-                                          <button
-                                            type="button"
-                                            onClick={saveEditItem}
-                                            className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0"
-                                            title="Speichern"
-                                            aria-label="Speichern"
-                                          >
-                                            <Check className="w-4 h-4" />
-                                          </button>
-                                        </>
-                                      ) : item.status === 'analyzing' ? (
-                                        <span className={cn('text-gray-500 italic', storeMode ? 'text-base' : '', isStriking && 'line-through')}>
-                                          Analysiere …
-                                        </span>
-                                      ) : item.status === 'error' ? (
-                                        <span className={cn('text-gray-700', storeMode ? 'text-base font-medium' : '', isStriking && 'line-through')}>
-                                          {item.text}
-                                        </span>
-                                      ) : isEditingQty ? (
-                                    <>
-                                      <input
-                                        type="text"
-                                        value={editingQtyValue}
-                                        onChange={(e) => setEditingQtyValue(e.target.value)}
-                                        onBlur={() => {
-                                          const { quantity, unit } = parseQtyInput(editingQtyValue);
-                                          updateItemQty(activeList.id, item.id, quantity, unit);
-                                        }}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            const { quantity, unit } = parseQtyInput(editingQtyValue);
-                                            updateItemQty(activeList.id, item.id, quantity, unit);
-                                          }
-                                          if (e.key === 'Escape') {
-                                            setEditingQtyItemId(null);
-                                            setEditingQtyValue('');
-                                          }
-                                        }}
-                                        placeholder="z.B. 3 oder 500g"
-                                        className="w-24 rounded-lg border border-gray-200 px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400"
-                                        autoFocus
-                                      />
-                                      <span className={cn('text-gray-900 font-medium', isStriking && 'line-through')}>
-                                        {item.text}
-                                      </span>
-                                    </>
-                                      ) : (
-                                        <>
-                                          {!storeMode && hasQty ? (
-                                            <QuantityPill
-                                              label={item.quantity != null && !(item.unit?.trim()) ? `${item.quantity}x` : qtyDisplay}
-                                              onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(qtyDisplay); }}
-                                            />
-                                          ) : !storeMode && !hasQty ? (
-                                            <QuantityPill label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
-                                          ) : null}
-                                          <span className={cn('text-gray-900 font-medium transition-all duration-300', storeMode ? 'text-base' : '', isStriking && 'line-through')}>
-                                            {hasQty ? item.text : displayLabel}
-                                          </span>
-                                        </>
-                                      )}
-                                    </div>
-                                  </ItemRow>
-                                </AnimatedListItem>
-                              );
-                            })}
-                          </AnimatedList>
-                        </CategoryCard>
-                      );
-                    })}
-
-                    {checked.length > 0 && (
-                      <CategoryCard
-                        title="Erledigt"
-                        count={checked.length}
-                        icon={<Check className="w-4 h-4 text-orange-500" aria-hidden />}
-                        className="mt-4"
-                      >
-                        <AnimatedList as="div">
-                          {checked.map((item) => {
+                        <Fragment key={cat}>
+                          <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} />
+                          {items.map((item) => {
                             const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
-                            const qtyD = formatQtyDisplay(item);
-                            const erledigtLabel = hasQty
-                              ? (item.quantity != null && !(item.unit?.trim())
-                                ? `${item.quantity}x ${item.text}`
-                                : `${qtyD} ${item.text}`.trim())
-                              : item.text;
-                            const justChecked = justCheckedIds.has(item.id);
+                            const isEditingQty = !storeMode && editingQtyItemId === item.id;
                             const isEditingText = editingItemId === item.id;
+                            const qtyDisplay = formatQtyDisplay(item);
+                            const displayLabel =
+                              item.quantity != null && !(item.unit?.trim())
+                                ? `${item.quantity}x ${item.text}`
+                                : hasQty
+                                  ? `${qtyDisplay} ${item.text}`.trim()
+                                  : item.text;
+                            const isStriking = checkingId === item.id;
                             const showActions = !storeMode && !isEditingText;
+                            const canEdit = item.status !== 'analyzing';
                             return (
-                              <AnimatedListItem key={item.id} layout={false} as="div" className={cn('transition-all duration-300', justChecked && 'animate-[slideIn_0.4s_ease-out]')}>
-                                <ItemRow
-                                  isChecked
-                                  checkbox={
-                                    <ItemRowCheckbox checked onToggle={() => handleToggleItem(activeList!.id, item.id)} storeMode={storeMode} ariaLabel="Rückgängig" />
-                                  }
-                                  actions={
-                                    showActions ? (
-                                      <>
-                                        <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, erledigtLabel); }} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
-                                        <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList!.id, item.id); }} className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
-                                      </>
-                                    ) : null
-                                  }
-                                >
-                                  {isEditingText ? (
-                                    <div className="flex items-center gap-2" data-item-edit="">
-                                      <input type="text" value={editingItemValue} onChange={(e) => setEditingItemValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); } if (e.key === 'Escape') cancelEditItem(); }} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400" autoFocus />
-                                      <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
-                                    </div>
-                                  ) : (
-                                    <span className="text-gray-500 line-through opacity-80">{erledigtLabel}</span>
-                                  )}
-                                </ItemRow>
-                              </AnimatedListItem>
+                              <UnifiedItemRow
+                                key={item.id}
+                                checkbox={
+                                  <UnifiedCheckbox
+                                    checked={false}
+                                    onToggle={() => handleToggleItem(activeList.id, item.id)}
+                                    theme={theme}
+                                    ariaLabel="Abhaken"
+                                    disabled={item.status === 'analyzing'}
+                                  />
+                                }
+                                actions={
+                                  showActions ? (
+                                    <>
+                                      {canEdit && (
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, displayLabel); }} className="p-2 rounded-lg hover:bg-gray-100 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
+                                      )}
+                                      <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList.id, item.id); }} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
+                                    </>
+                                  ) : null
+                                }
+                              >
+                                {isEditingText ? (
+                                  <>
+                                    <input
+                                      type="text"
+                                      value={editingItemValue}
+                                      onChange={(e) => setEditingItemValue(e.target.value)}
+                                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); } if (e.key === 'Escape') cancelEditItem(); }}
+                                      className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                                      autoFocus
+                                    />
+                                    <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
+                                  </>
+                                ) : item.status === 'analyzing' ? (
+                                  <span className={cn('text-gray-500 italic', isStriking && 'line-through')}>Analysiere …</span>
+                                ) : item.status === 'error' ? (
+                                  <span className={cn('font-medium text-gray-900', isStriking && 'line-through')}>{item.text}</span>
+                                ) : isEditingQty ? (
+                                  <>
+                                    <input
+                                      type="text"
+                                      value={editingQtyValue}
+                                      onChange={(e) => setEditingQtyValue(e.target.value)}
+                                      onBlur={() => { const { quantity, unit } = parseQtyInput(editingQtyValue); updateItemQty(activeList.id, item.id, quantity, unit); }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') { e.preventDefault(); const { quantity, unit } = parseQtyInput(editingQtyValue); updateItemQty(activeList.id, item.id, quantity, unit); }
+                                        if (e.key === 'Escape') { setEditingQtyItemId(null); setEditingQtyValue(''); }
+                                      }}
+                                      placeholder="z.B. 3 oder 500g"
+                                      className="w-24 rounded-lg border border-gray-200 px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                                      autoFocus
+                                    />
+                                    <span className={cn('font-medium text-gray-900', isStriking && 'line-through')}>{item.text}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    {!storeMode && hasQty && (
+                                      <UnifiedQuantityBadge
+                                        label={item.quantity != null && !(item.unit?.trim()) ? `${item.quantity}x` : qtyDisplay}
+                                        onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(qtyDisplay); }}
+                                      />
+                                    )}
+                                    {!storeMode && !hasQty && (
+                                      <UnifiedQuantityBadge label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
+                                    )}
+                                    <span className={cn('font-medium text-gray-900', isStriking && 'text-gray-400 line-through')}>
+                                      {hasQty ? item.text : displayLabel}
+                                    </span>
+                                  </>
+                                )}
+                              </UnifiedItemRow>
                             );
                           })}
-                        </AnimatedList>
-                      </CategoryCard>
+                        </Fragment>
+                      );
+                    })}
+                    {checked.length > 0 && (
+                      <Fragment key="erledigt">
+                        <StickyCategoryHeader title="Erledigt" count={checked.length} theme={getCategoryTheme('sonstiges')} />
+                        {checked.map((item) => {
+                          const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
+                          const qtyD = formatQtyDisplay(item);
+                          const erledigtLabel = hasQty
+                            ? (item.quantity != null && !(item.unit?.trim()) ? `${item.quantity}x ${item.text}` : `${qtyD} ${item.text}`.trim())
+                            : item.text;
+                          const isEditingText = editingItemId === item.id;
+                          const showActions = !storeMode && !isEditingText;
+                          const theme = getCategoryTheme('sonstiges');
+                          return (
+                            <UnifiedItemRow
+                              key={item.id}
+                              isChecked
+                              checkbox={
+                                <UnifiedCheckbox checked onToggle={() => handleToggleItem(activeList!.id, item.id)} theme={theme} ariaLabel="Rückgängig" />
+                              }
+                              actions={
+                                showActions ? (
+                                  <>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, erledigtLabel); }} className="p-2 rounded-lg hover:bg-gray-100 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList!.id, item.id); }} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
+                                  </>
+                                ) : null
+                              }
+                            >
+                              {isEditingText ? (
+                                <>
+                                  <input type="text" value={editingItemValue} onChange={(e) => setEditingItemValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); } if (e.key === 'Escape') cancelEditItem(); }} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200" autoFocus />
+                                  <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
+                                </>
+                              ) : (
+                                <span className="text-gray-400 line-through">{erledigtLabel}</span>
+                              )}
+                            </UnifiedItemRow>
+                          );
+                        })}
+                      </Fragment>
                     )}
-                  </>
+                  </UnifiedListSheet>
                 )}
               </div>
               {checked.length > 0 && (
