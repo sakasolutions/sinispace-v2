@@ -266,7 +266,7 @@ export function UnifiedListSheet({
   return (
     <div
       className={cn(
-        'bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100',
+        'bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden divide-y divide-gray-100',
         className
       )}
     >
@@ -303,7 +303,7 @@ export function StickyCategoryHeader({
   );
 }
 
-/** Category-colored circular checkbox (no native checkbox) */
+/** Circular checkbox: Gourmet-Gradient when checked, clear circle when unchecked */
 export function UnifiedCheckbox({
   checked,
   onToggle,
@@ -325,8 +325,9 @@ export function UnifiedCheckbox({
       aria-label={ariaLabel}
       className={cn(
         'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200',
-        theme.checkboxBorder,
-        checked ? theme.checkboxBg + ' border-transparent' : 'bg-transparent hover:bg-gray-50'
+        checked
+          ? 'bg-gradient-to-r from-orange-500 to-amber-500 border-transparent'
+          : 'bg-white border-gray-300 hover:border-gray-400'
       )}
     >
       {checked && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}

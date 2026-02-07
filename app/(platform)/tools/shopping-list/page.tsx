@@ -718,7 +718,7 @@ export default function ShoppingListPage() {
           </div>
         }
       >
-        <section className="mb-8 md:mb-10 bg-gray-50/50 min-h-[50vh]">
+        <section className="mb-8 md:mb-10 bg-gray-50 pb-32">
           <div className="space-y-4 md:max-w-3xl md:mx-auto px-4 sm:px-6 md:px-8">
 
         {saveErrorMessage && (
@@ -811,16 +811,16 @@ export default function ShoppingListPage() {
                 />
               )}
 
-              <div className="flex-1 w-full min-w-0 overflow-y-auto min-h-0 pt-12 pb-16">
-                {unchecked.length === 0 && checked.length === 0 ? (
-                  <div className="p-8 sm:p-12 text-center">
-                    <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                    <p className="text-gray-500 font-medium">Noch keine Einträge.</p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Tippe etwas ein oder füge eine Liste ein (z.B. aus WhatsApp).
-                    </p>
-                  </div>
-                ) : (
+              {unchecked.length === 0 && checked.length === 0 ? (
+                <div className="mt-8 p-8 sm:p-12 text-center bg-white rounded-3xl shadow-xl border border-gray-100">
+                  <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                  <p className="text-gray-500 font-medium">Noch keine Einträge.</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Tippe etwas ein oder füge eine Liste ein (z.B. aus WhatsApp).
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-8">
                   <UnifiedListSheet>
                     {sortedCategories.map((cat) => {
                       const items = grouped[cat] ?? [];
@@ -963,8 +963,8 @@ export default function ShoppingListPage() {
                       </Fragment>
                     )}
                   </UnifiedListSheet>
-                )}
-              </div>
+                </div>
+              )}
               {checked.length > 0 && (
                 <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3 flex justify-center shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_-4px_rgba(0,0,0,0.08)]">
                   <button
