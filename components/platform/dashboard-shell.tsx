@@ -63,7 +63,7 @@ export function DashboardShell({
           )}
         >
           {headerActionsRight != null ? (
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center justify-between gap-4">
               <div className="max-w-2xl min-w-0">
                 {title}
                 {subtitle}

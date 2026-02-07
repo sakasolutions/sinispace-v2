@@ -95,7 +95,7 @@ export function GourmetCockpit({
         }
         subtitle={null}
         headerPrimaryCTA={
-          <div className="mt-4 md:flex md:justify-center">
+          <div className="mt-4 md:hidden">
             <button
               type="button"
               onClick={onVorschlagGenerieren}
@@ -107,22 +107,32 @@ export function GourmetCockpit({
           </div>
         }
         headerActionsRight={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-end gap-3">
             <button
               type="button"
-              aria-label="Info"
-              onClick={() => setInfoOpen(true)}
-              className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+              onClick={onVorschlagGenerieren}
+              className="hidden md:inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
             >
-              <HelpCircle className="w-4 h-4" />
+              <Sparkles className="w-5 h-5" />
+              Vorschlag generieren
             </button>
-            <button
-              type="button"
-              aria-label="Suchen"
-              className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
-            >
-              <Search className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Info"
+                onClick={() => setInfoOpen(true)}
+                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="Suchen"
+                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         }
       >
