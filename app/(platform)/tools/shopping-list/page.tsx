@@ -713,9 +713,9 @@ export default function ShoppingListPage() {
 
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         <div className="space-y-4">
-        {/* List selector only – no toolbar card */}
-        <div className="flex items-center gap-2">
-          <div className="min-w-0 max-w-[220px] sm:max-w-[260px]">
+        {/* List selector rechts, damit der orangene CTA im Hero sichtbar bleibt */}
+        <div className="flex items-center justify-end">
+          <div className="min-w-0 w-full max-w-[220px] sm:max-w-[260px]">
             <CustomSelect
               value={activeListId ?? ''}
               onChange={(v) => setActiveListId(v)}
