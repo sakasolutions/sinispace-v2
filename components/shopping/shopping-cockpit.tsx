@@ -14,7 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { getShoppingLists, getSmartNachkaufenSuggestions } from '@/actions/shopping-list-actions';
 import type { ShoppingList } from '@/lib/shopping-lists-storage';
-import { PageTransition } from '@/components/ui/PageTransition';
+import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Gleiche Glass-Karten-Styles wie Main-Dashboard / Gourmet-Cockpit */
 const DASHBOARD_CARD_STYLE: React.CSSProperties = {
@@ -69,23 +69,15 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
-      {/* Header: 1:1 home dashboard – same height, overlay, container, pb-6 */}
-      <header
-        className={cn(
-          'relative z-[1] min-h-[280px]',
-          'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
-        )}
-      >
-        <div
-          className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
-          style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0" aria-hidden />
-        </div>
-        {/* Layer 1: same as home dashboard – dashboard-header-pt md:pt-12, px-3 sm:px-6 md:px-8, pb-6 */}
-        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
-          <div className="max-w-2xl">
+      <DashboardShell
+        headerVariant="withCTA"
+        headerBackground={
+          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0" aria-hidden />
+          </div>
+        }
+        title={
+          <>
             <Link
               href="/tools/shopping-list"
               className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
@@ -99,29 +91,28 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
             <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
               Dein intelligenter Begleiter im Supermarkt.
             </p>
-            <Link
-              href="/tools/shopping-list"
-              className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
-            >
-              <Plus className="w-5 h-5" />
-              Neue Liste erstellen
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main: 1:1 Gourmet/Home – same hero overlap (-mt-20), same spacer (h-5 mb-4), same grid/card structure */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
+          </>
+        }
+        subtitle={null}
+        headerPrimaryCTA={
+          <Link
+            href="/tools/shopping-list"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            Neue Liste erstellen
+          </Link>
+        }
+      >
         <section className="mb-8 md:mb-10">
-          <div className="h-5 mb-4" aria-hidden />
-          <div className="grid grid-cols-2 gap-4 md:gap-4 grid-rows-[168px_168px]">
-            {/* Karte 1: Aktive Liste – gleiche Höhe wie untere Karten */}
+          <div className="grid grid-cols-2 gap-4 md:gap-4">
+            {/* Karte 1: Aktive Liste – 1:1 wie /dashboard (min-h-[160px]) */}
             <Link
               href={activeList ? `/tools/shopping-list?listId=${activeList.id}` : '/tools/shopping-list'}
-              className="block h-full min-h-0"
+              className="block h-full min-h-[160px]"
             >
               <div
-                className="group relative flex flex-col justify-between h-full items-start min-h-0 rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
+                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full"
                 style={DASHBOARD_CARD_STYLE}
               >
                 <div className="absolute top-4 right-4">
@@ -145,35 +136,30 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
               </div>
             </Link>
 
-            {/* Karte 2: Smart Nachkaufen – KI-Vorschläge, gleiche Kartenhöhe wie alle anderen */}
-            <Link href="/tools/shopping/smart-nachkaufen" className="block h-full min-h-0">
+            {/* Karte 2: Smart Nachkaufen – 1:1 wie /dashboard */}
+            <Link href="/tools/shopping/smart-nachkaufen" className="block h-full min-h-[160px]">
               <div
-                className="group relative flex flex-col justify-between h-full items-start min-h-0 rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
+                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full"
                 style={DASHBOARD_CARD_STYLE}
               >
-                <div className="flex w-full justify-between items-start gap-2 shrink-0">
+                <div className="flex w-full justify-between items-start gap-2">
                   <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-indigo-500 to-violet-500 shadow-lg shadow-indigo-500/30">
                     <Sparkles className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
                   </div>
                 </div>
-                <div className="w-full text-left min-w-0 min-h-0 flex flex-col">
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2 shrink-0">Smart Nachkaufen</h3>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1 shrink-0">KI erkennt, was bald fehlt</p>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1 min-h-0">
-                    {loading
-                      ? '…'
-                      : smartSuggestions.length === 0
-                        ? 'Noch keine Vorschläge'
-                        : smartSuggestions.slice(0, 3).map(({ label }) => label).join(', ')}
+                <div className="w-full text-left">
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Smart Nachkaufen</h3>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
+                    {loading ? '…' : smartSuggestions.length === 0 ? 'Noch keine Vorschläge' : smartSuggestions.slice(0, 3).map(({ label }) => label).join(', ')}
                   </p>
                 </div>
               </div>
             </Link>
 
-            {/* Karte 3: Zutaten importieren – gleiche Höhe wie Karte 1/2/4 */}
-            <Link href="/tools/recipe" className="block h-full min-h-0">
+            {/* Karte 3: Zutaten importieren – 1:1 wie /dashboard */}
+            <Link href="/tools/recipe" className="block h-full min-h-[160px]">
               <div
-                className="group relative flex flex-col justify-between h-full items-start min-h-0 rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full h-full"
+                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left w-full"
                 style={DASHBOARD_CARD_STYLE}
               >
                 <div className="flex w-full justify-between items-start gap-2">
@@ -188,10 +174,10 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
               </div>
             </Link>
 
-            {/* Karte 4: Budget – gleiche Höhe wie alle anderen */}
-            <div className="h-full min-h-0">
+            {/* Karte 4: Budget – 1:1 wie /dashboard */}
+            <div className="h-full min-h-[160px]">
               <div
-                className="group relative flex flex-col justify-between h-full items-start min-h-0 rounded-2xl overflow-hidden p-5 text-left w-full h-full cursor-default"
+                className="group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left w-full cursor-default"
                 style={DASHBOARD_CARD_STYLE}
               >
                 <div className="flex w-full justify-between items-start gap-2">
@@ -256,11 +242,11 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
                     </Link>
                   </li>
                 );
-              })}
-            </ul>
+              }          )}
+        </ul>
           )}
         </section>
-      </PageTransition>
+      </DashboardShell>
     </div>
   );
 }

@@ -48,7 +48,7 @@ import {
 } from '@/lib/shopping-list-categories';
 import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
 import { CustomSelect } from '@/components/ui/custom-select';
-import { PageTransition } from '@/components/ui/PageTransition';
+import { DashboardShell } from '@/components/platform/dashboard-shell';
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import {
@@ -597,47 +597,44 @@ export default function ShoppingListPage() {
 
   return (
     <div className="min-h-screen min-h-full w-full relative overflow-x-hidden bg-[#fff6f7]">
-      {/* Header: 1:1 wie Dashboard (Gourmet/Shopping-Cockpit) */}
-      <header
-        className={cn(
-          'relative z-[1] min-h-[280px]',
-          'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
-        )}
-      >
-        <div
-          className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
-          style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0" aria-hidden />
-        </div>
-        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
-          <div className="flex items-end justify-between gap-4">
-            <div className="max-w-2xl min-w-0">
-              <Link
-                href="/tools/shopping"
-                className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
-              >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                Zurück
-              </Link>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-                {activeList?.name ?? 'Einkaufsliste'}
-              </h1>
-              <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
-                Smart Input & KI-Kategorien. Einzel-Item oder Liste einfügen.
-              </p>
-              <button
-                type="button"
-                onClick={() => { setPendingName(''); setModalNewList(true); }}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                Neue Liste
-              </button>
-            </div>
-            <div className="flex flex-col items-end justify-end gap-3 shrink-0">
-              <div className="flex items-center gap-2">
+      <DashboardShell
+        headerVariant="withCTA"
+        headerBackground={
+          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0" aria-hidden />
+          </div>
+        }
+        title={
+          <>
+            <Link
+              href="/tools/shopping"
+              className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Zurück
+            </Link>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
+              {activeList?.name ?? 'Einkaufsliste'}
+            </h1>
+            <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+              Smart Input & KI-Kategorien. Einzel-Item oder Liste einfügen.
+            </p>
+          </>
+        }
+        subtitle={null}
+        headerPrimaryCTA={
+          <button
+            type="button"
+            onClick={() => { setPendingName(''); setModalNewList(true); }}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            Neue Liste
+          </button>
+        }
+        headerActionsRight={
+          <div className="flex flex-col items-end justify-end gap-3">
+            <div className="flex items-center gap-2">
               <WhatIsThisModal
                 title="Smart Einkaufsliste"
                 content={
@@ -707,25 +704,21 @@ export default function ShoppingListPage() {
                   )}
                 </div>
               )}
-              </div>
-              <div className="min-w-0 w-full max-w-[220px] sm:max-w-[260px]">
-                <CustomSelect
-                  value={activeListId ?? ''}
-                  onChange={(v) => setActiveListId(v)}
-                  options={lists.map((l) => ({ value: l.id, label: l.name }))}
-                  placeholder="Liste wählen…"
-                  theme="light"
-                  icon={ListChecks}
-                  dropdownInPortal
-                />
-              </div>
+            </div>
+            <div className="min-w-0 w-full max-w-[220px] sm:max-w-[260px]">
+              <CustomSelect
+                value={activeListId ?? ''}
+                onChange={(v) => setActiveListId(v)}
+                options={lists.map((l) => ({ value: l.id, label: l.name }))}
+                placeholder="Liste wählen…"
+                theme="light"
+                icon={ListChecks}
+                dropdownInPortal
+              />
             </div>
           </div>
-        </div>
-      </header>
-
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
-        <div className="h-5 mb-4" aria-hidden />
+        }
+      >
         <div className="space-y-4">
 
         {saveErrorMessage && (
@@ -1172,7 +1165,7 @@ export default function ShoppingListPage() {
           </div>
         </div>
       )}
-    </PageTransition>
+    </DashboardShell>
     </div>
   );
 }

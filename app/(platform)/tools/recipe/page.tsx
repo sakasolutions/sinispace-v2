@@ -27,6 +27,7 @@ import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list
 import { RecipeDetailView } from '@/components/recipe/recipe-detail-view';
 import { WeekPlanner } from '@/components/recipe/week-planner';
 import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
+import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 type Recipe = {
   recipeName: string;
@@ -384,52 +385,40 @@ export default function RecipePage() {
           />
         </div>
       ) : (
-        /* Create / Meine Rezepte: Golden Standard – Header 1:1 wie Dashboard, kein max-w um Header */
+        /* Create / Meine Rezepte: DashboardShell für einheitliches Header/Overlap */
         <div className="min-h-screen w-full bg-gradient-to-b from-rose-50 via-white to-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-          {/* Header: 1:1 Standard wie Dashboard & Gourmet-Cockpit (Helfer-Standard) */}
-          <header
-            className={cn(
-              'relative z-[1] min-h-[280px]',
-              'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-              '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
-            )}
-          >
-            {/* Layer 0: cooking-action Bild + Overlay (nur Rezept-Generator) */}
-            <div
-              className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
-              style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-b from-orange-950/80 via-orange-900/70 to-amber-900/60 z-0" aria-hidden />
-            </div>
-            {/* Layer 1: Inhalt – klare Hierarchie, linksbündig */}
-            <div className="relative z-10 pt-8 px-6 md:px-8 pb-24">
-              <div className="flex flex-col items-start gap-4">
+          <DashboardShell
+            headerVariant="default"
+            headerBackground={
+              <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
+                <div className="absolute inset-0 bg-gradient-to-b from-orange-950/80 via-orange-900/70 to-amber-900/60 z-0" aria-hidden />
+              </div>
+            }
+            title={
+              <>
                 <Link
                   href="/tools/recipe"
-                  className="group flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10"
+                  className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
                 >
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   Zurück zur Übersicht
                 </Link>
-                <div className="mt-2">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1" style={{ letterSpacing: '-0.3px' }}>
-                    Rezept Generator
-                  </h1>
-                  <p className="text-white/90 text-lg md:text-xl">Dein Smart-Chef für den Kühlschrank.</p>
-                  {activeTab === 'create' && (
-                    <p className="text-white/70 text-sm font-medium mt-2" style={{ letterSpacing: '0.05em' }}>
-                      Schritt {wizardStep} von 3
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </header>
-
-          {/* Content: Wizard startet direkt mit Glas-Bühne (keine Select Bar mehr davor) */}
-          <div className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
-
-          {/* Tab Content – One decision per screen, floating cards, sticky CTA */}
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1 mt-0" style={{ letterSpacing: '-0.3px' }}>
+                  Rezept Generator
+                </h1>
+              </>
+            }
+            subtitle={
+              <>
+                <p className="text-white/90 text-lg md:text-xl">Dein Smart-Chef für den Kühlschrank.</p>
+                {activeTab === 'create' && (
+                  <p className="text-white/70 text-sm font-medium mt-2" style={{ letterSpacing: '0.05em' }}>
+                    Schritt {wizardStep} von 3
+                  </p>
+                )}
+              </>
+            }
+          >
       {activeTab === 'create' ? (
         <React.Fragment>
         <form action={formAction} id="recipe-wizard-form" className="flex flex-col min-h-[50vh]">
@@ -443,11 +432,11 @@ export default function RecipePage() {
           {/* Step 1: Nur Gericht-Typ – schwebende Premium-Karten wie Home */}
           {wizardStep === 1 && (
             <section
-              className="relative z-20 -mt-16 md:-mt-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
+              className="relative z-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
               key="step1"
             >
               <div className="h-5 mb-4" aria-hidden />
-              <div className="grid grid-cols-2 gap-4 md:gap-5 max-w-3xl mx-auto">
+              <div className="grid grid-cols-2 gap-4 md:gap-4 max-w-3xl mx-auto">
                 {mealTypeOptions.map((option) => {
                   const isActive = mealType === option.value;
                   const Icon = option.Icon;
@@ -457,20 +446,20 @@ export default function RecipePage() {
                       type="button"
                       onClick={() => setMealType(option.value)}
                       className={cn(
-                        'group relative flex flex-col items-start min-h-[140px] rounded-2xl overflow-hidden p-5 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
-                        isActive
-                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30 scale-[1.02] border border-transparent'
-                          : 'hover:scale-[1.02]'
+                        'group relative flex flex-col justify-between items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
+                        'hover:scale-[1.02]',
+                        isActive && 'scale-[1.02] ring-2 ring-orange-400/80 shadow-[0_0_0_1px_rgba(249,115,22,0.4),0_4px_24px_-2px_rgba(249,115,22,0.25)]'
                       )}
-                      style={isActive ? undefined : DASHBOARD_CARD_STYLE}
+                      style={DASHBOARD_CARD_STYLE}
                     >
                       <div className={cn(
-                        'w-14 h-14 rounded-[20px] flex items-center justify-center shrink-0 mb-3',
-                        isActive ? 'bg-white/20' : 'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30'
+                        'w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0',
+                        'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30',
+                        isActive && 'shadow-orange-500/40 ring-2 ring-white/30'
                       )}>
-                        <Icon className={cn('w-7 h-7 shrink-0', isActive ? 'text-white' : 'text-white')} strokeWidth={2.5} aria-hidden />
+                        <Icon className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
                       </div>
-                      <h3 className={cn('font-semibold text-[1rem] leading-tight line-clamp-2', isActive ? 'text-white' : 'text-gray-900')}>
+                      <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">
                         {option.label}
                       </h3>
                     </button>
@@ -483,7 +472,7 @@ export default function RecipePage() {
           {/* Step 2: Nur Personenanzahl – eine Karte */}
           {wizardStep === 2 && (
             <section
-              className="relative z-20 -mt-16 md:-mt-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
+              className="relative z-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
               key="step2"
             >
               <div className="h-5 mb-4" aria-hidden />
@@ -521,7 +510,7 @@ export default function RecipePage() {
           {/* Step 3: Nur Zutaten + Optionen – eine Karte, minimal lines */}
           {wizardStep === 3 && (
             <section
-              className="relative z-20 -mt-16 md:-mt-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
+              className="relative z-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
               key="step3"
             >
               <div className="h-5 mb-4" aria-hidden />
@@ -891,7 +880,7 @@ export default function RecipePage() {
         )
             ) : null}
 
-          </div>
+          </DashboardShell>
         </div>
       )}
 

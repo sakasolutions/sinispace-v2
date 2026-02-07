@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGourmetDashboardData, type GourmetDashboardData } from '@/actions/gourmet-dashboard-actions';
-import { PageTransition } from '@/components/ui/PageTransition';
+import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 function getTodayStr(): string {
   const d = new Date();
@@ -73,65 +73,57 @@ export function GourmetCockpit({
 
   return (
     <div className="min-h-screen w-full relative overflow-x-visible bg-white">
-      {/* Header: 1:1 Golden Standard – exakt wie Main-Dashboard (h-[280px], rounded-b-[40px]) */}
-      <header
-        className={cn(
-          'relative z-[1] min-h-[280px]',
-          'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
-        )}
-      >
-        {/* Layer 0: Hintergrund – exakt Dashboard-Höhe */}
-        <div
-          className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center"
-          style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-orange-950/80 via-orange-900/70 to-amber-900/60 z-0" aria-hidden />
-        </div>
-
-        {/* Layer 1: Content höher (dashboard-header-pt md:pt-12), pb-12 damit Button im Header sichtbar bleibt */}
-        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
-          <div className="flex items-start justify-between gap-4">
-            <div className="max-w-2xl min-w-0">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-                Gourmet Planer
-              </h1>
-              <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
-                Was kochen wir heute?
-              </p>
-              <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
-                Lass dich inspirieren.
-              </p>
-              <button
-                type="button"
-                onClick={onVorschlagGenerieren}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
-              >
-                <Sparkles className="w-5 h-5" />
-                Vorschlag generieren
-              </button>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                aria-label="Info"
-                onClick={() => setInfoOpen(true)}
-                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
-              >
-                <HelpCircle className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                aria-label="Suchen"
-                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
-              >
-                <Search className="w-4 h-4" />
-              </button>
-            </div>
+      <DashboardShell
+        headerVariant="withCTA"
+        headerBackground={
+          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/gourmet-header.webp)' }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-orange-950/80 via-orange-900/70 to-amber-900/60 z-0" aria-hidden />
           </div>
-        </div>
-      </header>
-
+        }
+        title={
+          <>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
+              Gourmet Planer
+            </h1>
+            <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
+              Was kochen wir heute?
+            </p>
+            <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+              Lass dich inspirieren.
+            </p>
+          </>
+        }
+        subtitle={null}
+        headerPrimaryCTA={
+          <button
+            type="button"
+            onClick={onVorschlagGenerieren}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
+          >
+            <Sparkles className="w-5 h-5" />
+            Vorschlag generieren
+          </button>
+        }
+        headerActionsRight={
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Info"
+              onClick={() => setInfoOpen(true)}
+              className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              aria-label="Suchen"
+              className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </div>
+        }
+      >
       {/* Info-Modal */}
       {infoOpen && (
         <div
@@ -156,10 +148,7 @@ export function GourmetCockpit({
         </div>
       )}
 
-      {/* Main: 1:1 wie Dashboard – gleicher Overlap (-mt-20) + gleicher Abstand bis zum Grid (h2 + mb-4) */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         <section className="mb-8 md:mb-10">
-          <div className="h-5 mb-4" aria-hidden />
           <div className="grid grid-cols-2 gap-4 md:gap-4">
             {/* Karte 1: Woche planen – Glass */}
             <button
@@ -252,7 +241,7 @@ export function GourmetCockpit({
             </Link>
           </div>
         </section>
-      </PageTransition>
+      </DashboardShell>
     </div>
   );
 }
