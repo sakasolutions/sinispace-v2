@@ -907,9 +907,7 @@ export default function DashboardClient() {
           <div className="space-y-6 md:space-y-8">
             {/* Zuletzt verwendet: Top 4 */}
             <section className="mb-8 md:mb-10">
-              <div className="h-5 mb-4 flex items-end">
-                <h2 className="text-sm font-bold text-gray-600">Zuletzt verwendet</h2>
-              </div>
+              <h2 className="text-sm font-bold text-gray-600 mb-4">Zuletzt verwendet</h2>
               <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
                 {sortedTools.slice(0, 4).map((tool) => {
                   const Icon = tool.icon;

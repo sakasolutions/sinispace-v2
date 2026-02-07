@@ -84,7 +84,6 @@ export function DashboardShell({
       </header>
 
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
-        <div className="h-5 mb-4" aria-hidden />
         {children}
       </PageTransition>
     </>

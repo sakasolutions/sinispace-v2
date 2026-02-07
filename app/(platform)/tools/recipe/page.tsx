@@ -435,7 +435,6 @@ export default function RecipePage() {
               className="relative z-20 mb-8 md:mb-10 animate-in fade-in slide-in-from-right-4 duration-300"
               key="step1"
             >
-              <div className="h-5 mb-4" aria-hidden />
               <div className="grid grid-cols-2 gap-4 md:gap-4 max-w-3xl mx-auto">
                 {mealTypeOptions.map((option) => {
                   const isActive = mealType === option.value;
