@@ -437,7 +437,7 @@ export default function RecipePage() {
             {wizardStep === 1 && (
               <section key="step1" aria-labelledby="meal-type-heading">
                 <h2 id="meal-type-heading" className="sr-only">Gerichttyp wählen</h2>
-                <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
+                <div className="grid grid-cols-2 gap-3 md:gap-3 md:max-w-2xl md:mx-auto">
                   {mealTypeOptions.map((option) => {
                     const isActive = mealType === option.value;
                     const Icon = option.Icon;
@@ -447,7 +447,7 @@ export default function RecipePage() {
                         type="button"
                         onClick={() => setMealType(option.value)}
                         className={cn(
-                          'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
+                          'group relative flex flex-col justify-between h-full items-start min-h-[132px] md:min-h-[100px] rounded-xl md:rounded-2xl overflow-hidden p-4 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
                           'hover:scale-[1.02]',
                           isActive && 'scale-[1.02] ring-2 ring-orange-400/80 shadow-[0_0_0_1px_rgba(249,115,22,0.4),0_4px_24px_-2px_rgba(249,115,22,0.25)]'
                         )}
@@ -455,15 +455,15 @@ export default function RecipePage() {
                       >
                         <div className="flex w-full justify-between items-start gap-2">
                           <div className={cn(
-                            'w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0',
+                            'w-12 h-12 md:w-11 md:h-11 rounded-[16px] md:rounded-[14px] flex items-center justify-center shrink-0',
                             'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30',
                             isActive && 'shadow-orange-500/40 ring-2 ring-white/30'
                           )}>
-                            <Icon className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                            <Icon className="w-6 h-6 md:w-5 md:h-5 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
                           </div>
                         </div>
                         <div className="w-full text-left">
-                          <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">
+                          <h3 className="font-semibold text-sm md:text-[0.9375rem] text-gray-900 leading-tight line-clamp-2">
                             {option.label}
                           </h3>
                         </div>
@@ -593,9 +593,9 @@ export default function RecipePage() {
             <p className="mt-4 mx-4 text-sm font-semibold text-red-600 text-center">{state.error}</p>
           )}
 
-          {/* Sticky Bottom CTA – wie „Vorschlag generieren“ auf Home */}
+          {/* Sticky Bottom CTA – Breite an Card-Grid (max-w-2xl) angepasst */}
           <div className="sticky bottom-0 left-0 right-0 z-30 mt-auto pt-6 pb-8 px-4 sm:px-6 md:px-8 bg-gradient-to-t from-white via-white/95 to-transparent pt-12">
-            <div className="max-w-3xl mx-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               {wizardStep > 1 && (
                 <button
                   type="button"
