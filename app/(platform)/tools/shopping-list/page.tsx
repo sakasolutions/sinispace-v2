@@ -569,7 +569,7 @@ export default function ShoppingListPage() {
 
   if (!hydrated) {
     return (
-      <div className="min-h-screen min-h-full w-full relative overflow-x-hidden bg-rose-50">
+      <div className="min-h-screen min-h-full w-full relative overflow-x-hidden bg-[#fff6f7]">
         <header
           className={cn(
             'relative z-[1] min-h-[280px]',
@@ -596,7 +596,7 @@ export default function ShoppingListPage() {
   }
 
   return (
-    <div className="min-h-screen min-h-full w-full relative overflow-x-hidden bg-rose-50">
+    <div className="min-h-screen min-h-full w-full relative overflow-x-hidden bg-[#fff6f7]">
       {/* Header: 1:1 wie Dashboard (Gourmet/Shopping-Cockpit) */}
       <header
         className={cn(
