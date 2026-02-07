@@ -569,7 +569,7 @@ export default function ShoppingListPage() {
 
   if (!hydrated) {
     return (
-      <div className="min-h-screen min-h-full w-full relative bg-[#fff6f7]">
+      <div className="min-h-screen min-h-full w-full relative bg-gray-50">
         <header
           className={cn(
             'relative z-[1] min-h-[280px]',
@@ -596,7 +596,7 @@ export default function ShoppingListPage() {
   }
 
   return (
-    <div className="min-h-screen min-h-full w-full relative bg-[#fff6f7]">
+    <div className="min-h-screen min-h-full w-full relative bg-gray-50">
       <DashboardShell
         headerVariant="withCTA"
         headerBackground={
@@ -718,7 +718,7 @@ export default function ShoppingListPage() {
           </div>
         }
       >
-        <section className="mb-8 md:mb-10 bg-gray-50 pb-32">
+        <section className="mb-8 md:mb-10 pb-32">
           <div className="space-y-4 md:max-w-3xl md:mx-auto px-4 sm:px-6 md:px-8">
 
         {saveErrorMessage && (
