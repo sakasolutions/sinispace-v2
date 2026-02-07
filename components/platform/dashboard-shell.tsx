@@ -58,28 +58,30 @@ export function DashboardShell({
         </div>
         <div
           className={cn(
-            'dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8',
+            'dashboard-header-pt md:pt-12 relative z-10 w-full',
             layer1Pb
           )}
         >
-          {headerActionsRight != null ? (
-            <div className="flex items-center justify-between gap-4">
-              <div className="max-w-2xl min-w-0">
+          <div className="max-w-7xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8">
+            {headerActionsRight != null ? (
+              <div className="flex items-start justify-between gap-4 max-w-3xl mx-auto">
+                <div className="max-w-2xl min-w-0">
+                  {title}
+                  {subtitle}
+                  {headerExtra}
+                  {headerPrimaryCTA}
+                </div>
+                <div className="shrink-0">{headerActionsRight}</div>
+              </div>
+            ) : (
+              <div className="max-w-2xl">
                 {title}
                 {subtitle}
                 {headerExtra}
                 {headerPrimaryCTA}
               </div>
-              <div className="shrink-0">{headerActionsRight}</div>
-            </div>
-          ) : (
-            <div className="max-w-2xl">
-              {title}
-              {subtitle}
-              {headerExtra}
-              {headerPrimaryCTA}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
