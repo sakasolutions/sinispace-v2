@@ -719,7 +719,8 @@ export default function ShoppingListPage() {
           </div>
         }
       >
-        <div className="space-y-4">
+        <section className="mb-8 md:mb-10">
+          <div className="space-y-4 md:max-w-3xl md:mx-auto">
 
         {saveErrorMessage && (
           <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
@@ -1036,7 +1037,8 @@ export default function ShoppingListPage() {
               </p>
             </div>
           )}
-        </div>
+          </div>
+        </section>
 
       {toast && (
         <div

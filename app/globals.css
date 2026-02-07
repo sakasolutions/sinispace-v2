@@ -134,6 +134,20 @@
 }
 
 @layer utilities {
+  /*
+   * Dashboard-Layout – kanonische Maße (nur Layout, keine Farben/Inhalt)
+   * Mobile-Referenz: /tools/shopping (ShoppingCockpit)
+   * Desktop-Referenz: /tools/recipe
+   * Header: min-h-[280px], rounded-b-[40px], dashboard-header-pt, px-3 sm:px-6 md:px-8, pb-6|pb-12
+   * Main: -mt-20, px-3 sm:px-4 md:px-6 lg:px-8, pb-32, max-w-7xl
+   * Spacer: h-5 mb-4
+   * Erste Sektion: mb-8 md:mb-10
+   * Erste Grid (2×2): grid-cols-2 gap-4, md:max-w-3xl md:mx-auto (Desktop wie Recipe)
+   * Karte: min-h-[160px], rounded-2xl, p-5, Badge top-4 right-4, Icon w-16 h-16 rounded-[22px], Icon inner w-8 h-8, Titel text-[1.0625rem], Subtitle text-sm mt-0.5
+   * Zurück-Pill: px-4 py-2 rounded-full text-sm mb-3
+   * H1: text-2xl sm:text-3xl md:text-4xl tracking-tight mt-0
+   * CTA-Button: rounded-xl px-5 py-3.5 mt-4
+   */
   /* Dashboard Header: Content höher – markierter Bereich sitzt höher, Gourmet-Button bleibt sichtbar */
   .dashboard-header-pt {
     padding-top: max(52px, calc(env(safe-area-inset-top) + 14px));

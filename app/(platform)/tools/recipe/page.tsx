@@ -432,7 +432,7 @@ export default function RecipePage() {
           {/* Step 1: Nur Gericht-Typ – schwebende Premium-Karten wie Home */}
           {wizardStep === 1 && (
             <section
-              className="relative z-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
+              className="relative z-20 mb-8 md:mb-10 animate-in fade-in slide-in-from-right-4 duration-300"
               key="step1"
             >
               <div className="h-5 mb-4" aria-hidden />
@@ -472,7 +472,7 @@ export default function RecipePage() {
           {/* Step 2: Nur Personenanzahl – eine Karte */}
           {wizardStep === 2 && (
             <section
-              className="relative z-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
+              className="relative z-20 mb-8 md:mb-10 animate-in fade-in slide-in-from-right-4 duration-300"
               key="step2"
             >
               <div className="h-5 mb-4" aria-hidden />
@@ -510,7 +510,7 @@ export default function RecipePage() {
           {/* Step 3: Nur Zutaten + Optionen – eine Karte, minimal lines */}
           {wizardStep === 3 && (
             <section
-              className="relative z-20 px-3 sm:px-4 animate-in fade-in slide-in-from-right-4 duration-300"
+              className="relative z-20 mb-8 md:mb-10 animate-in fade-in slide-in-from-right-4 duration-300"
               key="step3"
             >
               <div className="h-5 mb-4" aria-hidden />

@@ -105,7 +105,7 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
         }
       >
         <section className="mb-8 md:mb-10">
-          <div className="grid grid-cols-2 gap-4 md:gap-4">
+          <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
             {/* Karte 1: Aktive Liste – 1:1 wie /dashboard (min-h-[160px]) */}
             <Link
               href={activeList ? `/tools/shopping-list?listId=${activeList.id}` : '/tools/shopping-list'}
@@ -194,9 +194,9 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
           </div>
         </section>
 
-        {/* Meine Listen */}
-        <section className="mt-10">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Meine Listen</h2>
+        {/* Meine Listen – Abstand nur durch mb-8 md:mb-10 der ersten Sektion */}
+        <section>
+          <h2 className="text-sm font-bold text-gray-600 mb-4">Meine Listen</h2>
           {loading ? (
             <div className="rounded-2xl overflow-hidden p-6 text-center text-gray-500" style={DASHBOARD_CARD_STYLE}>
               Listen werden geladen…
