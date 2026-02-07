@@ -94,10 +94,7 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
               Smarte Einkaufsliste
             </h1>
             <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
-              Dein intelligenter Begleiter im Supermarkt.
-            </p>
-            <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
-              Listen verwalten, smart einkaufen.
+              Dein intelligenter Begleiter
             </p>
           </>
         }
