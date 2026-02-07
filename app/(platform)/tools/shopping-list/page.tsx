@@ -569,7 +569,7 @@ export default function ShoppingListPage() {
 
   if (!hydrated) {
     return (
-      <div className="min-h-screen min-h-full w-full relative overflow-x-hidden bg-[#fff6f7]">
+      <div className="min-h-screen min-h-full w-full relative bg-[#fff6f7]">
         <header
           className={cn(
             'relative z-[1] min-h-[280px]',
@@ -596,7 +596,7 @@ export default function ShoppingListPage() {
   }
 
   return (
-    <div className="min-h-screen min-h-full w-full relative overflow-x-hidden bg-[#fff6f7]">
+    <div className="min-h-screen min-h-full w-full relative bg-[#fff6f7]">
       <DashboardShell
         headerVariant="withCTA"
         headerBackground={
@@ -719,7 +719,7 @@ export default function ShoppingListPage() {
         }
       >
         <section className="mb-8 md:mb-10">
-          <div className="space-y-4 md:max-w-3xl md:mx-auto">
+          <div className="space-y-4 md:max-w-3xl md:mx-auto px-6 sm:px-8 md:px-10">
 
         {saveErrorMessage && (
           <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
@@ -811,7 +811,7 @@ export default function ShoppingListPage() {
                 />
               )}
 
-              <div className="flex-1 overflow-y-auto min-h-0 pt-2 pr-4 pb-8">
+              <div className="flex-1 overflow-y-auto min-h-0 pt-8 pb-12">
                 {unchecked.length === 0 && checked.length === 0 ? (
                   <div className="p-8 sm:p-12 text-center">
                     <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
