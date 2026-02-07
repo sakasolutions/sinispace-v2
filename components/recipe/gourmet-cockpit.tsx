@@ -149,6 +149,7 @@ export function GourmetCockpit({
       )}
 
         <section className="mb-8 md:mb-10">
+          <div className="h-5 mb-4" aria-hidden />
           <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
             {/* Karte 1: Woche planen – Glass */}
             <button
