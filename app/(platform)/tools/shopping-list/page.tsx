@@ -636,7 +636,8 @@ export default function ShoppingListPage() {
                 Neue Liste
               </button>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col items-end gap-3 shrink-0 min-h-[120px] justify-between">
+              <div className="flex items-center gap-2">
               <WhatIsThisModal
                 title="Smart Einkaufsliste"
                 content={
@@ -706,6 +707,18 @@ export default function ShoppingListPage() {
                   )}
                 </div>
               )}
+              </div>
+              <div className="min-w-0 w-full max-w-[220px] sm:max-w-[260px]">
+                <CustomSelect
+                  value={activeListId ?? ''}
+                  onChange={(v) => setActiveListId(v)}
+                  options={lists.map((l) => ({ value: l.id, label: l.name }))}
+                  placeholder="Liste wählen…"
+                  theme="light"
+                  icon={ListChecks}
+                  dropdownInPortal
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -713,20 +726,6 @@ export default function ShoppingListPage() {
 
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
         <div className="space-y-4">
-        {/* List selector rechts, damit der orangene CTA im Hero sichtbar bleibt */}
-        <div className="flex items-center justify-end">
-          <div className="min-w-0 w-full max-w-[220px] sm:max-w-[260px]">
-            <CustomSelect
-              value={activeListId ?? ''}
-              onChange={(v) => setActiveListId(v)}
-              options={lists.map((l) => ({ value: l.id, label: l.name }))}
-              placeholder="Liste wählen…"
-              theme="light"
-              icon={ListChecks}
-              dropdownInPortal
-            />
-          </div>
-        </div>
 
         {saveErrorMessage && (
           <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">

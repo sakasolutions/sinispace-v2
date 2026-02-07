@@ -9,6 +9,15 @@ const CARD_CLASS =
 const CARD_SHADOW =
   'shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_-4px_rgba(0,0,0,0.08)]';
 
+/** Glass-Style wie Dashboard-Karten (Hero-Bereich) */
+const GLASS_CARD_STYLE: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.16)',
+  border: '1px solid rgba(255,255,255,0.22)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
+  WebkitBackdropFilter: 'blur(8px)',
+  backdropFilter: 'blur(8px)',
+};
+
 /** 1) Sticky Top Action Bar – single row, one container */
 export function StickyListBar({
   left,
@@ -34,7 +43,7 @@ export function StickyListBar({
   );
 }
 
-/** 2) Summary Card – progress + primary CTA */
+/** 2) Summary Card – progress + primary CTA (Glass-Style wie Dashboard-Karten) */
 export function SummaryCard({
   progressLabel,
   progressPercent,
@@ -51,11 +60,10 @@ export function SummaryCard({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center justify-between gap-4 p-4',
-        CARD_CLASS,
-        CARD_SHADOW,
+        'flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl overflow-hidden',
         className
       )}
+      style={GLASS_CARD_STYLE}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <span className="text-sm font-medium text-gray-700 shrink-0">
