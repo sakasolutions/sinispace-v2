@@ -128,7 +128,7 @@ export function QuickAddCard({
   );
 }
 
-/** 4) Category Card – header (icon, title, count) + item rows (Glass-Style) */
+/** 4) Category Card – gleiches Design wie QuickAddCard (Glass, p-4, eine Box) */
 export function CategoryCard({
   title,
   count,
@@ -145,12 +145,12 @@ export function CategoryCard({
   return (
     <div
       className={cn(
-        'rounded-2xl overflow-hidden',
+        'p-4 rounded-2xl overflow-hidden',
         className
       )}
       style={GLASS_CARD_STYLE}
     >
-      <div className="px-4 py-3 flex items-center gap-2 border-b border-white/20">
+      <div className="flex items-center gap-2 mb-3">
         {icon != null && (
           <span className="shrink-0 text-gray-500 opacity-90">{icon}</span>
         )}
@@ -160,7 +160,7 @@ export function CategoryCard({
         <span className="text-xs text-gray-500">{count}</span>
         <ChevronDown className="w-4 h-4 text-gray-500 shrink-0 ml-auto" aria-hidden />
       </div>
-      <div className="divide-y divide-white/20">{children}</div>
+      <div className="divide-y divide-white/20 -mx-4">{children}</div>
     </div>
   );
 }
