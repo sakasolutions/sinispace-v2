@@ -80,7 +80,7 @@ export function SummaryCard({
         type="button"
         onClick={onToggleStoreMode}
         className={cn(
-          'shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition-all shadow-md',
+          'shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-all shadow-md',
           storeMode
             ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             : 'bg-gradient-to-r from-orange-600 to-rose-500 text-white hover:from-orange-700 hover:to-rose-600 shadow-orange-500/25'

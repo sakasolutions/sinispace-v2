@@ -622,16 +622,7 @@ export default function ShoppingListPage() {
           </>
         }
         subtitle={null}
-        headerPrimaryCTA={
-          <button
-            type="button"
-            onClick={() => { setPendingName(''); setModalNewList(true); }}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Neue Liste
-          </button>
-        }
+        headerPrimaryCTA={null}
         headerActionsRight={
           <div className="flex flex-col items-end justify-end gap-3">
             <div className="flex items-center gap-2">
@@ -716,6 +707,14 @@ export default function ShoppingListPage() {
                 dropdownInPortal
               />
             </div>
+            <button
+              type="button"
+              onClick={() => { setPendingName(''); setModalNewList(true); }}
+              className="mt-2 w-full max-w-[220px] sm:max-w-[260px] inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold text-sm shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Neue Liste
+            </button>
           </div>
         }
       >
