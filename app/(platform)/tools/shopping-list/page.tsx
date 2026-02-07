@@ -24,6 +24,7 @@ import {
   RotateCcw,
   ArrowLeft,
   HelpCircle,
+  MoreVertical,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -51,7 +52,6 @@ import { PageTransition } from '@/components/ui/PageTransition';
 import { AnimatedList, AnimatedListItem } from '@/components/ui/AnimatedList';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import {
-  StickyListBar,
   SummaryCard,
   QuickAddCard,
   CategoryCard,
@@ -223,6 +223,7 @@ export default function ShoppingListPage() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItemValue, setEditingItemValue] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeList = lists.find((l) => l.id === activeListId);
@@ -610,41 +611,32 @@ export default function ShoppingListPage() {
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0" aria-hidden />
         </div>
-        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
-          <div className="max-w-2xl">
-            <Link
-              href="/tools/shopping"
-              className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Zurück
-            </Link>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-              {activeList?.name ?? 'Einkaufsliste'}
-            </h1>
-            <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
-              Smart Input & KI-Kategorien. Einzel-Item oder Liste einfügen.
-            </p>
-          </div>
-        </div>
-      </header>
-
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
-        <div className="space-y-4">
-        <StickyListBar
-          left={
-            <>
-              <div className="min-w-0 flex-1 max-w-[200px] sm:max-w-[240px]">
-                <CustomSelect
-                  value={activeListId ?? ''}
-                  onChange={(v) => setActiveListId(v)}
-                  options={lists.map((l) => ({ value: l.id, label: l.name }))}
-                  placeholder="Liste wählen…"
-                  theme="light"
-                  icon={ListChecks}
-                  dropdownInPortal
-                />
-              </div>
+        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-12">
+          <div className="flex items-start justify-between gap-4">
+            <div className="max-w-2xl min-w-0">
+              <Link
+                href="/tools/shopping"
+                className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                Zurück
+              </Link>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
+                {activeList?.name ?? 'Einkaufsliste'}
+              </h1>
+              <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+                Smart Input & KI-Kategorien. Einzel-Item oder Liste einfügen.
+              </p>
+              <button
+                type="button"
+                onClick={() => { setPendingName(''); setModalNewList(true); }}
+                className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Neue Liste
+              </button>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
               <WhatIsThisModal
                 title="Smart Einkaufsliste"
                 content={
@@ -674,32 +666,67 @@ export default function ShoppingListPage() {
                   'Im Store-Modus sind alle Bearbeitungs-Funktionen ausgeblendet',
                 ]}
                 trigger={
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 text-xs font-medium transition-colors shrink-0">
-                    <HelpCircle className="w-3.5 h-3.5" />
-                    Was ist das?
-                  </span>
+                  <button type="button" aria-label="Was ist das?" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors">
+                    <HelpCircle className="w-4 h-4" />
+                  </button>
                 }
               />
+              <button
+                type="button"
+                onClick={shareList}
+                aria-label="Liste teilen"
+                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
               {activeList && !storeMode && (
-                <>
-                  <button type="button" onClick={() => openRename(activeList)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 shrink-0" title="Umbenennen" aria-label="Liste umbenennen"><Pencil className="w-4 h-4" /></button>
-                  <button type="button" onClick={shareList} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 shrink-0" title="Teilen" aria-label="Liste teilen"><Share2 className="w-4 h-4" /></button>
-                  <button type="button" onClick={() => openDelete(activeList)} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 shrink-0" title="Löschen" aria-label="Liste löschen"><Trash2 className="w-4 h-4" /></button>
-                </>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setHeaderMenuOpen((o) => !o)}
+                    aria-label="Weitere Aktionen"
+                    className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                  {headerMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" aria-hidden onClick={() => setHeaderMenuOpen(false)} />
+                      <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+                        <button type="button" onClick={() => { openRename(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                          <Pencil className="w-4 h-4" />
+                          Liste umbenennen
+                        </button>
+                        <button type="button" onClick={() => { openDelete(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                          <Trash2 className="w-4 h-4" />
+                          Liste löschen
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
-            </>
-          }
-          right={
-            <button
-              type="button"
-              onClick={() => { setPendingName(''); setModalNewList(true); }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Neue Liste
-            </button>
-          }
-        />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
+        <div className="space-y-4">
+        {/* List selector only – no toolbar card */}
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 max-w-[220px] sm:max-w-[260px]">
+            <CustomSelect
+              value={activeListId ?? ''}
+              onChange={(v) => setActiveListId(v)}
+              options={lists.map((l) => ({ value: l.id, label: l.name }))}
+              placeholder="Liste wählen…"
+              theme="light"
+              icon={ListChecks}
+              dropdownInPortal
+            />
+          </div>
+        </div>
 
         {saveErrorMessage && (
           <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
