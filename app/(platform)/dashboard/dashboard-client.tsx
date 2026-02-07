@@ -38,7 +38,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PageTransition } from '@/components/ui/PageTransition';
+import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Kurze Untertitel – visuelle Dichte (1–2 Wörter) */
 const TOOL_SUBTITLES: Record<string, string> = {
@@ -813,107 +813,96 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {/* Header: komprimierte Höhe – ragt nur noch so weit in die oberen Karten; Layer 0 + Layer 1 */}
-      <header
-        className={cn(
-          'relative z-[1] min-h-[280px]',
-          'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
-          '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
-        )}
-      >
-        {/* Layer 0: Hintergrund – klebt oben (Margin zieht in Safe-Area); Sonne/Mond kleiner, voll im Bild */}
-        <div
-          className={cn(
-            'absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] transition-all duration-1000',
-            timeOfDay === 'sunrise'
-              ? 'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200'
-              : 'bg-gradient-to-b from-slate-900 via-[#1e1b4b] to-slate-900 backdrop-blur-xl border-b border-white/5'
-          )}
-          aria-hidden
-        >
-          {timeOfDay === 'sunrise' ? (
-            <>
-              <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-orange-200/60 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-              <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-purple-200/60 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-              <div className="absolute -top-6 -right-6 text-orange-300/20 pointer-events-none" aria-hidden>
-                <Sun className="w-40 h-40 md:w-48 md:h-48" />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-blue-500/20 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-              <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-violet-500/20 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-              <div className="absolute -top-6 -right-6 text-white/10 pointer-events-none" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,200,0.3))' }} aria-hidden>
-                <Moon className="w-40 h-40 md:w-48 md:h-48" />
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Layer 1: Header-Content nach oben (md:pt-16), wie Gourmet-Dashboard */}
-        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
-          <div className="max-w-2xl">
-            <h1
-              className={cn(
-                'text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0',
-                timeOfDay === 'sunrise' ? 'text-gray-900' : 'text-white'
-              )}
-              style={{ letterSpacing: '-0.3px' }}
-            >
-              {greetingText}
-            </h1>
-            <p
-              className={cn(
-                'text-sm sm:text-base mt-1 font-normal',
-                timeOfDay === 'sunrise' ? 'text-gray-500 opacity-65' : 'text-white/80'
-              )}
-              style={{ letterSpacing: '0.1px' }}
-            >
-              {sunriseGreeting.subline}
-            </p>
-            {/* Info-Chips */}
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span
-                className={cn(
-                  'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
-                  timeOfDay === 'sunrise'
-                    ? 'bg-white/20 border border-white/20 text-gray-800'
-                    : 'bg-white/10 border border-white/20 text-white/80'
-                )}
-              >
-                <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-                2 Termine
-              </span>
-              <span
-                className={cn(
-                  'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
-                  timeOfDay === 'sunrise'
-                    ? 'bg-white/20 border border-white/20 text-gray-800'
-                    : 'bg-white/10 border border-white/20 text-white/80'
-                )}
-              >
-                <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-                4 Offen
-              </span>
-              <span
-                className={cn(
-                  'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
-                  timeOfDay === 'sunrise'
-                    ? 'bg-white/20 border border-white/20 text-gray-800'
-                    : 'bg-white/10 border border-white/20 text-white/80'
-                )}
-              >
-                <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-                Alles erledigt
-              </span>
-            </div>
+      <DashboardShell
+        headerVariant="default"
+        headerBackground={
+          <div
+            className={cn(
+              'w-full h-full overflow-hidden transition-all duration-1000',
+              timeOfDay === 'sunrise'
+                ? 'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200'
+                : 'bg-gradient-to-b from-slate-900 via-[#1e1b4b] to-slate-900 backdrop-blur-xl border-b border-white/5'
+            )}
+          >
+            {timeOfDay === 'sunrise' ? (
+              <>
+                <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-orange-200/60 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+                <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-purple-200/60 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+                <div className="absolute -top-6 -right-6 text-orange-300/20 pointer-events-none" aria-hidden>
+                  <Sun className="w-40 h-40 md:w-48 md:h-48" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-blue-500/20 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+                <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-violet-500/20 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+                <div className="absolute -top-6 -right-6 text-white/10 pointer-events-none" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,200,0.3))' }} aria-hidden>
+                  <Moon className="w-40 h-40 md:w-48 md:h-48" />
+                </div>
+              </>
+            )}
           </div>
-        </div>
-      </header>
-
-      {/* Main Container: Grid ragt in den komprimierten Header (gleicher optischer Schnitt in die oberen Karten) */}
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
-        {/* Content: Zuletzt verwendet + Kategorie-Sektionen */}
+        }
+        title={
+          <h1
+            className={cn(
+              'text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0',
+              timeOfDay === 'sunrise' ? 'text-gray-900' : 'text-white'
+            )}
+            style={{ letterSpacing: '-0.3px' }}
+          >
+            {greetingText}
+          </h1>
+        }
+        subtitle={
+          <p
+            className={cn(
+              'text-sm sm:text-base mt-1 font-normal',
+              timeOfDay === 'sunrise' ? 'text-gray-500 opacity-65' : 'text-white/80'
+            )}
+            style={{ letterSpacing: '0.1px' }}
+          >
+            {sunriseGreeting.subline}
+          </p>
+        }
+        headerExtra={
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span
+              className={cn(
+                'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
+                timeOfDay === 'sunrise'
+                  ? 'bg-white/20 border border-white/20 text-gray-800'
+                  : 'bg-white/10 border border-white/20 text-white/80'
+              )}
+            >
+              <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+              2 Termine
+            </span>
+            <span
+              className={cn(
+                'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
+                timeOfDay === 'sunrise'
+                  ? 'bg-white/20 border border-white/20 text-gray-800'
+                  : 'bg-white/10 border border-white/20 text-white/80'
+              )}
+            >
+              <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+              4 Offen
+            </span>
+            <span
+              className={cn(
+                'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
+                timeOfDay === 'sunrise'
+                  ? 'bg-white/20 border border-white/20 text-gray-800'
+                  : 'bg-white/10 border border-white/20 text-white/80'
+              )}
+            >
+              <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+              Alles erledigt
+            </span>
+          </div>
+        }
+      >
         {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
             {/* Zuletzt verwendet: Top 4 */}
@@ -1077,7 +1066,7 @@ export default function DashboardClient() {
             </p>
           </div>
         )}
-      </PageTransition>
+      </DashboardShell>
     </div>
   );
 }
