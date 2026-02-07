@@ -96,6 +96,9 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
             <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
               Dein intelligenter Begleiter
             </p>
+            <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+              Listen verwalten, smart einkaufen.
+            </p>
           </>
         }
         subtitle={null}
