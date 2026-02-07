@@ -820,15 +820,15 @@ export default function DashboardClient() {
             className={cn(
               'w-full h-full overflow-hidden transition-all duration-1000',
               timeOfDay === 'sunrise'
-                ? 'bg-gradient-to-br from-orange-200 via-rose-200 to-violet-200'
+                ? 'bg-gray-50/95 border-b border-gray-100'
                 : 'bg-gradient-to-b from-slate-900 via-[#1e1b4b] to-slate-900 backdrop-blur-xl border-b border-white/5'
             )}
           >
             {timeOfDay === 'sunrise' ? (
               <>
-                <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-orange-200/60 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-                <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-purple-200/60 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-                <div className="absolute -top-6 -right-6 text-orange-300/20 pointer-events-none" aria-hidden>
+                <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-gray-200/40 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+                <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-gray-200/30 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
+                <div className="absolute -top-6 -right-6 text-gray-300/30 pointer-events-none" aria-hidden>
                   <Sun className="w-40 h-40 md:w-48 md:h-48" />
                 </div>
               </>
