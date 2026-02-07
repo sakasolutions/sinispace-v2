@@ -9,7 +9,8 @@ import {
   Percent,
   Plus,
   ChevronRight,
-  ArrowLeft,
+  HelpCircle,
+  Search,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getShoppingLists, getSmartNachkaufenSuggestions } from '@/actions/shopping-list-actions';
@@ -45,6 +46,7 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [smartSuggestions, setSmartSuggestions] = useState<{ label: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,8 +69,18 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
     ? activeList.items.filter((i) => !i.checked).slice(0, 3).map((i) => i.text)
     : [];
 
+  const ctaLink = (
+    <Link
+      href="/tools/shopping-list"
+      className="inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+    >
+      <Plus className="w-5 h-5" />
+      Neue Liste erstellen
+    </Link>
+  );
+
   return (
-    <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
+    <div className="min-h-screen w-full relative overflow-x-visible bg-gradient-to-b from-rose-50 via-white to-white">
       <DashboardShell
         headerVariant="withCTA"
         headerBackground={
@@ -78,33 +90,69 @@ export function ShoppingCockpit({ onNeueListe, onSchnellHinzufuegen }: Props) {
         }
         title={
           <>
-            <Link
-              href="/tools/shopping-list"
-              className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Zurück
-            </Link>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
               Smarte Einkaufsliste
             </h1>
-            <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+            <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
               Dein intelligenter Begleiter im Supermarkt.
             </p>
-            <p className="text-white/90 text-sm font-bold mt-2">Schnellzugriff</p>
+            <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+              Listen verwalten, smart einkaufen.
+            </p>
           </>
         }
         subtitle={null}
         headerPrimaryCTA={
-          <Link
-            href="/tools/shopping-list"
-            className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Neue Liste erstellen
-          </Link>
+          <div className="mt-4 md:hidden">
+            {ctaLink}
+          </div>
+        }
+        headerActionsRight={
+          <div className="flex flex-col items-end gap-3">
+            <div className="hidden md:block">{ctaLink}</div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Info"
+                onClick={() => setInfoOpen(true)}
+                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="Suchen"
+                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         }
       >
+        {infoOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={() => setInfoOpen(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl max-w-sm w-full shadow-2xl p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                Hier verwaltest du deine Einkaufslisten, nutzt Smart Nachkaufen und importierst Zutaten aus dem Gourmet-Planer.
+              </p>
+              <button
+                type="button"
+                onClick={() => setInfoOpen(false)}
+                className="mt-4 w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 transition-colors"
+              >
+                Verstanden
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-6 md:space-y-8">
           <section aria-labelledby="shopping-quick-heading">
             <h2 id="shopping-quick-heading" className="sr-only">Schnellzugriff</h2>
