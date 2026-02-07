@@ -92,7 +92,7 @@ export function SummaryCard({
   );
 }
 
-/** 3) Quick Add Card – input row + add button + helper line */
+/** 3) Quick Add Card – input row + add button + helper line (Glass-Style) */
 export function QuickAddCard({
   inputSlot,
   addButton,
@@ -109,11 +109,10 @@ export function QuickAddCard({
   return (
     <div
       className={cn(
-        'p-4',
-        CARD_CLASS,
-        CARD_SHADOW,
+        'p-4 rounded-2xl overflow-hidden',
         className
       )}
+      style={GLASS_CARD_STYLE}
     >
       <div className="flex gap-2 items-stretch">
         <div className="flex-1 min-w-0">{inputSlot}</div>
@@ -121,7 +120,7 @@ export function QuickAddCard({
       </div>
       {frequentChips}
       {helperText && (
-        <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+        <p className="text-xs text-gray-500 mt-2 leading-relaxed">
           {helperText}
         </p>
       )}
@@ -129,7 +128,7 @@ export function QuickAddCard({
   );
 }
 
-/** 4) Category Card – header (icon, title, count) + item rows; soft shadow, no green */
+/** 4) Category Card – header (icon, title, count) + item rows (Glass-Style) */
 export function CategoryCard({
   title,
   count,
@@ -146,22 +145,22 @@ export function CategoryCard({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-gray-100 bg-white overflow-hidden',
-        CARD_SHADOW,
+        'rounded-2xl overflow-hidden',
         className
       )}
+      style={GLASS_CARD_STYLE}
     >
-      <div className="px-4 py-3 flex items-center gap-2 border-b border-gray-50">
+      <div className="px-4 py-3 flex items-center gap-2 border-b border-white/20">
         {icon != null && (
-          <span className="shrink-0 text-gray-400 opacity-80">{icon}</span>
+          <span className="shrink-0 text-gray-500 opacity-90">{icon}</span>
         )}
         <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
           {title}
         </span>
         <span className="text-xs text-gray-500">{count}</span>
-        <ChevronDown className="w-4 h-4 text-gray-400 shrink-0 ml-auto" aria-hidden />
+        <ChevronDown className="w-4 h-4 text-gray-500 shrink-0 ml-auto" aria-hidden />
       </div>
-      <div className="divide-y divide-gray-50">{children}</div>
+      <div className="divide-y divide-white/20">{children}</div>
     </div>
   );
 }
