@@ -91,6 +91,7 @@ export function GourmetCockpit({
             <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
               Lass dich inspirieren.
             </p>
+            <p className="text-white/90 text-sm font-bold mt-2">Schnellzugriff</p>
           </>
         }
         subtitle={null}
@@ -149,8 +150,8 @@ export function GourmetCockpit({
       )}
 
         <div className="space-y-6 md:space-y-8">
-          <section>
-            <h2 className="text-sm font-bold text-gray-600 mb-4">Schnellzugriff</h2>
+          <section aria-labelledby="gourmet-quick-heading">
+            <h2 id="gourmet-quick-heading" className="sr-only">Schnellzugriff</h2>
             <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
             {/* Karte 1: Woche planen – Glass */}
             <button

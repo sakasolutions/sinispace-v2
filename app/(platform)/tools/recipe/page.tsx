@@ -412,16 +412,19 @@ export default function RecipePage() {
               <>
                 <p className="text-white/90 text-lg md:text-xl">Dein Smart-Chef für den Kühlschrank.</p>
                 {activeTab === 'create' && (
-                  <p className="text-white/70 text-sm font-medium mt-2" style={{ letterSpacing: '0.05em' }}>
-                    Schritt {wizardStep} von 3
-                  </p>
+                  <>
+                    <p className="text-white/70 text-sm font-medium mt-2" style={{ letterSpacing: '0.05em' }}>
+                      Schritt {wizardStep} von 3
+                    </p>
+                    {wizardStep === 1 && <p className="text-white/90 text-sm font-bold mt-1">Gerichttyp wählen</p>}
+                  </>
                 )}
               </>
             }
           >
       {activeTab === 'create' ? (
         <React.Fragment>
-        <form action={formAction} id="recipe-wizard-form" className="flex flex-col min-h-[50vh]">
+        <form action={formAction} id="recipe-wizard-form" className="contents">
           <input type="hidden" name="mealType" value={mealType} />
           <input type="hidden" name="servings" value={servings} />
           <input type="hidden" name="shoppingMode" value={shoppingMode} />
@@ -429,53 +432,52 @@ export default function RecipePage() {
             <input key={f} type="hidden" name="filters" value={f} />
           ))}
 
-          {/* Step 1: Nur Gericht-Typ – Overlap, dann sofort Section → Grid (wie Dashboard) */}
-          {wizardStep === 1 && (
-            <section
-              className="relative z-20 animate-in fade-in slide-in-from-right-4 duration-300"
-              key="step1"
-            >
-              <h2 className="text-sm font-bold text-gray-600 mb-4 sr-only">Gerichttyp wählen</h2>
-              <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
-                {mealTypeOptions.map((option) => {
-                  const isActive = mealType === option.value;
-                  const Icon = option.Icon;
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => setMealType(option.value)}
-                      className={cn(
-                        'group relative flex flex-col justify-between items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
-                        'hover:scale-[1.02]',
-                        isActive && 'scale-[1.02] ring-2 ring-orange-400/80 shadow-[0_0_0_1px_rgba(249,115,22,0.4),0_4px_24px_-2px_rgba(249,115,22,0.25)]'
-                      )}
-                      style={DASHBOARD_CARD_STYLE}
-                    >
-                      <div className={cn(
-                        'w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0',
-                        'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30',
-                        isActive && 'shadow-orange-500/40 ring-2 ring-white/30'
-                      )}>
-                        <Icon className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
-                      </div>
-                      <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">
-                        {option.label}
-                      </h3>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          )}
+          {/* Erste Cards: Oberkante bei Main+36px (pt-9 in Shell), Titel im Header */}
+          <div className="space-y-6 md:space-y-8">
+            {wizardStep === 1 && (
+              <section key="step1" aria-labelledby="meal-type-heading">
+                <h2 id="meal-type-heading" className="sr-only">Gerichttyp wählen</h2>
+                <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
+                  {mealTypeOptions.map((option) => {
+                    const isActive = mealType === option.value;
+                    const Icon = option.Icon;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setMealType(option.value)}
+                        className={cn(
+                          'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden p-5 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
+                          'hover:scale-[1.02]',
+                          isActive && 'scale-[1.02] ring-2 ring-orange-400/80 shadow-[0_0_0_1px_rgba(249,115,22,0.4),0_4px_24px_-2px_rgba(249,115,22,0.25)]'
+                        )}
+                        style={DASHBOARD_CARD_STYLE}
+                      >
+                        <div className="flex w-full justify-between items-start gap-2">
+                          <div className={cn(
+                            'w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0',
+                            'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30',
+                            isActive && 'shadow-orange-500/40 ring-2 ring-white/30'
+                          )}>
+                            <Icon className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                          </div>
+                        </div>
+                        <div className="w-full text-left">
+                          <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">
+                            {option.label}
+                          </h3>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
-          {/* Step 2: Nur Personenanzahl – eine Karte */}
-          {wizardStep === 2 && (
-            <section
-              className="relative z-20 mb-8 md:mb-10 animate-in fade-in slide-in-from-right-4 duration-300"
-              key="step2"
-            >
-              <div className="h-5 mb-4" aria-hidden />
+            {/* Step 2: Nur Personenanzahl – eine Karte */}
+            {wizardStep === 2 && (
+              <section className="relative z-20 animate-in fade-in slide-in-from-right-4 duration-300" key="step2">
+                <div className="h-5 mb-4" aria-hidden />
               <div className="max-w-md mx-auto">
                 <div
                   className="rounded-2xl overflow-hidden p-6 sm:p-8 flex flex-col items-center justify-center min-h-[200px]"
@@ -504,16 +506,13 @@ export default function RecipePage() {
                   </div>
                 </div>
               </div>
-            </section>
-          )}
+              </section>
+            )}
 
-          {/* Step 3: Nur Zutaten + Optionen – eine Karte, minimal lines */}
-          {wizardStep === 3 && (
-            <section
-              className="relative z-20 mb-8 md:mb-10 animate-in fade-in slide-in-from-right-4 duration-300"
-              key="step3"
-            >
-              <div className="h-5 mb-4" aria-hidden />
+            {/* Step 3: Nur Zutaten + Optionen */}
+            {wizardStep === 3 && (
+              <section className="relative z-20 animate-in fade-in slide-in-from-right-4 duration-300" key="step3">
+                <div className="h-5 mb-4" aria-hidden />
               <div className="max-w-2xl mx-auto space-y-4">
                 <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={DASHBOARD_CARD_STYLE}>
                   <div className="flex items-center gap-2 mb-3">
@@ -586,8 +585,9 @@ export default function RecipePage() {
                   </div>
                 </div>
               </div>
-            </section>
-          )}
+              </section>
+            )}
+          </div>
 
           {state?.error && (
             <p className="mt-4 mx-4 text-sm font-semibold text-red-600 text-center">{state.error}</p>

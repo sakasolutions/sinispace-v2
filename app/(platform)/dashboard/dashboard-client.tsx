@@ -905,9 +905,9 @@ export default function DashboardClient() {
       >
         {sortedTools.length > 0 ? (
           <div className="space-y-6 md:space-y-8">
-            {/* Zuletzt verwendet: Top 4 – Overlap, dann sofort Section → h2 mb-4 → Grid */}
-            <section>
-              <h2 className="text-sm font-bold text-gray-600 mb-4">Zuletzt verwendet</h2>
+            {/* Erste Cards: Oberkante bei Main+36px (pt-9 in Shell), Titel im Header */}
+            <section aria-labelledby="recent-heading">
+              <h2 id="recent-heading" className="sr-only">Zuletzt verwendet</h2>
               <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
                 {sortedTools.slice(0, 4).map((tool) => {
                   const Icon = tool.icon;

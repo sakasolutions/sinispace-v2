@@ -35,7 +35,7 @@ const LAYER0_WRAPPER_CLASS =
 
 /**
  * Canonical dashboard layout: header (safe-area, consistent padding, optional CTA/actions)
- * and main area with fixed overlap (-mt-20, then h-5 mb-4, then children).
+ * and main area with fixed overlap (-mt-20), then pt-9 so content/cards start at Main+36px (immer gleich weit in den Hero).
  * Use this so all dashboard-like pages share the same header height and overlap behavior.
  */
 export function DashboardShell({
@@ -83,7 +83,7 @@ export function DashboardShell({
         </div>
       </header>
 
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20">
+      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20 pt-9">
         {children}
       </PageTransition>
     </>
