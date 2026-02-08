@@ -222,89 +222,82 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   return (
     <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out px-4 md:px-6 pb-16">
-      {/* Breadcrumb oben, dezent */}
-      <div className="max-w-5xl mx-auto mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          <button onClick={onBack} className="hover:text-slate-900 transition-colors font-medium">
-            {fromWeekPlan ? 'Wochenplaner' : 'Meine Rezepte'}
+      {/* Hero Card – -mt-20 wie Dashboard-Content, einheitlicher Überlapp */}
+      <div className="relative z-20 -mt-20 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
+        {/* Zurück + ggf. In Sammlung speichern */}
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <button onClick={onBack} className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+            ← {fromWeekPlan ? 'Wochenplaner' : 'Meine Rezepte'}
           </button>
-          <span>/</span>
-          <span className="text-slate-700 font-medium truncate max-w-[200px]">{recipe.recipeName}</span>
-        </div>
-        {fromWeekPlan && onSaveToCollection && (
-          <button
-            onClick={onSaveToCollection}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2"
-          >
-            <ChefHat className="w-4 h-4" />
-            In Meine Rezepte speichern
-          </button>
-        )}
-      </div>
-
-      {/* Hero Card – keine zusätzliche Überlappung (Shell hat bereits -mt-20), einheitlich mit Dashboard */}
-      <div className="relative z-20 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
-        {/* Hero: Desktop-Grid – links Info, rechts Action Dock */}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-6">
-          <div className="min-w-0">
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-3">{recipe.recipeName}</h1>
-            <div className="flex flex-wrap gap-2 mb-1">
-              {recipe.stats?.time && (
-                <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
-                  <Clock className="w-4 h-4" />
-                  {recipe.stats.time}
-                </span>
-              )}
-              {adjustedCalories && (
-                <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
-                  <Flame className="w-4 h-4" />
-                  {adjustedCalories} {servings !== originalServings && '(pro Portion)'}
-                </span>
-              )}
-              {recipe.stats?.difficulty && (
-                <span className="bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
-                  {recipe.stats.difficulty}
-                </span>
-              )}
-            </div>
-            <span className="text-slate-500 text-sm">
-              {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-            </span>
-          </div>
-          {/* Action Dock: Jetzt kochen + Teilen */}
-          <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
+          {fromWeekPlan && onSaveToCollection && (
             <button
-              onClick={() => setCookingMode(true)}
-              className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2"
+              onClick={onSaveToCollection}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2"
             >
-              <Play className="w-5 h-5" />
-              Jetzt kochen
+              <ChefHat className="w-4 h-4" />
+              In Meine Rezepte speichern
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                const text = `${recipe.recipeName} – ${window.location.href}`;
-                if (navigator.share) {
-                  navigator.share({ title: recipe.recipeName, text: recipe.recipeName, url: window.location.href }).catch(() => {
-                    navigator.clipboard.writeText(text);
-                    setToast({ message: 'Link kopiert' });
-                  });
-                } else {
+          )}
+        </div>
+        {/* Hero: Clean Editorial – Overline, Titel, Meta-Zeile, Action */}
+        <p className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-2">
+          {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+        </p>
+        <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-4">{recipe.recipeName}</h1>
+        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 font-medium mb-6">
+          {recipe.stats?.time && (
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-orange-500 shrink-0" />
+              {recipe.stats.time}
+            </span>
+          )}
+          {recipe.stats?.time && (adjustedCalories || recipe.stats?.difficulty) && <span className="text-gray-300">•</span>}
+          {adjustedCalories && (
+            <span className="flex items-center gap-1.5">
+              <Flame className="w-4 h-4 text-orange-500 shrink-0" />
+              {adjustedCalories}{servings !== originalServings ? ' (pro Portion)' : ''}
+            </span>
+          )}
+          {adjustedCalories && recipe.stats?.difficulty && <span className="text-gray-300">•</span>}
+          {recipe.stats?.difficulty && (
+            <span className="flex items-center gap-1.5">
+              <ChefHat className="w-4 h-4 text-orange-500 shrink-0" />
+              {recipe.stats.difficulty}
+            </span>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <button
+            onClick={() => setCookingMode(true)}
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-lg shadow-orange-500/20 hover:from-orange-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2"
+          >
+            <Play className="w-4 h-4" />
+            Jetzt kochen
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const text = `${recipe.recipeName} – ${window.location.href}`;
+              if (navigator.share) {
+                navigator.share({ title: recipe.recipeName, text: recipe.recipeName, url: window.location.href }).catch(() => {
                   navigator.clipboard.writeText(text);
                   setToast({ message: 'Link kopiert' });
-                }
-              }}
-              className="w-full md:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-            >
-              <Share2 className="w-4 h-4" />
-              Teilen
-            </button>
-          </div>
+                });
+              } else {
+                navigator.clipboard.writeText(text);
+                setToast({ message: 'Link kopiert' });
+              }
+            }}
+            className="px-4 py-3 rounded-xl text-gray-500 font-medium hover:text-gray-900 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 border-none shadow-none"
+          >
+            <Share2 className="w-4 h-4" />
+            Teilen
+          </button>
         </div>
 
-        {/* Portionen-Slider – Orange */}
-        <div className="border-t border-slate-100 pt-6">
-          <h2 className="text-lg font-bold text-slate-800 mb-3">Rezept anpassen</h2>
+        {/* Portionen-Slider – näher an Actions */}
+        <div className="border-t border-gray-100 pt-4">
+          <h2 className="text-sm font-semibold text-gray-700 mb-2">Rezept anpassen</h2>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setServings(Math.max(1, servings - 1))}

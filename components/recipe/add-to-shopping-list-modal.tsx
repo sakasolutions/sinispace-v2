@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, CheckCircle2, ListChecks, Loader2 } from 'lucide-react';
+import { X, Check, ListChecks, Loader2 } from 'lucide-react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { appendToList, defaultList, type ShoppingList } from '@/lib/shopping-lists-storage';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
@@ -105,30 +105,35 @@ export function AddToShoppingListModal({
           </button>
         </div>
 
-        <div className="p-4 overflow-y-auto max-h-[calc(90vh-220px)] space-y-4">
+        <div className="p-4 space-y-4">
           <p className="text-sm text-gray-600">
-            Fehlende Zutaten auswählen (abwählen, wenn du sie schon hast):
+            Zutaten auswählen (abwählen, wenn du sie schon hast):
           </p>
 
-          <div className="space-y-0 rounded-xl border border-gray-100 overflow-hidden">
+          <div className="bg-white max-h-[60vh] overflow-y-auto rounded-xl divide-y divide-gray-100">
             {ingredients.map((ing, i) => {
               const isSelected = selected.has(ing);
               return (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => toggle(ing)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors border-b border-gray-100 last:border-b-0 ${
-                    isSelected ? 'bg-orange-50' : 'bg-white hover:bg-gray-50'
-                  }`}
+                  className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                 >
                   <div
-                    className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
-                      isSelected ? 'bg-orange-500 border-orange-500' : 'border-gray-300 bg-white'
+                    className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500'
+                        : 'border-2 border-gray-300 bg-white'
                     }`}
                   >
-                    {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                    {isSelected && <Check className="w-4 h-4 text-white" strokeWidth={2.5} />}
                   </div>
-                  <span className={`text-sm ${isSelected ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
+                  <span
+                    className={`text-sm flex-1 min-w-0 ${
+                      isSelected ? 'text-gray-800 font-medium' : 'text-gray-400 line-through'
+                    }`}
+                  >
                     {formatIngredientDisplay(ing)}
                   </span>
                 </button>
@@ -155,6 +160,7 @@ export function AddToShoppingListModal({
                 variant="dropdown"
                 dropdownInPortal
                 icon={ListChecks}
+                triggerClassName="!bg-gray-50 !border-gray-200 focus:!ring-orange-500/20 focus:!border-orange-400"
               />
             )}
             {!loading && isNewList && (
@@ -163,7 +169,7 @@ export function AddToShoppingListModal({
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
                 placeholder="Name der neuen Liste (z.B. Party, Wochenende)"
-                className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
+                className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
               />
             )}
           </div>
