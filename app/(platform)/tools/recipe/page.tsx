@@ -4,7 +4,7 @@ import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, Salad, Coffee, Cake, Droplets, Wine } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -123,7 +123,7 @@ function SubmitButton({ inspirationMode }: { inspirationMode: boolean }) {
       {pending ? (
         <>
           <Loader2 className="w-5 h-5 animate-spin" />
-          <span>Rezept wird gezaubert...</span>
+          <span>Chefkoch denkt nach...</span>
         </>
       ) : (
         <>
@@ -155,8 +155,7 @@ export default function RecipePage() {
   const [addToListToast, setAddToListToast] = useState<{ message: string } | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; resultId: string; createdAt: Date } | null>(null);
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
-  const [showRecipeSuccessPopup, setShowRecipeSuccessPopup] = useState(false);
-  const [openNewestRecipeAfterLoad, setOpenNewestRecipeAfterLoad] = useState(false);
+  const router = useRouter();
 
   // ?open=resultId: Rezept direkt öffnen (z. B. von Kalender „Jetzt kochen“)
   useEffect(() => {
@@ -230,24 +229,12 @@ export default function RecipePage() {
     }
   }
 
-  // Popup anzeigen, sobald ein Rezept erfolgreich generiert wurde
+  // Sofortiger Redirect zum Rezept (kein Erfolgs-Modal)
   useEffect(() => {
-    if (recipe && state?.result && !state.result.includes('🔒 Premium Feature')) {
-      setShowRecipeSuccessPopup(true);
+    if (state?.resultId && !state?.error) {
+      router.push('/tools/recipe?open=' + state.resultId);
     }
-  }, [recipe, state?.result]);
-
-  // "Zum Rezept" → Tab wechseln, Liste laden, neuestes Rezept öffnen
-  useEffect(() => {
-    if (!openNewestRecipeAfterLoad || myRecipes.length === 0) return;
-    const newest = myRecipes[0];
-    setSelectedRecipe({
-      recipe: newest.recipe,
-      resultId: newest.id,
-      createdAt: new Date(newest.createdAt),
-    });
-    setOpenNewestRecipeAfterLoad(false);
-  }, [openNewestRecipeAfterLoad, myRecipes]);
+  }, [state?.resultId, state?.error, router]);
 
   // Lade "Meine Rezepte" wenn Tab gewechselt wird (auch für Wochenplaner)
   useEffect(() => {
@@ -329,40 +316,31 @@ export default function RecipePage() {
     { id: 'drink', label: 'Drink / Shake', value: 'Drink / Shake', Icon: Wine },
   ];
 
-  const filterGroups: { label: string; options: { value: string; label: string }[] }[] = [
+  /** Filter: zwei Gruppen mit Lucide-Icons, keine Emojis */
+  const filterGroups: { groupLabel: string; options: { value: string; label: string; Icon: typeof Utensils; iconColor: string }[] }[] = [
     {
-      label: 'Basis',
+      groupLabel: 'Ernährung & Allergien',
       options: [
-        { value: 'Fleisch & Gemüse', label: 'Fleisch & Gemüse' },
-        { value: 'Vegetarisch', label: 'Vegetarisch 🌱' },
-        { value: 'Vegan', label: 'Vegan 🌿' },
-        { value: 'Pescetarisch', label: 'Pescetarisch 🐟' },
+        { value: 'Fleisch & Gemüse', label: 'Fleisch & Gemüse', Icon: Beef, iconColor: 'text-slate-600' },
+        { value: 'Vegetarisch', label: 'Vegetarisch', Icon: LeafyGreen, iconColor: 'text-emerald-500' },
+        { value: 'Vegan', label: 'Vegan', Icon: Sprout, iconColor: 'text-emerald-600' },
+        { value: 'Pescetarisch', label: 'Pescetarisch', Icon: Fish, iconColor: 'text-sky-500' },
+        { value: 'Halal', label: 'Halal', Icon: Moon, iconColor: 'text-slate-600' },
+        { value: 'Koscher', label: 'Koscher', Icon: Star, iconColor: 'text-amber-500' },
+        { value: 'Glutenfrei', label: 'Glutenfrei', Icon: WheatOff, iconColor: 'text-amber-500' },
+        { value: 'Laktosefrei', label: 'Laktosefrei', Icon: Milk, iconColor: 'text-slate-500' },
+        { value: 'High Protein', label: 'High Protein', Icon: Dumbbell, iconColor: 'text-rose-500' },
+        { value: 'Low Carb', label: 'Low Carb', Icon: TrendingDown, iconColor: 'text-emerald-600' },
+        { value: 'Keto', label: 'Keto', Icon: Leaf, iconColor: 'text-green-600' },
+        { value: 'Unter 600 kcal', label: 'Unter 600 kcal', Icon: Flame, iconColor: 'text-red-500' },
       ],
     },
     {
-      label: 'Lifestyle & Religion',
+      groupLabel: 'Situation & Zeit',
       options: [
-        { value: 'Halal', label: 'Halal ☪️' },
-        { value: 'Koscher', label: 'Koscher ✡️' },
-        { value: 'Glutenfrei', label: 'Glutenfrei 🌾' },
-        { value: 'Laktosefrei', label: 'Laktosefrei 🥛' },
-      ],
-    },
-    {
-      label: 'Ziele',
-      options: [
-        { value: 'High Protein', label: 'High Protein 💪' },
-        { value: 'Low Carb', label: 'Low Carb 📉' },
-        { value: 'Keto', label: 'Keto 🥑' },
-        { value: 'Unter 600 kcal', label: 'Unter 600 kcal 🔥' },
-      ],
-    },
-    {
-      label: 'Situation',
-      options: [
-        { value: 'Schnell', label: 'Zeit sparen (Schnell) ⚡' },
-        { value: 'Familienfreundlich', label: 'Familienfreundlich 👨‍👩‍👧‍👦' },
-        { value: 'Date Night', label: 'Date Night 🍷' },
+        { value: 'Schnell', label: 'Schnell', Icon: Timer, iconColor: 'text-blue-500' },
+        { value: 'Familienfreundlich', label: 'Familienfreundlich', Icon: Users, iconColor: 'text-indigo-500' },
+        { value: 'Date Night', label: 'Date Night', Icon: Wine, iconColor: 'text-rose-500' },
       ],
     },
   ];
@@ -588,26 +566,37 @@ export default function RecipePage() {
                     </div>
                   )}
                 </div>
-                {/* Filter als zweite Karte, kompakt */}
+                {/* Filter als zweite Karte – Gruppen mit Icons, Tier-1-Chip-Design */}
                 <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={DASHBOARD_CARD_STYLE}>
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 mb-3">Diät & Filter</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {filterGroups.flatMap((g) => g.options).map((option) => {
-                      const isActive = filters.includes(option.value);
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => toggleFilter(option.value)}
-                          className={cn(
-                            'px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95',
-                            isActive ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white/40 border border-white/50 text-gray-700 hover:bg-white/60'
-                          )}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 mb-4">Diät & Filter</h3>
+                  <div className="space-y-4">
+                    {filterGroups.map((group) => (
+                      <div key={group.groupLabel}>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">{group.groupLabel}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {group.options.map((option) => {
+                            const isActive = filters.includes(option.value);
+                            const Icon = option.Icon;
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => toggleFilter(option.value)}
+                                className={cn(
+                                  'inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95',
+                                  isActive
+                                    ? 'bg-orange-50 border border-orange-200 text-orange-700 shadow-sm'
+                                    : 'bg-white/50 border border-white/40 text-slate-600 hover:bg-white/60'
+                                )}
+                              >
+                                <Icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-orange-600' : option.iconColor)} aria-hidden />
+                                <span>{option.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -653,48 +642,7 @@ export default function RecipePage() {
           </div>
         </form>
 
-        {/* Popup nach erfolgreicher Rezept-Generierung: Kurzbeschreibung + "Zum Rezept" */}
-        {showRecipeSuccessPopup && recipe && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowRecipeSuccessPopup(false)} role="dialog" aria-modal="true" aria-labelledby="recipe-success-title">
-            <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mx-auto mb-4">
-                <ChefHat className="w-7 h-7 text-white" />
-              </div>
-              <h2 id="recipe-success-title" className="text-xl font-bold text-gray-900 mb-2">{recipe.recipeName}</h2>
-              <p className="text-sm text-gray-600 mb-1">
-                {recipe.stats?.time && <span>{recipe.stats.time}</span>}
-                {recipe.stats?.time && recipe.stats?.difficulty && ' · '}
-                {recipe.stats?.difficulty && <span>{recipe.stats.difficulty}</span>}
-                {recipe.stats?.calories && (
-                  <span> · {recipe.stats.calories}</span>
-                )}
-              </p>
-              <p className="text-sm text-gray-500 mb-6">
-                Dein Rezept wurde in der Sammlung gespeichert.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowRecipeSuccessPopup(false);
-                  setOpenNewestRecipeAfterLoad(true);
-                  setActiveTab('my-recipes');
-                }}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-amber-600 transition-all"
-              >
-                Zum Rezept
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowRecipeSuccessPopup(false)}
-                className="mt-3 w-full py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
-              >
-                Schließen
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Ergebnisfeld nur für Premium-Upsell (kein großes Rezept-Card mehr bei Erfolg) */}
+        {/* Ergebnisfeld nur für Premium-Upsell (bei Erfolg: Redirect zu ?open=resultId) */}
         {state?.result && state.result.includes('🔒 Premium Feature') && (
         <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 mt-8">
           <div className="h-fit min-h-0" />

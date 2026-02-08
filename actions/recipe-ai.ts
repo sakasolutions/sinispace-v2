@@ -131,7 +131,7 @@ ${recipe.instructions.map((step: string, i: number) => `${i + 1}. ${step}`).join
     await createHelperChat('recipe', userInput, formattedRecipe);
 
     // Result in Workspace speichern
-    await saveResult(
+    const saved = await saveResult(
       'recipe',
       'Gourmet-Planer',
       JSON.stringify(recipe),
@@ -140,8 +140,9 @@ ${recipe.instructions.map((step: string, i: number) => `${i + 1}. ${step}`).join
       JSON.stringify({ mealType, servings, shoppingMode, filters })
     );
 
-    // Gib das Rezept als JSON-String zurück (Frontend parsed es)
-    return { result: JSON.stringify(recipe) };
+    // Rezept + ID für sofortigen Redirect (ohne Erfolgs-Modal)
+    const resultId = saved?.result?.id ?? null;
+    return { result: JSON.stringify(recipe), resultId };
   } catch (error: any) {
     console.error('Recipe generation error:', error);
     
