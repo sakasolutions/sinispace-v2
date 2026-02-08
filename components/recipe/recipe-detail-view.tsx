@@ -239,12 +239,12 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             </button>
           )}
         </div>
-        {/* Hero: Clean Editorial – Overline, Titel, Meta-Zeile, Action */}
-        <p className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-2">
-          {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+        {/* Hero: Editorial – Overline, Titel, Meta, Action, Stepper */}
+        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
+          Generiert am {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
         </p>
-        <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-4">{recipe.recipeName}</h1>
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 font-medium mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 leading-tight">{recipe.recipeName}</h1>
+        <div className="flex flex-wrap items-center gap-6 text-sm font-medium text-gray-500">
           {recipe.stats?.time && (
             <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-orange-500 shrink-0" />
@@ -266,7 +266,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             </span>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mt-6">
           <button
             onClick={() => setCookingMode(true)}
             className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-lg shadow-orange-500/20 hover:from-orange-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2"
@@ -295,75 +295,62 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           </button>
         </div>
 
-        {/* Portionen-Slider – näher an Actions */}
-        <div className="border-t border-gray-100 pt-4">
-          <h2 className="text-sm font-semibold text-gray-700 mb-2">Rezept anpassen</h2>
-          <div className="flex items-center gap-3">
+        {/* Portionen-Stepper (kompakt, kein Slider) */}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="inline-flex items-center gap-4 bg-gray-50 rounded-full px-4 py-2">
             <button
+              type="button"
               onClick={() => setServings(Math.max(1, servings - 1))}
               disabled={servings <= 1}
-              className="w-11 h-11 rounded-full bg-orange-50 border border-orange-200 text-orange-600 hover:bg-orange-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-600 hover:bg-white hover:shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none"
             >
-              <Minus className="w-5 h-5" />
+              <Minus className="w-4 h-4" />
             </button>
-            <div className="flex-1 min-w-0">
-              <input
-                type="range"
-                min="1"
-                max="8"
-                step={1}
-                value={servings}
-                onChange={(e) => setServings(parseInt(e.target.value))}
-                className="slider-recipe w-full h-2 cursor-pointer touch-manipulation block"
-                style={{ transition: 'none' }}
-              />
-              <div className="relative w-full mt-1 h-4 flex items-center" aria-hidden>
-                <span className="absolute text-xs text-slate-400" style={{ left: '0%' }}>1</span>
-                <span className="absolute text-xs text-slate-400 -translate-x-1/2" style={{ left: 'calc(100% * 3 / 7)' }}>4</span>
-                <span className="absolute text-xs text-slate-400" style={{ left: '100%', transform: 'translateX(-100%)' }}>8</span>
-              </div>
-            </div>
+            <span className="text-gray-900 font-bold min-w-[4ch] tabular-nums">{servings} Pers.</span>
             <button
+              type="button"
               onClick={() => setServings(Math.min(8, servings + 1))}
               disabled={servings >= 8}
-              className="w-11 h-11 rounded-full bg-orange-50 border border-orange-200 text-orange-600 hover:bg-orange-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-600 hover:bg-white hover:shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4" />
             </button>
           </div>
-          <p className="mt-2 text-sm font-bold text-slate-800">Anzahl Personen: {servings}</p>
           {servings !== originalServings && (
             <button
+              type="button"
               onClick={() => setServings(originalServings)}
-              className="mt-2 text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1.5"
+              className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1.5"
             >
-              <RotateCcw className="w-4 h-4" />
-              Original wiederherstellen
+              <RotateCcw className="w-3.5 h-3.5" />
+              Original
             </button>
           )}
-
-          {prioritizedMissingIngredients.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap gap-2">
-              <button
-                onClick={() => setIsShoppingListOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 font-medium text-sm hover:bg-orange-100 transition-colors"
-              >
-                <AlertCircle className="w-4 h-4" />
-                Was fehlt mir?
-              </button>
-              <button
-                onClick={() => {
-                  setAddToListIngredients(prioritizedMissingIngredients);
-                  setIsAddToListOpen(true);
-                }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-50 transition-colors"
-              >
-                <ListPlus className="w-4 h-4" />
-                Auf Einkaufsliste
-              </button>
-            </div>
-          )}
         </div>
+
+        {prioritizedMissingIngredients.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setIsShoppingListOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              <AlertCircle className="w-4 h-4" />
+              Was fehlt mir?
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAddToListIngredients(prioritizedMissingIngredients);
+                setIsAddToListOpen(true);
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              <ListPlus className="w-4 h-4" />
+              Auf Einkaufsliste
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Content-Grid: Zutaten (~1/3) | Zubereitung (~2/3) */}
