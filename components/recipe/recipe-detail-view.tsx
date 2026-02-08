@@ -23,9 +23,18 @@ interface RecipeDetailViewProps {
   resultId: string;
   createdAt: Date;
   onBack: () => void;
-  fromWeekPlan?: boolean; // Neu: Kommt aus Wochenplan?
-  onSaveToCollection?: () => void; // Neu: Callback zum Speichern
+  fromWeekPlan?: boolean; // Kommt aus Wochenplan?
+  onSaveToCollection?: () => void;
 }
+
+/** Glass-Elemente: einheitliche Handschrift wie Dashboard/Gourmet (mobil + Desktop) */
+const RECIPE_GLASS_STYLE: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.7)',
+  border: '1px solid rgba(255,255,255,0.5)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 12px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.06)',
+  WebkitBackdropFilter: 'blur(12px)',
+  backdropFilter: 'blur(12px)',
+};
 
 export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeekPlan = false, onSaveToCollection }: RecipeDetailViewProps) {
   // Original-Servings aus Recipe (normalerweise 2)
@@ -137,7 +146,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   const cookingTime = parseTime(recipe.stats?.time || '');
 
-  // Kochmodus: Step-by-Step View – hell, clean
+  // Kochmodus: Step-by-Step View – Glass-Karte
   if (cookingMode) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -149,7 +158,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           <span className="text-gray-900 font-medium">Kochmodus</span>
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl overflow-hidden p-6 sm:p-8" style={RECIPE_GLASS_STYLE}>
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">{recipe.recipeName}</h2>
             <p className="text-gray-500">Schritt {currentStep + 1} von {recipe.instructions.length}</p>
@@ -238,17 +247,18 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         )}
       </div>
 
-      <div className="mb-8">
-        <div className="flex items-start gap-4 mb-4">
-          <div className="w-16 h-16 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center flex-shrink-0">
-            <ChefHat className="w-8 h-8 text-orange-500" />
+      {/* Titel + Meta – Glass-Karte */}
+      <div className="mb-6 rounded-2xl overflow-hidden p-5 sm:p-6" style={RECIPE_GLASS_STYLE}>
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-orange-500/90 to-amber-500/90 border border-white/50 flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/20">
+            <ChefHat className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
           </div>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{recipe.recipeName}</h1>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{recipe.recipeName}</h1>
             <div className="flex flex-wrap gap-3 items-center text-gray-600">
               {recipe.stats?.time && (
                 <div className="flex items-center gap-1.5 text-sm">
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-4 h-4 text-orange-500" />
                   {recipe.stats.time}
                 </div>
               )}
@@ -268,15 +278,15 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         </div>
       </div>
 
-      {/* Rezept anpassen – kein grauer Kasten, Slider modern */}
-      <div className="mb-8 pb-8 border-b border-gray-100">
-        <div className="flex items-center justify-between mb-4">
+      {/* Rezept anpassen – Glass-Karte (Slider + Jetzt kochen + Einkaufsliste) */}
+      <div className="mb-8 rounded-2xl overflow-hidden p-5 sm:p-6" style={RECIPE_GLASS_STYLE}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <h2 className="text-xl font-bold text-gray-900">Rezept anpassen</h2>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {servings !== originalServings && (
               <button
                 onClick={() => setServings(originalServings)}
-                className="px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-full bg-white/60 hover:bg-white/80 border border-white/50 text-gray-600 text-sm font-medium transition-colors flex items-center gap-1.5"
                 title="Original-Portionen wiederherstellen"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -293,11 +303,11 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => setServings(Math.max(1, servings - 1))}
             disabled={servings <= 1}
-            className="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-600 hover:border-orange-300 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/80 border border-white/60 text-gray-600 hover:border-orange-300 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0 shadow-sm"
           >
             <Minus className="w-5 h-5" />
           </button>
@@ -313,15 +323,15 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
               style={{ transition: 'none' }}
             />
             <div className="relative w-full mt-1 h-4 flex items-center" aria-hidden>
-              <span className="absolute text-xs text-gray-400" style={{ left: '0%' }}>1</span>
-              <span className="absolute text-xs text-gray-400 -translate-x-1/2" style={{ left: 'calc(100% * 3 / 7)' }}>4</span>
-              <span className="absolute text-xs text-gray-400" style={{ left: '100%', transform: 'translateX(-100%)' }}>8</span>
+              <span className="absolute text-xs text-gray-500" style={{ left: '0%' }}>1</span>
+              <span className="absolute text-xs text-gray-500 -translate-x-1/2" style={{ left: 'calc(100% * 3 / 7)' }}>4</span>
+              <span className="absolute text-xs text-gray-500" style={{ left: '100%', transform: 'translateX(-100%)' }}>8</span>
             </div>
           </div>
           <button
             onClick={() => setServings(Math.min(8, servings + 1))}
             disabled={servings >= 8}
-            className="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-600 hover:border-orange-300 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/80 border border-white/60 text-gray-600 hover:border-orange-300 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0 shadow-sm"
           >
             <Plus className="w-5 h-5" />
           </button>
@@ -329,10 +339,10 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         <p className="mt-2 text-sm font-bold text-gray-900">Anzahl Personen: {servings}</p>
 
         {prioritizedMissingIngredients.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+          <div className="mt-4 pt-4 border-t border-white/40 space-y-2">
             <button
               onClick={() => setIsShoppingListOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-xl text-orange-700 font-medium transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-orange-700 font-medium transition-colors bg-white/50 hover:bg-white/70 border border-orange-200/50"
             >
               <AlertCircle className="w-5 h-5" />
               {prioritizedMissingIngredients.length <= 3
@@ -341,7 +351,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             </button>
             <button
               onClick={() => setIsAddToListOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-gray-700 font-medium transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/40 hover:bg-white/60 border border-white/50 text-gray-700 font-medium transition-colors"
             >
               <ListPlus className="w-5 h-5" />
               Auf Einkaufsliste setzen
@@ -350,8 +360,9 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
+      {/* Zutaten + Zubereitung – zwei Glass-Karten (mobil gestapelt, Desktop nebeneinander) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={RECIPE_GLASS_STYLE}>
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-5 h-5 text-orange-500" />
             <h2 className="text-xl font-bold text-gray-900">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
@@ -366,12 +377,12 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           </ul>
         </div>
 
-        <div>
+        <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={RECIPE_GLASS_STYLE}>
           <h2 className="text-xl font-bold text-gray-900 mb-4">Zubereitung</h2>
           <ol className="space-y-4">
             {recipe.instructions.map((step, index) => (
               <li key={index} className="flex gap-3">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white text-sm font-bold shadow-sm">
                   {index + 1}
                 </span>
                 <span className="text-gray-800 text-sm leading-relaxed flex-1">{step}</span>
@@ -380,14 +391,14 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           </ol>
 
           {cookingTime > 0 && (
-            <div className="mt-6 pt-4 border-t border-gray-100">
+            <div className="mt-6 pt-4 border-t border-white/40">
               <div className="flex items-center gap-2 text-gray-700 font-medium">
                 <Clock className="w-5 h-5 text-orange-500" />
                 Gesamt-Kochzeit: {cookingTime} Minuten
               </div>
               <button
                 onClick={() => alert(`Timer für ${cookingTime} Minuten starten – Feature kommt gleich!`)}
-                className="mt-2 px-4 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-700 text-sm font-medium transition-colors"
+                className="mt-2 px-4 py-2 rounded-xl bg-white/60 hover:bg-white/80 border border-orange-200/50 text-orange-700 text-sm font-medium transition-colors"
               >
                 ⏱️ Timer starten
               </button>
@@ -396,9 +407,18 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         </div>
       </div>
 
+      {/* Profi-Tipp – Glass mit Orange-Stich */}
       {recipe.chefTip && (
-        <div className="mt-8 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-          <p className="text-sm text-orange-800 font-bold mb-1">💡 Profi-Tipp</p>
+        <div
+          className="mt-6 rounded-2xl overflow-hidden p-4 sm:p-5 border border-orange-200/60"
+          style={{
+            background: 'rgba(255,237,213,0.6)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 12px rgba(0,0,0,0.04)',
+            WebkitBackdropFilter: 'blur(12px)',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <p className="text-xs font-black tracking-widest uppercase text-orange-700 mb-2">💡 Profi-Tipp</p>
           <p className="text-sm text-gray-800 leading-relaxed">{recipe.chefTip}</p>
         </div>
       )}
