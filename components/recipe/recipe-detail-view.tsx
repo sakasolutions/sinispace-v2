@@ -222,8 +222,8 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   return (
     <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out px-4 md:px-6 pb-16">
-      {/* Hero Card – -mt-20 wie Dashboard-Content, einheitlicher Überlapp */}
-      <div className="relative z-20 -mt-20 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
+      {/* Hero Card – kein eigenes -mt (Shell hat bereits -mt-20 + pt-9), Oberkante wie Dashboard-Karten */}
+      <div className="relative z-20 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
         {/* Zurück + ggf. In Sammlung speichern */}
         <div className="flex items-center justify-between gap-3 mb-4">
           <button onClick={onBack} className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
