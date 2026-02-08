@@ -154,14 +154,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
     const progressPercent = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
     return (
       <div className="px-4 md:px-6 pb-16 max-w-4xl mx-auto">
-        <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
-          <button onClick={() => setCookingMode(false)} className="hover:text-gray-900 transition-colors font-medium">
-            Rezept
-          </button>
-          <span>/</span>
-          <span className="text-gray-900 font-medium">Kochmodus</span>
-        </div>
-
         <div className="relative z-20 rounded-[40px] overflow-hidden shadow-2xl" style={RECIPE_GLASS_STYLE}>
           <div className="h-1.5 w-full bg-gray-100" aria-hidden>
             <div
@@ -170,6 +162,13 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             />
           </div>
           <div className="p-6 sm:p-8 flex flex-col min-h-[50vh]">
+            <button
+              type="button"
+              onClick={() => setCookingMode(false)}
+              className="self-start text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors mb-4"
+            >
+              ← Rezept
+            </button>
             {/* Schritt-Indikator: Wasserzeichen + Label */}
             <div className="relative">
               <span className="text-6xl md:text-8xl font-black text-orange-100/50 absolute top-0 right-0 pointer-events-none select-none tabular-nums">
