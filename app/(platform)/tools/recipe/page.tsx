@@ -40,13 +40,15 @@ type Recipe = {
   shoppingList: string[];
   instructions: string[];
   chefTip: string;
+  /** Von der KI gesetzt: pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast */
+  categoryIcon?: string;
 };
 
 function ActionButtons({ recipe }: { recipe: Recipe }) {
   const [copied, setCopied] = useState(false);
   const router = useRouter();
   const hasMissing = recipe.shoppingList && recipe.shoppingList.length > 0;
-  const ingredientsText = hasMissing ? recipe.shoppingList.join(', ') : recipe.ingredients.join(', ');
+  const ingredientsText = hasMissing && recipe.shoppingList ? recipe.shoppingList.join(', ') : recipe.ingredients.join(', ');
   const chatLink = `/tools/difficult?chain=gourmet&mode=${hasMissing ? 'shopping' : 'strict'}&recipe=${encodeURIComponent(recipe.recipeName)}&ingredients=${encodeURIComponent(ingredientsText)}`;
 
   const handleCopy = async () => {
@@ -343,40 +345,22 @@ export default function RecipePage() {
     return 'Hauptgericht';
   };
 
-  /** Tier-1 Theme: Strikte Reihenfolge (title lowercase). Süß → Teigwaren (vor Ei!) → Flüssiges → Salat → Fleisch/Fisch → Gemüse → Ei → Fallback. Pasta schlägt Ei (Eierpasta = Amber). */
-  type RecipeTheme = {
-    gradient: string;
-    Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-    shadow: string;
-  };
-  const getRecipeTheme = (title: string, _mealType?: string): RecipeTheme => {
-    const t = (title || '').toLowerCase();
-    const has = (keywords: string[]) => keywords.some((kw) => t.includes(kw));
-
-    // 1. Süßes (ganz oben, z.B. Schoko-Nudeln)
-    if (has(['kuchen', 'torte', 'mousse', 'dessert', 'eis', 'schoko', 'süß', 'pudding', 'beere'])) return { gradient: 'bg-gradient-to-br from-pink-400 to-rose-400', Icon: Cake, shadow: 'shadow-pink-500/20' };
-
-    // 2. Teigwaren & Carbs (MUSS vor Fleisch/Ei – Eierpasta → Pasta)
-    if (has(['pasta', 'spaghetti', 'nudel', 'nudeln', 'lasagne', 'penne', 'gnocchi', 'tortellini', 'pizza', 'flammkuchen', 'burger', 'sandwich', 'wrap', 'brot'])) return { gradient: 'bg-gradient-to-br from-yellow-500 to-amber-500', Icon: Wheat, shadow: 'shadow-amber-500/20' };
-
-    // 3. Flüssiges & Bowls
-    if (has(['suppe', 'eintopf', 'curry', 'chili', 'bowl', 'ramen', 'brühe'])) return { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500', Icon: Soup, shadow: 'shadow-orange-500/20' };
-
-    // 4. Salat & Rohkost
-    if (has(['salat', 'insalata'])) return { gradient: 'bg-gradient-to-br from-emerald-400 to-green-600', Icon: Salad, shadow: 'shadow-emerald-500/20' };
-
-    // 5. Fleisch & Fisch (Fisch zuerst, dann Fleisch)
-    if (has(['fisch', 'lachs', 'garnele', 'sushi', 'thunfisch', 'forelle', 'kabeljau', 'meeresfrüchte', 'shrimp'])) return { gradient: 'bg-gradient-to-br from-sky-400 to-blue-600', Icon: Fish, shadow: 'shadow-sky-500/20' };
-    if (has(['steak', 'schnitzel', 'hähnchen', 'chicken', 'rind', 'hack', 'fleisch', 'braten', 'wurst', 'pute', 'geflügel'])) return { gradient: 'bg-gradient-to-br from-rose-500 to-red-600', Icon: Beef, shadow: 'shadow-rose-500/20' };
-
-    // 6. Gemüse-Helden (Gefüllte Paprika, Kartoffelpüree, Auflauf …)
-    if (has(['paprika', 'zucchini', 'kohl', 'kartoffel', 'kartoffeln', 'püree', 'pommes', 'auflauf', 'gratin', 'gemüse', 'vegan', 'vegetarisch'])) return { gradient: 'bg-gradient-to-br from-green-400 to-emerald-600', Icon: Carrot, shadow: 'shadow-green-500/20' };
-
-    // 7. Eier (erst am Ende – nur wenn kein Pasta/Fleisch/Gemüse-Held)
-    if (has(['ei', 'eier', 'omelett', 'frittata', 'rührei', 'pancake'])) return { gradient: 'bg-gradient-to-br from-yellow-400 to-orange-400', Icon: Egg, shadow: 'shadow-amber-500/20' };
-
-    // 8. Fallback
-    return { gradient: 'bg-gradient-to-br from-slate-500 to-gray-700', Icon: ChefHat, shadow: 'shadow-slate-500/20' };
+  /** Theme aus KI-geliefertem categoryIcon (kein Keyword-Raten). Fallback für alte Rezepte ohne categoryIcon. */
+  type RecipeTheme = { gradient: string; Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; shadow: string };
+  const DEFAULT_THEME: RecipeTheme = { gradient: 'bg-gradient-to-br from-slate-500 to-gray-700', Icon: ChefHat, shadow: 'shadow-slate-500/20' };
+  const CATEGORY_ICON_THEMES: Record<string, RecipeTheme> = {
+    pasta: { gradient: 'bg-gradient-to-br from-yellow-500 to-amber-500', Icon: Wheat, shadow: 'shadow-amber-500/20' },
+    pizza: { gradient: 'bg-gradient-to-br from-orange-500 to-red-600', Icon: Pizza, shadow: 'shadow-orange-500/25' },
+    burger: { gradient: 'bg-gradient-to-br from-amber-600 to-orange-700', Icon: Sandwich, shadow: 'shadow-amber-500/25' },
+    soup: { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500', Icon: Soup, shadow: 'shadow-orange-500/20' },
+    salad: { gradient: 'bg-gradient-to-br from-emerald-400 to-green-600', Icon: Salad, shadow: 'shadow-emerald-500/20' },
+    vegetable: { gradient: 'bg-gradient-to-br from-green-400 to-emerald-600', Icon: Carrot, shadow: 'shadow-green-500/20' },
+    meat: { gradient: 'bg-gradient-to-br from-rose-500 to-red-600', Icon: Beef, shadow: 'shadow-rose-500/20' },
+    chicken: { gradient: 'bg-gradient-to-br from-amber-500 to-yellow-600', Icon: Drumstick, shadow: 'shadow-amber-500/20' },
+    fish: { gradient: 'bg-gradient-to-br from-sky-400 to-blue-600', Icon: Fish, shadow: 'shadow-sky-500/20' },
+    egg: { gradient: 'bg-gradient-to-br from-yellow-400 to-orange-400', Icon: Egg, shadow: 'shadow-amber-500/20' },
+    dessert: { gradient: 'bg-gradient-to-br from-pink-400 to-rose-400', Icon: Cake, shadow: 'shadow-pink-500/20' },
+    breakfast: { gradient: 'bg-gradient-to-br from-amber-300 to-orange-400', Icon: Coffee, shadow: 'shadow-amber-500/20' },
   };
 
   const filteredCollectionRecipes = useMemo(() => {
@@ -825,7 +809,7 @@ export default function RecipePage() {
                       return meta.filters || [];
                     } catch { return []; }
                   })();
-                  const theme = getRecipeTheme(r.recipeName || '', mealType);
+                  const theme = CATEGORY_ICON_THEMES[r.categoryIcon ?? ''] ?? DEFAULT_THEME;
                   const ThemeIcon = theme.Icon;
                   const titleAndFilters = `${r.recipeName || ''} ${metaFilters.join(' ')}`.toLowerCase();
                   const showVeganBadge = titleAndFilters.includes('vegan') || titleAndFilters.includes('vegetarisch');

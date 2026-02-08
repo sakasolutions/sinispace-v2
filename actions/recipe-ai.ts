@@ -51,8 +51,15 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   "ingredients": [ "2 große Tomaten", "150 g Feta-Käse" ],
   "shoppingList": [ "1 Packung Feta (ca. 150g)" ],
   "instructions": ["Schritt 1", "Schritt 2"],
-  "chefTip": "Ein kurzer Profi-Tipp dazu"
+  "chefTip": "Ein kurzer Profi-Tipp dazu",
+  "categoryIcon": "pasta"
 }`;
+
+  const categoryIconRules = `
+- categoryIcon (String, genau einer der folgenden Werte): Wähle das EINZIGE Icon, das das Gericht am besten repräsentiert.
+  Erlaubte Werte: "pasta" (Nudeln, Lasagne, Teigwaren), "pizza" (Pizza, Flammkuchen), "burger" (Burger, Sandwiches, Wraps), "soup" (Suppen, Eintöpfe, Curry, Bowls), "salad" (Salate, kalte Bowls), "vegetable" (gefülltes Gemüse, Aufläufe ohne Fleisch), "meat" (Fleisch-Hauptgerichte), "chicken" (Geflügel), "fish" (Fisch, Meeresfrüchte), "egg" (Omelett, Rührei – NUR wenn Ei die Hauptkomponente ist!), "dessert" (Süßes), "breakfast" (Porridge, Müsli).
+  Regel: Wähle das eine repräsentativste Icon. Beispiele: Bei "Eierpasta" wähle "pasta", NICHT "egg". Bei "Hähnchensalat" wähle "salad". Bei "Gefüllte Paprika" wähle "vegetable".
+`;
 
   const ingredientsRules = `
 - Zutaten-Array (ingredients): Jeder Eintrag ist EIN String im Format "Menge Einheit? Name".
@@ -72,6 +79,7 @@ Wähle selbst passende, gut erhältliche Zutaten. Das Gericht soll überraschen 
 
 Du berechnest exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
 Antworte NUR mit validem JSON: ${jsonFormat}
+${categoryIconRules}
 ${ingredientsRules}
 - "shoppingList" kann leer sein [] (alles wird als Zutatenliste betrachtet).
 - Rezept MUSS zur Kategorie '${mealType}' passen.${categoryInstruction}`;
@@ -85,6 +93,7 @@ Modus: ${shoppingMode}
 
 Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
 Antworte NUR mit validem JSON: ${jsonFormat}
+${categoryIconRules}
 ${ingredientsRules}
 - Rezept MUSS zur Kategorie '${mealType}' passen. Bei unsinnigen Zutaten trotzdem kreatives, machbares Rezept.${categoryInstruction}`;
     userPrompt = `Kategorie: ${mealType}\nPersonen: ${servings}\nZutaten: ${ingredients}\nModus: ${shoppingMode}${filterText}\n\nErstelle ein perfektes Rezept basierend auf diesen Zutaten.`;
