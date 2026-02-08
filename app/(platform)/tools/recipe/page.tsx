@@ -619,14 +619,14 @@ export default function RecipePage() {
             <p className="mt-4 mx-4 text-sm font-semibold text-red-600 text-center">{state.error}</p>
           )}
 
-          {/* CTA unter den Auswahlkarten – beide Buttons Glas, Mobil-Größen beibehalten, Desktop angepasst */}
+          {/* CTA unter den Auswahlkarten – Breite passt zur Card drüber (Step 2: max-w-md, Step 1/3: max-w-2xl) */}
           <div className="mt-8 pt-6 pb-8 px-4 sm:px-6 md:px-8">
-            <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <div className={cn('mx-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center', wizardStep === 2 ? 'max-w-md' : 'max-w-2xl')}>
               {wizardStep > 1 && (
                 <button
                   type="button"
                   onClick={() => setWizardStep((s) => s - 1 as 1 | 2 | 3)}
-                  className="order-2 sm:order-1 w-full sm:w-auto sm:min-w-[7rem] md:min-w-[8rem] h-12 sm:h-12 rounded-xl px-5 py-3.5 bg-white/70 backdrop-blur-md border border-white/30 text-gray-700 font-semibold shadow-lg shadow-gray-200/25 hover:bg-white/90 hover:scale-[1.02] transition-all active:scale-[0.98] flex items-center justify-center"
+                  className="order-2 sm:order-1 w-full sm:w-auto sm:min-w-[7rem] md:min-w-[8rem] h-12 sm:h-12 rounded-xl px-5 py-3.5 bg-gray-100/95 backdrop-blur-md border border-gray-200/80 text-gray-800 font-semibold shadow-md shadow-gray-300/40 hover:bg-gray-200/95 hover:scale-[1.02] transition-all active:scale-[0.98] flex items-center justify-center"
                 >
                   Zurück
                 </button>
