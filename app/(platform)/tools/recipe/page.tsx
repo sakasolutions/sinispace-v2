@@ -649,85 +649,97 @@ export default function RecipePage() {
               <ActionButtons recipe={recipe} />
               
               <div className="flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto">
-                {/* RECIPE CARD – Weiß, klar, Orange-Akzente */}
-                <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-5 sm:p-6">
-                  <div className="mb-4">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">{recipe.recipeName}</h2>
+                {/* RECIPE CARD – klare Sektionen, Regalboden-Header, weniger generisch */}
+                <div className="rounded-xl border border-gray-100 bg-white overflow-hidden">
+                  {/* Hero: Rezeptname + Stats */}
+                  <div className="px-5 sm:px-6 pt-6 pb-4 border-b border-gray-100 bg-gray-50/40">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-4">{recipe.recipeName}</h2>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm">
+                        <Clock className="w-3.5 h-3.5 text-orange-500" />
+                        {recipe.stats?.time}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm">
+                        <ChefHat className="w-3.5 h-3.5 text-orange-500" />
+                        {recipe.stats?.difficulty}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm">
+                        <Users className="w-3.5 h-3.5 text-orange-500" />
+                        {servings} {servings === 1 ? 'Person' : 'Personen'}
+                      </span>
+                      {recipe.stats?.calories && (
+                        <span className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-1.5 text-xs font-semibold">
+                          🔥 {recipe.stats.calories}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-800 border border-orange-200 rounded-full px-3 py-1.5 text-xs font-semibold">
-                      <Clock className="w-3.5 h-3.5" />
-                      {recipe.stats?.time}
+                  {/* Sektion: Zutaten – Regalboden-Header */}
+                  <div className="mt-0">
+                    <div className="w-full bg-gray-50/80 border-y border-gray-100 py-2.5 px-4 flex items-center gap-2 text-orange-600">
+                      <Utensils className="w-4 h-4 shrink-0" aria-hidden />
+                      <span className="text-xs font-black tracking-widest uppercase">Zutaten</span>
                     </div>
-                    <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-800 border border-orange-200 rounded-full px-3 py-1.5 text-xs font-semibold">
-                      <ChefHat className="w-3.5 h-3.5" />
-                      {recipe.stats?.difficulty}
-                    </div>
-                    <div className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-800 border border-orange-200 rounded-full px-3 py-1.5 text-xs font-semibold">
-                      <Users className="w-3.5 h-3.5" />
-                      {servings} {servings === 1 ? 'Person' : 'Personen'}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-gray-100">
-                    <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-full px-3 py-1.5 text-xs font-semibold">
-                      🔥 {recipe.stats?.calories}
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">Zutaten</h3>
-                    <ul className="space-y-2">
+                    <ul className="px-5 sm:px-6 py-4 space-y-3 bg-white">
                       {recipe.ingredients.map((ingredient, index) => (
-                        <li key={index} className="flex items-start gap-3 text-gray-800 font-medium group cursor-pointer hover:text-gray-900 transition-colors">
-                          <div className="mt-1.5 w-5 h-5 rounded border border-orange-200 bg-orange-50 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-100 group-hover:border-orange-300 transition-all">
-                            <CheckCircle2 className="w-3 h-3 text-orange-600 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        <li key={index} className="flex items-start gap-3 text-gray-800 group">
+                          <div className="mt-1 w-5 h-5 rounded-full border-2 border-orange-300 bg-white flex items-center justify-center flex-shrink-0 group-hover:border-orange-400 transition-colors" aria-hidden>
+                            <CheckCircle2 className="w-3 h-3 text-orange-500 opacity-0 group-hover:opacity-50 transition-opacity" />
                           </div>
-                          <span className="text-sm sm:text-base">{ingredient}</span>
+                          <span className="text-sm sm:text-base leading-relaxed">{ingredient}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
+                  {/* Sektion: Das fehlt noch – eigener Block mit Regalboden */}
                   {recipe.shoppingList && recipe.shoppingList.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-bold text-gray-900 mb-3">Das fehlt noch (Einkaufsliste)</h3>
-                      <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
-                        <ul className="space-y-1 text-sm text-gray-800 font-medium">
+                    <div className="mt-6">
+                      <div className="w-full bg-amber-50/90 border-y border-amber-100 py-2.5 px-4 flex items-center gap-2 text-amber-800">
+                        <ShoppingCart className="w-4 h-4 shrink-0" aria-hidden />
+                        <span className="text-xs font-black tracking-widest uppercase">Das fehlt noch (Einkaufsliste)</span>
+                      </div>
+                      <div className="px-5 sm:px-6 py-4 bg-white border-b border-gray-100">
+                        <ul className="space-y-2">
                           {recipe.shoppingList.map((ingredient, index) => (
-                            <li key={index}>• {ingredient}</li>
+                            <li key={index} className="flex items-center gap-2 text-sm text-gray-800">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" aria-hidden />
+                              <span>{ingredient}</span>
+                            </li>
                           ))}
                         </ul>
                       </div>
                     </div>
                   )}
 
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">Zubereitung</h3>
-                    <ol className="space-y-3">
+                  {/* Sektion: Zubereitung – Regalboden-Header */}
+                  <div className={recipe.shoppingList?.length ? 'mt-6' : 'mt-0'}>
+                    <div className="w-full bg-gray-50/80 border-y border-gray-100 py-2.5 px-4 flex items-center gap-2 text-orange-600">
+                      <span className="text-xs font-black tracking-widest uppercase">Zubereitung</span>
+                    </div>
+                    <ol className="px-5 sm:px-6 py-4 space-y-4 bg-white">
                       {recipe.instructions.map((step, index) => (
-                        <li key={index} className="flex gap-3 text-gray-800 font-medium">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-800 text-xs font-bold">
+                        <li key={index} className="flex gap-4">
+                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white text-sm font-bold shadow-sm">
                             {index + 1}
                           </span>
-                          <span className="text-sm sm:text-base leading-relaxed">{step}</span>
+                          <span className="text-sm sm:text-base text-gray-800 leading-relaxed pt-1">{step}</span>
                         </li>
                       ))}
                     </ol>
                   </div>
 
+                  {/* Profi-Tipp – hervorgehoben */}
                   {recipe.chefTip && (
-                      <div className="pt-4 border-t border-gray-100">
-                      <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
-                        <p className="text-sm text-orange-900 font-bold mb-1">💡 Profi-Tipp</p>
-                        <p className="text-sm text-gray-800 leading-relaxed font-medium">{recipe.chefTip}</p>
-                      </div>
+                    <div className="mx-5 sm:mx-6 mb-6 mt-6 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 p-4">
+                      <p className="text-xs font-black tracking-widest uppercase text-orange-600 mb-2">💡 Profi-Tipp</p>
+                      <p className="text-sm text-gray-800 leading-relaxed">{recipe.chefTip}</p>
                     </div>
                   )}
 
                   {recipe.shoppingList && recipe.shoppingList.length > 0 && (
-                    <div className="mt-6 pt-4 border-t border-gray-100 space-y-2">
+                    <div className="px-5 sm:px-6 pb-6 space-y-2">
                       <button
                         onClick={() => setIsShoppingListOpen(true)}
                         className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white border border-orange-500 rounded-xl font-semibold transition-all"
