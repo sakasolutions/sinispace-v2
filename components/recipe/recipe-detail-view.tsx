@@ -252,8 +252,8 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         )}
       </div>
 
-      {/* Hero Card – überlappt Header, Glas + Schatten */}
-      <div className="relative z-20 -mt-24 mx-4 md:mx-auto max-w-5xl bg-white/90 backdrop-blur-xl shadow-2xl rounded-[40px] border border-white/50 p-6 md:p-10">
+      {/* Hero Card – gleicher Überlapp wie Dashboard (-mt-20), Glas wie Hauptdashboard-Karten */}
+      <div className="relative z-20 -mt-20 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
         <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4 text-center">{recipe.recipeName}</h1>
         <div className="flex flex-wrap justify-center gap-2 mb-6">
           {recipe.stats?.time && (
