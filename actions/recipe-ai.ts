@@ -139,6 +139,8 @@ ${ingredientsRules}
     // Unsplash: Foto laden (optional, Flow darf nicht abstürzen)
     const searchQuery = (recipe.imageSearchQuery || recipe.recipeName || '').toString().trim();
     const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
+    console.log('🔍 AI Search Term:', recipe.imageSearchQuery ?? '(fallback)', '→ final query:', searchQuery || '(leer)');
+    console.log('🔑 Unsplash Key present:', !!unsplashKey);
     if (unsplashKey && searchQuery) {
       try {
         const q = encodeURIComponent(searchQuery);
@@ -146,6 +148,7 @@ ${ingredientsRules}
           `https://api.unsplash.com/search/photos?query=${q}&per_page=1&orientation=landscape&client_id=${unsplashKey}`,
           { cache: 'no-store' }
         );
+        console.log('📡 Unsplash Status:', res.status, res.statusText);
         if (res.ok) {
           const data = await res.json();
           const first = data?.results?.[0];
@@ -160,7 +163,8 @@ ${ingredientsRules}
           recipe.imageUrl = null;
           recipe.imageCredit = null;
         }
-      } catch {
+      } catch (err) {
+        console.error('❌ Unsplash Fetch Error:', err);
         recipe.imageUrl = null;
         recipe.imageCredit = null;
       }
