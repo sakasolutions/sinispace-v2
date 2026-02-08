@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus, Lightbulb, Flame } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 
@@ -53,6 +53,15 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   }, [toast]);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
+  const toggleIngredient = (index: number) => {
+    setCheckedIngredients((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
 
   // Parse Zutaten-Mengen für Portionen-Anpassung (verbessert)
   const parseIngredient = (ingredient: string) => {
@@ -221,25 +230,20 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <button onClick={onBack} className="hover:text-gray-900 transition-colors font-medium">
+    <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out px-4 md:px-6 pb-16">
+      {/* Breadcrumb oben, dezent */}
+      <div className="max-w-5xl mx-auto mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <button onClick={onBack} className="hover:text-slate-900 transition-colors font-medium">
             {fromWeekPlan ? 'Wochenplaner' : 'Meine Rezepte'}
           </button>
           <span>/</span>
-          <span className="text-gray-900 font-medium truncate max-w-[200px]">{recipe.recipeName}</span>
-          {isShoppingListOpen && (
-            <>
-              <span>/</span>
-              <span className="text-gray-900 font-medium">Einkaufsliste</span>
-            </>
-          )}
+          <span className="text-slate-700 font-medium truncate max-w-[200px]">{recipe.recipeName}</span>
         </div>
         {fromWeekPlan && onSaveToCollection && (
           <button
             onClick={onSaveToCollection}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-medium transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/30"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2"
           >
             <ChefHat className="w-4 h-4" />
             In Meine Rezepte speichern
@@ -247,179 +251,182 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         )}
       </div>
 
-      {/* Titel + Meta – Glass-Karte */}
-      <div className="mb-6 rounded-2xl overflow-hidden p-5 sm:p-6" style={RECIPE_GLASS_STYLE}>
-        <div className="flex items-start gap-4">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-orange-500/90 to-amber-500/90 border border-white/50 flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/20">
-            <ChefHat className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{recipe.recipeName}</h1>
-            <div className="flex flex-wrap gap-3 items-center text-gray-600">
-              {recipe.stats?.time && (
-                <div className="flex items-center gap-1.5 text-sm">
-                  <Clock className="w-4 h-4 text-orange-500" />
-                  {recipe.stats.time}
-                </div>
-              )}
-              {adjustedCalories && (
-                <div className="flex items-center gap-1.5 text-sm">
-                  🔥 {adjustedCalories} {servings !== originalServings && `(pro Portion)`}
-                </div>
-              )}
-              {recipe.stats?.difficulty && (
-                <div className="flex items-center gap-1.5 text-sm">{recipe.stats.difficulty}</div>
-              )}
-              <div className="text-xs text-gray-500">
-                {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+      {/* Hero Card – überlappt Header, Glas + Schatten */}
+      <div className="relative z-20 -mt-24 mx-4 md:mx-auto max-w-5xl bg-white/90 backdrop-blur-xl shadow-2xl rounded-[40px] border border-white/50 p-6 md:p-10">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4 text-center">{recipe.recipeName}</h1>
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
+          {recipe.stats?.time && (
+            <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
+              <Clock className="w-4 h-4" />
+              {recipe.stats.time}
+            </span>
+          )}
+          {adjustedCalories && (
+            <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
+              <Flame className="w-4 h-4" />
+              {adjustedCalories} {servings !== originalServings && '(pro Portion)'}
+            </span>
+          )}
+          {recipe.stats?.difficulty && (
+            <span className="bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
+              {recipe.stats.difficulty}
+            </span>
+          )}
+          <span className="bg-slate-100 text-slate-600 rounded-full px-4 py-1 text-xs font-medium">
+            {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+          </span>
+        </div>
+
+        {/* Jetzt kochen – Orange-Gradient, volle Breite */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <button
+            onClick={() => setCookingMode(true)}
+            className="w-full sm:w-auto sm:min-w-[200px] px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2"
+          >
+            <Play className="w-5 h-5" />
+            Jetzt kochen
+          </button>
+        </div>
+
+        {/* Portionen-Slider – Orange */}
+        <div className="border-t border-slate-100 pt-6">
+          <h2 className="text-lg font-bold text-slate-800 mb-3">Rezept anpassen</h2>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setServings(Math.max(1, servings - 1))}
+              disabled={servings <= 1}
+              className="w-11 h-11 rounded-full bg-orange-50 border border-orange-200 text-orange-600 hover:bg-orange-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+            >
+              <Minus className="w-5 h-5" />
+            </button>
+            <div className="flex-1 min-w-0">
+              <input
+                type="range"
+                min="1"
+                max="8"
+                step={1}
+                value={servings}
+                onChange={(e) => setServings(parseInt(e.target.value))}
+                className="slider-recipe w-full h-2 cursor-pointer touch-manipulation block"
+                style={{ transition: 'none' }}
+              />
+              <div className="relative w-full mt-1 h-4 flex items-center" aria-hidden>
+                <span className="absolute text-xs text-slate-400" style={{ left: '0%' }}>1</span>
+                <span className="absolute text-xs text-slate-400 -translate-x-1/2" style={{ left: 'calc(100% * 3 / 7)' }}>4</span>
+                <span className="absolute text-xs text-slate-400" style={{ left: '100%', transform: 'translateX(-100%)' }}>8</span>
               </div>
             </div>
+            <button
+              onClick={() => setServings(Math.min(8, servings + 1))}
+              disabled={servings >= 8}
+              className="w-11 h-11 rounded-full bg-orange-50 border border-orange-200 text-orange-600 hover:bg-orange-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
           </div>
-        </div>
-      </div>
+          <p className="mt-2 text-sm font-bold text-slate-800">Anzahl Personen: {servings}</p>
+          {servings !== originalServings && (
+            <button
+              onClick={() => setServings(originalServings)}
+              className="mt-2 text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Original wiederherstellen
+            </button>
+          )}
 
-      {/* Rezept anpassen – Glass-Karte (Slider + Jetzt kochen + Einkaufsliste) */}
-      <div className="mb-8 rounded-2xl overflow-hidden p-5 sm:p-6" style={RECIPE_GLASS_STYLE}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Rezept anpassen</h2>
-          <div className="flex flex-wrap gap-2">
-            {servings !== originalServings && (
+          {prioritizedMissingIngredients.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap gap-2">
               <button
-                onClick={() => setServings(originalServings)}
-                className="px-3 py-1.5 rounded-full bg-white/60 hover:bg-white/80 border border-white/50 text-gray-600 text-sm font-medium transition-colors flex items-center gap-1.5"
-                title="Original-Portionen wiederherstellen"
+                onClick={() => setIsShoppingListOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 font-medium text-sm hover:bg-orange-100 transition-colors"
               >
-                <RotateCcw className="w-4 h-4" />
-                Original
+                <AlertCircle className="w-4 h-4" />
+                Was fehlt mir?
               </button>
-            )}
-            <button
-              onClick={() => setCookingMode(true)}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/30"
-            >
-              <Play className="w-4 h-4" />
-              Jetzt kochen
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 sm:gap-4">
-          <button
-            onClick={() => setServings(Math.max(1, servings - 1))}
-            disabled={servings <= 1}
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/80 border border-white/60 text-gray-600 hover:border-orange-300 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0 shadow-sm"
-          >
-            <Minus className="w-5 h-5" />
-          </button>
-          <div className="flex-1 min-w-0 w-full">
-            <input
-              type="range"
-              min="1"
-              max="8"
-              step={1}
-              value={servings}
-              onChange={(e) => setServings(parseInt(e.target.value))}
-              className="slider-recipe w-full h-2 cursor-pointer touch-manipulation block"
-              style={{ transition: 'none' }}
-            />
-            <div className="relative w-full mt-1 h-4 flex items-center" aria-hidden>
-              <span className="absolute text-xs text-gray-500" style={{ left: '0%' }}>1</span>
-              <span className="absolute text-xs text-gray-500 -translate-x-1/2" style={{ left: 'calc(100% * 3 / 7)' }}>4</span>
-              <span className="absolute text-xs text-gray-500" style={{ left: '100%', transform: 'translateX(-100%)' }}>8</span>
-            </div>
-          </div>
-          <button
-            onClick={() => setServings(Math.min(8, servings + 1))}
-            disabled={servings >= 8}
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/80 border border-white/60 text-gray-600 hover:border-orange-300 hover:text-orange-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0 shadow-sm"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
-        </div>
-        <p className="mt-2 text-sm font-bold text-gray-900">Anzahl Personen: {servings}</p>
-
-        {prioritizedMissingIngredients.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-white/40 space-y-2">
-            <button
-              onClick={() => setIsShoppingListOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-orange-700 font-medium transition-colors bg-white/50 hover:bg-white/70 border border-orange-200/50"
-            >
-              <AlertCircle className="w-5 h-5" />
-              {prioritizedMissingIngredients.length <= 3
-                ? `Was fehlt mir? (${prioritizedMissingIngredients.length} wichtige Zutaten)`
-                : `${prioritizedMissingIngredients.length} Zutaten fehlen`}
-            </button>
-            <button
-              onClick={() => setIsAddToListOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/40 hover:bg-white/60 border border-white/50 text-gray-700 font-medium transition-colors"
-            >
-              <ListPlus className="w-5 h-5" />
-              Auf Einkaufsliste setzen
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Zutaten + Zubereitung – zwei Glass-Karten (mobil gestapelt, Desktop nebeneinander) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={RECIPE_GLASS_STYLE}>
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-orange-500" />
-            <h2 className="text-xl font-bold text-gray-900">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
-          </div>
-          <ul className="space-y-2">
-            {adjustedIngredients.map((ingredient, index) => (
-              <li key={index} className="text-gray-800 flex items-start gap-2">
-                <span className="text-orange-500 mt-1">•</span>
-                <span className="text-sm leading-relaxed">{ingredient}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={RECIPE_GLASS_STYLE}>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Zubereitung</h2>
-          <ol className="space-y-4">
-            {recipe.instructions.map((step, index) => (
-              <li key={index} className="flex gap-3">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                  {index + 1}
-                </span>
-                <span className="text-gray-800 text-sm leading-relaxed flex-1">{step}</span>
-              </li>
-            ))}
-          </ol>
-
-          {cookingTime > 0 && (
-            <div className="mt-6 pt-4 border-t border-white/40">
-              <div className="flex items-center gap-2 text-gray-700 font-medium">
-                <Clock className="w-5 h-5 text-orange-500" />
-                Gesamt-Kochzeit: {cookingTime} Minuten
-              </div>
               <button
-                onClick={() => alert(`Timer für ${cookingTime} Minuten starten – Feature kommt gleich!`)}
-                className="mt-2 px-4 py-2 rounded-xl bg-white/60 hover:bg-white/80 border border-orange-200/50 text-orange-700 text-sm font-medium transition-colors"
+                onClick={() => setIsAddToListOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-50 transition-colors"
               >
-                ⏱️ Timer starten
+                <ListPlus className="w-4 h-4" />
+                Auf Einkaufsliste
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Profi-Tipp – Glass mit Orange-Stich */}
+      {/* Content-Grid: Zutaten (4) | Zubereitung (8) */}
+      <div className="max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-12 gap-8">
+        {/* Links: Zutaten – Gourmet-Checkboxen */}
+        <div className="md:col-span-4 bg-orange-50/50 rounded-3xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-orange-500" />
+            <h2 className="text-xl font-bold text-slate-800">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
+          </div>
+          <ul className="space-y-3">
+            {adjustedIngredients.map((ingredient, index) => {
+              const checked = checkedIngredients.has(index);
+              return (
+                <li key={index} className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    onClick={() => toggleIngredient(index)}
+                    className={cn(
+                      'mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
+                      checked ? 'bg-gradient-to-br from-orange-500 to-amber-500 border-orange-500 text-white' : 'border-orange-300 bg-white'
+                    )}
+                    aria-label={checked ? 'Abhaken' : 'Abhaken'}
+                  >
+                    {checked && <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                  </button>
+                  <span className={cn('text-sm leading-relaxed', checked ? 'text-slate-400 line-through' : 'text-slate-800')}>
+                    {ingredient}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* Rechts: Zubereitung – nummerierte Schritte */}
+        <div className="md:col-span-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-4">Zubereitung</h2>
+          <ol className="space-y-4">
+            {recipe.instructions.map((step, index) => (
+              <li key={index} className="flex gap-4">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">
+                  {index + 1}
+                </span>
+                <span className="text-slate-800 text-sm leading-relaxed flex-1 pt-0.5">{step}</span>
+              </li>
+            ))}
+          </ol>
+          {cookingTime > 0 && (
+            <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-orange-500" />
+              <span className="font-medium text-slate-700">Gesamt-Kochzeit: {cookingTime} Minuten</span>
+              <button
+                onClick={() => alert(`Timer für ${cookingTime} Minuten – Feature kommt gleich!`)}
+                className="ml-2 px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 text-sm font-medium border border-orange-200 hover:bg-orange-100"
+              >
+                Timer starten
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Profi-Tipp – Veredelung, kein Warn-Look */}
       {recipe.chefTip && (
-        <div
-          className="mt-6 rounded-2xl overflow-hidden p-4 sm:p-5 border border-orange-200/60"
-          style={{
-            background: 'rgba(255,237,213,0.6)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 12px rgba(0,0,0,0.04)',
-            WebkitBackdropFilter: 'blur(12px)',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <p className="text-xs font-black tracking-widest uppercase text-orange-700 mb-2">💡 Profi-Tipp</p>
-          <p className="text-sm text-gray-800 leading-relaxed">{recipe.chefTip}</p>
+        <div className="max-w-5xl mx-auto mt-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 rounded-2xl p-6 flex gap-4">
+          <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+            <Lightbulb className="w-5 h-5 text-amber-600" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-amber-800 mb-1">Profi-Tipp</p>
+            <p className="text-sm text-slate-800 leading-relaxed">{recipe.chefTip}</p>
+          </div>
         </div>
       )}
 
