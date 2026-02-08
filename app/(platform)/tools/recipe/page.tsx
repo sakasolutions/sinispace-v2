@@ -345,7 +345,7 @@ export default function RecipePage() {
     return 'Hauptgericht';
   };
 
-  /** Theme aus KI-geliefertem categoryIcon (kein Keyword-Raten). Fallback für alte Rezepte ohne categoryIcon. */
+  /** Hybrid: Zuerst categoryIcon (KI), fehlt er → Keyword-Fallback auf Titel (Legacy-Rezepte). */
   type RecipeTheme = { gradient: string; Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; shadow: string };
   const DEFAULT_THEME: RecipeTheme = { gradient: 'bg-gradient-to-br from-slate-500 to-gray-700', Icon: ChefHat, shadow: 'shadow-slate-500/20' };
   const CATEGORY_ICON_THEMES: Record<string, RecipeTheme> = {
@@ -362,6 +362,22 @@ export default function RecipePage() {
     dessert: { gradient: 'bg-gradient-to-br from-pink-400 to-rose-400', Icon: Cake, shadow: 'shadow-pink-500/20' },
     breakfast: { gradient: 'bg-gradient-to-br from-amber-300 to-orange-400', Icon: Coffee, shadow: 'shadow-amber-500/20' },
   };
+
+  function getRecipeTheme(recipe: Recipe): RecipeTheme {
+    const icon = recipe.categoryIcon?.trim();
+    if (icon && CATEGORY_ICON_THEMES[icon]) return CATEGORY_ICON_THEMES[icon];
+    const title = (recipe.recipeName || (recipe as { title?: string }).title || '').toLowerCase();
+    const has = (keywords: string[]) => keywords.some((kw) => title.includes(kw));
+    if (has(['kuchen', 'mousse', 'dessert', 'süß', 'schoko', 'torte'])) return CATEGORY_ICON_THEMES.dessert;
+    if (has(['pasta', 'pizza', 'burger', 'brot', 'nudel', 'lasagne', 'spaghetti'])) return CATEGORY_ICON_THEMES.pasta;
+    if (has(['suppe', 'curry', 'eintopf', 'chili', 'ramen'])) return CATEGORY_ICON_THEMES.soup;
+    if (has(['salat', 'bowl', 'insalata'])) return { gradient: 'bg-gradient-to-br from-emerald-400 to-green-600', Icon: LeafyGreen, shadow: 'shadow-emerald-500/20' };
+    if (has(['schnitzel', 'steak', 'hähnchen', 'chicken', 'fleisch', 'hack', 'rind', 'wurst', 'braten'])) return CATEGORY_ICON_THEMES.meat;
+    if (has(['lachs', 'fisch', 'garnele', 'sushi', 'thunfisch'])) return CATEGORY_ICON_THEMES.fish;
+    if (has(['paprika', 'kartoffel', 'vegan', 'vegetarisch', 'zucchini', 'gemüse', 'auflauf', 'gratin'])) return CATEGORY_ICON_THEMES.vegetable;
+    if (has(['ei', 'eier', 'omelett', 'frittata', 'rührei', 'pancake'])) return CATEGORY_ICON_THEMES.egg;
+    return DEFAULT_THEME;
+  }
 
   const filteredCollectionRecipes = useMemo(() => {
     let list = myRecipes;
@@ -809,7 +825,7 @@ export default function RecipePage() {
                       return meta.filters || [];
                     } catch { return []; }
                   })();
-                  const theme = CATEGORY_ICON_THEMES[r.categoryIcon ?? ''] ?? DEFAULT_THEME;
+                  const theme = getRecipeTheme(r);
                   const ThemeIcon = theme.Icon;
                   const titleAndFilters = `${r.recipeName || ''} ${metaFilters.join(' ')}`.toLowerCase();
                   const showVeganBadge = titleAndFilters.includes('vegan') || titleAndFilters.includes('vegetarisch');
