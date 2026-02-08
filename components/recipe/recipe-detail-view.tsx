@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus, Lightbulb, Flame } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
+import { cn } from '@/lib/utils';
 
 type Recipe = {
   recipeName: string;
