@@ -3,8 +3,8 @@
 import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
-import { useState, useEffect } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -155,7 +155,20 @@ export default function RecipePage() {
   const [addToListToast, setAddToListToast] = useState<{ message: string } | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; resultId: string; createdAt: Date } | null>(null);
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+  const [collectionSearch, setCollectionSearch] = useState('');
+  const [collectionCategory, setCollectionCategory] = useState<string>('Alle');
+  const [collectionMenuOpen, setCollectionMenuOpen] = useState<string | null>(null);
   const router = useRouter();
+
+  /** Filter-Chips für Sammlung: Alle, Hauptgericht, Frühstück, Dessert, Salat, Veggie */
+  const COLLECTION_CATEGORIES = [
+    { id: 'Alle', label: 'Alle' },
+    { id: 'Hauptgericht', label: 'Hauptgericht' },
+    { id: 'Frühstück', label: 'Frühstück' },
+    { id: 'Dessert', label: 'Dessert' },
+    { id: 'Salat', label: 'Salat' },
+    { id: 'Veggie', label: 'Veggie' },
+  ];
 
   // ?open=resultId: Rezept direkt öffnen (z. B. von Kalender „Jetzt kochen“)
   useEffect(() => {
@@ -250,7 +263,7 @@ export default function RecipePage() {
       await cleanupOldResults();
       
       // Lade alle Recipe-Results (ohne Workspace-Filter)
-      const result = await getWorkspaceResults(undefined, 50);
+      const result = await getWorkspaceResults(undefined, 200);
       if (result.success && result.results) {
         // Filtere nur Recipe-Results
         const recipeResults = result.results
@@ -306,6 +319,41 @@ export default function RecipePage() {
         : [...prev, filter]
     );
   };
+
+  /** mealType / Kategorie aus Result-Metadata für Sammlung-Filter */
+  const getRecipeCategory = (result: { metadata?: string | null; recipe?: Recipe }) => {
+    try {
+      const meta = result.metadata ? JSON.parse(result.metadata) as { mealType?: string; filters?: string[] } : {};
+      const mealType = (meta.mealType || '').trim();
+      const filters = meta.filters || [];
+      if (filters.some((f: string) => /vegetarisch|vegan/i.test(f))) return 'Veggie';
+      if (/hauptgericht/i.test(mealType)) return 'Hauptgericht';
+      if (/frühstück|snack/i.test(mealType)) return 'Frühstück';
+      if (/dessert/i.test(mealType)) return 'Dessert';
+      if (/salat|bowl/i.test(mealType)) return 'Salat';
+      if (mealType) return mealType;
+    } catch {
+      // ignore
+    }
+    const name = (result.recipe?.recipeName || '').toLowerCase();
+    if (/salat|bowl/i.test(name)) return 'Salat';
+    if (/frühstück|müsli|porridge|omelett|eier/i.test(name)) return 'Frühstück';
+    if (/dessert|kuchen|kekse|eis|creme/i.test(name)) return 'Dessert';
+    if (/vegetarisch|vegan|veggie/i.test(name)) return 'Veggie';
+    return 'Hauptgericht';
+  };
+
+  const filteredCollectionRecipes = useMemo(() => {
+    let list = myRecipes;
+    if (collectionSearch.trim()) {
+      const q = collectionSearch.trim().toLowerCase();
+      list = list.filter((r: { recipe: Recipe }) => (r.recipe?.recipeName || '').toLowerCase().includes(q));
+    }
+    if (collectionCategory !== 'Alle') {
+      list = list.filter((r: Record<string, unknown>) => getRecipeCategory(r as { metadata?: string | null; recipe?: Recipe }) === collectionCategory);
+    }
+    return list;
+  }, [myRecipes, collectionSearch, collectionCategory]);
 
   const mealTypeOptions: { id: string; label: string; value: string; Icon: typeof Utensils }[] = [
     { id: 'main', label: 'Hauptgericht', value: 'Hauptgericht', Icon: Utensils },
@@ -403,13 +451,15 @@ export default function RecipePage() {
                   Zurück zur Übersicht
                 </Link>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1 mt-0" style={{ letterSpacing: '-0.3px' }}>
-                  Rezept Generator
+                  {activeTab === 'my-recipes' ? 'Meine Sammlung' : 'Rezept Generator'}
                 </h1>
               </>
             }
             subtitle={
               <>
-                <p className="text-white/90 text-lg md:text-xl">Dein Smart-Chef für den Kühlschrank.</p>
+                <p className="text-white/90 text-lg md:text-xl">
+                  {activeTab === 'my-recipes' ? 'Deine kulinarischen Schätze.' : 'Dein Smart-Chef für den Kühlschrank.'}
+                </p>
                 {activeTab === 'create' && (
                   <>
                     <p className="text-white/70 text-sm font-medium mt-2" style={{ letterSpacing: '0.05em' }}>
@@ -658,7 +708,6 @@ export default function RecipePage() {
       </React.Fragment>
       ) : activeTab === 'my-recipes' ? (
         selectedRecipe ? (
-          /* Rezept-Detail-View */
           <RecipeDetailView
             recipe={selectedRecipe.recipe}
             resultId={selectedRecipe.resultId}
@@ -666,102 +715,150 @@ export default function RecipePage() {
             onBack={() => setSelectedRecipe(null)}
           />
         ) : (
-          /* Meine Rezepte Tab */
-          <div className="space-y-4">
+          /* Meine Sammlung: Command Bar + Grid (Tier 1) */
+          <div className="space-y-6">
+            {/* Command Bar: ragt in Header (-mt-24) */}
+            <div className="relative z-20 -mt-24 mx-auto max-w-5xl px-1">
+              <div className="bg-white/90 backdrop-blur border border-white/60 shadow-lg rounded-2xl p-4">
+                <div className="flex items-center gap-3 rounded-xl bg-white/60 border border-white/40 pl-4 pr-3 py-2.5">
+                  <Search className="w-5 h-5 text-slate-400 shrink-0" aria-hidden />
+                  <input
+                    type="search"
+                    value={collectionSearch}
+                    onChange={(e) => setCollectionSearch(e.target.value)}
+                    placeholder="Suche nach Pizza, Pasta oder Zutaten..."
+                    className="flex-1 min-w-0 bg-transparent text-slate-800 placeholder:text-slate-500 text-sm font-medium outline-none"
+                    aria-label="Rezepte durchsuchen"
+                  />
+                </div>
+                <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                  {COLLECTION_CATEGORIES.map((cat) => {
+                    const isActive = collectionCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setCollectionCategory(cat.id)}
+                        className={cn(
+                          'shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all',
+                          isActive
+                            ? 'bg-orange-500 text-white shadow-md border border-transparent'
+                            : 'bg-white/60 border border-white/40 text-slate-700 hover:bg-white/80'
+                        )}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Grid */}
             {isLoadingRecipes ? (
-              <div className="rounded-xl border border-gray-100 bg-white p-6 text-center">
-                <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-500 mb-2" />
-                <p className="text-gray-700 font-semibold">Lade Rezepte…</p>
+              <div className="rounded-3xl border border-white/60 bg-white/80 backdrop-blur-md p-8 text-center shadow-sm">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-500 mb-3" />
+                <p className="text-slate-700 font-semibold">Lade Rezepte…</p>
               </div>
             ) : myRecipes.length === 0 ? (
-              <div className="rounded-xl border border-gray-100 bg-white p-6 text-center">
-                <ChefHat className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-800 font-semibold">Noch keine Rezepte gespeichert.</p>
-                <p className="text-sm text-gray-600 mt-2 font-medium">Erstelle dein erstes Rezept im Tab „Neues Rezept“.</p>
+              <div className="rounded-3xl border border-white/60 bg-white/80 backdrop-blur-md p-10 text-center shadow-sm">
+                <ChefHat className="w-14 h-14 mx-auto text-slate-400 mb-4" />
+                <p className="text-slate-800 font-semibold">Noch keine Rezepte gespeichert.</p>
+                <p className="text-sm text-slate-600 mt-2 font-medium">Erstelle dein erstes Rezept in der Übersicht.</p>
+              </div>
+            ) : filteredCollectionRecipes.length === 0 ? (
+              <div className="rounded-3xl border border-white/60 bg-white/80 backdrop-blur-md p-8 text-center shadow-sm">
+                <Search className="w-12 h-12 mx-auto text-slate-400 mb-3" />
+                <p className="text-slate-800 font-semibold">Keine Rezepte passen zu Suche oder Filter.</p>
+                <p className="text-sm text-slate-600 mt-1">Ändere die Suche oder wähle „Alle“.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {myRecipes.map((result) => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCollectionRecipes.map((result: { id: string; recipe: Recipe; createdAt: string }) => {
                   const r = result.recipe as Recipe;
+                  const isMenuOpen = collectionMenuOpen === result.id;
                   return (
                     <div
                       key={result.id}
-                      className="rounded-xl border border-gray-100 bg-white p-5 hover:border-orange-200 transition-all cursor-pointer"
+                      className="group relative bg-white/80 backdrop-blur-md border border-white/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all rounded-3xl overflow-hidden cursor-pointer"
                       onClick={() => setSelectedRecipe({
                         recipe: r,
                         resultId: result.id,
                         createdAt: new Date(result.createdAt)
                       })}
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">{r.recipeName || 'Rezept'}</h3>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              alert('Edit-Feature kommt gleich!');
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
-                            title="Rezept anpassen"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteRecipe(result.id);
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-                            title="Löschen"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                      {/* Platzhalter: oberes Drittel – Gradient + Icon */}
+                      <div className="h-32 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-50 flex items-center justify-center">
+                        <Utensils className="w-14 h-14 text-orange-400/90" strokeWidth={1.5} aria-hidden />
                       </div>
-                      {r.stats && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {r.stats.time && (
-                            <span className="px-2 py-1 rounded-full bg-orange-50 text-orange-800 text-xs font-semibold border border-orange-200">
-                              ⏱️ {r.stats.time}
-                            </span>
-                          )}
-                          {r.stats.calories && (
-                            <span className="px-2 py-1 rounded-full bg-orange-50 text-orange-800 text-xs font-semibold border border-orange-200">
-                              🔥 {r.stats.calories}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      <p className="text-xs text-gray-600 font-medium mb-4">
-                        {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                      </p>
-                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      {/* More-Menu oben rechts (über dem Platzhalter) */}
+                      <div className="absolute top-2 right-2 z-10">
                         <button
-                          onClick={() => setSelectedRecipe({
-                            recipe: r,
-                            resultId: result.id,
-                            createdAt: new Date(result.createdAt)
-                          })}
-                          className="flex-1 px-3 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white border border-orange-500 text-sm font-semibold transition-all"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCollectionMenuOpen(isMenuOpen ? null : result.id);
+                          }}
+                          className="p-2 rounded-full bg-white/80 backdrop-blur border border-white/60 text-slate-600 hover:bg-white hover:text-slate-800 shadow-sm transition-all"
+                          aria-label="Mehr Optionen"
                         >
-                          Rezept öffnen
+                          <MoreVertical className="w-5 h-5" />
                         </button>
-                        {r.shoppingList && r.shoppingList.length > 0 && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedRecipe({
-                                recipe: r,
-                                resultId: result.id,
-                                createdAt: new Date(result.createdAt)
-                              });
-                            }}
-                            className="flex-1 px-3 py-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 hover:border-gray-300 text-sm font-semibold flex items-center justify-center gap-1 transition-all"
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                            Einkaufen
-                          </button>
+                        {isMenuOpen && (
+                          <>
+                            <div className="absolute right-0 top-full mt-1 py-1 rounded-xl bg-white border border-slate-200 shadow-lg min-w-[140px] z-20" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCollectionMenuOpen(null);
+                                  alert('Edit-Feature kommt gleich!');
+                                }}
+                                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Bearbeiten
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCollectionMenuOpen(null);
+                                  handleDeleteRecipe(result.id);
+                                }}
+                                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Löschen
+                              </button>
+                            </div>
+                            <div
+                              className="fixed inset-0 z-[5]"
+                              aria-hidden
+                              onClick={() => setCollectionMenuOpen(null)}
+                            />
+                          </>
                         )}
+                      </div>
+                      <div className="p-5">
+                        <h3 className="text-lg font-bold text-slate-800 line-clamp-2 mb-3">{r.recipeName || 'Rezept'}</h3>
+                        {r.stats && (r.stats.time || r.stats.calories) && (
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {r.stats.time && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-semibold border border-orange-100">
+                                <Clock className="w-3.5 h-3.5" />
+                                {r.stats.time}
+                              </span>
+                            )}
+                            {r.stats.calories && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-semibold border border-orange-100">
+                                <Flame className="w-3.5 h-3.5" />
+                                {r.stats.calories}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <p className="text-xs text-slate-500 font-medium">
+                          {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        </p>
                       </div>
                     </div>
                   );
