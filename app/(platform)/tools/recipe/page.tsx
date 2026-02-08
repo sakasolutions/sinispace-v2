@@ -502,10 +502,9 @@ export default function RecipePage() {
               </section>
             )}
 
-            {/* Step 2: Nur Personenanzahl – eine Karte */}
+            {/* Step 2: Nur Personenanzahl – Karte ragt wie Step 1 in den Header (kein Extra-Abstand) */}
             {wizardStep === 2 && (
               <section className="relative z-20 animate-in fade-in slide-in-from-right-4 duration-300" key="step2">
-                <div className="h-5 mb-4" aria-hidden />
               <div className="max-w-md mx-auto">
                 <div
                   className="rounded-2xl overflow-hidden p-6 sm:p-8 flex flex-col items-center justify-center min-h-[200px]"
@@ -537,10 +536,9 @@ export default function RecipePage() {
               </section>
             )}
 
-            {/* Step 3: Nur Zutaten + Optionen */}
+            {/* Step 3: Nur Zutaten + Optionen – erste Karte ragt wie Step 1/2 in den Header */}
             {wizardStep === 3 && (
               <section className="relative z-20 animate-in fade-in slide-in-from-right-4 duration-300" key="step3">
-                <div className="h-5 mb-4" aria-hidden />
               <div className="max-w-2xl mx-auto space-y-4">
                 <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={DASHBOARD_CARD_STYLE}>
                   <div className="flex items-center gap-2 mb-3">
@@ -621,24 +619,24 @@ export default function RecipePage() {
             <p className="mt-4 mx-4 text-sm font-semibold text-red-600 text-center">{state.error}</p>
           )}
 
-          {/* CTA unter den Auswahlkarten (nicht fix, scrollt mit – Desktop + Mobil) */}
+          {/* CTA unter den Auswahlkarten – beide Buttons Glas, Mobil-Größen beibehalten, Desktop angepasst */}
           <div className="mt-8 pt-6 pb-8 px-4 sm:px-6 md:px-8">
             <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               {wizardStep > 1 && (
                 <button
                   type="button"
                   onClick={() => setWizardStep((s) => s - 1 as 1 | 2 | 3)}
-                  className="order-2 sm:order-1 px-5 py-3.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-all active:scale-[0.98]"
+                  className="order-2 sm:order-1 w-full sm:w-auto sm:min-w-[7rem] md:min-w-[8rem] h-12 sm:h-12 rounded-xl px-5 py-3.5 bg-white/70 backdrop-blur-md border border-white/30 text-gray-700 font-semibold shadow-lg shadow-gray-200/25 hover:bg-white/90 hover:scale-[1.02] transition-all active:scale-[0.98] flex items-center justify-center"
                 >
                   Zurück
                 </button>
               )}
-              <div className={cn('flex-1 flex', wizardStep > 1 ? 'order-1 sm:order-2' : '')}>
+              <div className={cn('flex-1 flex min-w-0', wizardStep > 1 ? 'order-1 sm:order-2' : '')}>
                 {wizardStep < 3 ? (
                   <button
                     type="button"
                     onClick={() => setWizardStep((s) => s + 1 as 1 | 2 | 3)}
-                    className="relative w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500/90 to-amber-500/90 text-white font-bold backdrop-blur-md border border-white/30 shadow-lg shadow-orange-500/30 hover:scale-[1.02] hover:from-orange-400/95 hover:to-amber-400/95 transition-all active:scale-[0.98] before:absolute before:inset-0 before:rounded-xl before:bg-white/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:pointer-events-none before:z-0"
+                    className="relative w-full h-12 sm:h-12 inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500/90 to-amber-500/90 text-white font-bold backdrop-blur-md border border-white/30 shadow-lg shadow-orange-500/30 hover:scale-[1.02] hover:from-orange-400/95 hover:to-amber-400/95 transition-all active:scale-[0.98] before:absolute before:inset-0 before:rounded-xl before:bg-white/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:pointer-events-none before:z-0"
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       {wizardStep === 1 ? 'Weiter' : 'Weiter zu Zutaten'}
