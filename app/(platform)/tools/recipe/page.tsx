@@ -4,7 +4,7 @@ import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -341,6 +341,18 @@ export default function RecipePage() {
     if (/dessert|kuchen|kekse|eis|creme/i.test(name)) return 'Dessert';
     if (/vegetarisch|vegan|veggie/i.test(name)) return 'Veggie';
     return 'Hauptgericht';
+  };
+
+  /** Dynamischer Gradient + Icon für Abstract-Taste-Card-Header (kategoriebasiert) */
+  const getCardVisual = (category: string) => {
+    const map: Record<string, { gradient: string }> = {
+      Hauptgericht: { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500' },
+      Salat: { gradient: 'bg-gradient-to-br from-emerald-400 to-teal-500' },
+      Frühstück: { gradient: 'bg-gradient-to-br from-amber-300 to-orange-400' },
+      Dessert: { gradient: 'bg-gradient-to-br from-rose-400 to-pink-500' },
+      Veggie: { gradient: 'bg-gradient-to-br from-green-400 to-emerald-500' },
+    };
+    return map[category] || { gradient: 'bg-gradient-to-br from-slate-400 to-gray-500' };
   };
 
   const filteredCollectionRecipes = useMemo(() => {
@@ -717,10 +729,10 @@ export default function RecipePage() {
         ) : (
           /* Meine Sammlung: Command Bar + Grid (Tier 1) */
           <div className="space-y-6">
-            {/* Command Bar: gleiche Höhe wie Dashboard-Karten (Shell hat bereits -mt-20), nur reinragen */}
+            {/* Command Bar: Glas wie Dashboard-Karten (Bild schimmert durch) */}
             <div className="relative z-20 mx-auto max-w-5xl px-1">
-              <div className="bg-white/90 backdrop-blur border border-white/60 shadow-lg rounded-2xl p-4">
-                <div className="flex items-center gap-3 rounded-xl bg-white/60 border border-white/40 pl-4 pr-3 py-2.5">
+              <div className="rounded-2xl p-4 overflow-hidden" style={DASHBOARD_CARD_STYLE}>
+                <div className="flex items-center gap-3 rounded-xl pl-4 pr-3 py-2.5" style={{ background: 'rgba(255,255,255,0.25)', border: '1px solid rgba(255,255,255,0.3)', WebkitBackdropFilter: 'blur(6px)', backdropFilter: 'blur(6px)' }}>
                   <Search className="w-5 h-5 text-slate-400 shrink-0" aria-hidden />
                   <input
                     type="search"
@@ -773,25 +785,31 @@ export default function RecipePage() {
                 <p className="text-sm text-slate-600 mt-1">Ändere die Suche oder wähle „Alle“.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCollectionRecipes.map((result: { id: string; recipe: Recipe; createdAt: string }) => {
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {filteredCollectionRecipes.map((result: { id: string; recipe: Recipe; createdAt: string; metadata?: string | null }) => {
                   const r = result.recipe as Recipe;
                   const isMenuOpen = collectionMenuOpen === result.id;
+                  const category = getRecipeCategory(result as { metadata?: string | null; recipe?: Recipe });
+                  const { gradient } = getCardVisual(category);
                   return (
                     <div
                       key={result.id}
-                      className="group relative bg-white/80 backdrop-blur-md border border-white/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all rounded-3xl overflow-hidden cursor-pointer"
+                      className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer border border-gray-100 flex flex-col"
                       onClick={() => setSelectedRecipe({
                         recipe: r,
                         resultId: result.id,
                         createdAt: new Date(result.createdAt)
                       })}
                     >
-                      {/* Platzhalter: oberes Drittel – Gradient + Icon */}
-                      <div className="h-32 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-50 flex items-center justify-center">
-                        <Utensils className="w-14 h-14 text-orange-400/90" strokeWidth={1.5} aria-hidden />
+                      {/* Visual Area: farbcodierter Gradient + Wasserzeichen-Icon */}
+                      <div className={cn('relative h-32 shrink-0', gradient)}>
+                        <UtensilsCrossed
+                          className="w-20 h-20 text-white opacity-20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform -rotate-12"
+                          strokeWidth={1.2}
+                          aria-hidden
+                        />
                       </div>
-                      {/* More-Menu oben rechts (über dem Platzhalter) */}
+                      {/* More-Menu oben rechts */}
                       <div className="absolute top-2 right-2 z-10">
                         <button
                           type="button"
@@ -799,21 +817,21 @@ export default function RecipePage() {
                             e.stopPropagation();
                             setCollectionMenuOpen(isMenuOpen ? null : result.id);
                           }}
-                          className="p-2 rounded-full bg-white/80 backdrop-blur border border-white/60 text-slate-600 hover:bg-white hover:text-slate-800 shadow-sm transition-all"
+                          className="p-1.5 rounded-full bg-white/90 shadow-sm border border-gray-100 text-gray-600 hover:bg-white hover:text-gray-800 transition-all"
                           aria-label="Mehr Optionen"
                         >
-                          <MoreVertical className="w-5 h-5" />
+                          <MoreVertical className="w-4 h-4" />
                         </button>
                         {isMenuOpen && (
                           <>
-                            <div className="absolute right-0 top-full mt-1 py-1 rounded-xl bg-white border border-slate-200 shadow-lg min-w-[140px] z-20" onClick={(e) => e.stopPropagation()}>
+                            <div className="absolute right-0 top-full mt-1 py-1 rounded-xl bg-white border border-gray-200 shadow-lg min-w-[140px] z-20" onClick={(e) => e.stopPropagation()}>
                               <button
                                 type="button"
                                 onClick={() => {
                                   setCollectionMenuOpen(null);
                                   alert('Edit-Feature kommt gleich!');
                                 }}
-                                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
+                                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
                               >
                                 <Edit className="w-4 h-4" />
                                 Bearbeiten
@@ -838,27 +856,24 @@ export default function RecipePage() {
                           </>
                         )}
                       </div>
-                      <div className="p-5">
-                        <h3 className="text-lg font-bold text-slate-800 line-clamp-2 mb-3">{r.recipeName || 'Rezept'}</h3>
-                        {r.stats && (r.stats.time || r.stats.calories) && (
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {r.stats.time && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-semibold border border-orange-100">
-                                <Clock className="w-3.5 h-3.5" />
-                                {r.stats.time}
-                              </span>
-                            )}
-                            {r.stats.calories && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-semibold border border-orange-100">
-                                <Flame className="w-3.5 h-3.5" />
-                                {r.stats.calories}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        <p className="text-xs text-slate-500 font-medium">
-                          {new Date(result.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                        </p>
+                      {/* Card-Body: kompakt */}
+                      <div className="bg-white p-4 flex flex-col justify-between flex-grow min-h-0">
+                        <h3 className="font-bold text-gray-900 line-clamp-2 leading-tight mb-2 text-sm md:text-base">{r.recipeName || 'Rezept'}</h3>
+                        <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500">
+                          {r.stats?.time && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 shrink-0" />
+                              {r.stats.time}
+                            </span>
+                          )}
+                          {r.stats?.time && r.stats?.calories && <span aria-hidden>|</span>}
+                          {r.stats?.calories && (
+                            <span className="flex items-center gap-1">
+                              <Flame className="w-3.5 h-3.5 shrink-0" />
+                              {r.stats.calories}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
