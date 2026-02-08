@@ -148,10 +148,12 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   const cookingTime = parseTime(recipe.stats?.time || '');
 
-  // Kochmodus: Step-by-Step View – Glass-Karte
+  // Kochmodus: Immersive Focus Design – Overlap wie Detail-Seite, große Typo, Progress, Fat-Finger-Buttons
   if (cookingMode) {
+    const totalSteps = recipe.instructions.length;
+    const progressPercent = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="px-4 md:px-6 pb-16 max-w-4xl mx-auto">
         <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
           <button onClick={() => setCookingMode(false)} className="hover:text-gray-900 transition-colors font-medium">
             Rezept
@@ -160,62 +162,80 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           <span className="text-gray-900 font-medium">Kochmodus</span>
         </div>
 
-        <div className="rounded-2xl overflow-hidden p-6 sm:p-8" style={RECIPE_GLASS_STYLE}>
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">{recipe.recipeName}</h2>
-            <p className="text-gray-500">Schritt {currentStep + 1} von {recipe.instructions.length}</p>
+        <div className="-mt-24 relative z-20 rounded-[40px] overflow-hidden shadow-2xl" style={RECIPE_GLASS_STYLE}>
+          {/* Progress Bar */}
+          <div className="h-1.5 w-full bg-gray-100">
+            <div
+              className="h-full bg-orange-500 transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+              aria-hidden
+            />
           </div>
 
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white text-xl font-bold">
-                {currentStep + 1}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">Schritt {currentStep + 1}</h3>
-              </div>
-              <button
-                onClick={() => {
-                  const newCompleted = new Set(completedSteps);
-                  if (newCompleted.has(currentStep)) newCompleted.delete(currentStep);
-                  else newCompleted.add(currentStep);
-                  setCompletedSteps(newCompleted);
-                }}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors border ${
-                  completedSteps.has(currentStep)
-                    ? 'bg-orange-500 border-orange-500 text-white'
-                    : 'bg-white border-gray-200 text-gray-400 hover:border-orange-300 hover:text-orange-500'
-                }`}
-              >
-                <CheckCircle2 className="w-5 h-5" />
-              </button>
+          <div className="p-6 sm:p-8 flex flex-col min-h-[50vh]">
+            {/* Schritt-Indikator: Wasserzeichen + Label */}
+            <div className="relative">
+              <span className="text-6xl md:text-8xl font-black text-orange-100/50 absolute top-0 right-0 pointer-events-none select-none tabular-nums">
+                {String(currentStep + 1).padStart(2, '0')}
+              </span>
+              <p className="text-xs uppercase tracking-widest text-gray-400 font-bold mb-2">
+                Schritt {currentStep + 1} von {totalSteps}
+              </p>
             </div>
-            <p className="text-lg text-gray-800 leading-relaxed pl-16">{recipe.instructions[currentStep]}</p>
-          </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-100">
+            {/* Anleitungstext – groß und lesbar */}
+            <p className="text-xl md:text-2xl text-gray-800 font-medium leading-relaxed mt-12 mb-8 flex-1">
+              {recipe.instructions[currentStep]}
+            </p>
+
+            {/* Erledigt-Button (optional, dezent) */}
             <button
-              onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-              disabled={currentStep === 0}
-              className="flex-1 px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-700 hover:border-orange-300 hover:bg-orange-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium transition-colors"
+              type="button"
+              onClick={() => {
+                const newCompleted = new Set(completedSteps);
+                if (newCompleted.has(currentStep)) newCompleted.delete(currentStep);
+                else newCompleted.add(currentStep);
+                setCompletedSteps(newCompleted);
+              }}
+              className={cn(
+                'self-start mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors border',
+                completedSteps.has(currentStep)
+                  ? 'bg-orange-500 border-orange-500 text-white'
+                  : 'bg-white border-gray-200 text-gray-500 hover:border-orange-300 hover:text-orange-600'
+              )}
             >
-              Zurück
+              <CheckCircle2 className="w-4 h-4" />
+              {completedSteps.has(currentStep) ? 'Erledigt' : 'Als erledigt markieren'}
             </button>
-            {currentStep < recipe.instructions.length - 1 ? (
+
+            {/* Navigation – Fat Finger friendly */}
+            <div className="flex gap-4 mt-auto pt-6 border-t border-gray-100">
               <button
-                onClick={() => setCurrentStep(currentStep + 1)}
-                className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium transition-colors shadow-lg shadow-orange-500/30"
+                type="button"
+                onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                disabled={currentStep === 0}
+                className="flex-1 h-14 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Weiter
+                Zurück
               </button>
-            ) : (
-              <button
-                onClick={() => { setCookingMode(false); setCurrentStep(0); }}
-                className="flex-1 px-4 py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white font-medium transition-colors"
-              >
-                Fertig! 🎉
-              </button>
-            )}
+              {currentStep < totalSteps - 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(currentStep + 1)}
+                  className="flex-1 h-14 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-500/20 transition-colors"
+                >
+                  Weiter
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setCookingMode(false); setCurrentStep(0); }}
+                  className="flex-1 h-14 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold transition-colors"
+                >
+                  Fertig! 🎉
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -337,7 +357,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
                 className="w-full md:w-auto md:min-w-0 px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-lg shadow-orange-500/20 hover:from-orange-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2"
               >
                 <Play className="w-4 h-4" />
-                Jetzt kochen
+                Zubereitung starten
               </button>
               <button
                 type="button"
