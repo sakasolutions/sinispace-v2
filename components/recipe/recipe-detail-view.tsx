@@ -148,7 +148,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   const cookingTime = parseTime(recipe.stats?.time || '');
 
-  // Kochmodus: Immersive Focus Design – Overlap wie Detail-Seite, große Typo, Progress, Fat-Finger-Buttons
+  // Kochmodus: Immersive Focus – Card ohne Extra-Overlap, Progress-Bar für Fortschritt
   if (cookingMode) {
     const totalSteps = recipe.instructions.length;
     const progressPercent = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
@@ -162,16 +162,13 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           <span className="text-gray-900 font-medium">Kochmodus</span>
         </div>
 
-        <div className="-mt-24 relative z-20 rounded-[40px] overflow-hidden shadow-2xl" style={RECIPE_GLASS_STYLE}>
-          {/* Progress Bar */}
-          <div className="h-1.5 w-full bg-gray-100">
+        <div className="relative z-20 rounded-[40px] overflow-hidden shadow-2xl" style={RECIPE_GLASS_STYLE}>
+          <div className="h-1.5 w-full bg-gray-100" aria-hidden>
             <div
               className="h-full bg-orange-500 transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
-              aria-hidden
             />
           </div>
-
           <div className="p-6 sm:p-8 flex flex-col min-h-[50vh]">
             {/* Schritt-Indikator: Wasserzeichen + Label */}
             <div className="relative">
