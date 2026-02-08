@@ -30,8 +30,6 @@ import {
   Briefcase,
   ShoppingCart,
   FileImage,
-  Sun,
-  Moon,
   ChevronDown,
   ChevronRight,
   Calendar,
@@ -816,87 +814,31 @@ export default function DashboardClient() {
       <DashboardShell
         headerVariant="default"
         headerBackground={
-          <div
-            className={cn(
-              'w-full h-full overflow-hidden transition-all duration-1000',
-              timeOfDay === 'sunrise'
-                ? 'bg-gray-50/95 border-b border-gray-100'
-                : 'bg-gradient-to-b from-slate-900 via-[#1e1b4b] to-slate-900 backdrop-blur-xl border-b border-white/5'
-            )}
-          >
-            {timeOfDay === 'sunrise' ? (
-              <>
-                <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-gray-200/40 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-                <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-gray-200/30 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-                <div className="absolute -top-6 -right-6 text-gray-300/30 pointer-events-none" aria-hidden>
-                  <Sun className="w-40 h-40 md:w-48 md:h-48" />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="absolute top-0 left-0 w-[80%] h-[180px] rounded-full bg-blue-500/20 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-                <div className="absolute bottom-0 right-0 w-[60%] h-[180px] rounded-full bg-violet-500/20 blur-[80px] pointer-events-none transition-opacity duration-1000" aria-hidden />
-                <div className="absolute -top-6 -right-6 text-white/10 pointer-events-none" style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,200,0.3))' }} aria-hidden>
-                  <Moon className="w-40 h-40 md:w-48 md:h-48" />
-                </div>
-              </>
-            )}
+          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/dashboard-header.webp)' }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
           </div>
         }
         title={
-          <h1
-            className={cn(
-              'text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0',
-              timeOfDay === 'sunrise' ? 'text-gray-900' : 'text-white'
-            )}
-            style={{ letterSpacing: '-0.3px' }}
-          >
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
             {greetingText}
           </h1>
         }
         subtitle={
-          <p
-            className={cn(
-              'text-sm sm:text-base mt-1 font-normal',
-              timeOfDay === 'sunrise' ? 'text-gray-500 opacity-65' : 'text-white/80'
-            )}
-            style={{ letterSpacing: '0.1px' }}
-          >
+          <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
             {sunriseGreeting.subline}
           </p>
         }
         headerExtra={
           <div className="mt-4 flex flex-wrap gap-2">
-            <span
-              className={cn(
-                'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
-                timeOfDay === 'sunrise'
-                  ? 'bg-white/20 border border-white/20 text-gray-800'
-                  : 'bg-white/10 border border-white/20 text-white/80'
-              )}
-            >
+            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
               <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
               2 Termine
             </span>
-            <span
-              className={cn(
-                'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
-                timeOfDay === 'sunrise'
-                  ? 'bg-white/20 border border-white/20 text-gray-800'
-                  : 'bg-white/10 border border-white/20 text-white/80'
-              )}
-            >
+            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
               <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
               4 Offen
             </span>
-            <span
-              className={cn(
-                'backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0',
-                timeOfDay === 'sunrise'
-                  ? 'bg-white/20 border border-white/20 text-gray-800'
-                  : 'bg-white/10 border border-white/20 text-white/80'
-              )}
-            >
+            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
               <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
               Alles erledigt
             </span>
