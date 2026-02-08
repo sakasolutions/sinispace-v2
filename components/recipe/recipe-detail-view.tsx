@@ -242,8 +242,8 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         )}
       </div>
 
-      {/* Hero Card – Überlapp wie Dashboard (-mt-24), Glas wie Hauptdashboard-Karten */}
-      <div className="relative z-20 -mt-24 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
+      {/* Hero Card – keine zusätzliche Überlappung (Shell hat bereits -mt-20), einheitlich mit Dashboard */}
+      <div className="relative z-20 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
         {/* Hero: Desktop-Grid – links Info, rechts Action Dock */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-6">
           <div className="min-w-0">
