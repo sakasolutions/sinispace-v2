@@ -4,7 +4,7 @@ import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -343,22 +343,37 @@ export default function RecipePage() {
     return 'Hauptgericht';
   };
 
-  /** Smart Icon Mapper: Titel + mealType nach Keywords → passendes Icon + Farb-Schema */
+  /** Smart Icon Mapper: Titel (zuerst) + mealType nach Keywords → passendes Icon + Farb-Schema. Titel ist präziser. */
   type RecipeVisual = { Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; textColor: string; bgColor: string };
   const getRecipeVisuals = (title: string, mealType?: string): RecipeVisual => {
     const t = (title || '').toLowerCase();
     const m = (mealType || '').toLowerCase();
     const combined = `${t} ${m}`;
-    if (/\b(pasta|spaghetti|nudel|nudeln|lasagne|penne|fusilli)\b/i.test(combined)) return { Icon: Wheat, textColor: 'text-amber-600', bgColor: 'bg-amber-100' };
-    if (/\b(burger|fleisch|steak|schnitzel|hack|bratwurst)\b/i.test(combined)) return { Icon: Beef, textColor: 'text-rose-600', bgColor: 'bg-rose-100' };
-    if (/\b(sandwich|wrap|toast)\b/i.test(combined)) return { Icon: Sandwich, textColor: 'text-amber-600', bgColor: 'bg-amber-100' };
-    if (/\b(salat|bowl|gemüse|vegan|vegetarisch|avocado|quinoa|hummus)\b/i.test(combined)) return { Icon: LeafyGreen, textColor: 'text-emerald-600', bgColor: 'bg-emerald-100' };
-    if (/\b(möhre|karotte|carrot|gemüse)\b/i.test(combined)) return { Icon: Carrot, textColor: 'text-orange-600', bgColor: 'bg-orange-100' };
-    if (/\b(fisch|lachs|garnele|shrimp|thunfisch|forelle|kabeljau)\b/i.test(combined)) return { Icon: Fish, textColor: 'text-sky-600', bgColor: 'bg-sky-100' };
-    if (/\b(kuchen|dessert|süß|mousse|creme|tiramisu|brownie|muffin|waffel|croissant)\b/i.test(combined)) return { Icon: Cake, textColor: 'text-pink-600', bgColor: 'bg-pink-100' };
-    if (/\b(croissant|gebäck|frühstück)\b/i.test(combined)) return { Icon: Croissant, textColor: 'text-amber-600', bgColor: 'bg-amber-100' };
-    if (/\b(suppe|eintopf|curry|brühe)\b/i.test(combined)) return { Icon: Soup, textColor: 'text-orange-600', bgColor: 'bg-orange-100' };
-    return { Icon: ChefHat, textColor: 'text-slate-600', bgColor: 'bg-slate-100' };
+    const has = (keywords: string[]) => keywords.some((kw) => combined.includes(kw));
+
+    // 1. Pasta & Teigwaren (Amber)
+    if (has(['pasta', 'spaghetti', 'nudel', 'nudeln', 'lasagne', 'penne', 'pizza', 'teig', 'brot', 'burger', 'sandwich', 'wrap'])) return { Icon: Wheat, textColor: 'text-amber-600', bgColor: 'bg-amber-100' };
+
+    // 2. Fleisch & Deftig (Rose)
+    if (has(['fleisch', 'steak', 'schnitzel', 'hähnchen', 'chicken', 'rind', 'hack', 'wurst', 'speck', 'bbq', 'braten'])) return { Icon: Beef, textColor: 'text-rose-600', bgColor: 'bg-rose-100' };
+
+    // 3. Veggie & Grünzeug (Emerald) – Paprika, Zucchini, Frittata-Gemüse etc.
+    if (has(['salat', 'bowl', 'gemüse', 'vegan', 'vegetarisch', 'paprika', 'zucchini', 'spinat', 'kohl', 'brokkoli', 'avocado', 'tofu', 'möhre', 'karotte', 'quinoa', 'hummus'])) return { Icon: LeafyGreen, textColor: 'text-emerald-600', bgColor: 'bg-emerald-100' };
+
+    // 4. Fisch & Meer (Sky)
+    if (has(['fisch', 'lachs', 'thunfisch', 'garnele', 'shrimp', 'meeresfrüchte', 'sushi', 'forelle', 'kabeljau'])) return { Icon: Fish, textColor: 'text-sky-600', bgColor: 'bg-sky-100' };
+
+    // 5. Eier & Frühstück (Yellow) – Frittata, Omelett, Rührei
+    if (has(['ei', 'eier', 'omelett', 'frittata', 'rührei', 'pancake', 'waffel', 'frühstück', 'porridge', 'hafer'])) return { Icon: Egg, textColor: 'text-yellow-600', bgColor: 'bg-yellow-100' };
+
+    // 6. Süß & Dessert (Pink)
+    if (has(['kuchen', 'torte', 'mousse', 'dessert', 'eis', 'schoko', 'beere', 'frucht', 'süß', 'keks', 'cookie', 'pudding', 'tiramisu', 'brownie', 'muffin', 'croissant'])) return { Icon: Cake, textColor: 'text-pink-600', bgColor: 'bg-pink-100' };
+
+    // 7. Suppen & Eintöpfe (Orange)
+    if (has(['suppe', 'eintopf', 'curry', 'dahl', 'chili', 'brühe'])) return { Icon: Soup, textColor: 'text-orange-600', bgColor: 'bg-orange-100' };
+
+    // Fallback
+    return { Icon: ChefHat, textColor: 'text-slate-500', bgColor: 'bg-slate-100' };
   };
 
   const filteredCollectionRecipes = useMemo(() => {
