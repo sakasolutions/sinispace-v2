@@ -25,6 +25,7 @@ import { getWorkspaceResults, deleteResult, cleanupOldResults, getResultById } f
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { RecipeDetailView } from '@/components/recipe/recipe-detail-view';
+import { RecipeCard } from '@/components/recipe/recipe-card';
 import { WeekPlanner } from '@/components/recipe/week-planner';
 import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
@@ -42,6 +43,10 @@ type Recipe = {
   chefTip: string;
   /** Von der KI gesetzt: pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast */
   categoryIcon?: string;
+  /** Unsplash-Foto-URL (neu generierte Rezepte); null bei Legacy. */
+  imageUrl?: string | null;
+  /** Fotografen-Name für Bildnachweis. */
+  imageCredit?: string | null;
 };
 
 function ActionButtons({ recipe }: { recipe: Recipe }) {
@@ -826,101 +831,26 @@ export default function RecipePage() {
                     } catch { return []; }
                   })();
                   const theme = getRecipeTheme(r);
-                  const ThemeIcon = theme.Icon;
                   const titleAndFilters = `${r.recipeName || ''} ${metaFilters.join(' ')}`.toLowerCase();
                   const showVeganBadge = titleAndFilters.includes('vegan') || titleAndFilters.includes('vegetarisch');
                   const showHighProteinBadge = titleAndFilters.includes('high protein');
                   return (
-                    <div
+                    <RecipeCard
                       key={result.id}
-                      className={cn('group relative bg-white rounded-[24px] overflow-hidden flex flex-col border border-gray-100 transition-all duration-300 cursor-pointer hover:-translate-y-1', theme.shadow, 'hover:shadow-xl shadow-sm')}
-                      onClick={() => setSelectedRecipe({
+                      recipe={r}
+                      theme={theme}
+                      resultId={result.id}
+                      isMenuOpen={collectionMenuOpen === result.id}
+                      onMenuToggle={() => setCollectionMenuOpen(collectionMenuOpen === result.id ? null : result.id)}
+                      onSelect={() => setSelectedRecipe({
                         recipe: r,
                         resultId: result.id,
                         createdAt: new Date(result.createdAt)
                       })}
-                    >
-                      {/* Header: Visual Hook (~45% Höhe), Gradient + Icon */}
-                      <div className={cn('relative h-40 shrink-0 flex items-center justify-center', theme.gradient)}>
-                        <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors pointer-events-none" aria-hidden />
-                        <ThemeIcon className="w-16 h-16 text-white drop-shadow-md shrink-0" strokeWidth={2} aria-hidden />
-                        {/* More-Menu oben rechts im Header */}
-                        <div className="absolute top-2 right-2 z-10">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCollectionMenuOpen(isMenuOpen ? null : result.id);
-                            }}
-                            className="p-1.5 rounded-full bg-black/20 hover:bg-black/30 backdrop-blur-sm text-white transition-colors"
-                            aria-label="Mehr Optionen"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                          {isMenuOpen && (
-                            <>
-                              <div className="absolute right-0 top-full mt-1 py-1 rounded-xl bg-white border border-gray-200 shadow-lg min-w-[140px] z-20" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setCollectionMenuOpen(null);
-                                    alert('Edit-Feature kommt gleich!');
-                                  }}
-                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                  Bearbeiten
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setCollectionMenuOpen(null);
-                                    handleDeleteRecipe(result.id);
-                                  }}
-                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                  Löschen
-                                </button>
-                              </div>
-                              <div
-                                className="fixed inset-0 z-[5]"
-                                aria-hidden
-                                onClick={() => setCollectionMenuOpen(null)}
-                              />
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      {/* Body: Titel + Smart Badges */}
-                      <div className="p-5 flex flex-col flex-grow min-h-0">
-                        <h3 className="font-bold text-gray-900 text-lg leading-tight mb-3 line-clamp-2">{r.recipeName || 'Rezept'}</h3>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {r.stats?.time && (
-                            <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-md border border-gray-100">
-                              <Clock className="w-3.5 h-3.5 shrink-0" />
-                              {r.stats.time}
-                            </span>
-                          )}
-                          {r.stats?.calories && (
-                            <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-md border border-gray-100">
-                              <Flame className="w-3.5 h-3.5 shrink-0" />
-                              {r.stats.calories}
-                            </span>
-                          )}
-                          {showVeganBadge && (
-                            <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-medium px-2.5 py-1 rounded-md border border-green-100">
-                              Veggie
-                            </span>
-                          )}
-                          {showHighProteinBadge && (
-                            <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-medium px-2.5 py-1 rounded-md border border-green-100">
-                              High Protein
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                      onDelete={() => handleDeleteRecipe(result.id)}
+                      showVeganBadge={showVeganBadge}
+                      showHighProteinBadge={showHighProteinBadge}
+                    />
                   );
                 })}
               </div>

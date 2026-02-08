@@ -52,8 +52,13 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   "shoppingList": [ "1 Packung Feta (ca. 150g)" ],
   "instructions": ["Schritt 1", "Schritt 2"],
   "chefTip": "Ein kurzer Profi-Tipp dazu",
-  "categoryIcon": "pasta"
+  "categoryIcon": "pasta",
+  "imageSearchQuery": "Chicken Curry"
 }`;
+
+  const imageSearchRule = `
+- imageSearchQuery (String): Ein einfacher, generischer ENGLISCHER Suchbegriff für das Gericht, um ein hochwertiges Foto auf Unsplash zu finden. Kurz halten (2–3 Wörter). Beispiel: Statt "Spicy Low Carb Chicken Curry with Tofu" nur "Chicken Curry" oder "Tofu Curry".
+`;
 
   const categoryIconRules = `
 - categoryIcon (String, genau einer der folgenden Werte): Wähle das EINZIGE Icon, das das Gericht am besten repräsentiert.
@@ -79,6 +84,7 @@ Wähle selbst passende, gut erhältliche Zutaten. Das Gericht soll überraschen 
 
 Du berechnest exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
 Antworte NUR mit validem JSON: ${jsonFormat}
+${imageSearchRule}
 ${categoryIconRules}
 ${ingredientsRules}
 - "shoppingList" kann leer sein [] (alles wird als Zutatenliste betrachtet).
@@ -93,6 +99,7 @@ Modus: ${shoppingMode}
 
 Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
 Antworte NUR mit validem JSON: ${jsonFormat}
+${imageSearchRule}
 ${categoryIconRules}
 ${ingredientsRules}
 - Rezept MUSS zur Kategorie '${mealType}' passen. Bei unsinnigen Zutaten trotzdem kreatives, machbares Rezept.${categoryInstruction}`;
@@ -127,6 +134,39 @@ ${ingredientsRules}
     // Validiere die Struktur
     if (!recipe.recipeName || !recipe.ingredients || !recipe.instructions) {
       return { error: 'Ungültiges Rezept-Format. Bitte versuche es erneut.' };
+    }
+
+    // Unsplash: Foto laden (optional, Flow darf nicht abstürzen)
+    const searchQuery = (recipe.imageSearchQuery || recipe.recipeName || '').toString().trim();
+    const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
+    if (unsplashKey && searchQuery) {
+      try {
+        const q = encodeURIComponent(searchQuery);
+        const res = await fetch(
+          `https://api.unsplash.com/search/photos?query=${q}&per_page=1&orientation=landscape&client_id=${unsplashKey}`,
+          { cache: 'no-store' }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const first = data?.results?.[0];
+          if (first?.urls?.regular) {
+            recipe.imageUrl = first.urls.regular;
+            recipe.imageCredit = first.user?.name ?? null;
+          } else {
+            recipe.imageUrl = null;
+            recipe.imageCredit = null;
+          }
+        } else {
+          recipe.imageUrl = null;
+          recipe.imageCredit = null;
+        }
+      } catch {
+        recipe.imageUrl = null;
+        recipe.imageCredit = null;
+      }
+    } else {
+      recipe.imageUrl = null;
+      recipe.imageCredit = null;
     }
 
     // Formatiere Rezept für Chat (schön lesbar, nicht als JSON)
