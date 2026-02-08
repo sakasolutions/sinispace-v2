@@ -468,30 +468,30 @@ export default function RecipePage() {
                         type="button"
                         onClick={() => setMealType(option.value)}
                         className={cn(
-                          'group relative flex flex-col justify-between h-full items-start min-h-[132px] md:min-h-[100px] rounded-xl md:rounded-2xl overflow-hidden p-4 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
+                          'group relative flex flex-col justify-between h-full items-start min-h-[132px] md:min-h-[100px] rounded-xl md:rounded-2xl overflow-hidden p-3 sm:p-3.5 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
                           'hover:scale-[1.02]',
                           isActive
-                            ? 'border-2 border-orange-500 bg-orange-50 shadow-lg shadow-orange-500/25 scale-[1.02] ring-2 ring-orange-400/60'
+                            ? 'border-0 bg-orange-500/20 text-orange-700 backdrop-blur-md shadow-[inset_0_0_15px_rgba(249,115,22,0.2)] scale-[1.02]'
                             : 'border-2 border-transparent'
                         )}
                         style={!isActive ? DASHBOARD_CARD_STYLE : undefined}
                       >
-                        <div className="flex w-full justify-between items-start gap-2">
+                        <div className="flex w-full justify-between items-start gap-1.5">
                           <div className={cn(
-                            'w-12 h-12 md:w-11 md:h-11 rounded-[16px] md:rounded-[14px] flex items-center justify-center shrink-0',
+                            'w-11 h-11 md:w-10 md:h-10 rounded-[14px] flex items-center justify-center shrink-0',
                             'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30',
-                            isActive && 'shadow-orange-500/40 ring-2 ring-white/30'
+                            isActive && 'shadow-orange-500/40'
                           )}>
-                            <Icon className="w-6 h-6 md:w-5 md:h-5 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                            <Icon className="w-5 h-5 md:w-4 md:h-4 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
                           </div>
                           {isActive && (
-                            <span className="rounded-full bg-orange-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 shrink-0" aria-hidden>
+                            <span className="rounded-full bg-orange-500/80 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 shrink-0" aria-hidden>
                               Ausgewählt
                             </span>
                           )}
                         </div>
-                        <div className="w-full text-left">
-                          <h3 className={cn('font-semibold text-sm md:text-[0.9375rem] leading-tight line-clamp-2', isActive ? 'text-orange-900' : 'text-gray-900')}>
+                        <div className="w-full text-left mt-1">
+                          <h3 className={cn('font-semibold text-sm md:text-[0.9375rem] leading-tight line-clamp-2', isActive ? 'text-orange-700' : 'text-gray-900')}>
                             {option.label}
                           </h3>
                         </div>
@@ -512,7 +512,7 @@ export default function RecipePage() {
                   style={DASHBOARD_CARD_STYLE}
                 >
                   <h3 className="font-semibold text-[1.0625rem] text-gray-900 mb-4">Für wie viele Personen?</h3>
-                  <div className="inline-flex items-center justify-between bg-white/60 rounded-full p-2 border border-white/40 shadow-inner gap-2">
+                  <div className="inline-flex items-center justify-between rounded-full p-2 gap-2 min-w-[200px]" style={DASHBOARD_CARD_STYLE}>
                     <button
                       type="button"
                       onClick={() => setServings(Math.max(1, servings - 1))}
@@ -638,10 +638,12 @@ export default function RecipePage() {
                   <button
                     type="button"
                     onClick={() => setWizardStep((s) => s + 1 as 1 | 2 | 3)}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all active:scale-[0.98]"
+                    className="relative w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500/90 to-amber-500/90 text-white font-bold backdrop-blur-md border border-white/30 shadow-lg shadow-orange-500/30 hover:scale-[1.02] hover:from-orange-400/95 hover:to-amber-400/95 transition-all active:scale-[0.98] before:absolute before:inset-0 before:rounded-xl before:bg-white/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:pointer-events-none before:z-0"
                   >
-                    {wizardStep === 1 ? 'Weiter' : 'Weiter zu Zutaten'}
-                    <ChevronRight className="w-5 h-5" />
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {wizardStep === 1 ? 'Weiter' : 'Weiter zu Zutaten'}
+                      <ChevronRight className="w-5 h-5" />
+                    </span>
                   </button>
                 ) : (
                   <div className="w-full">
