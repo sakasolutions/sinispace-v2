@@ -429,9 +429,10 @@ function getHeaderContent(date: Date): { headline: string; subline: string } {
 /** Zeitbasiertes Greeting (ohne Name – Name kommt aus Einstellungen) */
 function getSunriseGreetingBase(): { base: string; subline: string } {
   const h = new Date().getHours();
-  if (h < 12) return { base: 'Guten Morgen', subline: 'Alles im Griff für heute.' };
-  if (h < 18) return { base: 'Guten Tag', subline: 'Zeit für Fokus.' };
-  return { base: 'Guten Abend', subline: 'Alles im Griff für heute.' };
+  if (h >= 5 && h < 11) return { base: 'Guten Morgen', subline: 'Alles im Griff für heute.' };
+  if (h >= 11 && h < 17) return { base: 'Guten Tag', subline: 'Zeit für Fokus.' };
+  if (h >= 17 && h < 22) return { base: 'Guten Abend', subline: 'Alles im Griff für heute.' };
+  return { base: 'Hallo', subline: 'Willkommen zurück.' }; // 22:00 – 04:59
 }
 
 /** Day (06:00–18:00) = sunrise, Night (18:00–06:00) = night */

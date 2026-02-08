@@ -449,9 +449,11 @@ export default function RecipePage() {
                         className={cn(
                           'group relative flex flex-col justify-between h-full items-start min-h-[132px] md:min-h-[100px] rounded-xl md:rounded-2xl overflow-hidden p-4 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
                           'hover:scale-[1.02]',
-                          isActive && 'scale-[1.02] ring-2 ring-orange-400/80 shadow-[0_0_0_1px_rgba(249,115,22,0.4),0_4px_24px_-2px_rgba(249,115,22,0.25)]'
+                          isActive
+                            ? 'border-2 border-orange-500 bg-orange-50 shadow-lg shadow-orange-500/25 scale-[1.02] ring-2 ring-orange-400/60'
+                            : 'border-2 border-transparent'
                         )}
-                        style={DASHBOARD_CARD_STYLE}
+                        style={!isActive ? DASHBOARD_CARD_STYLE : undefined}
                       >
                         <div className="flex w-full justify-between items-start gap-2">
                           <div className={cn(
@@ -461,9 +463,14 @@ export default function RecipePage() {
                           )}>
                             <Icon className="w-6 h-6 md:w-5 md:h-5 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
                           </div>
+                          {isActive && (
+                            <span className="rounded-full bg-orange-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 shrink-0" aria-hidden>
+                              Ausgewählt
+                            </span>
+                          )}
                         </div>
                         <div className="w-full text-left">
-                          <h3 className="font-semibold text-sm md:text-[0.9375rem] text-gray-900 leading-tight line-clamp-2">
+                          <h3 className={cn('font-semibold text-sm md:text-[0.9375rem] leading-tight line-clamp-2', isActive ? 'text-orange-900' : 'text-gray-900')}>
                             {option.label}
                           </h3>
                         </div>
@@ -593,8 +600,8 @@ export default function RecipePage() {
             <p className="mt-4 mx-4 text-sm font-semibold text-red-600 text-center">{state.error}</p>
           )}
 
-          {/* Sticky Bottom CTA – Breite an Card-Grid (max-w-2xl) angepasst */}
-          <div className="sticky bottom-0 left-0 right-0 z-30 mt-auto pt-6 pb-8 px-4 sm:px-6 md:px-8 bg-gradient-to-t from-white via-white/95 to-transparent pt-12">
+          {/* CTA unter den Auswahlkarten (nicht fix, scrollt mit – Desktop + Mobil) */}
+          <div className="mt-8 pt-6 pb-8 px-4 sm:px-6 md:px-8">
             <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               {wizardStep > 1 && (
                 <button
@@ -625,9 +632,11 @@ export default function RecipePage() {
           </div>
         </form>
 
+        {/* Ergebnisfeld nur am Ende: erst anzeigen, wenn ein Rezept/Ergebnis da ist */}
+        {(recipe || (state?.result && state.result.includes('🔒 Premium Feature'))) && (
         <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 mt-8">
           <div className="h-fit min-h-0" />
-          {/* RECHTE SEITE: ERGEBNIS – nur sichtbar wenn Platz (Desktop) oder unter Wizard */}
+          {/* RECHTE SEITE: ERGEBNIS */}
         <div className="rounded-xl border border-gray-100 bg-white min-h-[300px] sm:min-h-[400px] overflow-hidden">
           {state?.result && state.result.includes('🔒 Premium Feature') ? (
             <div className="p-4 sm:p-5 md:p-6">
@@ -763,6 +772,7 @@ export default function RecipePage() {
           )}
         </div>
       </div>
+        )}
       </React.Fragment>
       ) : activeTab === 'my-recipes' ? (
         selectedRecipe ? (
