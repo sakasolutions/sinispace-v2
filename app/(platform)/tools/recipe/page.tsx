@@ -4,7 +4,7 @@ import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg, Pizza, Drumstick } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -343,7 +343,7 @@ export default function RecipePage() {
     return 'Hauptgericht';
   };
 
-  /** Tier-1 Theme: Gradient + Icon + Shadow pro Kategorie (titel-/mealType-basiert). */
+  /** Tier-1 Theme: Priorisierte Wasserfall-Logik (title lowercase). Erst Hero-Gerichte, dann Zutaten, dann Kategorien, zuletzt mealType-Fallback. Alle Gradients diagonal (bg-gradient-to-br). */
   type RecipeTheme = {
     gradient: string;
     Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
@@ -352,32 +352,30 @@ export default function RecipePage() {
   const getRecipeTheme = (title: string, mealType?: string): RecipeTheme => {
     const t = (title || '').toLowerCase();
     const m = (mealType || '').toLowerCase();
-    const combined = `${t} ${m}`;
-    const has = (keywords: string[]) => keywords.some((kw) => combined.includes(kw));
+    const has = (keywords: string[]) => keywords.some((kw) => t.includes(kw));
 
-    // Salat/Veggie
-    if (has(['salat', 'bowl', 'gemüse', 'vegan', 'vegetarisch', 'paprika', 'zucchini', 'spinat', 'kohl', 'brokkoli', 'avocado', 'tofu', 'möhre', 'karotte', 'quinoa', 'hummus'])) return { gradient: 'bg-gradient-to-br from-emerald-400 to-teal-500', Icon: LeafyGreen, shadow: 'shadow-emerald-500/20' };
+    // 1. Spezifische Hero-Gerichte (zuerst prüfen)
+    if (has(['pizza', 'flammkuchen'])) return { gradient: 'bg-gradient-to-br from-orange-500 to-red-600', Icon: Pizza, shadow: 'shadow-orange-500/25' };
+    if (has(['burger', 'sandwich', 'wrap', 'döner'])) return { gradient: 'bg-gradient-to-br from-amber-600 to-orange-700', Icon: Sandwich, shadow: 'shadow-amber-500/25' };
+    if (has(['suppe', 'eintopf', 'curry', 'chili', 'bowl', 'ramen'])) return { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500', Icon: Soup, shadow: 'shadow-orange-500/20' };
+    if (has(['salat', 'insalata'])) return { gradient: 'bg-gradient-to-br from-emerald-400 to-green-600', Icon: Salad, shadow: 'shadow-emerald-500/20' };
 
-    // Fleisch/Deftig
-    if (has(['fleisch', 'steak', 'schnitzel', 'hähnchen', 'chicken', 'rind', 'hack', 'wurst', 'speck', 'bbq', 'braten'])) return { gradient: 'bg-gradient-to-br from-rose-400 to-orange-500', Icon: Beef, shadow: 'shadow-rose-500/20' };
+    // 2. Hauptzutaten
+    if (has(['fisch', 'lachs', 'garnele', 'sushi', 'thunfisch', 'forelle', 'kabeljau', 'meeresfrüchte', 'shrimp'])) return { gradient: 'bg-gradient-to-br from-sky-400 to-blue-600', Icon: Fish, shadow: 'shadow-sky-500/20' };
+    if (has(['hähnchen', 'chicken', 'pute', 'geflügel'])) return { gradient: 'bg-gradient-to-br from-amber-500 to-yellow-600', Icon: Drumstick, shadow: 'shadow-amber-500/20' };
+    if (has(['rind', 'fleisch', 'steak', 'hack', 'bolognese', 'schnitzel', 'wurst', 'speck', 'braten'])) return { gradient: 'bg-gradient-to-br from-rose-500 to-red-600', Icon: Beef, shadow: 'shadow-rose-500/20' };
+    if (has(['ei', 'eier', 'omelett', 'frittata', 'pancake', 'rührei'])) return { gradient: 'bg-gradient-to-br from-yellow-400 to-orange-400', Icon: Egg, shadow: 'shadow-amber-500/20' };
 
-    // Pasta/Italienisch
-    if (has(['pasta', 'spaghetti', 'nudel', 'nudeln', 'lasagne', 'penne', 'pizza', 'teig', 'brot', 'burger', 'sandwich', 'wrap'])) return { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500', Icon: Wheat, shadow: 'shadow-orange-500/20' };
+    // 3. Kohlenhydrate & Beilagen
+    if (has(['pasta', 'spaghetti', 'nudel', 'nudeln', 'lasagne', 'penne'])) return { gradient: 'bg-gradient-to-br from-yellow-500 to-amber-500', Icon: Wheat, shadow: 'shadow-amber-500/20' };
+    if (has(['reis', 'risotto', 'kartoffel', 'püree', 'kartoffeln'])) return { gradient: 'bg-gradient-to-br from-stone-400 to-stone-600', Icon: Utensils, shadow: 'shadow-stone-500/20' };
 
-    // Fisch
-    if (has(['fisch', 'lachs', 'thunfisch', 'garnele', 'shrimp', 'meeresfrüchte', 'sushi', 'forelle', 'kabeljau'])) return { gradient: 'bg-gradient-to-br from-sky-400 to-indigo-500', Icon: Fish, shadow: 'shadow-sky-500/20' };
+    // 4. Süßes & Desserts
+    if (has(['kuchen', 'torte', 'mousse', 'schoko', 'eis', 'süß', 'dessert', 'keks', 'cookie', 'pudding', 'tiramisu', 'brownie', 'muffin', 'croissant'])) return { gradient: 'bg-gradient-to-br from-pink-400 to-rose-400', Icon: Cake, shadow: 'shadow-pink-500/20' };
 
-    // Süß/Dessert
-    if (has(['kuchen', 'torte', 'mousse', 'dessert', 'eis', 'schoko', 'beere', 'frucht', 'süß', 'keks', 'cookie', 'pudding', 'tiramisu', 'brownie', 'muffin', 'croissant'])) return { gradient: 'bg-gradient-to-br from-pink-400 to-rose-400', Icon: Cake, shadow: 'shadow-pink-500/20' };
-
-    // Frühstück/Ei
-    if (has(['ei', 'eier', 'omelett', 'frittata', 'rührei', 'pancake', 'waffel', 'frühstück', 'porridge', 'hafer'])) return { gradient: 'bg-gradient-to-br from-amber-300 to-orange-400', Icon: Egg, shadow: 'shadow-amber-500/20' };
-
-    // Suppen & Eintöpfe
-    if (has(['suppe', 'eintopf', 'curry', 'dahl', 'chili', 'brühe'])) return { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500', Icon: Soup, shadow: 'shadow-orange-500/20' };
-
-    // Default
-    return { gradient: 'bg-gradient-to-br from-slate-400 to-slate-600', Icon: ChefHat, shadow: 'shadow-slate-500/20' };
+    // 5. Fallback: mealType prüfen
+    if (/vegetarisch|vegan/i.test(m)) return { gradient: 'bg-gradient-to-br from-green-400 to-emerald-600', Icon: Carrot, shadow: 'shadow-green-500/20' };
+    return { gradient: 'bg-gradient-to-br from-slate-500 to-gray-700', Icon: ChefHat, shadow: 'shadow-slate-500/20' };
   };
 
   const filteredCollectionRecipes = useMemo(() => {
