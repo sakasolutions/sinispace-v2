@@ -343,37 +343,41 @@ export default function RecipePage() {
     return 'Hauptgericht';
   };
 
-  /** Smart Icon Mapper: Titel (zuerst) + mealType nach Keywords → passendes Icon + Farb-Schema. Titel ist präziser. */
-  type RecipeVisual = { Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; textColor: string; bgColor: string };
-  const getRecipeVisuals = (title: string, mealType?: string): RecipeVisual => {
+  /** Tier-1 Theme: Gradient + Icon + Shadow pro Kategorie (titel-/mealType-basiert). */
+  type RecipeTheme = {
+    gradient: string;
+    Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+    shadow: string;
+  };
+  const getRecipeTheme = (title: string, mealType?: string): RecipeTheme => {
     const t = (title || '').toLowerCase();
     const m = (mealType || '').toLowerCase();
     const combined = `${t} ${m}`;
     const has = (keywords: string[]) => keywords.some((kw) => combined.includes(kw));
 
-    // 1. Pasta & Teigwaren (Amber)
-    if (has(['pasta', 'spaghetti', 'nudel', 'nudeln', 'lasagne', 'penne', 'pizza', 'teig', 'brot', 'burger', 'sandwich', 'wrap'])) return { Icon: Wheat, textColor: 'text-amber-600', bgColor: 'bg-amber-100' };
+    // Salat/Veggie
+    if (has(['salat', 'bowl', 'gemüse', 'vegan', 'vegetarisch', 'paprika', 'zucchini', 'spinat', 'kohl', 'brokkoli', 'avocado', 'tofu', 'möhre', 'karotte', 'quinoa', 'hummus'])) return { gradient: 'bg-gradient-to-br from-emerald-400 to-teal-500', Icon: LeafyGreen, shadow: 'shadow-emerald-500/20' };
 
-    // 2. Fleisch & Deftig (Rose)
-    if (has(['fleisch', 'steak', 'schnitzel', 'hähnchen', 'chicken', 'rind', 'hack', 'wurst', 'speck', 'bbq', 'braten'])) return { Icon: Beef, textColor: 'text-rose-600', bgColor: 'bg-rose-100' };
+    // Fleisch/Deftig
+    if (has(['fleisch', 'steak', 'schnitzel', 'hähnchen', 'chicken', 'rind', 'hack', 'wurst', 'speck', 'bbq', 'braten'])) return { gradient: 'bg-gradient-to-br from-rose-400 to-orange-500', Icon: Beef, shadow: 'shadow-rose-500/20' };
 
-    // 3. Veggie & Grünzeug (Emerald) – Paprika, Zucchini, Frittata-Gemüse etc.
-    if (has(['salat', 'bowl', 'gemüse', 'vegan', 'vegetarisch', 'paprika', 'zucchini', 'spinat', 'kohl', 'brokkoli', 'avocado', 'tofu', 'möhre', 'karotte', 'quinoa', 'hummus'])) return { Icon: LeafyGreen, textColor: 'text-emerald-600', bgColor: 'bg-emerald-100' };
+    // Pasta/Italienisch
+    if (has(['pasta', 'spaghetti', 'nudel', 'nudeln', 'lasagne', 'penne', 'pizza', 'teig', 'brot', 'burger', 'sandwich', 'wrap'])) return { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500', Icon: Wheat, shadow: 'shadow-orange-500/20' };
 
-    // 4. Fisch & Meer (Sky)
-    if (has(['fisch', 'lachs', 'thunfisch', 'garnele', 'shrimp', 'meeresfrüchte', 'sushi', 'forelle', 'kabeljau'])) return { Icon: Fish, textColor: 'text-sky-600', bgColor: 'bg-sky-100' };
+    // Fisch
+    if (has(['fisch', 'lachs', 'thunfisch', 'garnele', 'shrimp', 'meeresfrüchte', 'sushi', 'forelle', 'kabeljau'])) return { gradient: 'bg-gradient-to-br from-sky-400 to-indigo-500', Icon: Fish, shadow: 'shadow-sky-500/20' };
 
-    // 5. Eier & Frühstück (Yellow) – Frittata, Omelett, Rührei
-    if (has(['ei', 'eier', 'omelett', 'frittata', 'rührei', 'pancake', 'waffel', 'frühstück', 'porridge', 'hafer'])) return { Icon: Egg, textColor: 'text-yellow-600', bgColor: 'bg-yellow-100' };
+    // Süß/Dessert
+    if (has(['kuchen', 'torte', 'mousse', 'dessert', 'eis', 'schoko', 'beere', 'frucht', 'süß', 'keks', 'cookie', 'pudding', 'tiramisu', 'brownie', 'muffin', 'croissant'])) return { gradient: 'bg-gradient-to-br from-pink-400 to-rose-400', Icon: Cake, shadow: 'shadow-pink-500/20' };
 
-    // 6. Süß & Dessert (Pink)
-    if (has(['kuchen', 'torte', 'mousse', 'dessert', 'eis', 'schoko', 'beere', 'frucht', 'süß', 'keks', 'cookie', 'pudding', 'tiramisu', 'brownie', 'muffin', 'croissant'])) return { Icon: Cake, textColor: 'text-pink-600', bgColor: 'bg-pink-100' };
+    // Frühstück/Ei
+    if (has(['ei', 'eier', 'omelett', 'frittata', 'rührei', 'pancake', 'waffel', 'frühstück', 'porridge', 'hafer'])) return { gradient: 'bg-gradient-to-br from-amber-300 to-orange-400', Icon: Egg, shadow: 'shadow-amber-500/20' };
 
-    // 7. Suppen & Eintöpfe (Orange)
-    if (has(['suppe', 'eintopf', 'curry', 'dahl', 'chili', 'brühe'])) return { Icon: Soup, textColor: 'text-orange-600', bgColor: 'bg-orange-100' };
+    // Suppen & Eintöpfe
+    if (has(['suppe', 'eintopf', 'curry', 'dahl', 'chili', 'brühe'])) return { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500', Icon: Soup, shadow: 'shadow-orange-500/20' };
 
-    // Fallback
-    return { Icon: ChefHat, textColor: 'text-slate-500', bgColor: 'bg-slate-100' };
+    // Default
+    return { gradient: 'bg-gradient-to-br from-slate-400 to-slate-600', Icon: ChefHat, shadow: 'shadow-slate-500/20' };
   };
 
   const filteredCollectionRecipes = useMemo(() => {
@@ -812,88 +816,107 @@ export default function RecipePage() {
                   const isMenuOpen = collectionMenuOpen === result.id;
                   const mealType = (() => {
                     try {
-                      const meta = result.metadata ? JSON.parse(result.metadata) as { mealType?: string } : {};
+                      const meta = result.metadata ? JSON.parse(result.metadata) as { mealType?: string; filters?: string[] } : {};
                       return meta.mealType || '';
                     } catch { return ''; }
                   })();
-                  const { Icon, textColor, bgColor } = getRecipeVisuals(r.recipeName || '', mealType);
+                  const metaFilters = (() => {
+                    try {
+                      const meta = result.metadata ? JSON.parse(result.metadata) as { filters?: string[] } : {};
+                      return meta.filters || [];
+                    } catch { return []; }
+                  })();
+                  const theme = getRecipeTheme(r.recipeName || '', mealType);
+                  const ThemeIcon = theme.Icon;
+                  const titleAndFilters = `${r.recipeName || ''} ${metaFilters.join(' ')}`.toLowerCase();
+                  const showVeganBadge = titleAndFilters.includes('vegan') || titleAndFilters.includes('vegetarisch');
+                  const showHighProteinBadge = titleAndFilters.includes('high protein');
                   return (
                     <div
                       key={result.id}
-                      className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer border border-gray-100 flex flex-col"
+                      className={cn('group relative bg-white rounded-[24px] overflow-hidden flex flex-col border border-gray-100 transition-all duration-300 cursor-pointer hover:-translate-y-1', theme.shadow, 'hover:shadow-xl shadow-sm')}
                       onClick={() => setSelectedRecipe({
                         recipe: r,
                         resultId: result.id,
                         createdAt: new Date(result.createdAt)
                       })}
                     >
-                      {/* More-Menu oben rechts */}
-                      <div className="absolute top-2 right-2 z-10">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCollectionMenuOpen(isMenuOpen ? null : result.id);
-                          }}
-                          className="p-1.5 rounded-full bg-white/90 shadow-sm border border-gray-100 text-gray-600 hover:bg-white hover:text-gray-800 transition-all"
-                          aria-label="Mehr Optionen"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                        {isMenuOpen && (
-                          <>
-                            <div className="absolute right-0 top-full mt-1 py-1 rounded-xl bg-white border border-gray-200 shadow-lg min-w-[140px] z-20" onClick={(e) => e.stopPropagation()}>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setCollectionMenuOpen(null);
-                                  alert('Edit-Feature kommt gleich!');
-                                }}
-                                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
-                              >
-                                <Edit className="w-4 h-4" />
-                                Bearbeiten
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setCollectionMenuOpen(null);
-                                  handleDeleteRecipe(result.id);
-                                }}
-                                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Löschen
-                              </button>
-                            </div>
-                            <div
-                              className="fixed inset-0 z-[5]"
-                              aria-hidden
-                              onClick={() => setCollectionMenuOpen(null)}
-                            />
-                          </>
-                        )}
-                      </div>
-                      {/* Card-Body: einheitlich weiß, Badge oben links, Titel + Meta darunter */}
-                      <div className="p-4 flex flex-col flex-grow min-h-0">
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center shrink-0', bgColor)}>
-                            <Icon className={cn('w-7 h-7 shrink-0', textColor)} strokeWidth={2} aria-hidden />
-                          </div>
+                      {/* Header: Visual Hook (~45% Höhe), Gradient + Icon */}
+                      <div className={cn('relative h-40 shrink-0 flex items-center justify-center', theme.gradient)}>
+                        <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors pointer-events-none" aria-hidden />
+                        <ThemeIcon className="w-16 h-16 text-white drop-shadow-md shrink-0" strokeWidth={2} aria-hidden />
+                        {/* More-Menu oben rechts im Header */}
+                        <div className="absolute top-2 right-2 z-10">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCollectionMenuOpen(isMenuOpen ? null : result.id);
+                            }}
+                            className="p-1.5 rounded-full bg-black/20 hover:bg-black/30 backdrop-blur-sm text-white transition-colors"
+                            aria-label="Mehr Optionen"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {isMenuOpen && (
+                            <>
+                              <div className="absolute right-0 top-full mt-1 py-1 rounded-xl bg-white border border-gray-200 shadow-lg min-w-[140px] z-20" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCollectionMenuOpen(null);
+                                    alert('Edit-Feature kommt gleich!');
+                                  }}
+                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                  Bearbeiten
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCollectionMenuOpen(null);
+                                    handleDeleteRecipe(result.id);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Löschen
+                                </button>
+                              </div>
+                              <div
+                                className="fixed inset-0 z-[5]"
+                                aria-hidden
+                                onClick={() => setCollectionMenuOpen(null)}
+                              />
+                            </>
+                          )}
                         </div>
-                        <h3 className="font-bold text-gray-900 line-clamp-2 leading-tight mb-2 text-sm md:text-base">{r.recipeName || 'Rezept'}</h3>
-                        <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mt-auto">
+                      </div>
+                      {/* Body: Titel + Smart Badges */}
+                      <div className="p-5 flex flex-col flex-grow min-h-0">
+                        <h3 className="font-bold text-gray-900 text-lg leading-tight mb-3 line-clamp-2">{r.recipeName || 'Rezept'}</h3>
+                        <div className="flex flex-wrap items-center gap-2">
                           {r.stats?.time && (
-                            <span className="flex items-center gap-1">
+                            <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-md border border-gray-100">
                               <Clock className="w-3.5 h-3.5 shrink-0" />
                               {r.stats.time}
                             </span>
                           )}
-                          {r.stats?.time && r.stats?.calories && <span aria-hidden>|</span>}
                           {r.stats?.calories && (
-                            <span className="flex items-center gap-1">
+                            <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-md border border-gray-100">
                               <Flame className="w-3.5 h-3.5 shrink-0" />
                               {r.stats.calories}
+                            </span>
+                          )}
+                          {showVeganBadge && (
+                            <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-medium px-2.5 py-1 rounded-md border border-green-100">
+                              Veggie
+                            </span>
+                          )}
+                          {showHighProteinBadge && (
+                            <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-medium px-2.5 py-1 rounded-md border border-green-100">
+                              High Protein
                             </span>
                           )}
                         </div>
