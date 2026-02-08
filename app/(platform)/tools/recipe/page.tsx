@@ -4,7 +4,7 @@ import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -343,16 +343,22 @@ export default function RecipePage() {
     return 'Hauptgericht';
   };
 
-  /** Dynamischer Gradient + Icon für Abstract-Taste-Card-Header (kategoriebasiert) */
-  const getCardVisual = (category: string) => {
-    const map: Record<string, { gradient: string }> = {
-      Hauptgericht: { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500' },
-      Salat: { gradient: 'bg-gradient-to-br from-emerald-400 to-teal-500' },
-      Frühstück: { gradient: 'bg-gradient-to-br from-amber-300 to-orange-400' },
-      Dessert: { gradient: 'bg-gradient-to-br from-rose-400 to-pink-500' },
-      Veggie: { gradient: 'bg-gradient-to-br from-green-400 to-emerald-500' },
-    };
-    return map[category] || { gradient: 'bg-gradient-to-br from-slate-400 to-gray-500' };
+  /** Smart Icon Mapper: Titel + mealType nach Keywords → passendes Icon + Farb-Schema */
+  type RecipeVisual = { Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; textColor: string; bgColor: string };
+  const getRecipeVisuals = (title: string, mealType?: string): RecipeVisual => {
+    const t = (title || '').toLowerCase();
+    const m = (mealType || '').toLowerCase();
+    const combined = `${t} ${m}`;
+    if (/\b(pasta|spaghetti|nudel|nudeln|lasagne|penne|fusilli)\b/i.test(combined)) return { Icon: Wheat, textColor: 'text-amber-600', bgColor: 'bg-amber-100' };
+    if (/\b(burger|fleisch|steak|schnitzel|hack|bratwurst)\b/i.test(combined)) return { Icon: Beef, textColor: 'text-rose-600', bgColor: 'bg-rose-100' };
+    if (/\b(sandwich|wrap|toast)\b/i.test(combined)) return { Icon: Sandwich, textColor: 'text-amber-600', bgColor: 'bg-amber-100' };
+    if (/\b(salat|bowl|gemüse|vegan|vegetarisch|avocado|quinoa|hummus)\b/i.test(combined)) return { Icon: LeafyGreen, textColor: 'text-emerald-600', bgColor: 'bg-emerald-100' };
+    if (/\b(möhre|karotte|carrot|gemüse)\b/i.test(combined)) return { Icon: Carrot, textColor: 'text-orange-600', bgColor: 'bg-orange-100' };
+    if (/\b(fisch|lachs|garnele|shrimp|thunfisch|forelle|kabeljau)\b/i.test(combined)) return { Icon: Fish, textColor: 'text-sky-600', bgColor: 'bg-sky-100' };
+    if (/\b(kuchen|dessert|süß|mousse|creme|tiramisu|brownie|muffin|waffel|croissant)\b/i.test(combined)) return { Icon: Cake, textColor: 'text-pink-600', bgColor: 'bg-pink-100' };
+    if (/\b(croissant|gebäck|frühstück)\b/i.test(combined)) return { Icon: Croissant, textColor: 'text-amber-600', bgColor: 'bg-amber-100' };
+    if (/\b(suppe|eintopf|curry|brühe)\b/i.test(combined)) return { Icon: Soup, textColor: 'text-orange-600', bgColor: 'bg-orange-100' };
+    return { Icon: ChefHat, textColor: 'text-slate-600', bgColor: 'bg-slate-100' };
   };
 
   const filteredCollectionRecipes = useMemo(() => {
@@ -789,8 +795,13 @@ export default function RecipePage() {
                 {filteredCollectionRecipes.map((result: { id: string; recipe: Recipe; createdAt: string; metadata?: string | null }) => {
                   const r = result.recipe as Recipe;
                   const isMenuOpen = collectionMenuOpen === result.id;
-                  const category = getRecipeCategory(result as { metadata?: string | null; recipe?: Recipe });
-                  const { gradient } = getCardVisual(category);
+                  const mealType = (() => {
+                    try {
+                      const meta = result.metadata ? JSON.parse(result.metadata) as { mealType?: string } : {};
+                      return meta.mealType || '';
+                    } catch { return ''; }
+                  })();
+                  const { Icon, textColor, bgColor } = getRecipeVisuals(r.recipeName || '', mealType);
                   return (
                     <div
                       key={result.id}
@@ -801,14 +812,6 @@ export default function RecipePage() {
                         createdAt: new Date(result.createdAt)
                       })}
                     >
-                      {/* Visual Area: farbcodierter Gradient + Wasserzeichen-Icon */}
-                      <div className={cn('relative h-32 shrink-0', gradient)}>
-                        <UtensilsCrossed
-                          className="w-20 h-20 text-white opacity-20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform -rotate-12"
-                          strokeWidth={1.2}
-                          aria-hidden
-                        />
-                      </div>
                       {/* More-Menu oben rechts */}
                       <div className="absolute top-2 right-2 z-10">
                         <button
@@ -856,10 +859,15 @@ export default function RecipePage() {
                           </>
                         )}
                       </div>
-                      {/* Card-Body: kompakt */}
-                      <div className="bg-white p-4 flex flex-col justify-between flex-grow min-h-0">
+                      {/* Card-Body: einheitlich weiß, Badge oben links, Titel + Meta darunter */}
+                      <div className="p-4 flex flex-col flex-grow min-h-0">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center shrink-0', bgColor)}>
+                            <Icon className={cn('w-7 h-7 shrink-0', textColor)} strokeWidth={2} aria-hidden />
+                          </div>
+                        </div>
                         <h3 className="font-bold text-gray-900 line-clamp-2 leading-tight mb-2 text-sm md:text-base">{r.recipeName || 'Rezept'}</h3>
-                        <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500">
+                        <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mt-auto">
                           {r.stats?.time && (
                             <span className="flex items-center gap-1">
                               <Clock className="w-3.5 h-3.5 shrink-0" />
