@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, Check, CheckCircle2, ListPlus, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { cn } from '@/lib/utils';
@@ -418,71 +418,73 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         )}
       </div>
 
-      {/* Content-Grid: Zutaten (~1/3) | Zubereitung (~2/3) */}
-      <div className="max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* Links: Zutaten – Überschrift + Platz für Einkaufen */}
-        <div className="md:col-span-4 bg-orange-50/50 rounded-3xl p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Users className="w-5 h-5 text-orange-500 shrink-0" />
-              Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}
-            </h2>
-            <button
-              onClick={() => {
-                setAddToListIngredients(adjustedIngredients);
-                setIsAddToListOpen(true);
-              }}
-              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 hover:border-slate-300 transition-colors"
-            >
-              <ShoppingBasket className="w-4 h-4" />
-              Einkaufen
-            </button>
-          </div>
-          <ul className="space-y-3">
+      {/* Content: Zutaten (sticky) | Zubereitung – Editorial Layout */}
+      <div className="max-w-5xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
+        {/* Linke Spalte: Zutaten (sticky auf Desktop) */}
+        <div className="md:col-span-4 md:sticky md:top-24">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
+          <button
+            type="button"
+            onClick={() => {
+              setAddToListIngredients(adjustedIngredients);
+              setIsAddToListOpen(true);
+            }}
+            className="w-full mb-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            <ShoppingBasket className="w-4 h-4" />
+            Einkaufen
+          </button>
+          <ul className="divide-y divide-gray-100">
             {adjustedIngredients.map((ingredient, index) => {
               const checked = checkedIngredients.has(index);
               return (
-                <li key={index} className="flex items-start gap-3">
+                <li key={index}>
                   <button
                     type="button"
                     onClick={() => toggleIngredient(index)}
-                    className={cn(
-                      'mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
-                      checked ? 'bg-gradient-to-br from-orange-500 to-amber-500 border-orange-500 text-white' : 'border-orange-300 bg-white'
-                    )}
-                    aria-label={checked ? 'Abhaken' : 'Abhaken'}
+                    className="w-full flex items-center gap-3 py-3 text-left rounded-lg hover:bg-gray-50/80 transition-colors"
                   >
-                    {checked && <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                    <span
+                      className={cn(
+                        'w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors',
+                        checked ? 'bg-gradient-to-r from-orange-500 to-amber-500' : 'border-2 border-gray-300 bg-white'
+                      )}
+                    >
+                      {checked && <Check className="w-4 h-4 text-white" strokeWidth={2.5} />}
+                    </span>
+                    <span className={cn('text-sm leading-relaxed flex-1 min-w-0', checked ? 'text-gray-400 line-through' : 'text-gray-800')}>
+                      {formatIngredientDisplay(ingredient)}
+                    </span>
                   </button>
-                  <span className={cn('text-sm leading-relaxed', checked ? 'text-slate-400 line-through' : 'text-slate-800')}>
-                    {formatIngredientDisplay(ingredient)}
-                  </span>
                 </li>
               );
             })}
           </ul>
         </div>
 
-        {/* Rechts: Zubereitung – nummerierte Schritte */}
+        {/* Rechte Spalte: Zubereitung */}
         <div className="md:col-span-8">
-          <h2 className="text-xl font-bold text-slate-800 mb-4">Zubereitung</h2>
-          <ol className="space-y-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-6">Zubereitung</h2>
+          <ol>
             {recipe.instructions.map((step, index) => (
-              <li key={index} className="flex gap-4">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">
-                  {index + 1}
+              <li key={index} className="flex gap-4 mb-8 last:mb-0">
+                <span className="flex-shrink-0 text-3xl font-bold text-orange-500/80 tabular-nums mr-0 w-10 text-right">
+                  {String(index + 1).padStart(2, '0')}
                 </span>
-                <span className="text-slate-800 text-sm leading-relaxed flex-1 pt-0.5">{step}</span>
+                <p className="text-gray-700 text-lg leading-relaxed flex-1 pt-0.5">{step}</p>
               </li>
             ))}
           </ol>
           {cookingTime > 0 && (
-            <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-orange-500" />
-              <span className="font-medium text-slate-700">Gesamt-Kochzeit: {cookingTime} Minuten</span>
+            <div className="mt-8 pt-6 border-t border-gray-100 flex flex-wrap items-center gap-3">
+              <span className="flex items-center gap-2 text-gray-600">
+                <Clock className="w-5 h-5 text-orange-500 shrink-0" />
+                Gesamt-Kochzeit: {cookingTime} Minuten
+              </span>
               <button
+                type="button"
                 onClick={() => alert(`Timer für ${cookingTime} Minuten – Feature kommt gleich!`)}
-                className="ml-2 px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 text-sm font-medium border border-orange-200 hover:bg-orange-100"
+                className="px-4 py-2 rounded-xl bg-orange-100 text-orange-700 text-sm font-medium hover:bg-orange-200 transition-colors"
               >
                 Timer starten
               </button>
@@ -491,15 +493,13 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         </div>
       </div>
 
-      {/* Profi-Tipp – Veredelung, kein Warn-Look */}
+      {/* Profi-Tipp – Border-Card */}
       {recipe.chefTip && (
-        <div className="max-w-5xl mx-auto mt-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 rounded-2xl p-6 flex gap-4">
-          <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-            <Lightbulb className="w-5 h-5 text-amber-600" />
-          </div>
+        <div className="max-w-5xl mx-auto mt-10 border-l-4 border-orange-500 bg-orange-50/30 p-6 rounded-r-xl flex gap-4">
+          <Lightbulb className="w-6 h-6 text-orange-500 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-bold text-amber-800 mb-1">Profi-Tipp</p>
-            <p className="text-sm text-slate-800 leading-relaxed">{recipe.chefTip}</p>
+            <p className="text-sm font-bold text-gray-800 mb-1">Profi-Tipp</p>
+            <p className="text-gray-700 italic leading-relaxed">{recipe.chefTip}</p>
           </div>
         </div>
       )}
