@@ -27,10 +27,6 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
-  ],
 };
 
 export const viewport: Viewport = {
@@ -40,6 +36,10 @@ export const viewport: Viewport = {
   userScalable: false, // App-feeling: kein Zoom
   viewportFit: 'cover', // iPhone notches
   height: 'device-height', // Full coverage
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
 };
 
 export default function RootLayout({

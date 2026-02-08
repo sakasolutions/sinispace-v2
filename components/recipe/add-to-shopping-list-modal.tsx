@@ -61,7 +61,7 @@ export function AddToShoppingListModal({
   };
 
   const handleSubmit = async () => {
-    const toAdd = Array.from(selected);
+    const toAdd = Array.from(selected).map((ing) => formatIngredientDisplay(ing.trim()));
     if (toAdd.length === 0) return;
 
     const listId = selectedListId === NEW_LIST_VALUE ? NEW_LIST_VALUE : selectedListId;
@@ -96,7 +96,7 @@ export function AddToShoppingListModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">Zutaten hinzufügen zu …</h2>
+          <h2 className="text-lg font-bold text-gray-900">Zutaten auf die Einkaufsliste</h2>
           <button
             onClick={onClose}
             className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-500 hover:text-gray-700"
@@ -150,7 +150,7 @@ export function AddToShoppingListModal({
                 value={selectedListId}
                 onChange={(v) => setSelectedListId(v)}
                 options={listOptions}
-                placeholder="Liste wählen…"
+                placeholder="Liste auswählen"
                 theme="light"
                 variant="dropdown"
                 dropdownInPortal

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus, Lightbulb, Flame } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus, Lightbulb, Flame, Share2, ShoppingBasket } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { cn } from '@/lib/utils';
@@ -44,6 +44,8 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   const [servings, setServings] = useState(originalServings);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isAddToListOpen, setIsAddToListOpen] = useState(false);
+  /** Welche Zutaten im „Einkaufen“-Modal angezeigt werden: alle (vom Einkaufen-Button) oder nur fehlende (vom Auf Einkaufsliste-Button). */
+  const [addToListIngredients, setAddToListIngredients] = useState<string[]>([]);
   const [toast, setToast] = useState<{ message: string } | null>(null);
   const [showMissingIngredients, setShowMissingIngredients] = useState(false);
   const [cookingMode, setCookingMode] = useState(false);
@@ -240,41 +242,64 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         )}
       </div>
 
-      {/* Hero Card – gleicher Überlapp wie Dashboard (-mt-20), Glas wie Hauptdashboard-Karten */}
-      <div className="relative z-20 -mt-20 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4 text-center">{recipe.recipeName}</h1>
-        <div className="flex flex-wrap justify-center gap-2 mb-6">
-          {recipe.stats?.time && (
-            <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
-              <Clock className="w-4 h-4" />
-              {recipe.stats.time}
+      {/* Hero Card – Überlapp wie Dashboard (-mt-24), Glas wie Hauptdashboard-Karten */}
+      <div className="relative z-20 -mt-24 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
+        {/* Hero: Desktop-Grid – links Info, rechts Action Dock */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-6">
+          <div className="min-w-0">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-3">{recipe.recipeName}</h1>
+            <div className="flex flex-wrap gap-2 mb-1">
+              {recipe.stats?.time && (
+                <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
+                  <Clock className="w-4 h-4" />
+                  {recipe.stats.time}
+                </span>
+              )}
+              {adjustedCalories && (
+                <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
+                  <Flame className="w-4 h-4" />
+                  {adjustedCalories} {servings !== originalServings && '(pro Portion)'}
+                </span>
+              )}
+              {recipe.stats?.difficulty && (
+                <span className="bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
+                  {recipe.stats.difficulty}
+                </span>
+              )}
+            </div>
+            <span className="text-slate-500 text-sm">
+              {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </span>
-          )}
-          {adjustedCalories && (
-            <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
-              <Flame className="w-4 h-4" />
-              {adjustedCalories} {servings !== originalServings && '(pro Portion)'}
-            </span>
-          )}
-          {recipe.stats?.difficulty && (
-            <span className="bg-orange-50 text-orange-700 rounded-full px-4 py-1 text-sm font-medium">
-              {recipe.stats.difficulty}
-            </span>
-          )}
-          <span className="bg-slate-100 text-slate-600 rounded-full px-4 py-1 text-xs font-medium">
-            {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-          </span>
-        </div>
-
-        {/* Jetzt kochen – Orange-Gradient, volle Breite */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <button
-            onClick={() => setCookingMode(true)}
-            className="w-full sm:w-auto sm:min-w-[200px] px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2"
-          >
-            <Play className="w-5 h-5" />
-            Jetzt kochen
-          </button>
+          </div>
+          {/* Action Dock: Jetzt kochen + Teilen */}
+          <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
+            <button
+              onClick={() => setCookingMode(true)}
+              className="w-full md:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-amber-600 transition-all flex items-center justify-center gap-2"
+            >
+              <Play className="w-5 h-5" />
+              Jetzt kochen
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const text = `${recipe.recipeName} – ${window.location.href}`;
+                if (navigator.share) {
+                  navigator.share({ title: recipe.recipeName, text: recipe.recipeName, url: window.location.href }).catch(() => {
+                    navigator.clipboard.writeText(text);
+                    setToast({ message: 'Link kopiert' });
+                  });
+                } else {
+                  navigator.clipboard.writeText(text);
+                  setToast({ message: 'Link kopiert' });
+                }
+              }}
+              className="w-full md:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+            >
+              <Share2 className="w-4 h-4" />
+              Teilen
+            </button>
+          </div>
         </div>
 
         {/* Portionen-Slider – Orange */}
@@ -334,7 +359,10 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
                 Was fehlt mir?
               </button>
               <button
-                onClick={() => setIsAddToListOpen(true)}
+                onClick={() => {
+                  setAddToListIngredients(prioritizedMissingIngredients);
+                  setIsAddToListOpen(true);
+                }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-50 transition-colors"
               >
                 <ListPlus className="w-4 h-4" />
@@ -345,13 +373,25 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         </div>
       </div>
 
-      {/* Content-Grid: Zutaten (4) | Zubereitung (8) */}
+      {/* Content-Grid: Zutaten (~1/3) | Zubereitung (~2/3) */}
       <div className="max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* Links: Zutaten – Gourmet-Checkboxen */}
+        {/* Links: Zutaten – Überschrift + Platz für Einkaufen */}
         <div className="md:col-span-4 bg-orange-50/50 rounded-3xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-orange-500" />
-            <h2 className="text-xl font-bold text-slate-800">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <Users className="w-5 h-5 text-orange-500 shrink-0" />
+              Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}
+            </h2>
+            <button
+              onClick={() => {
+                setAddToListIngredients(adjustedIngredients);
+                setIsAddToListOpen(true);
+              }}
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 hover:border-slate-300 transition-colors"
+            >
+              <ShoppingBasket className="w-4 h-4" />
+              Einkaufen
+            </button>
           </div>
           <ul className="space-y-3">
             {adjustedIngredients.map((ingredient, index) => {
@@ -432,18 +472,16 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
       )}
 
       {/* Auf Einkaufsliste setzen – Modal + Toast */}
-      {prioritizedMissingIngredients.length > 0 && (
-        <AddToShoppingListModal
+      <AddToShoppingListModal
           isOpen={isAddToListOpen}
           onClose={() => setIsAddToListOpen(false)}
-          ingredients={prioritizedMissingIngredients}
-          onAdded={(count, listName) => {
+          ingredients={addToListIngredients}
+          onAdded={(count) => {
             setToast({
-              message: `${count} ${count === 1 ? 'Zutat' : 'Zutaten'} zu „${listName}“ hinzugefügt`,
+              message: count ? `${count} ${count === 1 ? 'Zutat' : 'Zutaten'} hinzugefügt` : 'Zutaten hinzugefügt',
             });
           }}
         />
-      )}
 
       {toast && (
         <div
