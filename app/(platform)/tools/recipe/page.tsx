@@ -343,38 +343,39 @@ export default function RecipePage() {
     return 'Hauptgericht';
   };
 
-  /** Tier-1 Theme: Priorisierte Wasserfall-Logik (title lowercase). Erst Hero-Gerichte, dann Zutaten, dann Kategorien, zuletzt mealType-Fallback. Alle Gradients diagonal (bg-gradient-to-br). */
+  /** Tier-1 Theme: Strikte Reihenfolge (title lowercase). Süß → Teigwaren (vor Ei!) → Flüssiges → Salat → Fleisch/Fisch → Gemüse → Ei → Fallback. Pasta schlägt Ei (Eierpasta = Amber). */
   type RecipeTheme = {
     gradient: string;
     Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
     shadow: string;
   };
-  const getRecipeTheme = (title: string, mealType?: string): RecipeTheme => {
+  const getRecipeTheme = (title: string, _mealType?: string): RecipeTheme => {
     const t = (title || '').toLowerCase();
-    const m = (mealType || '').toLowerCase();
     const has = (keywords: string[]) => keywords.some((kw) => t.includes(kw));
 
-    // 1. Spezifische Hero-Gerichte (zuerst prüfen)
-    if (has(['pizza', 'flammkuchen'])) return { gradient: 'bg-gradient-to-br from-orange-500 to-red-600', Icon: Pizza, shadow: 'shadow-orange-500/25' };
-    if (has(['burger', 'sandwich', 'wrap', 'döner'])) return { gradient: 'bg-gradient-to-br from-amber-600 to-orange-700', Icon: Sandwich, shadow: 'shadow-amber-500/25' };
-    if (has(['suppe', 'eintopf', 'curry', 'chili', 'bowl', 'ramen'])) return { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500', Icon: Soup, shadow: 'shadow-orange-500/20' };
+    // 1. Süßes (ganz oben, z.B. Schoko-Nudeln)
+    if (has(['kuchen', 'torte', 'mousse', 'dessert', 'eis', 'schoko', 'süß', 'pudding', 'beere'])) return { gradient: 'bg-gradient-to-br from-pink-400 to-rose-400', Icon: Cake, shadow: 'shadow-pink-500/20' };
+
+    // 2. Teigwaren & Carbs (MUSS vor Fleisch/Ei – Eierpasta → Pasta)
+    if (has(['pasta', 'spaghetti', 'nudel', 'nudeln', 'lasagne', 'penne', 'gnocchi', 'tortellini', 'pizza', 'flammkuchen', 'burger', 'sandwich', 'wrap', 'brot'])) return { gradient: 'bg-gradient-to-br from-yellow-500 to-amber-500', Icon: Wheat, shadow: 'shadow-amber-500/20' };
+
+    // 3. Flüssiges & Bowls
+    if (has(['suppe', 'eintopf', 'curry', 'chili', 'bowl', 'ramen', 'brühe'])) return { gradient: 'bg-gradient-to-br from-orange-400 to-amber-500', Icon: Soup, shadow: 'shadow-orange-500/20' };
+
+    // 4. Salat & Rohkost
     if (has(['salat', 'insalata'])) return { gradient: 'bg-gradient-to-br from-emerald-400 to-green-600', Icon: Salad, shadow: 'shadow-emerald-500/20' };
 
-    // 2. Hauptzutaten
+    // 5. Fleisch & Fisch (Fisch zuerst, dann Fleisch)
     if (has(['fisch', 'lachs', 'garnele', 'sushi', 'thunfisch', 'forelle', 'kabeljau', 'meeresfrüchte', 'shrimp'])) return { gradient: 'bg-gradient-to-br from-sky-400 to-blue-600', Icon: Fish, shadow: 'shadow-sky-500/20' };
-    if (has(['hähnchen', 'chicken', 'pute', 'geflügel'])) return { gradient: 'bg-gradient-to-br from-amber-500 to-yellow-600', Icon: Drumstick, shadow: 'shadow-amber-500/20' };
-    if (has(['rind', 'fleisch', 'steak', 'hack', 'bolognese', 'schnitzel', 'wurst', 'speck', 'braten'])) return { gradient: 'bg-gradient-to-br from-rose-500 to-red-600', Icon: Beef, shadow: 'shadow-rose-500/20' };
-    if (has(['ei', 'eier', 'omelett', 'frittata', 'pancake', 'rührei'])) return { gradient: 'bg-gradient-to-br from-yellow-400 to-orange-400', Icon: Egg, shadow: 'shadow-amber-500/20' };
+    if (has(['steak', 'schnitzel', 'hähnchen', 'chicken', 'rind', 'hack', 'fleisch', 'braten', 'wurst', 'pute', 'geflügel'])) return { gradient: 'bg-gradient-to-br from-rose-500 to-red-600', Icon: Beef, shadow: 'shadow-rose-500/20' };
 
-    // 3. Kohlenhydrate & Beilagen
-    if (has(['pasta', 'spaghetti', 'nudel', 'nudeln', 'lasagne', 'penne'])) return { gradient: 'bg-gradient-to-br from-yellow-500 to-amber-500', Icon: Wheat, shadow: 'shadow-amber-500/20' };
-    if (has(['reis', 'risotto', 'kartoffel', 'püree', 'kartoffeln'])) return { gradient: 'bg-gradient-to-br from-stone-400 to-stone-600', Icon: Utensils, shadow: 'shadow-stone-500/20' };
+    // 6. Gemüse-Helden (Gefüllte Paprika, Kartoffelpüree, Auflauf …)
+    if (has(['paprika', 'zucchini', 'kohl', 'kartoffel', 'kartoffeln', 'püree', 'pommes', 'auflauf', 'gratin', 'gemüse', 'vegan', 'vegetarisch'])) return { gradient: 'bg-gradient-to-br from-green-400 to-emerald-600', Icon: Carrot, shadow: 'shadow-green-500/20' };
 
-    // 4. Süßes & Desserts
-    if (has(['kuchen', 'torte', 'mousse', 'schoko', 'eis', 'süß', 'dessert', 'keks', 'cookie', 'pudding', 'tiramisu', 'brownie', 'muffin', 'croissant'])) return { gradient: 'bg-gradient-to-br from-pink-400 to-rose-400', Icon: Cake, shadow: 'shadow-pink-500/20' };
+    // 7. Eier (erst am Ende – nur wenn kein Pasta/Fleisch/Gemüse-Held)
+    if (has(['ei', 'eier', 'omelett', 'frittata', 'rührei', 'pancake'])) return { gradient: 'bg-gradient-to-br from-yellow-400 to-orange-400', Icon: Egg, shadow: 'shadow-amber-500/20' };
 
-    // 5. Fallback: mealType prüfen
-    if (/vegetarisch|vegan/i.test(m)) return { gradient: 'bg-gradient-to-br from-green-400 to-emerald-600', Icon: Carrot, shadow: 'shadow-green-500/20' };
+    // 8. Fallback
     return { gradient: 'bg-gradient-to-br from-slate-500 to-gray-700', Icon: ChefHat, shadow: 'shadow-slate-500/20' };
   };
 
