@@ -155,6 +155,8 @@ export default function RecipePage() {
   const [addToListToast, setAddToListToast] = useState<{ message: string } | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<{ recipe: Recipe; resultId: string; createdAt: Date } | null>(null);
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+  const [showRecipeSuccessPopup, setShowRecipeSuccessPopup] = useState(false);
+  const [openNewestRecipeAfterLoad, setOpenNewestRecipeAfterLoad] = useState(false);
 
   // ?open=resultId: Rezept direkt öffnen (z. B. von Kalender „Jetzt kochen“)
   useEffect(() => {
@@ -227,6 +229,25 @@ export default function RecipePage() {
       console.error('Parse error:', e);
     }
   }
+
+  // Popup anzeigen, sobald ein Rezept erfolgreich generiert wurde
+  useEffect(() => {
+    if (recipe && state?.result && !state.result.includes('🔒 Premium Feature')) {
+      setShowRecipeSuccessPopup(true);
+    }
+  }, [recipe, state?.result]);
+
+  // "Zum Rezept" → Tab wechseln, Liste laden, neuestes Rezept öffnen
+  useEffect(() => {
+    if (!openNewestRecipeAfterLoad || myRecipes.length === 0) return;
+    const newest = myRecipes[0];
+    setSelectedRecipe({
+      recipe: newest.recipe,
+      resultId: newest.id,
+      createdAt: new Date(newest.createdAt),
+    });
+    setOpenNewestRecipeAfterLoad(false);
+  }, [openNewestRecipeAfterLoad, myRecipes]);
 
   // Lade "Meine Rezepte" wenn Tab gewechselt wird (auch für Wochenplaner)
   useEffect(() => {
@@ -632,158 +653,59 @@ export default function RecipePage() {
           </div>
         </form>
 
-        {/* Ergebnisfeld nur am Ende: erst anzeigen, wenn ein Rezept/Ergebnis da ist */}
-        {(recipe || (state?.result && state.result.includes('🔒 Premium Feature'))) && (
+        {/* Popup nach erfolgreicher Rezept-Generierung: Kurzbeschreibung + "Zum Rezept" */}
+        {showRecipeSuccessPopup && recipe && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowRecipeSuccessPopup(false)} role="dialog" aria-modal="true" aria-labelledby="recipe-success-title">
+            <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mx-auto mb-4">
+                <ChefHat className="w-7 h-7 text-white" />
+              </div>
+              <h2 id="recipe-success-title" className="text-xl font-bold text-gray-900 mb-2">{recipe.recipeName}</h2>
+              <p className="text-sm text-gray-600 mb-1">
+                {recipe.stats?.time && <span>{recipe.stats.time}</span>}
+                {recipe.stats?.time && recipe.stats?.difficulty && ' · '}
+                {recipe.stats?.difficulty && <span>{recipe.stats.difficulty}</span>}
+                {recipe.stats?.calories && (
+                  <span> · {recipe.stats.calories}</span>
+                )}
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                Dein Rezept wurde in der Sammlung gespeichert.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRecipeSuccessPopup(false);
+                  setOpenNewestRecipeAfterLoad(true);
+                  setActiveTab('my-recipes');
+                }}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-amber-600 transition-all"
+              >
+                Zum Rezept
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRecipeSuccessPopup(false)}
+                className="mt-3 w-full py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Ergebnisfeld nur für Premium-Upsell (kein großes Rezept-Card mehr bei Erfolg) */}
+        {state?.result && state.result.includes('🔒 Premium Feature') && (
         <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 mt-8">
           <div className="h-fit min-h-0" />
-          {/* RECHTE SEITE: ERGEBNIS */}
-        <div className="rounded-xl border border-gray-100 bg-white min-h-[300px] sm:min-h-[400px] overflow-hidden">
-          {state?.result && state.result.includes('🔒 Premium Feature') ? (
+          <div className="rounded-xl border border-gray-100 bg-white min-h-[200px] overflow-hidden">
             <div className="p-4 sm:p-5 md:p-6">
               <div className="prose prose-sm max-w-none text-gray-800 prose-p:text-gray-700 prose-a:text-orange-600 font-medium">
                 <div dangerouslySetInnerHTML={{ __html: state.result.replace(/\n/g, '<br />') }} />
               </div>
             </div>
-          ) : recipe ? (
-            <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <ActionButtons recipe={recipe} />
-              
-              <div className="flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto">
-                {/* RECIPE CARD – klare Sektionen, Regalboden-Header, weniger generisch */}
-                <div className="rounded-xl border border-gray-100 bg-white overflow-hidden">
-                  {/* Hero: Rezeptname + Stats */}
-                  <div className="px-5 sm:px-6 pt-6 pb-4 border-b border-gray-100 bg-gray-50/40">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-4">{recipe.recipeName}</h2>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm">
-                        <Clock className="w-3.5 h-3.5 text-orange-500" />
-                        {recipe.stats?.time}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm">
-                        <ChefHat className="w-3.5 h-3.5 text-orange-500" />
-                        {recipe.stats?.difficulty}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm">
-                        <Users className="w-3.5 h-3.5 text-orange-500" />
-                        {servings} {servings === 1 ? 'Person' : 'Personen'}
-                      </span>
-                      {recipe.stats?.calories && (
-                        <span className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-1.5 text-xs font-semibold">
-                          🔥 {recipe.stats.calories}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Sektion: Zutaten – Regalboden-Header */}
-                  <div className="mt-0">
-                    <div className="w-full bg-gray-50/80 border-y border-gray-100 py-2.5 px-4 flex items-center gap-2 text-orange-600">
-                      <Utensils className="w-4 h-4 shrink-0" aria-hidden />
-                      <span className="text-xs font-black tracking-widest uppercase">Zutaten</span>
-                    </div>
-                    <ul className="px-5 sm:px-6 py-4 space-y-3 bg-white">
-                      {recipe.ingredients.map((ingredient, index) => (
-                        <li key={index} className="flex items-start gap-3 text-gray-800 group">
-                          <div className="mt-1 w-5 h-5 rounded-full border-2 border-orange-300 bg-white flex items-center justify-center flex-shrink-0 group-hover:border-orange-400 transition-colors" aria-hidden>
-                            <CheckCircle2 className="w-3 h-3 text-orange-500 opacity-0 group-hover:opacity-50 transition-opacity" />
-                          </div>
-                          <span className="text-sm sm:text-base leading-relaxed">{ingredient}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Sektion: Das fehlt noch – eigener Block mit Regalboden */}
-                  {recipe.shoppingList && recipe.shoppingList.length > 0 && (
-                    <div className="mt-6">
-                      <div className="w-full bg-amber-50/90 border-y border-amber-100 py-2.5 px-4 flex items-center gap-2 text-amber-800">
-                        <ShoppingCart className="w-4 h-4 shrink-0" aria-hidden />
-                        <span className="text-xs font-black tracking-widest uppercase">Das fehlt noch (Einkaufsliste)</span>
-                      </div>
-                      <div className="px-5 sm:px-6 py-4 bg-white border-b border-gray-100">
-                        <ul className="space-y-2">
-                          {recipe.shoppingList.map((ingredient, index) => (
-                            <li key={index} className="flex items-center gap-2 text-sm text-gray-800">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" aria-hidden />
-                              <span>{ingredient}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Sektion: Zubereitung – Regalboden-Header */}
-                  <div className={recipe.shoppingList?.length ? 'mt-6' : 'mt-0'}>
-                    <div className="w-full bg-gray-50/80 border-y border-gray-100 py-2.5 px-4 flex items-center gap-2 text-orange-600">
-                      <span className="text-xs font-black tracking-widest uppercase">Zubereitung</span>
-                    </div>
-                    <ol className="px-5 sm:px-6 py-4 space-y-4 bg-white">
-                      {recipe.instructions.map((step, index) => (
-                        <li key={index} className="flex gap-4">
-                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                            {index + 1}
-                          </span>
-                          <span className="text-sm sm:text-base text-gray-800 leading-relaxed pt-1">{step}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-
-                  {/* Profi-Tipp – hervorgehoben */}
-                  {recipe.chefTip && (
-                    <div className="mx-5 sm:mx-6 mb-6 mt-6 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 p-4">
-                      <p className="text-xs font-black tracking-widest uppercase text-orange-600 mb-2">💡 Profi-Tipp</p>
-                      <p className="text-sm text-gray-800 leading-relaxed">{recipe.chefTip}</p>
-                    </div>
-                  )}
-
-                  {recipe.shoppingList && recipe.shoppingList.length > 0 && (
-                    <div className="px-5 sm:px-6 pb-6 space-y-2">
-                      <button
-                        onClick={() => setIsShoppingListOpen(true)}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white border border-orange-500 rounded-xl font-semibold transition-all"
-                      >
-                        <ShoppingCart className="w-5 h-5" />
-                        Dir fehlen Zutaten? → Einkaufsliste erstellen
-                      </button>
-                      <button
-                        onClick={() => setIsAddToListOpen(true)}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-gray-700 font-medium transition-colors"
-                      >
-                        <ListPlus className="w-5 h-5" />
-                        Auf Einkaufsliste setzen
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="p-4 sm:p-5 md:p-6 border-t border-gray-100 bg-gray-50/50">
-                <FeedbackButton 
-                  toolId="recipe" 
-                  toolName="Gourmet-Planer"
-                  resultId={recipe ? `recipe-${Date.now()}` : undefined}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center p-6 sm:p-8 md:p-10 bg-gradient-to-b from-orange-50/90 to-amber-50/70">
-              <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mb-4">
-                <ChefHat className="w-8 h-8 text-orange-500" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Dein Rezept wartet</h3>
-              <p className="text-sm text-gray-700 font-medium text-center max-w-[240px] mb-6">
-                Gib Zutaten ein und klicke auf „Rezept zaubern“. Das Ergebnis erscheint hier.
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <span className="px-3 py-1.5 rounded-full bg-white border border-orange-200 text-orange-700 text-xs font-semibold">🍳 Hauptgericht</span>
-                <span className="px-3 py-1.5 rounded-full bg-white border border-orange-200 text-orange-700 text-xs font-semibold">🥗 Salat</span>
-                <span className="px-3 py-1.5 rounded-full bg-white border border-orange-200 text-orange-700 text-xs font-semibold">🥪 Snack</span>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
         )}
       </React.Fragment>
       ) : activeTab === 'my-recipes' ? (
