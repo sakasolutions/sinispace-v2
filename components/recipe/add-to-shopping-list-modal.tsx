@@ -6,6 +6,7 @@ import { X, CheckCircle2, ListChecks, Loader2 } from 'lucide-react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { appendToList, defaultList, type ShoppingList } from '@/lib/shopping-lists-storage';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
+import { formatIngredientDisplay } from '@/lib/format-ingredient';
 
 const NEW_LIST_VALUE = '__new__';
 
@@ -128,7 +129,7 @@ export function AddToShoppingListModal({
                     {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                   </div>
                   <span className={`text-sm ${isSelected ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
-                    {ing}
+                    {formatIngredientDisplay(ing)}
                   </span>
                 </button>
               );

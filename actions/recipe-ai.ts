@@ -48,11 +48,19 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   const jsonFormat = `{
   "recipeName": "Name des Gerichts",
   "stats": { "time": "z.B. 20 Min", "calories": "z.B. 450 kcal", "difficulty": "Einfach/Mittel/Schwer" },
-  "ingredients": [ "2 große Tomaten", "150g Feta-Käse" ],
+  "ingredients": [ "2 große Tomaten", "150 g Feta-Käse" ],
   "shoppingList": [ "1 Packung Feta (ca. 150g)" ],
   "instructions": ["Schritt 1", "Schritt 2"],
   "chefTip": "Ein kurzer Profi-Tipp dazu"
 }`;
+
+  const ingredientsRules = `
+- Zutaten-Array (ingredients): Jeder Eintrag ist EIN String im Format "Menge Einheit? Name".
+- STRICT UNIT HANDLING: Do NOT extract units from adjectives like "große", "kleine", "halbe". If the item is countable (e.g. Eier, Zwiebeln, Äpfel, Tomaten), the entry must have NO unit – only number and full name including the adjective.
+  Falsch: "1 g roße Zwiebel" oder Menge 1, Einheit g, Name "roße Zwiebel".
+  Richtig: "1 große Zwiebel" (Stückzahl ohne Einheit, Adjektiv im Namen).
+- UNIT CONSISTENCY: Use only these standard abbreviations: g, kg, ml, l, EL, TL, Prise. Never write "Gramm" or "Milliliter" in full. For weight/volume use a space between number and unit, e.g. "150 g", "2 EL".
+`;
 
   let systemPrompt: string;
   let userPrompt: string;
@@ -64,6 +72,7 @@ Wähle selbst passende, gut erhältliche Zutaten. Das Gericht soll überraschen 
 
 Du berechnest exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
 Antworte NUR mit validem JSON: ${jsonFormat}
+${ingredientsRules}
 - "shoppingList" kann leer sein [] (alles wird als Zutatenliste betrachtet).
 - Rezept MUSS zur Kategorie '${mealType}' passen.${categoryInstruction}`;
     userPrompt = `Inspirations-Modus: Überrasch mich!\nKategorie: ${mealType}\nPersonen: ${servings}${filterText}\n\nErstelle ein überraschendes, kreatives Rezept.`;
@@ -76,6 +85,7 @@ Modus: ${shoppingMode}
 
 Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
 Antworte NUR mit validem JSON: ${jsonFormat}
+${ingredientsRules}
 - Rezept MUSS zur Kategorie '${mealType}' passen. Bei unsinnigen Zutaten trotzdem kreatives, machbares Rezept.${categoryInstruction}`;
     userPrompt = `Kategorie: ${mealType}\nPersonen: ${servings}\nZutaten: ${ingredients}\nModus: ${shoppingMode}${filterText}\n\nErstelle ein perfektes Rezept basierend auf diesen Zutaten.`;
   }

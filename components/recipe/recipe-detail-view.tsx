@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircl
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { cn } from '@/lib/utils';
+import { parseIngredient, formatIngredientDisplay } from '@/lib/format-ingredient';
 
 type Recipe = {
   recipeName: string;
@@ -62,19 +63,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
       else next.add(index);
       return next;
     });
-  };
-
-  // Parse Zutaten-Mengen für Portionen-Anpassung (verbessert)
-  const parseIngredient = (ingredient: string) => {
-    // Versuche Mengen zu extrahieren (z.B. "500g Hackfleisch" → 500)
-    const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk|Stück|EL|TL|Tasse|Tassen)?\s*(.*)$/i);
-    if (match) {
-      const amount = parseFloat(match[1].replace(',', '.'));
-      const unit = match[2] || '';
-      const name = match[3].trim();
-      return { amount, unit, name, original: ingredient };
-    }
-    return { amount: null, unit: '', name: ingredient, original: ingredient };
   };
 
   const adjustIngredientForServings = (ingredient: string, originalServings: number, newServings: number) => {
@@ -382,7 +370,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
                     {checked && <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
                   </button>
                   <span className={cn('text-sm leading-relaxed', checked ? 'text-slate-400 line-through' : 'text-slate-800')}>
-                    {ingredient}
+                    {formatIngredientDisplay(ingredient)}
                   </span>
                 </li>
               );

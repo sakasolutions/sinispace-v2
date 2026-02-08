@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ShoppingCart, MessageSquare, Copy, CheckCircle2 } from 'lucide-react';
+import { formatIngredientDisplay } from '@/lib/format-ingredient';
 
 interface ShoppingListModalProps {
   isOpen: boolean;
@@ -29,10 +30,11 @@ export function ShoppingListModal({ isOpen, onClose, ingredients, recipeName, sh
   };
 
   const generateShoppingList = () => {
+    const lines = selectedIngredients.map(i => `- ${formatIngredientDisplay(i)}`);
     if (format === 'whatsapp') {
-      return `Hey, könntest du einkaufen? 🛒\n\n${recipeName}\n\n${selectedIngredients.map(i => `- ${i}`).join('\n')}\n\nDanke! ❤️`;
+      return `Hey, könntest du einkaufen? 🛒\n\n${recipeName}\n\n${lines.join('\n')}\n\nDanke! ❤️`;
     }
-    return selectedIngredients.map(i => `- ${i}`).join('\n');
+    return lines.join('\n');
   };
 
   const handleCopy = async () => {
@@ -114,7 +116,7 @@ export function ShoppingListModal({ isOpen, onClose, ingredients, recipeName, sh
                     {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                   </div>
                   <span className={`text-sm ${isSelected ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
-                    {ingredient}
+                    {formatIngredientDisplay(ingredient)}
                   </span>
                 </button>
               );

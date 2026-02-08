@@ -20,6 +20,7 @@ import { saveWeeklyPlan as syncWeekPlanToCalendar } from '@/actions/calendar-act
 import { saveResult } from '@/actions/workspace-actions';
 import { saveRecipeToCollection } from '@/actions/recipe-collection-actions';
 import { useRouter } from 'next/navigation';
+import { formatIngredientAmount } from '@/lib/format-ingredient';
 
 // Type Definitions
 interface WeekPlanError {
@@ -369,7 +370,8 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           : entry.recipe.ingredients;
 
         ingredientsToUse.forEach(ingredient => {
-          const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|Stk|Stück|EL|TL|Glas|Bund|Packung)?\s*(.*)$/i);
+          // g nur als Einheit, wenn nicht Teil eines Wortes (z.B. "große" -> kein "g" als unit)
+          const match = ingredient.match(/^(\d+(?:[.,]\d+)?)\s*(g(?!\w)|kg|ml|l|Stk|Stück|EL|TL|Prise|Glas|Bund|Packung)?\s*(.*)$/i);
           if (match) {
             const amount = parseFloat(match[1].replace(',', '.'));
             let unit = match[2] || '';
@@ -399,15 +401,12 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
     });
 
     return Object.entries(allIngredients).map(([key, data]) => {
-      const name = key.replace(/(g|kg|ml|l|stk|stück|el|tl)$/i, '').trim();
+      const name = key.replace(/(g|kg|ml|l|stk|stück|el|tl|prise|glas|bund|packung)$/i, '').trim();
       const unit = data.unit;
-      
       if (unit === 'g' && data.amount >= 1000) {
-        return `${(data.amount / 1000).toFixed(1)}kg ${name}`;
+        return `${formatIngredientAmount(data.amount / 1000, 'kg', name)} ${name}`;
       }
-      
-      const rounded = data.amount < 1 ? data.amount.toFixed(2) : Math.round(data.amount * 10) / 10;
-      return `${rounded}${unit ? ' ' + unit : ''} ${name}`;
+      return `${formatIngredientAmount(data.amount, unit, name)} ${name}`;
     });
   }, [weekDays]);
 
