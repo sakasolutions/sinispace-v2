@@ -717,8 +717,8 @@ export default function RecipePage() {
         ) : (
           /* Meine Sammlung: Command Bar + Grid (Tier 1) */
           <div className="space-y-6">
-            {/* Command Bar: ragt in Header (-mt-24) */}
-            <div className="relative z-20 -mt-24 mx-auto max-w-5xl px-1">
+            {/* Command Bar: gleiche Höhe wie Dashboard-Karten (Shell hat bereits -mt-20), nur reinragen */}
+            <div className="relative z-20 mx-auto max-w-5xl px-1">
               <div className="bg-white/90 backdrop-blur border border-white/60 shadow-lg rounded-2xl p-4">
                 <div className="flex items-center gap-3 rounded-xl bg-white/60 border border-white/40 pl-4 pr-3 py-2.5">
                   <Search className="w-5 h-5 text-slate-400 shrink-0" aria-hidden />
