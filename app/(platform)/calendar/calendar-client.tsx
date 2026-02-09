@@ -433,34 +433,48 @@ export function CalendarClient() {
           </div>
         }
       >
+        {/* Wie Dashboard: space-y-6, Content in Glass-Card-Optik (gleicher Style wie Übersicht) */}
         <div ref={agendaRef} className="space-y-6 md:space-y-8">
-          {/* Kalender-Inhalt – hier später komplett ausbauen */}
-          <div className="flex gap-2 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {weekDays.map((d) => {
-              const dKey = toDateKey(d);
-              const selected = dKey === dateKey;
-              const isTodayDate = dKey === todayKey;
-              return (
-                <button
-                  key={dKey}
-                  onClick={() => selectDay(d)}
-                  className={cn(
-                    'shrink-0 min-w-[60px] flex flex-col items-center rounded-2xl py-2.5 px-2 transition-all border',
-                    selected ? 'bg-violet-600 text-white border-violet-600 shadow-lg' : 'bg-white/80 backdrop-blur text-gray-600 border-white'
-                  )}
-                >
-                  <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
-                  <span className="text-lg font-bold mt-0.5">{d.getDate()}</span>
-                  {isTodayDate && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />}
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex flex-col gap-4">
+          <section aria-labelledby="calendar-day-heading">
+            <h2 id="calendar-day-heading" className="sr-only">Tagesansicht</h2>
+            {/* Master Glass Card – exakt gleicher Stil wie Dashboard-Karten */}
+            <div
+              className="rounded-2xl overflow-hidden min-h-[320px] p-5 transition-all duration-300"
+              style={{
+                background: 'rgba(255,255,255,0.16)',
+                border: '1px solid rgba(255,255,255,0.22)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
+                WebkitBackdropFilter: 'blur(8px)',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              {/* Wochentags-Leiste (wie Dashboard: klar, Kapseln) */}
+              <div className="flex gap-2 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {weekDays.map((d) => {
+                  const dKey = toDateKey(d);
+                  const selected = dKey === dateKey;
+                  const isTodayDate = dKey === todayKey;
+                  return (
+                    <button
+                      key={dKey}
+                      onClick={() => selectDay(d)}
+                      className={cn(
+                        'shrink-0 min-w-[60px] flex flex-col items-center rounded-2xl py-2.5 px-2 transition-all border',
+                        selected ? 'bg-violet-600 text-white border-violet-600 shadow-lg' : 'bg-white/80 backdrop-blur text-gray-600 border-white'
+                      )}
+                    >
+                      <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
+                      <span className="text-lg font-bold mt-0.5">{d.getDate()}</span>
+                      {isTodayDate && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-col gap-4">
           {agendaItems.length === 0 ? (
-            <div className="rounded-2xl p-8 text-center border border-gray-100 bg-white/80 backdrop-blur">
-              <p className="text-gray-500">Keine Termine an diesem Tag.</p>
-              <p className="text-sm text-gray-400 mt-1">Tippe unten einen neuen Eintrag ein.</p>
+            <div className="rounded-xl p-8 text-center bg-white/10 border border-white/10">
+              <p className="text-gray-600">Keine Termine an diesem Tag.</p>
+              <p className="text-sm text-gray-500 mt-1">Tippe unten einen neuen Eintrag ein.</p>
             </div>
           ) : (
             agendaItems.map((item) => {
@@ -521,7 +535,9 @@ export function CalendarClient() {
               );
             })
           )}
-          </div>
+              </div>
+            </div>
+          </section>
         </div>
       </DashboardShell>
 
