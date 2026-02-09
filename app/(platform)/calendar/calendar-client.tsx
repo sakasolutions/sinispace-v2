@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Plus,
   Repeat,
+  MapPin,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -48,7 +49,7 @@ function toDateKey(d: Date): string {
 
 type AgendaItem =
   | { id: string; type: 'event'; time: string; title: string; subtitle?: string; isRecurring?: boolean; event: CalendarEvent }
-  | { id: string; type: 'meal'; time: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string; mealIcon?: string }
+  | { id: string; type: 'meal'; time: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string; mealIcon?: string; imageUrl?: string | null }
   | { id: string; type: 'workout'; time: string; title: string; event: CalendarEvent };
 
 const MEAL_ICONS: Record<string, string> = {
@@ -89,7 +90,8 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
       const hasRecipe = !!(e.recipeId || e.resultId);
       const mealIcon = hasRecipe ? (MEAL_ICONS[e.slot] ?? '🍽️') : undefined;
       const recipeLink = e.resultId ? `/tools/recipe?open=${encodeURIComponent(e.resultId)}` : undefined;
-      return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle, event: e, recipeLink, mealIcon };
+      const imageUrl = 'imageUrl' in e ? e.imageUrl : undefined;
+      return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle, event: e, recipeLink, mealIcon, imageUrl };
     }
     if (e.type === 'workout') return { id: e.id, type: 'workout' as const, time: e.time || '08:00', title: e.label || 'Workout', event: e };
     const isRecurring = !!(e.type === 'custom' && 'rrule' in e && e.rrule);
@@ -469,7 +471,7 @@ export function CalendarClient() {
           {/* Content */}
           <div ref={agendaRef} className="p-4 sm:p-6 pb-44 md:pb-36">
             {viewMode === 'agenda' && (
-              <div className="space-y-3">
+              <div className="relative">
                 {agendaItems.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 px-4">
                     <span className="text-4xl mb-3">☀️</span>
@@ -477,63 +479,117 @@ export function CalendarClient() {
                     <p className="text-gray-500 text-sm text-center">Tippe unten einen neuen Eintrag ein.</p>
                   </div>
                 ) : (
-                  agendaItems.map((item) => (
-                    <SwipeableEventItem
-                      key={item.id}
-                      event={item.event}
-                      onDelete={handleDeleteEvent}
-                      onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
-                      enableSwipe={isMobile}
-                    >
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                        onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                        className={cn(
-                          'bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all pr-12 cursor-pointer',
-                          item.type === 'meal' && item.recipeLink && 'border-l-4 border-l-orange-500'
-                        )}
-                      >
-                        {/* Spalte 1: Zeit + Repeat-Icon */}
-                        <div className="min-w-[60px] text-right border-r border-gray-100 pr-4 shrink-0 flex flex-col items-end gap-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-base font-bold text-gray-800">{item.time}</span>
-                            {item.type === 'event' && 'isRecurring' in item && item.isRecurring && (
-                              <Repeat className="w-4 h-4 text-violet-500 shrink-0" aria-label="Wiederkehrend" />
-                            )}
-                          </div>
-                          {'endTime' in item.event && item.event.endTime && (
-                            <div className="text-xs text-gray-400">{item.event.endTime}</div>
-                          )}
-                        </div>
-                        {/* Spalte 2: Icon (Meal = Emoji oder UtensilsCrossed, Orange) */}
-                        <div className={cn(
-                          'w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-xl',
-                          item.type === 'event' && ('eventType' in item.event && item.event.eventType === 'health' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'),
-                          item.type === 'meal' && 'bg-orange-50 text-orange-500',
-                          item.type === 'workout' && 'bg-pink-100 text-pink-600'
-                        )}>
-                          {item.type === 'event' && <Calendar className="w-5 h-5" />}
-                          {item.type === 'meal' && ('mealIcon' in item && item.mealIcon ? <span aria-hidden>{item.mealIcon}</span> : <UtensilsCrossed className="w-5 h-5" />)}
-                          {item.type === 'workout' && <Dumbbell className="w-5 h-5" />}
-                        </div>
-                        {/* Spalte 3: Inhalt */}
-                        <div className="flex-1 min-w-0">
-                          <div className="font-bold text-gray-800 truncate">{item.title}</div>
-                          {item.type === 'meal' && 'subtitle' in item && item.subtitle && <div className="text-sm text-gray-400 truncate">{item.subtitle}</div>}
-                          {item.type === 'meal' && 'recipeLink' in item && item.recipeLink && (
-                            <Link href={item.recipeLink} className="inline-flex items-center gap-1 mt-0.5 text-xs font-medium text-orange-600 hover:text-orange-700" onClick={(e) => e.stopPropagation()}>
-                              Zum Rezept <ExternalLink className="w-3 h-3" />
-                            </Link>
-                          )}
-                          {item.type === 'event' && 'location' in item.event && item.event.location && (
-                            <div className="text-xs text-gray-400 truncate">📍 {item.event.location}</div>
-                          )}
-                        </div>
-                      </div>
-                    </SwipeableEventItem>
-                  ))
+                  <>
+                    {/* Vertikale Linie durchgehend */}
+                    <div className="absolute left-[4.5rem] top-2 bottom-2 w-0.5 border-l-2 border-gray-100" aria-hidden />
+                    <div className="space-y-0">
+                      {agendaItems.map((item) => {
+                        const dotColor = item.type === 'event' ? 'bg-blue-500' : item.type === 'meal' ? 'bg-orange-500' : 'bg-emerald-500';
+                        const endTime = 'endTime' in item.event ? item.event.endTime : undefined;
+                        return (
+                          <SwipeableEventItem
+                            key={item.id}
+                            event={item.event}
+                            onDelete={handleDeleteEvent}
+                            onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
+                            enableSwipe={isMobile}
+                          >
+                            <div className="grid grid-cols-[4rem_0.5rem_1fr] gap-0 items-start pb-4">
+                              {/* Zeit-Spalte */}
+                              <div className="w-16 text-right pr-4 pt-0.5 shrink-0">
+                                <div className="font-bold text-gray-900">{item.time}</div>
+                                {endTime && <div className="text-xs text-gray-400">{endTime}</div>}
+                              </div>
+                              {/* Dot auf der Linie */}
+                              <div className="flex justify-center pt-1.5 relative z-10">
+                                <span className={cn('w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm', dotColor)} aria-hidden />
+                              </div>
+                              {/* Karte */}
+                              <div className="pl-4 min-w-0">
+                                {item.type === 'meal' ? (
+                                  item.recipeLink ? (
+                                    <Link
+                                      href={item.recipeLink}
+                                      className="block overflow-hidden rounded-xl relative min-h-[80px] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {item.imageUrl ? (
+                                        <>
+                                          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${item.imageUrl})` }} aria-hidden />
+                                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/20" aria-hidden />
+                                          <div className="relative p-4 flex flex-col justify-between min-h-[80px]">
+                                            <h3 className="font-bold text-white drop-shadow-md line-clamp-2">{item.title}</h3>
+                                            <div className="flex flex-wrap gap-1.5 mt-2">
+                                              {item.subtitle && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/20 text-white text-xs font-medium backdrop-blur-sm">
+                                                  🔥 {item.subtitle}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <div className="bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-500 p-4 rounded-xl min-h-[80px] flex flex-col justify-between">
+                                          <h3 className="font-bold text-gray-900 line-clamp-2">{item.title}</h3>
+                                          {item.subtitle && (
+                                            <span className="inline-flex items-center gap-1 mt-1 text-xs text-gray-600">🔥 {item.subtitle}</span>
+                                          )}
+                                        </div>
+                                      )}
+                                    </Link>
+                                  ) : (
+                                    <div className="bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-500 p-4 rounded-xl min-h-[80px]">
+                                      <h3 className="font-bold text-gray-900 line-clamp-2">{item.title}</h3>
+                                      {item.subtitle && <p className="text-xs text-gray-600 mt-1">{item.subtitle}</p>}
+                                    </div>
+                                  )
+                                ) : item.type === 'workout' ? (
+                                  <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
+                                    onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
+                                    className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex items-center gap-3"
+                                  >
+                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                      <Dumbbell className="w-5 h-5 text-emerald-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-bold text-gray-900">{item.title}</div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                                    onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                                    className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex items-start gap-3"
+                                  >
+                                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                                      <Calendar className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-bold text-gray-900">{item.title}</div>
+                                      {'location' in item.event && item.event.location && (
+                                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                                          <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                          <span className="truncate">{item.event.location}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {item.type === 'event' && 'isRecurring' in item && item.isRecurring && (
+                                      <Repeat className="w-4 h-4 text-violet-500 shrink-0 mt-1" aria-label="Wiederkehrend" />
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </SwipeableEventItem>
+                        );
+                      })}
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -662,7 +718,7 @@ export function CalendarClient() {
         </div>
       </main>
 
-      {/* Floating Command Bar – Mobile: zentriert über Navbar, Desktop: im Content-Bereich (rechts der Sidebar) */}
+      {/* Schwebender Magic Input – sticky bottom, Glas-Look */}
       <motion.div
         className="fixed left-0 right-0 px-4 md:bottom-8 md:left-64 md:right-0 md:px-6 z-[60] pb-[env(safe-area-inset-bottom)] pointer-events-none bottom-[calc(100px+env(safe-area-inset-bottom))] md:bottom-8"
         initial={false}
@@ -697,7 +753,7 @@ export function CalendarClient() {
           )}
           <form
             onSubmit={handleMagicSubmit}
-            className="flex items-center gap-2 p-2 bg-white/80 backdrop-blur-md shadow-xl border border-gray-100 rounded-full min-w-0 w-full"
+            className="flex items-center gap-2 p-2 bg-white/80 backdrop-blur-md shadow-2xl border border-white/50 rounded-full min-w-0 w-full"
           >
             <button
               type="button"

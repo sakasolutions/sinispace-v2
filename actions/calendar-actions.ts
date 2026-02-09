@@ -50,6 +50,8 @@ export type CalendarEvent =
       servings?: number;
       calories?: string;
       prepTime?: string;
+      /** Rezeptbild für Agenda-Karte */
+      imageUrl?: string | null;
     }
   | {
       id: string;
@@ -109,10 +111,12 @@ export async function getCalendarEvents() {
       const mealType = (e.mealType as 'breakfast' | 'lunch' | 'dinner' | 'snack') || 'dinner';
       const recipe = e.recipe;
       let calories: string | undefined;
+      let imageUrl: string | null | undefined;
       if (recipe?.content) {
         try {
-          const c = JSON.parse(recipe.content) as { stats?: { calories?: string } };
+          const c = JSON.parse(recipe.content) as { stats?: { calories?: string }; imageUrl?: string | null };
           calories = c?.stats?.calories;
+          imageUrl = c?.imageUrl ?? null;
         } catch {
           // ignore
         }
@@ -130,6 +134,7 @@ export async function getCalendarEvents() {
         mealType,
         servings: e.servings ?? undefined,
         calories,
+        imageUrl,
       };
     });
 
