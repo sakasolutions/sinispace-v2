@@ -10,6 +10,7 @@ import {
   UtensilsCrossed,
   Dumbbell,
   Calendar,
+  Clock,
   Send,
   ExternalLink,
   Plus,
@@ -469,19 +470,34 @@ export function CalendarClient() {
           </div>
 
           {/* Content */}
-          <div ref={agendaRef} className="p-4 sm:p-6 pb-44 md:pb-36">
+          <div ref={agendaRef} className={cn('p-4 sm:p-6', viewMode !== 'agenda' && 'pb-44 md:pb-36')}>
             {viewMode === 'agenda' && (
-              <div className="relative">
-                {agendaItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 px-4">
-                    <span className="text-4xl mb-3">☀️</span>
-                    <p className="text-lg font-medium text-gray-900">Der Tag gehört dir!</p>
-                    <p className="text-gray-500 text-sm text-center">Tippe unten einen neuen Eintrag ein.</p>
-                  </div>
-                ) : (
-                  <>
-                    {/* Vertikale Linie durchgehend */}
-                    <div className="absolute left-[4.5rem] top-2 bottom-2 w-0.5 border-l-2 border-gray-100" aria-hidden />
+              <div className="min-h-[600px] bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col">
+                {/* Timeline: vertikale Linie ca. 60px vom linken Rand */}
+                <div className="relative flex-1 min-h-[400px]">
+                  <div className="absolute left-[60px] top-0 bottom-0 w-px border-l border-gray-100" aria-hidden />
+
+                  {agendaItems.length === 0 ? (
+                    <>
+                      {/* Ghost-Zeiten: Struktur auch bei leerem Tag */}
+                      <div className="space-y-6 pl-4">
+                        {['08:00', '12:00', '18:00'].map((t) => (
+                          <div key={t} className="grid grid-cols-[56px_8px_1fr] gap-0 items-center">
+                            <div className="text-right pr-3 text-sm text-gray-300 font-medium">{t}</div>
+                            <div className="flex justify-center">
+                              <span className="w-1.5 h-1.5 rounded-full bg-gray-100" aria-hidden />
+                            </div>
+                            <div />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex flex-col items-center justify-center py-12 px-4 -mt-24">
+                        <span className="text-4xl mb-3">☀️</span>
+                        <p className="text-lg font-medium text-gray-900">Der Tag gehört dir!</p>
+                        <p className="text-gray-500 text-sm text-center">Tippe unten einen neuen Eintrag ein.</p>
+                      </div>
+                    </>
+                  ) : (
                     <div className="space-y-0">
                       {agendaItems.map((item) => {
                         const dotColor = item.type === 'event' ? 'bg-blue-500' : item.type === 'meal' ? 'bg-orange-500' : 'bg-emerald-500';
@@ -494,17 +510,16 @@ export function CalendarClient() {
                             onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
                             enableSwipe={isMobile}
                           >
-                            <div className="grid grid-cols-[4rem_0.5rem_1fr] gap-0 items-start pb-4">
-                              {/* Zeit-Spalte */}
-                              <div className="w-16 text-right pr-4 pt-0.5 shrink-0">
-                                <div className="font-bold text-gray-900">{item.time}</div>
+                            <div className="grid grid-cols-[56px_8px_1fr] gap-0 items-start pb-4">
+                              {/* Zeit an der Linie */}
+                              <div className="text-right pr-3 pt-0.5 shrink-0">
+                                <div className="font-bold text-gray-900 text-sm">{item.time}</div>
                                 {endTime && <div className="text-xs text-gray-400">{endTime}</div>}
                               </div>
-                              {/* Dot auf der Linie */}
                               <div className="flex justify-center pt-1.5 relative z-10">
                                 <span className={cn('w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm', dotColor)} aria-hidden />
                               </div>
-                              {/* Karte */}
+                              {/* Karte: Case A = Meal (Rezept), Case B = Custom Event, Workout */}
                               <div className="pl-4 min-w-0">
                                 {item.type === 'meal' ? (
                                   item.recipeLink ? (
@@ -549,7 +564,7 @@ export function CalendarClient() {
                                     tabIndex={0}
                                     onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
                                     onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
-                                    className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex items-center gap-3"
+                                    className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 hover:shadow-md transition-all cursor-pointer flex items-center gap-3"
                                   >
                                     <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                                       <Dumbbell className="w-5 h-5 text-emerald-600" />
@@ -559,18 +574,20 @@ export function CalendarClient() {
                                     </div>
                                   </div>
                                 ) : (
+                                  /* Case B: Custom Event (z. B. Shisha, Meeting) – weiße Karte, kein Rezept */
                                   <div
                                     role="button"
                                     tabIndex={0}
                                     onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
                                     onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                                    className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer flex items-start gap-3"
+                                    className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 hover:shadow-md transition-all cursor-pointer flex items-start gap-3"
                                   >
                                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-                                      <Calendar className="w-5 h-5 text-blue-600" />
+                                      <Clock className="w-5 h-5 text-blue-600" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <div className="font-bold text-gray-900">{item.title}</div>
+                                      <div className="text-xs text-gray-500 mt-0.5">{item.time}</div>
                                       {'location' in item.event && item.event.location && (
                                         <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                                           <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -578,7 +595,7 @@ export function CalendarClient() {
                                         </div>
                                       )}
                                     </div>
-                                    {item.type === 'event' && 'isRecurring' in item && item.isRecurring && (
+                                    {'isRecurring' in item && item.isRecurring && (
                                       <Repeat className="w-4 h-4 text-violet-500 shrink-0 mt-1" aria-label="Wiederkehrend" />
                                     )}
                                   </div>
@@ -589,8 +606,62 @@ export function CalendarClient() {
                         );
                       })}
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
+
+                {/* Magic Input direkt unter dem Tagesplan */}
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  {successMessage && (
+                    <p className="text-sm text-green-600 font-medium animate-in fade-in duration-200 text-center bg-green-50 rounded-full py-2 px-4 border border-green-100 mb-3">
+                      ✓ {successMessage}
+                    </p>
+                  )}
+                  {parsedLive?.recurrenceLabel && !successMessage && (
+                    <p className="text-sm text-violet-600 font-medium animate-in fade-in duration-200 text-center mb-3">
+                      🔄 {parsedLive.recurrenceLabel}
+                    </p>
+                  )}
+                  {smartTags.length > 0 && !successMessage && (
+                    <div className="flex flex-wrap gap-2 justify-center mb-3 animate-in fade-in duration-200">
+                      {smartTags.map((tag, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-100"
+                        >
+                          {tag.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <form
+                    onSubmit={handleMagicSubmit}
+                    className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-100 rounded-xl min-w-0 w-full"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setEventModal({ open: true, date: dateKey, time: '09:00' })}
+                      className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors"
+                      aria-label="Termin hinzufügen"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                    <input
+                      type="text"
+                      value={magicInput}
+                      onChange={(e) => setMagicInput(e.target.value)}
+                      placeholder='z.B. "Jeden Freitag 18 Uhr Fußball" oder "Morgen 14 Uhr Shisha"'
+                      className="flex-1 min-w-0 min-h-[44px] px-4 rounded-lg bg-white border border-gray-200 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none text-base placeholder:text-gray-400"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!magicInput.trim()}
+                      className={cn('shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-white disabled:opacity-40 transition-colors', BRAND_GRADIENT, BRAND_GRADIENT_HOVER)}
+                      aria-label="Hinzufügen"
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+                  </form>
+                </div>
               </div>
             )}
 
@@ -718,7 +789,8 @@ export function CalendarClient() {
         </div>
       </main>
 
-      {/* Schwebender Magic Input – sticky bottom, Glas-Look */}
+      {/* Schwebender Magic Input nur bei Woche/Monat – bei Agenda ist er im Blatt */}
+      {viewMode !== 'agenda' && (
       <motion.div
         className="fixed left-0 right-0 px-4 md:bottom-8 md:left-64 md:right-0 md:px-6 z-[60] pb-[env(safe-area-inset-bottom)] pointer-events-none bottom-[calc(100px+env(safe-area-inset-bottom))] md:bottom-8"
         initial={false}
@@ -781,6 +853,7 @@ export function CalendarClient() {
           </form>
         </div>
       </motion.div>
+      )}
 
       <EventDetailSheet
         isOpen={eventModal.open}
