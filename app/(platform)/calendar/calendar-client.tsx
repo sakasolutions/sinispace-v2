@@ -115,8 +115,38 @@ function hasEventOnDate(dateKey: string, events: CalendarEvent[]): boolean {
   return events.some((e) => eventOccursOnDate(e, dateKey));
 }
 
+const CALENDAR_EVENTS_STORAGE_KEY = 'sinispace-calendar-events';
+
+function loadEventsFromStorage(): CalendarEvent[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const s = window.localStorage.getItem(CALENDAR_EVENTS_STORAGE_KEY);
+    if (!s) return [];
+    const a = JSON.parse(s);
+    return Array.isArray(a) ? a : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveEventsToStorage(events: CalendarEvent[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(CALENDAR_EVENTS_STORAGE_KEY, JSON.stringify(events));
+  } catch {
+    // ignore
+  }
+}
+
+/** Kurzformat für Woche-Überschrift: "Montag, 09.02" */
+function formatDayShort(d: Date): string {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  return `${WEEKDAYS_LONG[d.getDay()]}, ${day}.${month}.`;
+}
+
 export function CalendarClient() {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>(loadEventsFromStorage);
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [viewDate, setViewDate] = useState(() => new Date()); // für Monats-Ansicht (welcher Monat)
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
@@ -127,6 +157,7 @@ export function CalendarClient() {
   const dateKey = toDateKey(currentDate);
   const todayKey = toDateKey(new Date());
   const agendaItems = useMemo(() => getDayEvents(dateKey, events), [dateKey, events]);
+  const termCountToday = useMemo(() => getDayEvents(todayKey, events).length, [events, todayKey]);
 
   const weekDays = useMemo(() => {
     const d = new Date(currentDate);
@@ -182,8 +213,14 @@ export function CalendarClient() {
   }, []);
 
   useEffect(() => {
-    getCalendarEvents().then((r) => r.success && r.events && setEvents(r.events));
+    getCalendarEvents().then((r) => {
+      if (r.success && r.events && r.events.length > 0) setEvents(r.events);
+    });
   }, []);
+
+  useEffect(() => {
+    saveEventsToStorage(events);
+  }, [events]);
 
   const selectDay = useCallback((d: Date) => {
     setCurrentDate(d);
@@ -262,27 +299,86 @@ export function CalendarClient() {
   const headerDateLabel = formatHeaderDate(currentDate);
   const paginationLabel = view === 'month' ? `${MONTHS[viewDate.getMonth()]} ${viewDate.getFullYear()}` : `KW ${String(getISOWeek(weekStart)).padStart(2, '0')}`;
 
+  const renderEventCard = useCallback(
+    (item: AgendaItem) => {
+      const accent = getAccentForItem(item);
+      const subline = item.type === 'meal' ? item.subtitle : ('location' in item.event && item.event.location ? item.event.location : null);
+      const cardContent = (
+        <>
+          <div className={cn('absolute left-0 top-0 bottom-0 w-1 rounded-l-lg', accent.bar)} aria-hidden />
+          <div className="flex gap-4 items-start min-w-0 flex-1">
+            <div className="shrink-0 w-16 text-left">
+              <span className={cn('block text-sm font-bold', accent.text)}>{item.time}</span>
+              {item.endTime && <span className="block text-xs text-gray-500 mt-0.5">bis {item.endTime}</span>}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-semibold text-gray-900">{item.title}</h3>
+              {subline && <p className="text-sm text-gray-500 mt-0.5">{subline}</p>}
+            </div>
+            {item.endTime && <div className="shrink-0 w-1 rounded-full bg-gray-200 self-stretch min-h-[32px]" aria-hidden />}
+          </div>
+          {item.type === 'meal' && item.imageUrl && (
+            <img src={item.imageUrl} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0 absolute right-4 top-1/2 -translate-y-1/2" />
+          )}
+        </>
+      );
+      const cardClass = 'bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden flex items-start gap-3 min-h-[72px]';
+      return (
+        <SwipeableEventItem
+          key={item.id}
+          event={item.event}
+          onDelete={handleDeleteEvent}
+          onEdit={(ev) => setEventModal({ open: true, date: ev.date, time: ev.time ?? '09:00', editEvent: ev })}
+          enableSwipe={typeof navigator !== 'undefined' && 'ontouchstart' in window}
+        >
+          {item.type === 'meal' && item.recipeLink ? (
+            <Link href={item.recipeLink} onClick={(e) => e.stopPropagation()} className={cn(cardClass, 'hover:shadow-md transition-all')}>
+              {cardContent}
+            </Link>
+          ) : (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+              onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+              className={cn(cardClass, 'cursor-pointer hover:shadow-md transition-all')}
+            >
+              {cardContent}
+            </div>
+          )}
+        </SwipeableEventItem>
+      );
+    },
+    [handleDeleteEvent]
+  );
+
   return (
     <div data-header-full-bleed className="min-h-full w-full relative">
-      {/* 1. Header: nur dunkler Gradient, nur Text – keine Chips/Input */}
-      <header className="relative w-full h-[400px] overflow-hidden rounded-b-[40px] -mt-[max(0.5rem,env(safe-area-inset-top))]">
+      {/* 1. Header: identisch zu anderen Seiten (h-[280px]), mehr Padding, Stats-Pill */}
+      <header className="relative w-full min-h-[280px] h-[280px] overflow-hidden rounded-b-[40px] -mt-[max(0.5rem,env(safe-area-inset-top))]">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/dashboard-header.webp)' }} aria-hidden />
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8 md:pt-12">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-12 md:pt-16">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white" style={{ letterSpacing: '-0.3px' }}>
             Dein Kalender
           </h1>
           <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
             {headerDateLabel}
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
+              <span className="mr-1.5" aria-hidden>📅</span>
+              {termCountToday === 0 ? 'Keine Termine heute' : termCountToday === 1 ? '1 Termin heute' : `${termCountToday} Termine heute`}
+            </span>
+          </div>
         </div>
       </header>
 
-      {/* 2. Master-Card Container: satt über Header (-mt-32) */}
-      <div className="max-w-5xl mx-auto -mt-32 relative z-10 px-0 sm:px-6 pb-20">
+      {/* 2. Master-Card: Glassmorphism, Overlap -mt-24 (wie Dashboard) */}
+      <div className="max-w-5xl mx-auto -mt-24 relative z-10 px-0 sm:px-6 pb-20">
         <div
           className={cn(
-            'bg-white shadow-2xl overflow-hidden border border-gray-100 min-h-[400px]',
+            'bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl overflow-hidden min-h-[400px]',
             'rounded-t-3xl rounded-b-none sm:rounded-3xl'
           )}
           style={{ minHeight: 'min(800px, 80vh)' }}
@@ -312,9 +408,10 @@ export function CalendarClient() {
             )}
           </section>
 
-          {/* B) Navigation & Filter: View-Pills links, Pagination rechts */}
+          {/* B) Navigation: Mobile Pills zentriert, Desktop links; Pagination rechts */}
           <div className="flex flex-wrap justify-between items-center gap-4 p-6 bg-gray-50/50 border-b border-gray-100">
-            <div className="flex rounded-xl bg-gray-100/80 p-1" role="tablist" aria-label="Ansicht">
+            <div className="w-full md:w-auto flex justify-center md:justify-start" role="tablist" aria-label="Ansicht">
+              <div className="flex rounded-xl bg-gray-100/80 p-1">
               {(['day', 'week', 'month'] as const).map((v) => (
                 <button
                   key={v}
@@ -330,6 +427,7 @@ export function CalendarClient() {
                   {v === 'day' ? 'Tag' : v === 'week' ? 'Woche' : 'Monat'}
                 </button>
               ))}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -390,90 +488,65 @@ export function CalendarClient() {
               </section>
             ) : (
               <section aria-labelledby="calendar-day-heading">
-                <h2 id="calendar-day-heading" className="sr-only">Tagesansicht</h2>
-                {/* Wochen-Strip mit 7 Tagen */}
-                <div className="flex gap-2 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {weekDays.map((d) => {
-                    const dKey = toDateKey(d);
-                    const selected = dKey === dateKey;
-                    const isToday = dKey === todayKey;
-                    return (
-                      <button
-                        key={dKey}
-                        type="button"
-                        onClick={() => selectDay(d)}
-                        className={cn(
-                          'shrink-0 min-w-[48px] flex flex-col items-center rounded-2xl border py-2 px-1.5 transition-all',
-                          selected ? 'bg-gradient-to-br from-violet-600 to-indigo-700 text-white border-transparent shadow-md' : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200'
-                        )}
-                      >
-                        <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
-                        <span className="text-sm font-bold mt-0.5">{String(d.getDate()).padStart(2, '0')}</span>
-                        {isToday && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-400" />}
-                      </button>
-                    );
-                  })}
-                </div>
+                <h2 id="calendar-day-heading" className="sr-only">{view === 'week' ? 'Wochenansicht' : 'Tagesansicht'}</h2>
+                {/* Wochen-Strip: nur in Tag-Ansicht; Heute = oranger Ring */}
+                {view === 'day' && (
+                  <div className="flex gap-2 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {weekDays.map((d) => {
+                      const dKey = toDateKey(d);
+                      const selected = dKey === dateKey;
+                      const isToday = dKey === todayKey;
+                      return (
+                        <button
+                          key={dKey}
+                          type="button"
+                          onClick={() => selectDay(d)}
+                          className={cn(
+                            'shrink-0 min-w-[48px] flex flex-col items-center rounded-2xl border py-2 px-1.5 transition-all',
+                            selected && 'bg-gradient-to-br from-violet-600 to-indigo-700 text-white border-transparent shadow-md',
+                            !selected && 'bg-white text-gray-600 border-gray-100 hover:border-gray-200',
+                            isToday && !selected && 'ring-2 ring-orange-400'
+                          )}
+                        >
+                          <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
+                          <span className="text-sm font-bold mt-0.5">{String(d.getDate()).padStart(2, '0')}</span>
+                          {isToday && !selected && <span className="mt-0.5 w-2 h-2 rounded-full bg-orange-400" aria-hidden />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
-                {/* Event-Liste: Zeit-Spalte (Start fett, bis Endzeit klein) + Inhalt + Dauer-Indikator */}
+                {/* Event-Liste: Tag = ein Tag; Woche = vertikale Liste aller 7 Tage mit Überschrift + Events */}
                 <div className="flex flex-col gap-4">
-                  {agendaItems.length === 0 ? (
+                  {view === 'week' ? (
+                    /* Woche: 7 Tage untereinander, je Überschrift + Events */
+                    weekDays.map((d) => {
+                      const dayKey = toDateKey(d);
+                      const dayItems = getDayEvents(dayKey, events);
+                      const isTodayDay = dayKey === todayKey;
+                      return (
+                        <div key={dayKey} className="space-y-2">
+                          <h3 className={cn('text-sm font-semibold text-gray-700 sticky top-0 bg-white/95 py-1 backdrop-blur-sm', isTodayDay && 'text-orange-600')}>
+                            {formatDayShort(d)}{isTodayDay && ' · Heute'}
+                          </h3>
+                          {dayItems.length === 0 ? (
+                            <p className="text-xs text-gray-400 pl-1">Keine Termine</p>
+                          ) : (
+                            <div className="flex flex-col gap-2">
+                              {dayItems.map((item) => renderEventCard(item))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : agendaItems.length === 0 ? (
                     <div className="rounded-2xl p-8 text-center border border-gray-100 bg-gray-50/80">
                       <p className="text-gray-500">Keine Termine an diesem Tag.</p>
                       <p className="text-sm text-gray-400 mt-1">Tippe oben einen neuen Eintrag ein.</p>
                     </div>
                   ) : (
-                    agendaItems.map((item) => {
-                      const accent = getAccentForItem(item);
-                      const subline = item.type === 'meal' ? item.subtitle : ('location' in item.event && item.event.location ? item.event.location : null);
-                      const cardContent = (
-                        <>
-                          <div className={cn('absolute left-0 top-0 bottom-0 w-1 rounded-l-lg', accent.bar)} aria-hidden />
-                          <div className="flex gap-4 items-start min-w-0 flex-1">
-                            <div className="shrink-0 w-16 text-left">
-                              <span className={cn('block text-sm font-bold', accent.text)}>{item.time}</span>
-                              {item.endTime && <span className="block text-xs text-gray-500 mt-0.5">bis {item.endTime}</span>}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="text-base font-semibold text-gray-900">{item.title}</h3>
-                              {subline && <p className="text-sm text-gray-500 mt-0.5">{subline}</p>}
-                            </div>
-                            {item.endTime && (
-                              <div className="shrink-0 w-1 rounded-full bg-gray-200 self-stretch min-h-[32px]" aria-hidden title="Dauer" />
-                            )}
-                          </div>
-                          {item.type === 'meal' && item.imageUrl && (
-                            <img src={item.imageUrl} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0 absolute right-4 top-1/2 -translate-y-1/2" />
-                          )}
-                        </>
-                      );
-                      const cardClass = 'bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden flex items-start gap-3 min-h-[72px]';
-                      return (
-                        <SwipeableEventItem
-                          key={item.id}
-                          event={item.event}
-                          onDelete={handleDeleteEvent}
-                          onEdit={(ev) => setEventModal({ open: true, date: ev.date, time: ev.time ?? '09:00', editEvent: ev })}
-                          enableSwipe={typeof navigator !== 'undefined' && 'ontouchstart' in window}
-                        >
-                          {item.type === 'meal' && item.recipeLink ? (
-                            <Link href={item.recipeLink} onClick={(e) => e.stopPropagation()} className={cn(cardClass, 'hover:shadow-md transition-all')}>
-                              {cardContent}
-                            </Link>
-                          ) : (
-                            <div
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                              onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                              className={cn(cardClass, 'cursor-pointer hover:shadow-md transition-all')}
-                            >
-                              {cardContent}
-                            </div>
-                          )}
-                        </SwipeableEventItem>
-                      );
-                    })
+                    agendaItems.map((item) => renderEventCard(item))
                   )}
                 </div>
               </section>
