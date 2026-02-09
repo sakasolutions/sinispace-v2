@@ -18,10 +18,10 @@ export function AppBackground() {
           background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 40%, #ffffff 70%, #ffffff 100%)',
         }}
       />
-      {/* ULTRA-SOFT ATMOSPHERE - Clip-path, kein Hartkanten-Effekt */}
+      {/* ULTRA-SOFT ATMOSPHERE – nur obere Hälfte, damit unten kein Rosa durchscheint */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[50vh] max-h-[50vh] overflow-hidden blur-3xl"
       >
         <div
           style={{
