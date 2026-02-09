@@ -145,6 +145,7 @@ function SubmitButton({ inspirationMode }: { inspirationMode: boolean }) {
 export default function RecipePage() {
   const searchParams = useSearchParams();
   const openResultId = searchParams.get('open');
+  const tabParam = searchParams.get('tab');
   // @ts-ignore
   const [state, formAction] = useActionState(generateRecipe, null);
 
@@ -176,6 +177,14 @@ export default function RecipePage() {
     { id: 'Salat', label: 'Salat' },
     { id: 'Veggie', label: 'Veggie' },
   ];
+
+  // ?tab=week-planner | ?tab=my-recipes: Direkt zum Tab (z. B. von GourmetCockpit-Links)
+  useEffect(() => {
+    if (tabParam === 'week-planner' || tabParam === 'my-recipes') {
+      setShowCockpit(false);
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   // ?open=resultId: Rezept direkt öffnen (z. B. von Kalender „Jetzt kochen“)
   useEffect(() => {
@@ -444,18 +453,6 @@ export default function RecipePage() {
               setShowCockpit(false);
               setActiveTab('create');
               setIngredients('');
-            }}
-            onWochePlanen={() => {
-              setShowCockpit(false);
-              setActiveTab('week-planner');
-            }}
-            onMeineGerichte={() => {
-              setShowCockpit(false);
-              setActiveTab('my-recipes');
-            }}
-            onAICreator={() => {
-              setShowCockpit(false);
-              setActiveTab('create');
             }}
           />
         </div>
