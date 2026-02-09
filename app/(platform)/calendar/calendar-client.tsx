@@ -188,7 +188,7 @@ export function CalendarClient() {
   const headerDateLabel = formatHeaderDate(currentDate);
 
   return (
-    <>
+    <div data-header-full-bleed className="min-h-full w-full relative">
       <DashboardShell
         headerVariant="default"
         headerBackground={
@@ -215,8 +215,9 @@ export function CalendarClient() {
           </div>
         }
       >
-        <div className="space-y-6 md:space-y-8 max-w-3xl mx-auto w-full">
-          {/* Schritt 2: Magic Input als Hero-Card (erste Position im Overlap) */}
+        {/* Content hochgezogen: Input-Card überlappt den Header wie die Dashboard-Cards (-mt-8), Rest direkt darunter */}
+        <div className="max-w-3xl mx-auto w-full -mt-8 space-y-4 md:space-y-5">
+          {/* Magic Input = die Card, die in den Header überlappt (Standard wie Dashboard) */}
           <section aria-labelledby="calendar-input-heading">
             <h2 id="calendar-input-heading" className="sr-only">Neuen Eintrag hinzufügen</h2>
             <div className="w-full bg-white shadow-xl rounded-2xl p-2 flex items-center gap-2">
@@ -246,8 +247,8 @@ export function CalendarClient() {
             )}
           </section>
 
-          {/* Schritt 3: Kalender-Content – Wochen-Leiste + Event-Liste */}
-          <section aria-labelledby="calendar-day-heading" className="mt-8">
+          {/* Wochen-Leiste + Event-Liste direkt unter dem Eingabefeld */}
+          <section aria-labelledby="calendar-day-heading">
             <h2 id="calendar-day-heading" className="sr-only">Tagesansicht</h2>
 
             {/* A) Wochen-Leiste: horizontal scroll, aktiver Tag = dunkler Hintergrund */}
@@ -342,6 +343,6 @@ export function CalendarClient() {
         events={events}
         onSubmit={handleEventSheetSubmit}
       />
-    </>
+    </div>
   );
 }
