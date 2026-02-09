@@ -399,61 +399,72 @@ export function CalendarClient() {
 
   const dayLabel = `${isToday ? 'Heute' : WEEKDAYS_LONG[currentDate.getDay()]}, ${currentDate.getDate()}. ${MONTHS[currentDate.getMonth()]}`;
 
+  const termCount = agendaItems.filter((i) => i.type === 'event' || i.type === 'workout').length + agendaItems.filter((i) => i.type === 'meal').length;
+
   return (
     <>
       <DashboardShell
         headerVariant="default"
         headerBackground={
-          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=1200&q=80)' }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/40 z-0" aria-hidden />
-          </div>
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#1a1c2e] via-[#2d1b4e] to-[#1a1c2e]" aria-hidden />
         }
         title={
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-            Dein Tag
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
+            Dein Zeitplan
           </h1>
         }
         subtitle={
-          <p className="text-sm sm:text-base mt-1 font-normal text-white/90" style={{ letterSpacing: '0.1px' }}>
+          <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
             {dayLabel}
           </p>
         }
         headerExtra={
-          <div className="flex gap-2 sm:gap-3 overflow-x-auto mt-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {weekDays.map((d) => {
-              const dKey = toDateKey(d);
-              const selected = dKey === dateKey;
-              const isTodayDate = dKey === todayKey;
-              return (
-                <button
-                  key={dKey}
-                  onClick={() => selectDay(d)}
-                  className={cn(
-                    'shrink-0 w-14 sm:w-16 flex flex-col items-center justify-center rounded-xl sm:rounded-2xl py-2.5 px-2 transition-all border',
-                    selected
-                      ? 'bg-gray-900 text-white font-bold border-gray-900 shadow-lg'
-                      : 'bg-white/95 backdrop-blur-sm text-gray-600 border-gray-200/80 hover:bg-white'
-                  )}
-                >
-                  <span className={cn('text-[10px] font-semibold uppercase tracking-wide', selected ? 'text-white' : 'text-gray-500')}>
-                    {WEEKDAYS_SHORT[d.getDay()]}
-                  </span>
-                  <span className={cn('text-base sm:text-lg font-bold mt-0.5', selected ? 'text-white' : 'text-gray-700')}>
-                    {d.getDate()}
-                  </span>
-                  {isTodayDate && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />}
-                </button>
-              );
-            })}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
+              <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+              {termCount === 0 ? 'Keine Termine' : termCount === 1 ? '1 Termin' : `${termCount} Termine`}
+            </span>
+            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
+              🔥 1.200 kcal
+            </span>
           </div>
         }
       >
-        <div ref={agendaRef} className="max-w-3xl mx-auto">
-          <div className="flex flex-col gap-4">
+        {/* Master Glass Card: überlappt Header, -mt-32 Effekt */}
+        <div ref={agendaRef} className="-mt-12 max-w-5xl mx-auto px-4 pb-32 relative z-10">
+          <div className="bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/50 min-h-[600px] p-6">
+            {/* Wochentags-Leiste (Kapsel-Style): Aktiv = Lila/Blau, Inaktiv = Grau transparent */}
+            <div className="flex gap-2 overflow-x-auto pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {weekDays.map((d) => {
+                const dKey = toDateKey(d);
+                const selected = dKey === dateKey;
+                const isTodayDate = dKey === todayKey;
+                return (
+                  <button
+                    key={dKey}
+                    onClick={() => selectDay(d)}
+                    className={cn(
+                      'shrink-0 rounded-full px-4 py-2.5 flex flex-col items-center justify-center transition-all border text-sm font-medium',
+                      selected
+                        ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-transparent shadow-lg'
+                        : 'bg-gray-100/80 text-gray-600 border-gray-200/80 hover:bg-gray-200/80'
+                    )}
+                  >
+                    <span className="text-[10px] uppercase tracking-wide">{WEEKDAYS_SHORT[d.getDay()]}</span>
+                    <span className="font-bold mt-0.5">{d.getDate()}</span>
+                    {isTodayDate && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Event-Liste oder Empty State */}
+            <div className="flex flex-col gap-4">
           {agendaItems.length === 0 ? (
-            <div className="bg-white/80 backdrop-blur rounded-2xl p-8 text-center border border-gray-100 shadow-sm">
-              <p className="text-gray-500">Keine Termine an diesem Tag.</p>
-              <p className="text-sm text-gray-400 mt-1">Tippe unten einen neuen Eintrag ein.</p>
+            <div className="flex-1 flex flex-col items-center justify-center py-16 text-center">
+              <span className="text-5xl mb-4" aria-hidden>☀️</span>
+              <p className="text-lg font-semibold text-gray-800">Der Tag gehört dir!</p>
+              <p className="text-sm text-gray-500 mt-1">Tippe unten einen neuen Eintrag ein.</p>
             </div>
           ) : (
             agendaItems.map((item) => {
@@ -514,14 +525,16 @@ export function CalendarClient() {
               );
             })
           )}
+            </div>
           </div>
         </div>
       </DashboardShell>
 
       {/* ========== MAGIC INPUT (fixiert unten) ========== */}
+      {/* Action Bar: Magic Input fixiert unten, über allem */}
       <div
         className={cn(
-          'fixed bottom-[90px] left-4 right-4 md:bottom-6 z-50 max-w-3xl mx-auto',
+          'fixed bottom-[90px] left-4 right-4 md:bottom-6 z-50 max-w-2xl mx-auto',
           eventModal.open && 'pointer-events-none opacity-0'
         )}
       >
@@ -541,12 +554,12 @@ export function CalendarClient() {
           )}
           <form
             onSubmit={handleMagicSubmit}
-            className="flex items-center gap-2 p-2 bg-white/90 backdrop-blur-xl shadow-2xl border border-white/50 rounded-full min-w-0 w-full"
+            className="flex items-center gap-2 p-1 bg-white shadow-2xl border border-gray-100 rounded-full min-w-0 w-full"
           >
             <button
               type="button"
               onClick={() => setEventModal({ open: true, date: dateKey, time: '09:00' })}
-              className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+              className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
               aria-label="Termin hinzufügen"
             >
               <Plus className="w-5 h-5" />
@@ -556,12 +569,12 @@ export function CalendarClient() {
               value={magicInput}
               onChange={(e) => setMagicInput(e.target.value)}
               placeholder='z.B. "Morgen 14 Uhr Shisha" oder "Jeden Freitag 18 Uhr Fußball"'
-              className="flex-1 min-w-0 min-h-[44px] px-4 rounded-full bg-transparent border-none focus:ring-0 outline-none text-base placeholder:text-gray-400"
+              className="flex-1 min-w-0 min-h-[42px] px-4 rounded-full bg-transparent border-none focus:ring-0 outline-none text-base placeholder:text-gray-400"
             />
             <button
               type="submit"
               disabled={!magicInput.trim()}
-              className={cn('shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-white disabled:opacity-40 transition-colors', BRAND_GRADIENT, BRAND_GRADIENT_HOVER)}
+              className={cn('shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white disabled:opacity-40 transition-colors', BRAND_GRADIENT, BRAND_GRADIENT_HOVER)}
               aria-label="Hinzufügen"
             >
               <Send className="w-5 h-5" />
