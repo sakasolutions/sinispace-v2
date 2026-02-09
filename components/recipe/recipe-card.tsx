@@ -18,6 +18,15 @@ export type RecipeCardTheme = {
   shadow: string;
 };
 
+/** Glas-Stil wie Dashboard-Karten (Sammlung) */
+const GLASS_CARD_STYLE: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.16)',
+  border: '1px solid rgba(255,255,255,0.22)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
+  WebkitBackdropFilter: 'blur(8px)',
+  backdropFilter: 'blur(8px)',
+};
+
 type RecipeCardProps = {
   recipe: RecipeCardRecipe;
   theme: RecipeCardTheme;
@@ -28,6 +37,8 @@ type RecipeCardProps = {
   onDelete: () => void;
   showVeganBadge?: boolean;
   showHighProteinBadge?: boolean;
+  /** Glas-Morphismus wie Dashboard-Karten (Sammlungs-Grid) */
+  glass?: boolean;
 };
 
 export function RecipeCard({
@@ -40,12 +51,19 @@ export function RecipeCard({
   onDelete,
   showVeganBadge = false,
   showHighProteinBadge = false,
+  glass = false,
 }: RecipeCardProps) {
   const ThemeIcon = theme.Icon;
 
   return (
     <div
-      className={cn('group relative bg-white rounded-[24px] overflow-hidden flex flex-col border border-gray-100 transition-all duration-300 cursor-pointer hover:-translate-y-1', theme.shadow, 'hover:shadow-xl shadow-sm')}
+      className={cn(
+        'group relative rounded-[24px] overflow-hidden flex flex-col transition-all duration-300 cursor-pointer hover:-translate-y-1',
+        glass ? 'border-transparent' : 'bg-white border border-gray-100',
+        !glass && theme.shadow,
+        !glass && 'hover:shadow-xl shadow-sm'
+      )}
+      style={glass ? GLASS_CARD_STYLE : undefined}
       onClick={onSelect}
     >
       {/* Header: echtes Bild (Unsplash) oder Gradient-Fallback */}
@@ -113,8 +131,8 @@ export function RecipeCard({
           )}
         </div>
       </div>
-      {/* Body: Titel + Smart Badges */}
-      <div className="p-5 flex flex-col flex-grow min-h-0">
+      {/* Body: Titel + Smart Badges (bei Glas leicht hinterlegt für Lesbarkeit) */}
+      <div className={cn('p-5 flex flex-col flex-grow min-h-0', glass && 'bg-white/20')}>
         <h3 className="font-bold text-gray-900 text-lg leading-tight mb-3 line-clamp-2">{recipe.recipeName || 'Rezept'}</h3>
         <div className="flex flex-wrap items-center gap-2">
           {recipe.stats?.time && (
