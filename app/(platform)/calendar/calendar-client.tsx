@@ -115,14 +115,14 @@ function hasEventOnDate(dateKey: string, events: CalendarEvent[]): boolean {
   return events.some((e) => eventOccursOnDate(e, dateKey));
 }
 
-const CALENDAR_EVENTS_STORAGE_KEY = 'sinispace-calendar-events';
+const CALENDAR_EVENTS_STORAGE_KEY = 'calendarEvents';
 
 function loadEventsFromStorage(): CalendarEvent[] {
   if (typeof window === 'undefined') return [];
   try {
-    const s = window.localStorage.getItem(CALENDAR_EVENTS_STORAGE_KEY);
-    if (!s) return [];
-    const a = JSON.parse(s);
+    const saved = window.localStorage.getItem(CALENDAR_EVENTS_STORAGE_KEY);
+    if (!saved) return [];
+    const a = JSON.parse(saved);
     return Array.isArray(a) ? a : [];
   } catch {
     return [];
@@ -374,25 +374,19 @@ export function CalendarClient() {
         </div>
       </header>
 
-      {/* 2. Master-Card: Glassmorphism, Overlap -mt-24 (wie Dashboard) */}
-      <div className="max-w-5xl mx-auto -mt-24 relative z-10 px-0 sm:px-6 pb-20">
-        <div
-          className={cn(
-            'bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl overflow-hidden min-h-[400px]',
-            'rounded-t-3xl rounded-b-none sm:rounded-3xl'
-          )}
-          style={{ minHeight: 'min(800px, 80vh)' }}
-        >
-          {/* A) Command Bar – Input integriert, randlos oben */}
-          <section aria-labelledby="calendar-input-heading" className="p-6 border-b border-gray-100">
-            <h2 id="calendar-input-heading" className="sr-only">Neuer Termin</h2>
-            <form onSubmit={handleMagicSubmit} className="flex items-center gap-3">
+      {/* Main: Command Bar (Overlap) + Glass-Card getrennt, wie Dashboard */}
+      <div className="max-w-5xl mx-auto px-4 relative z-10 pb-20">
+        {/* Element 1: Command Bar – schwebt separat, dezent über Header (-mt-8) */}
+        <section aria-labelledby="calendar-input-heading" className="-mt-8 mb-8">
+          <h2 id="calendar-input-heading" className="sr-only">Neuer Termin</h2>
+          <div className="bg-white shadow-xl shadow-gray-200/50 rounded-2xl p-2 flex items-center gap-4 border border-gray-100">
+            <form onSubmit={handleMagicSubmit} className="flex-1 flex items-center gap-3 min-w-0">
               <input
                 type="text"
                 value={magicInput}
                 onChange={(e) => setMagicInput(e.target.value)}
                 placeholder="Neuer Termin..."
-                className="flex-1 min-w-0 border-0 bg-transparent py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                className="flex-1 min-w-0 border-0 bg-transparent py-2 px-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
                 aria-label="Neuer Termin eingeben"
               />
               <button
@@ -403,12 +397,19 @@ export function CalendarClient() {
                 <Send className="w-4 h-4" />
               </button>
             </form>
-            {successMessage && (
-              <p className="text-sm text-green-600 font-medium mt-2">{successMessage}</p>
-            )}
-          </section>
+          </div>
+          {successMessage && (
+            <p className="text-sm text-green-600 font-medium mt-2">{successMessage}</p>
+          )}
+        </section>
 
-          {/* B) Navigation: Mobile Pills zentriert, Desktop links; Pagination rechts */}
+        {/* Element 2: Main-Glass-Card – nur Nav + Content */}
+        <div
+          className={cn(
+            'bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl rounded-3xl overflow-hidden min-h-[600px]'
+          )}
+        >
+          {/* Navigation: Pills + Pagination */}
           <div className="flex flex-wrap justify-between items-center gap-4 p-6 bg-gray-50/50 border-b border-gray-100">
             <div className="w-full md:w-auto flex justify-center md:justify-start" role="tablist" aria-label="Ansicht">
               <div className="flex rounded-xl bg-gray-100/80 p-1">
@@ -489,9 +490,9 @@ export function CalendarClient() {
             ) : (
               <section aria-labelledby="calendar-day-heading">
                 <h2 id="calendar-day-heading" className="sr-only">{view === 'week' ? 'Wochenansicht' : 'Tagesansicht'}</h2>
-                {/* Wochen-Strip: nur in Tag-Ansicht; Heute = oranger Ring */}
+                {/* Wochen-Strip: nur in Tag-Ansicht; Padding damit Border nicht abgeschnitten; Mobile zentriert */}
                 {view === 'day' && (
-                  <div className="flex gap-2 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="flex justify-center md:justify-start gap-2 overflow-x-auto p-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {weekDays.map((d) => {
                       const dKey = toDateKey(d);
                       const selected = dKey === dateKey;
