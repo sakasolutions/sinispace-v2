@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon, Send, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { rrulestr } from 'rrule';
 import {
@@ -14,7 +14,6 @@ import {
 import { parseNaturalLanguage } from '@/lib/parse-natural-language';
 import { EventDetailSheet } from './event-detail-sheet';
 import { SwipeableEventItem } from './swipeable-event-item';
-import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 const WEEKDAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 const WEEKDAYS_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
@@ -28,9 +27,9 @@ function toDateKey(d: Date): string {
 }
 
 type AgendaItem =
-  | { id: string; type: 'event'; time: string; title: string; subtitle?: string; isRecurring?: boolean; event: CalendarEvent }
-  | { id: string; type: 'meal'; time: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string; imageUrl?: string | null }
-  | { id: string; type: 'workout'; time: string; title: string; event: CalendarEvent };
+  | { id: string; type: 'event'; time: string; endTime?: string; title: string; subtitle?: string; isRecurring?: boolean; event: CalendarEvent }
+  | { id: string; type: 'meal'; time: string; endTime?: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string; imageUrl?: string | null }
+  | { id: string; type: 'workout'; time: string; endTime?: string; title: string; event: CalendarEvent };
 
 /** Blau = Arbeit/Termin, Orange = Essen, Pink = Privat (wie Spec) */
 function getAccentForItem(item: AgendaItem): { border: string; bar: string; text: string } {
@@ -71,11 +70,12 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
       const subtitle = subtitleParts.length > 0 ? subtitleParts.join(' • ') : cal;
       const recipeLink = e.resultId ? `/tools/recipe?open=${encodeURIComponent(e.resultId)}` : undefined;
       const imageUrl = 'imageUrl' in e ? e.imageUrl : undefined;
-      return { id: e.id, type: 'meal' as const, time: e.time || '12:00', title: label, subtitle, event: e, recipeLink, imageUrl };
+      return { id: e.id, type: 'meal' as const, time: e.time || '12:00', endTime: undefined, title: label, subtitle, event: e, recipeLink, imageUrl };
     }
-    if (e.type === 'workout') return { id: e.id, type: 'workout' as const, time: e.time || '08:00', title: e.label || 'Workout', event: e };
+    if (e.type === 'workout') return { id: e.id, type: 'workout' as const, time: e.time || '08:00', endTime: e.endTime, title: e.label || 'Workout', event: e };
     const isRecurring = !!(e.type === 'custom' && 'rrule' in e && e.rrule);
-    return { id: e.id, type: 'event' as const, time: e.time || '09:00', title: e.title, event: e, isRecurring };
+    const endTime = e.type === 'custom' && e.endTime ? e.endTime : undefined;
+    return { id: e.id, type: 'event' as const, time: e.time || '09:00', endTime, title: e.title, event: e, isRecurring };
   });
   return items.sort((a, b) => a.time.localeCompare(b.time));
 }
@@ -83,6 +83,15 @@ function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
 /** Datum formatieren: "Montag, 9. Februar" */
 function formatHeaderDate(d: Date): string {
   return `${WEEKDAYS_LONG[d.getDay()]}, ${d.getDate()}. ${MONTHS[d.getMonth()]}`;
+}
+
+/** ISO-Kalenderwoche (1–53) für Pagination "KW 07" */
+function getISOWeek(d: Date): number {
+  const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+  const week1 = new Date(date.getFullYear(), 0, 4);
+  return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
 }
 
 /** Monats-Grid (7 Spalten, Mo–So); leere Zellen am Anfang = null */
@@ -133,6 +142,28 @@ export function CalendarClient() {
     () => getMonthGrid(viewDate.getFullYear(), viewDate.getMonth()),
     [viewDate]
   );
+
+  /** Montag der aktuellen Woche (für Pagination & Strip) */
+  const weekStart = useMemo(() => {
+    const d = new Date(currentDate);
+    const day = d.getDay();
+    const diff = (day + 6) % 7; // Mo=0
+    d.setDate(d.getDate() - diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [currentDate]);
+
+  const goPrevWeek = useCallback(() => {
+    const next = new Date(weekStart);
+    next.setDate(next.getDate() - 7);
+    setCurrentDate(next);
+  }, [weekStart]);
+
+  const goNextWeek = useCallback(() => {
+    const next = new Date(weekStart);
+    next.setDate(next.getDate() + 7);
+    setCurrentDate(next);
+  }, [weekStart]);
 
   const goPrevMonth = useCallback(() => {
     setViewDate((d) => {
@@ -228,85 +259,62 @@ export function CalendarClient() {
     }
   };
 
-  const termCountToday = agendaItems.length;
   const headerDateLabel = formatHeaderDate(currentDate);
+  const paginationLabel = view === 'month' ? `${MONTHS[viewDate.getMonth()]} ${viewDate.getFullYear()}` : `KW ${String(getISOWeek(weekStart)).padStart(2, '0')}`;
 
   return (
     <div data-header-full-bleed className="min-h-full w-full relative">
-      <DashboardShell
-        headerVariant="default"
-        headerBackground={
-          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/dashboard-header.webp)' }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
-          </div>
-        }
-        title={
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
+      {/* 1. Header: nur dunkler Gradient, nur Text – keine Chips/Input */}
+      <header className="relative w-full h-[400px] overflow-hidden rounded-b-[40px] -mt-[max(0.5rem,env(safe-area-inset-top))]">
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/dashboard-header.webp)' }} aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8 md:pt-12">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white" style={{ letterSpacing: '-0.3px' }}>
             Dein Kalender
           </h1>
-        }
-        subtitle={
           <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
             {headerDateLabel}
           </p>
-        }
-        headerExtra={
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
-              <CalendarIcon className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-              {termCountToday === 0 ? 'Keine Termine heute' : termCountToday === 1 ? '1 Termin heute' : `${termCountToday} Termine heute`}
-            </span>
-          </div>
-        }
-      >
-        {/* Input → View-Control → Content mit gap-6 */}
-        <div className="max-w-3xl mx-auto w-full -mt-8 flex flex-col gap-6">
-          {/* Magic Input – Glass-Card wie Dashboard, überlappt den Header (-mt-8), leicht durchsichtig */}
-          <section aria-labelledby="calendar-input-heading" className="pb-6">
-            <h2 id="calendar-input-heading" className="sr-only">Neuen Eintrag hinzufügen</h2>
-            <div
-              className="w-full rounded-2xl p-2 flex items-center gap-2 min-h-[52px]"
-              style={{
-                background: 'rgba(255,255,255,0.2)',
-                border: '1px solid rgba(255,255,255,0.35)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08)',
-                WebkitBackdropFilter: 'blur(12px)',
-                backdropFilter: 'blur(12px)',
-              }}
-            >
-              <span className="shrink-0 text-gray-500 pl-1" aria-hidden>
-                <Plus className="w-5 h-5" />
-              </span>
-              <form onSubmit={handleMagicSubmit} className="flex-1 flex items-center gap-2 min-w-0">
-                <input
-                  type="text"
-                  value={magicInput}
-                  onChange={(e) => setMagicInput(e.target.value)}
-                  placeholder='z.B. "Morgen 14 Uhr Meeting" oder "Freitag 18 Uhr Pasta"'
-                  className="flex-1 min-w-0 border-0 bg-transparent px-2 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
-                  aria-label="Termin oder Mahlzeit eingeben"
-                />
-                <button
-                  type="submit"
-                  className="shrink-0 rounded-full bg-gray-800/90 text-white p-2 hover:bg-gray-700 transition-colors backdrop-blur-sm"
-                  aria-label="Eintrag erstellen"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </form>
-            </div>
+        </div>
+      </header>
+
+      {/* 2. Master-Card Container: satt über Header (-mt-32) */}
+      <div className="max-w-5xl mx-auto -mt-32 relative z-10 px-0 sm:px-6 pb-20">
+        <div
+          className={cn(
+            'bg-white shadow-2xl overflow-hidden border border-gray-100 min-h-[400px]',
+            'rounded-t-3xl rounded-b-none sm:rounded-3xl'
+          )}
+          style={{ minHeight: 'min(800px, 80vh)' }}
+        >
+          {/* A) Command Bar – Input integriert, randlos oben */}
+          <section aria-labelledby="calendar-input-heading" className="p-6 border-b border-gray-100">
+            <h2 id="calendar-input-heading" className="sr-only">Neuer Termin</h2>
+            <form onSubmit={handleMagicSubmit} className="flex items-center gap-3">
+              <input
+                type="text"
+                value={magicInput}
+                onChange={(e) => setMagicInput(e.target.value)}
+                placeholder="Neuer Termin..."
+                className="flex-1 min-w-0 border-0 bg-transparent py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                aria-label="Neuer Termin eingeben"
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded-full bg-gray-900 text-white p-2.5 hover:bg-gray-800 transition-colors"
+                aria-label="Erstellen"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
             {successMessage && (
-              <p className="text-sm text-green-600 font-medium mt-2 text-center">{successMessage}</p>
+              <p className="text-sm text-green-600 font-medium mt-2">{successMessage}</p>
             )}
           </section>
 
-          {/* View Control – Segmented Control, mittig (gap-6 zum Input) */}
-          <div className="flex justify-center">
-            <div
-              className="bg-gray-100/80 p-1 rounded-xl inline-flex backdrop-blur-sm"
-              role="tablist"
-              aria-label="Ansicht umschalten"
-            >
+          {/* B) Navigation & Filter: View-Pills links, Pagination rechts */}
+          <div className="flex flex-wrap justify-between items-center gap-4 p-6 bg-gray-50/50 border-b border-gray-100">
+            <div className="flex rounded-xl bg-gray-100/80 p-1" role="tablist" aria-label="Ansicht">
               {(['day', 'week', 'month'] as const).map((v) => (
                 <button
                   key={v}
@@ -316,174 +324,163 @@ export function CalendarClient() {
                   onClick={() => setView(v)}
                   className={cn(
                     'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                    view === v
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                    view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                   )}
                 >
                   {v === 'day' ? 'Tag' : v === 'week' ? 'Woche' : 'Monat'}
                 </button>
               ))}
             </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={view === 'month' ? goPrevMonth : goPrevWeek}
+                className="p-2 rounded-lg hover:bg-gray-200/80 text-gray-600 transition-colors"
+                aria-label={view === 'month' ? 'Vorheriger Monat' : 'Vorherige Woche'}
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="min-w-[120px] text-center text-sm font-medium text-gray-700">
+                {paginationLabel}
+              </span>
+              <button
+                type="button"
+                onClick={view === 'month' ? goNextMonth : goNextWeek}
+                className="p-2 rounded-lg hover:bg-gray-200/80 text-gray-600 transition-colors"
+                aria-label={view === 'month' ? 'Nächster Monat' : 'Nächste Woche'}
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Dynamischer Content je nach View */}
-          {view === 'month' ? (
-            /* Monats-Ansicht: CalendarGrid mit < Februar 2026 > */
-            <section aria-labelledby="calendar-month-heading" className="rounded-3xl shadow-sm border border-gray-100 bg-white p-4">
-              <h2 id="calendar-month-heading" className="sr-only">Monatsansicht</h2>
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  type="button"
-                  onClick={goPrevMonth}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
-                  aria-label="Vorheriger Monat"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <span className="text-lg font-semibold text-gray-900">
-                  {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
-                </span>
-                <button
-                  type="button"
-                  onClick={goNextMonth}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
-                  aria-label="Nächster Monat"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="grid grid-cols-7 gap-px text-center">
-                {WEEKDAYS_SHORT.map((wd) => (
-                  <div key={wd} className="py-1 text-xs font-medium text-gray-500">
-                    {wd}
-                  </div>
-                ))}
-                {monthGrid.flat().map((cell, i) => {
-                  if (!cell) {
-                    return <div key={`e-${i}`} className="aspect-square min-h-[44px]" />;
-                  }
-                  const dKey = toDateKey(cell);
-                  const isToday = dKey === todayKey;
-                  const hasEvent = hasEventOnDate(dKey, events);
-                  const isSelected = dKey === dateKey;
-                  return (
-                    <button
-                      key={dKey}
-                      type="button"
-                      onClick={() => {
-                        setCurrentDate(cell);
-                        setView('day');
-                      }}
-                      className={cn(
-                        'aspect-square min-h-[44px] flex flex-col items-center justify-center rounded-xl text-sm transition-all',
-                        isSelected && 'bg-violet-600 text-white font-medium',
-                        !isSelected && isToday && 'bg-violet-100 text-violet-700 font-medium',
-                        !isSelected && !isToday && 'text-gray-700 hover:bg-gray-100'
-                      )}
-                    >
-                      {cell.getDate()}
-                      {hasEvent && (
-                        <span
-                          className={cn(
-                            'w-1.5 h-1.5 rounded-full mt-0.5',
-                            isSelected ? 'bg-white' : isToday ? 'bg-violet-500' : 'bg-violet-400'
-                          )}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          ) : (
-            /* Tag / Woche: Strip + Agenda */
-            <section aria-labelledby="calendar-day-heading">
-              <h2 id="calendar-day-heading" className="sr-only">{view === 'week' ? 'Wochenansicht' : 'Tagesansicht'}</h2>
-
-              {/* Wochen-Strip: kleiner, eleganter; aktiver Tag = Dunkelblau/Lila wie Header */}
-              <div className="flex gap-1.5 overflow-x-auto pb-4 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {weekDays.map((d) => {
-                  const dKey = toDateKey(d);
-                  const selected = dKey === dateKey;
-                  const isToday = dKey === todayKey;
-                  return (
-                    <button
-                      key={dKey}
-                      type="button"
-                      onClick={() => selectDay(d)}
-                      className={cn(
-                        'shrink-0 min-w-[48px] flex flex-col items-center rounded-2xl border py-2 px-1.5 transition-all',
-                        selected
-                          ? 'bg-gradient-to-br from-violet-600 to-indigo-700 text-white border-transparent shadow-md'
-                          : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200 hover:bg-gray-50'
-                      )}
-                    >
-                      <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
-                      <span className="text-sm font-bold mt-0.5">{String(d.getDate()).padStart(2, '0')}</span>
-                      {isToday && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-400" />}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Event-Liste (Agenda) – Klick öffnet Detail-Sheet */}
-              <div className="flex flex-col gap-3">
-                {agendaItems.length === 0 ? (
-                  <div className="rounded-2xl p-8 text-center border border-gray-100 bg-gray-50/80">
-                    <p className="text-gray-500">Keine Termine an diesem Tag.</p>
-                    <p className="text-sm text-gray-400 mt-1">Tippe oben einen neuen Eintrag ein.</p>
-                  </div>
-                ) : (
-                  agendaItems.map((item) => {
-                    const accent = getAccentForItem(item);
-                    const subline = item.type === 'meal' ? item.subtitle : ('location' in item.event && item.event.location ? item.event.location : null);
-                    const cardContent = (
-                      <>
-                        <div className={cn('absolute left-0 top-0 bottom-0 w-1 rounded-l-lg', accent.bar)} aria-hidden />
-                        <div className="flex-1 min-w-0 pl-4">
-                          <span className={cn('text-sm font-bold', accent.text)}>{item.time}</span>
-                          <h3 className="text-lg font-semibold text-gray-900 mt-0.5">{item.title}</h3>
-                          {subline && <p className="text-gray-500 text-sm mt-0.5">{subline}</p>}
-                        </div>
-                        {item.type === 'meal' && item.imageUrl && (
-                          <img src={item.imageUrl} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" />
-                        )}
-                      </>
-                    );
-                    const cardClass = 'bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden flex items-start gap-3 min-h-[72px]';
+          {/* C) Content-Area: Tag/Woche = Strip + Agenda | Monat = Grid */}
+          <div className="p-6">
+            {view === 'month' ? (
+              <section aria-labelledby="calendar-month-heading">
+                <h2 id="calendar-month-heading" className="sr-only">Monatsansicht</h2>
+                <div className="grid grid-cols-7 gap-px text-center">
+                  {WEEKDAYS_SHORT.map((wd) => (
+                    <div key={wd} className="py-1 text-xs font-medium text-gray-500">{wd}</div>
+                  ))}
+                  {monthGrid.flat().map((cell, i) => {
+                    if (!cell) return <div key={`e-${i}`} className="aspect-square min-h-[40px]" />;
+                    const dKey = toDateKey(cell);
+                    const isToday = dKey === todayKey;
+                    const hasEvent = hasEventOnDate(dKey, events);
+                    const isSelected = dKey === dateKey;
                     return (
-                      <SwipeableEventItem
-                        key={item.id}
-                        event={item.event}
-                        onDelete={handleDeleteEvent}
-                        onEdit={(ev) => setEventModal({ open: true, date: ev.date, time: ev.time ?? '09:00', editEvent: ev })}
-                        enableSwipe={typeof navigator !== 'undefined' && 'ontouchstart' in window}
-                      >
-                        {item.type === 'meal' && item.recipeLink ? (
-                          <Link href={item.recipeLink} onClick={(e) => e.stopPropagation()} className={cn(cardClass, 'hover:shadow-md transition-all')}>
-                            {cardContent}
-                          </Link>
-                        ) : (
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                            onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                            className={cn(cardClass, 'cursor-pointer hover:shadow-md transition-all')}
-                          >
-                            {cardContent}
-                          </div>
+                      <button
+                        key={dKey}
+                        type="button"
+                        onClick={() => { setCurrentDate(cell); setView('day'); }}
+                        className={cn(
+                          'aspect-square min-h-[40px] flex flex-col items-center justify-center rounded-lg text-sm transition-all',
+                          isSelected && 'bg-violet-600 text-white font-medium',
+                          !isSelected && isToday && 'bg-violet-100 text-violet-700 font-medium',
+                          !isSelected && !isToday && 'text-gray-700 hover:bg-gray-100'
                         )}
-                      </SwipeableEventItem>
+                      >
+                        {cell.getDate()}
+                        {hasEvent && <span className={cn('w-1.5 h-1.5 rounded-full mt-0.5', isSelected ? 'bg-white' : 'bg-violet-400')} />}
+                      </button>
                     );
-                  })
-                )}
-              </div>
-            </section>
-          )}
+                  })}
+                </div>
+              </section>
+            ) : (
+              <section aria-labelledby="calendar-day-heading">
+                <h2 id="calendar-day-heading" className="sr-only">Tagesansicht</h2>
+                {/* Wochen-Strip mit 7 Tagen */}
+                <div className="flex gap-2 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {weekDays.map((d) => {
+                    const dKey = toDateKey(d);
+                    const selected = dKey === dateKey;
+                    const isToday = dKey === todayKey;
+                    return (
+                      <button
+                        key={dKey}
+                        type="button"
+                        onClick={() => selectDay(d)}
+                        className={cn(
+                          'shrink-0 min-w-[48px] flex flex-col items-center rounded-2xl border py-2 px-1.5 transition-all',
+                          selected ? 'bg-gradient-to-br from-violet-600 to-indigo-700 text-white border-transparent shadow-md' : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200'
+                        )}
+                      >
+                        <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
+                        <span className="text-sm font-bold mt-0.5">{String(d.getDate()).padStart(2, '0')}</span>
+                        {isToday && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-400" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Event-Liste: Zeit-Spalte (Start fett, bis Endzeit klein) + Inhalt + Dauer-Indikator */}
+                <div className="flex flex-col gap-4">
+                  {agendaItems.length === 0 ? (
+                    <div className="rounded-2xl p-8 text-center border border-gray-100 bg-gray-50/80">
+                      <p className="text-gray-500">Keine Termine an diesem Tag.</p>
+                      <p className="text-sm text-gray-400 mt-1">Tippe oben einen neuen Eintrag ein.</p>
+                    </div>
+                  ) : (
+                    agendaItems.map((item) => {
+                      const accent = getAccentForItem(item);
+                      const subline = item.type === 'meal' ? item.subtitle : ('location' in item.event && item.event.location ? item.event.location : null);
+                      const cardContent = (
+                        <>
+                          <div className={cn('absolute left-0 top-0 bottom-0 w-1 rounded-l-lg', accent.bar)} aria-hidden />
+                          <div className="flex gap-4 items-start min-w-0 flex-1">
+                            <div className="shrink-0 w-16 text-left">
+                              <span className={cn('block text-sm font-bold', accent.text)}>{item.time}</span>
+                              {item.endTime && <span className="block text-xs text-gray-500 mt-0.5">bis {item.endTime}</span>}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="text-base font-semibold text-gray-900">{item.title}</h3>
+                              {subline && <p className="text-sm text-gray-500 mt-0.5">{subline}</p>}
+                            </div>
+                            {item.endTime && (
+                              <div className="shrink-0 w-1 rounded-full bg-gray-200 self-stretch min-h-[32px]" aria-hidden title="Dauer" />
+                            )}
+                          </div>
+                          {item.type === 'meal' && item.imageUrl && (
+                            <img src={item.imageUrl} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0 absolute right-4 top-1/2 -translate-y-1/2" />
+                          )}
+                        </>
+                      );
+                      const cardClass = 'bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden flex items-start gap-3 min-h-[72px]';
+                      return (
+                        <SwipeableEventItem
+                          key={item.id}
+                          event={item.event}
+                          onDelete={handleDeleteEvent}
+                          onEdit={(ev) => setEventModal({ open: true, date: ev.date, time: ev.time ?? '09:00', editEvent: ev })}
+                          enableSwipe={typeof navigator !== 'undefined' && 'ontouchstart' in window}
+                        >
+                          {item.type === 'meal' && item.recipeLink ? (
+                            <Link href={item.recipeLink} onClick={(e) => e.stopPropagation()} className={cn(cardClass, 'hover:shadow-md transition-all')}>
+                              {cardContent}
+                            </Link>
+                          ) : (
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                              onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                              className={cn(cardClass, 'cursor-pointer hover:shadow-md transition-all')}
+                            >
+                              {cardContent}
+                            </div>
+                          )}
+                        </SwipeableEventItem>
+                      );
+                    })
+                  )}
+                </div>
+              </section>
+            )}
+          </div>
         </div>
-      </DashboardShell>
+      </div>
 
       <EventDetailSheet
         isOpen={eventModal.open}
