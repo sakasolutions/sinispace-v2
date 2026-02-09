@@ -53,6 +53,15 @@ type AgendaItem =
   | { id: string; type: 'meal'; time: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string; mealIcon?: string; imageUrl?: string | null }
   | { id: string; type: 'workout'; time: string; title: string; event: CalendarEvent };
 
+/** Akzentfarbe + Badge für Event-Listen-Karten: Termin/Privat=rose, Arbeit=blue, Sport=emerald, Mahlzeit=orange */
+function getAccentForItem(item: AgendaItem): { bar: string; text: string; badge: string; badgeBg: string } {
+  if (item.type === 'meal') return { bar: 'bg-orange-500', text: 'text-orange-500', badge: 'Mahlzeit', badgeBg: 'bg-orange-50 text-orange-600' };
+  if (item.type === 'workout') return { bar: 'bg-emerald-500', text: 'text-emerald-500', badge: 'Sport', badgeBg: 'bg-emerald-50 text-emerald-600' };
+  const eventType = item.type === 'event' && 'eventType' in item.event ? item.event.eventType : 'reminder';
+  if (eventType === 'work' || eventType === 'meeting') return { bar: 'bg-blue-500', text: 'text-blue-500', badge: 'Arbeit', badgeBg: 'bg-blue-50 text-blue-600' };
+  return { bar: 'bg-rose-500', text: 'text-rose-500', badge: 'Privat', badgeBg: 'bg-rose-50 text-rose-600' };
+}
+
 const MEAL_ICONS: Record<string, string> = {
   breakfast: '🍳',
   lunch: '🥗',
@@ -388,195 +397,171 @@ export function CalendarClient() {
 
   const eventCountForDate = (d: Date) => events.filter((e) => eventOccursOnDate(e, toDateKey(d))).length;
 
-  return (
-    <PageTransition className="flex flex-col md:flex-row h-full min-h-[calc(100vh-8rem)] gap-0 md:gap-6 max-w-[1600px] mx-auto">
-      {/* ========== LINKE SIDEBAR ========== */}
-      <aside className="w-full md:w-80 shrink-0 flex flex-col gap-4 p-4 md:p-0 md:pt-4 md:pl-4">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-          <div className="flex items-center justify-between mb-3">
-            <button onClick={goPrevMonth} className="p-1.5 rounded-lg hover:bg-gray-100" aria-label="Vorheriger Monat">
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            <span className="text-sm font-semibold text-gray-900">{MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}</span>
-            <button onClick={goNextMonth} className="p-1.5 rounded-lg hover:bg-gray-100" aria-label="Nächster Monat">
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-          <div className="grid grid-cols-7 gap-0.5 text-center">
-            {WEEKDAYS_HEADER.map((w) => (
-              <div key={w} className="text-[10px] font-medium text-gray-400 py-1">{w}</div>
-            ))}
-            {monthGrid.flat().map((d, i) => {
-              if (!d) return <div key={`empty-${i}`} className="min-h-[2.25rem]" />;
-              const dKey = toDateKey(d);
-              const selected = dKey === dateKey;
-              const isTodayDate = dKey === todayKey;
-              return (
-                <button
-                  key={dKey}
-                  onClick={() => selectDay(d)}
-                  className={cn(
-                    'min-h-[2.25rem] py-1 w-full rounded-lg text-sm font-medium flex flex-col items-center justify-center transition-colors',
-                    selected ? `${BRAND_GRADIENT} text-white shadow-sm` : 'text-gray-700 hover:bg-gray-100',
-                    d.getMonth() !== viewDate.getMonth() && 'text-gray-300'
-                  )}
-                >
-                  <span>{d.getDate()}</span>
-                  {isTodayDate && !selected && eventCountForDate(d) === 0 && (
-                    <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />
-                  )}
-                  <CategoryDots dateKey={dKey} events={events} size="sm" selected={selected} />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </aside>
+  const dayLabel = `${isToday ? 'Heute' : WEEKDAYS_LONG[currentDate.getDay()]}, ${currentDate.getDate()}. ${MONTHS[currentDate.getMonth()]}`;
 
-      {/* ========== HAUPTBEREICH: Spatial Timeline ========== */}
-      <main
-        ref={agendaRef}
-        className="flex-1 min-w-0 flex flex-col relative overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar]:w-0"
-      >
-        <div className="px-4 py-3 border-b border-gray-100 bg-white sticky top-0 z-10 shrink-0">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-            {isToday ? 'Heute' : WEEKDAYS_LONG[currentDate.getDay()]}, {currentDate.getDate()}. {MONTHS[currentDate.getMonth()]}
-          </h1>
-          {summary && <p className="text-sm text-gray-500 mt-0.5">{summary}</p>}
+  return (
+    <PageTransition className="min-h-full w-full">
+      {/* ========== CINEMATIC HEADER ========== */}
+      <header className="h-[35vh] w-full relative shrink-0 overflow-hidden">
+        <img
+          src="https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=1200&q=80"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-transparent pointer-events-none" aria-hidden />
+        <div className="absolute inset-0 flex flex-col justify-end p-6 pb-8 text-white">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Dein Tag</h1>
+          <p className="text-lg md:text-xl text-white/90 mt-1">{dayLabel}</p>
         </div>
-        <div className="relative flex-1 px-4 pb-32 min-h-0">
-          {nowLineTop != null && (
-            <div className="absolute left-0 right-0 z-20 flex items-center pointer-events-none" style={{ top: nowLineTop }}>
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white shadow-md shrink-0 ml-[52px]" aria-hidden />
-              <div className="flex-1 h-0.5 bg-red-500/90 ml-1" aria-hidden />
+      </header>
+
+      {/* ========== CONTENT: Glas-Overlay (rutscht über Header) ========== */}
+      <div ref={agendaRef} className="-mt-20 relative z-10 px-4 max-w-3xl mx-auto pb-36">
+        {/* Wochen-Strip: horizontale Day-Cards */}
+        <div className="flex gap-3 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {weekDays.map((d) => {
+            const dKey = toDateKey(d);
+            const selected = dKey === dateKey;
+            const isTodayDate = dKey === todayKey;
+            return (
+              <button
+                key={dKey}
+                onClick={() => selectDay(d)}
+                className={cn(
+                  'shrink-0 min-w-[60px] flex flex-col items-center rounded-2xl p-3 transition-all border',
+                  selected
+                    ? 'bg-gray-900 text-white shadow-xl scale-105 border-gray-900'
+                    : 'bg-white/80 backdrop-blur text-gray-600 border-white'
+                )}
+              >
+                <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
+                <span className="text-lg font-bold mt-0.5">{d.getDate()}</span>
+                {isTodayDate && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Event-Liste: Karten mit farbigem Akzent */}
+        <div className="flex flex-col gap-4">
+          {agendaItems.length === 0 ? (
+            <div className="bg-white/80 backdrop-blur rounded-2xl p-8 text-center border border-gray-100 shadow-sm">
+              <p className="text-gray-500">Keine Termine an diesem Tag.</p>
+              <p className="text-sm text-gray-400 mt-1">Tippe unten einen neuen Eintrag ein.</p>
+            </div>
+          ) : (
+            agendaItems.map((item) => {
+              const accent = getAccentForItem(item);
+              const subline = item.type === 'meal' ? item.subtitle : ('location' in item.event && item.event.location ? item.event.location : null);
+              return (
+                <SwipeableEventItem
+                  key={item.id}
+                  event={item.event}
+                  onDelete={handleDeleteEvent}
+                  onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
+                  enableSwipe={isMobile}
+                >
+                  {item.type === 'meal' && item.recipeLink ? (
+                    <Link
+                      href={item.recipeLink}
+                      onClick={(e) => e.stopPropagation()}
+                      className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all flex items-start gap-4"
+                    >
+                      <div className={cn('absolute left-0 top-0 bottom-0 w-1.5', accent.bar)} aria-hidden />
+                      <div className="flex-1 min-w-0">
+                        <span className={cn('text-sm font-bold', accent.text)}>{item.time}</span>
+                        <h3 className="text-lg font-bold text-gray-900 mt-1">{item.title}</h3>
+                        {subline && <p className="text-gray-500 text-sm mt-1 flex items-center gap-1">{subline}</p>}
+                        <span className={cn('inline-block mt-2 text-xs px-2 py-1 rounded-full', accent.badgeBg)}>{accent.badge}</span>
+                      </div>
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                      ) : null}
+                    </Link>
+                  ) : (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                      onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                      className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all flex items-start gap-4 cursor-pointer"
+                    >
+                      <div className={cn('absolute left-0 top-0 bottom-0 w-1.5', accent.bar)} aria-hidden />
+                      <div className="flex-1 min-w-0">
+                        <span className={cn('text-sm font-bold', accent.text)}>{item.time}</span>
+                        <h3 className="text-lg font-bold text-gray-900 mt-1">{item.title}</h3>
+                        {subline && (
+                          <p className="text-gray-500 text-sm mt-1 flex items-center gap-1">
+                            {item.type === 'event' && 'location' in item.event && item.event.location && <MapPin className="w-3.5 h-3.5 shrink-0" />}
+                            {subline}
+                          </p>
+                        )}
+                        <span className={cn('inline-block mt-2 text-xs px-2 py-1 rounded-full', accent.badgeBg)}>{accent.badge}</span>
+                      </div>
+                      {item.type === 'meal' && item.imageUrl ? (
+                        <img src={item.imageUrl} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                      ) : null}
+                      {'isRecurring' in item && item.isRecurring && <Repeat className="w-4 h-4 text-violet-500 shrink-0 absolute top-4 right-4" aria-label="Wiederkehrend" />}
+                    </div>
+                  )}
+                </SwipeableEventItem>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* ========== MAGIC INPUT (fixiert unten) ========== */}
+      <div
+        className={cn(
+          'fixed bottom-[90px] left-4 right-4 md:bottom-6 z-50 max-w-3xl mx-auto',
+          eventModal.open && 'pointer-events-none opacity-0'
+        )}
+      >
+        <div className="space-y-2">
+          {successMessage && (
+            <p className="text-sm text-green-600 font-medium text-center bg-green-50 rounded-full py-2 px-4 border border-green-100">✓ {successMessage}</p>
+          )}
+          {parsedLive?.recurrenceLabel && !successMessage && (
+            <p className="text-sm text-violet-600 font-medium text-center">🔄 {parsedLive?.recurrenceLabel}</p>
+          )}
+          {smartTags.length > 0 && !successMessage && (
+            <div className="flex flex-wrap gap-2 justify-center">
+              {smartTags.map((tag, i) => (
+                <span key={i} className="inline-flex px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-100">{tag.label}</span>
+              ))}
             </div>
           )}
-          <div className="grid grid-cols-[3.5rem_1fr] gap-0">
-            {TIMELINE_HOURS.map((hourLabel) => {
-              const hour = hourFromTime(hourLabel);
-              const itemsInHour = eventsByHour.get(hour) ?? [];
-              return (
-                <div key={hourLabel} className="min-h-[80px] border-b border-gray-50 border-dashed grid grid-cols-[3.5rem_1fr] gap-0 col-span-2">
-                  <div className="py-2 text-xs text-gray-400 font-medium pr-2 text-right">{hourLabel}</div>
-                  <div className="py-1 pl-2 space-y-1">
-                    {itemsInHour.map((item) => (
-                      <SwipeableEventItem
-                        key={item.id}
-                        event={item.event}
-                        onDelete={handleDeleteEvent}
-                        onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
-                        enableSwipe={isMobile}
-                      >
-                        {item.type === 'meal' ? (
-                          item.recipeLink ? (
-                            <Link
-                              href={item.recipeLink}
-                              className="block w-full rounded-lg p-3 shadow-sm mb-1 transition-all hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 overflow-hidden relative min-h-[56px]"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {item.imageUrl ? (
-                                <>
-                                  <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${item.imageUrl})` }} aria-hidden />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-orange-100/80" aria-hidden />
-                                  <span className="relative font-bold text-white drop-shadow line-clamp-2">{item.title}</span>
-                                  {item.subtitle && <span className="relative text-xs text-white/90 mt-0.5 block">{item.subtitle}</span>}
-                                </>
-                              ) : (
-                                <div className="bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-400 rounded-lg p-3 min-h-[56px]">
-                                  <span className="font-bold text-gray-900 line-clamp-2">{item.title}</span>
-                                  {item.subtitle && <span className="text-xs text-gray-600 block mt-0.5">{item.subtitle}</span>}
-                                </div>
-                              )}
-                            </Link>
-                          ) : (
-                            <div className="w-full rounded-lg p-3 shadow-sm mb-1 transition-all hover:scale-[1.01] bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-400 min-h-[56px]">
-                              <span className="font-bold text-gray-900 line-clamp-2">{item.title}</span>
-                              {item.subtitle && <p className="text-xs text-gray-600 mt-0.5">{item.subtitle}</p>}
-                            </div>
-                          )
-                        ) : item.type === 'workout' ? (
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
-                            onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
-                            className="w-full rounded-lg p-3 shadow-sm mb-1 transition-all hover:scale-[1.01] bg-emerald-50 border-l-4 border-emerald-500 flex items-center gap-2 cursor-pointer"
-                          >
-                            <Dumbbell className="w-4 h-4 text-emerald-600 shrink-0" />
-                            <span className="font-bold text-gray-900">{item.title}</span>
-                          </div>
-                        ) : (
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                            onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                            className="w-full rounded-lg p-3 shadow-sm mb-1 transition-all hover:scale-[1.01] bg-blue-50 border-l-4 border-blue-500 cursor-pointer relative"
-                          >
-                            <span className="font-bold text-blue-900 block">{item.title}</span>
-                            <span className="text-xs text-blue-700 mt-0.5 block">{item.time}</span>
-                            {'location' in item.event && item.event.location && (
-                              <span className="text-xs text-blue-600 flex items-center gap-1 mt-1">
-                                <MapPin className="w-3 h-3 shrink-0" />
-                                {item.event.location}
-                              </span>
-                            )}
-                            {'isRecurring' in item && item.isRecurring && (
-                              <Repeat className="w-3.5 h-3.5 text-violet-500 absolute top-2 right-2" aria-label="Wiederkehrend" />
-                            )}
-                          </div>
-                        )}
-                      </SwipeableEventItem>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        {/* Command-Input: Mobile fixed über BottomNav, Desktop sticky – kein Rosa */}
-        <div
-          className={cn(
-            'z-40 px-4 pt-4',
-            'fixed bottom-[90px] left-4 right-4 md:relative md:bottom-auto md:left-auto md:right-auto md:sticky md:bottom-6',
-            eventModal.open && 'pointer-events-none opacity-0'
-          )}
-        >
-          <div className="max-w-2xl mx-auto">
-            {successMessage && (
-              <p className="text-sm text-green-600 font-medium text-center bg-green-50 rounded-full py-2 px-4 border border-green-100 mb-2">✓ {successMessage}</p>
-            )}
-            {parsedLive?.recurrenceLabel && !successMessage && (
-              <p className="text-sm text-violet-600 font-medium text-center mb-2">🔄 {parsedLive?.recurrenceLabel}</p>
-            )}
-            {smartTags.length > 0 && !successMessage && (
-              <div className="flex flex-wrap gap-2 justify-center mb-2">
-                {smartTags.map((tag, i) => (
-                  <span key={i} className="inline-flex px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-100">{tag.label}</span>
-                ))}
-              </div>
-            )}
-            <form
-              onSubmit={handleMagicSubmit}
-              className="flex items-center gap-2 p-2 bg-white border border-gray-200 shadow-xl shadow-gray-200/50 rounded-2xl min-w-0 w-full"
+          <form
+            onSubmit={handleMagicSubmit}
+            className="flex items-center gap-2 p-2 bg-white/90 backdrop-blur-xl shadow-2xl border border-white/50 rounded-full min-w-0 w-full"
+          >
+            <button
+              type="button"
+              onClick={() => setEventModal({ open: true, date: dateKey, time: '09:00' })}
+              className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+              aria-label="Termin hinzufügen"
             >
-              <button type="button" onClick={() => setEventModal({ open: true, date: dateKey, time: '09:00' })} className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" aria-label="Termin hinzufügen">
-                <Plus className="w-5 h-5" />
-              </button>
-              <input
-                type="text"
-                value={magicInput}
-                onChange={(e) => setMagicInput(e.target.value)}
-                placeholder='z.B. "Morgen 14 Uhr Shisha" oder "Jeden Freitag 18 Uhr Fußball"'
-                className="flex-1 min-w-0 min-h-[44px] px-4 rounded-xl bg-transparent border-none focus:ring-0 outline-none text-base placeholder:text-gray-400"
-              />
-              <button type="submit" disabled={!magicInput.trim()} className={cn('shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-white disabled:opacity-40 transition-colors', BRAND_GRADIENT, BRAND_GRADIENT_HOVER)} aria-label="Hinzufügen">
-                <Send className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
+              <Plus className="w-5 h-5" />
+            </button>
+            <input
+              type="text"
+              value={magicInput}
+              onChange={(e) => setMagicInput(e.target.value)}
+              placeholder='z.B. "Morgen 14 Uhr Shisha" oder "Jeden Freitag 18 Uhr Fußball"'
+              className="flex-1 min-w-0 min-h-[44px] px-4 rounded-full bg-transparent border-none focus:ring-0 outline-none text-base placeholder:text-gray-400"
+            />
+            <button
+              type="submit"
+              disabled={!magicInput.trim()}
+              className={cn('shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-white disabled:opacity-40 transition-colors', BRAND_GRADIENT, BRAND_GRADIENT_HOVER)}
+              aria-label="Hinzufügen"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </form>
         </div>
-      </main>
+      </div>
 
       {/* Schwebender Magic Input (nur falls später wieder Woche/Monat-View) – aktuell nur Timeline */}
       {false && (
