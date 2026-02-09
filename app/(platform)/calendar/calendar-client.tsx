@@ -261,11 +261,20 @@ export function CalendarClient() {
       >
         {/* Input → View-Control → Content mit gap-6 */}
         <div className="max-w-3xl mx-auto w-full -mt-8 flex flex-col gap-6">
-          {/* Magic Input – pb-6 damit nicht abgeschnitten */}
+          {/* Magic Input – Glass-Card wie Dashboard, überlappt den Header (-mt-8), leicht durchsichtig */}
           <section aria-labelledby="calendar-input-heading" className="pb-6">
             <h2 id="calendar-input-heading" className="sr-only">Neuen Eintrag hinzufügen</h2>
-            <div className="w-full bg-white shadow-xl rounded-2xl p-2 flex items-center gap-2">
-              <span className="shrink-0 text-gray-400 pl-1" aria-hidden>
+            <div
+              className="w-full rounded-2xl p-2 flex items-center gap-2 min-h-[52px]"
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: '1px solid rgba(255,255,255,0.35)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08)',
+                WebkitBackdropFilter: 'blur(12px)',
+                backdropFilter: 'blur(12px)',
+              }}
+            >
+              <span className="shrink-0 text-gray-500 pl-1" aria-hidden>
                 <Plus className="w-5 h-5" />
               </span>
               <form onSubmit={handleMagicSubmit} className="flex-1 flex items-center gap-2 min-w-0">
@@ -274,12 +283,12 @@ export function CalendarClient() {
                   value={magicInput}
                   onChange={(e) => setMagicInput(e.target.value)}
                   placeholder='z.B. "Morgen 14 Uhr Meeting" oder "Freitag 18 Uhr Pasta"'
-                  className="flex-1 min-w-0 border-0 bg-transparent px-2 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                  className="flex-1 min-w-0 border-0 bg-transparent px-2 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
                   aria-label="Termin oder Mahlzeit eingeben"
                 />
                 <button
                   type="submit"
-                  className="shrink-0 rounded-full bg-gray-900 text-white p-2 hover:bg-gray-800 transition-colors"
+                  className="shrink-0 rounded-full bg-gray-800/90 text-white p-2 hover:bg-gray-700 transition-colors backdrop-blur-sm"
                   aria-label="Eintrag erstellen"
                 >
                   <Send className="w-4 h-4" />
