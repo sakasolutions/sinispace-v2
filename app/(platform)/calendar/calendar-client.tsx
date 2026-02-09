@@ -163,6 +163,31 @@ function getMonthGrid(year: number, month: number): (Date | null)[][] {
   return grid;
 }
 
+/** Stunden für Spatial Timeline (06:00–23:00) */
+const TIMELINE_HOURS = Array.from({ length: 18 }, (_, i) => {
+  const h = i + 6;
+  return `${String(h).padStart(2, '0')}:00`;
+});
+
+/** Stunde aus "HH:mm" extrahieren (0–23) für Raster-Platzierung */
+function hourFromTime(time: string): number {
+  const [h] = time.split(':').map(Number);
+  return Math.min(23, Math.max(0, h ?? 0));
+}
+
+/** Agenda-Items nach Startstunde gruppieren (alle Events inkl. Custom) */
+function groupAgendaItemsByHour(items: AgendaItem[]): Map<number, AgendaItem[]> {
+  const byHour = new Map<number, AgendaItem[]>();
+  for (const item of items) {
+    const hour = hourFromTime(item.time);
+    const list = byHour.get(hour) ?? [];
+    list.push(item);
+    byHour.set(hour, list);
+  }
+  for (const list of byHour.values()) list.sort((a, b) => a.time.localeCompare(b.time));
+  return byHour;
+}
+
 type ViewMode = 'agenda' | 'woche' | 'monat';
 
 export function CalendarClient() {
@@ -231,6 +256,16 @@ export function CalendarClient() {
 
   const monthGrid = useMemo(() => getMonthGrid(viewDate.getFullYear(), viewDate.getMonth()), [viewDate]);
   const agendaItems = useMemo(() => getDayEvents(dateKey, events), [dateKey, events]);
+  const eventsByHour = useMemo(() => groupAgendaItemsByHour(agendaItems), [agendaItems]);
+
+  /** Position der "Jetzt"-Linie in px (nur wenn heute); Zeilen je 80px, 06:00 = 0 */
+  const nowLineTop = useMemo(() => {
+    if (dateKey !== todayKey) return null;
+    const now = new Date();
+    const h = now.getHours() + now.getMinutes() / 60;
+    if (h < 6 || h >= 24) return null;
+    return (h - 6) * 80;
+  }, [dateKey, todayKey]);
 
   const summary = useMemo(() => {
     const terms = agendaItems.filter((i) => i.type === 'event').length;
@@ -351,11 +386,11 @@ export function CalendarClient() {
   const eventCountForDate = (d: Date) => events.filter((e) => eventOccursOnDate(e, toDateKey(d))).length;
 
   return (
-    <PageTransition className="flex flex-col lg:flex-row gap-6 lg:gap-8 max-w-6xl mx-auto">
-      {/* LINKS: Mini-Monats-Kalender (Desktop) / Mobile Week + Accordion */}
-      <aside className="shrink-0 lg:w-64">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 lg:p-4">
-          <div className="flex items-center justify-between mb-2 lg:mb-3">
+    <PageTransition className="flex flex-col md:flex-row h-full min-h-[calc(100vh-8rem)] gap-0 md:gap-6 max-w-[1600px] mx-auto">
+      {/* ========== LINKE SIDEBAR ========== */}
+      <aside className="w-full md:w-80 shrink-0 flex flex-col gap-4 p-4 md:p-0 md:pt-4 md:pl-4">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
             <button onClick={goPrevMonth} className="p-1.5 rounded-lg hover:bg-gray-100" aria-label="Vorheriger Monat">
               <ChevronLeft className="w-5 h-5 text-gray-600" />
             </button>
@@ -364,433 +399,185 @@ export function CalendarClient() {
               <ChevronRight className="w-5 h-5 text-gray-600" />
             </button>
           </div>
-
-          {/* Desktop: Monats-Grid */}
-          <div className="hidden lg:block">
-            <div className="grid grid-cols-7 gap-0.5 text-center">
-              {WEEKDAYS_HEADER.map((w) => (
-                <div key={w} className="text-[10px] font-medium text-gray-400 py-1">{w}</div>
-              ))}
-              {monthGrid.flat().map((d, i) => {
-                if (!d) return <div key={`empty-${i}`} className="min-h-[2.5rem]" />;
-                const dKey = toDateKey(d);
-                const selected = dKey === dateKey;
-                const isTodayDate = dKey === todayKey;
-                return (
-                  <button
-                    key={dKey}
-                    onClick={() => selectDay(d)}
-                    className={cn(
-                      'min-h-[2.5rem] py-1 w-full rounded-full text-sm font-medium flex flex-col items-center justify-center transition-colors group',
-                      selected ? `${BRAND_GRADIENT} text-white` : 'text-gray-700 hover:bg-gray-100',
-                      d.getMonth() !== viewDate.getMonth() && 'text-gray-300'
-                    )}
-                  >
-                    <span>{d.getDate()}</span>
-                    {isTodayDate && !selected && events.filter((e) => eventOccursOnDate(e, dKey)).length === 0 && (
-                      <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />
-                    )}
-                    <CategoryDots dateKey={dKey} events={events} size="sm" selected={selected} />
-                  </button>
-                );
-              })}
-            </div>
+          <div className="grid grid-cols-7 gap-0.5 text-center">
+            {WEEKDAYS_HEADER.map((w) => (
+              <div key={w} className="text-[10px] font-medium text-gray-400 py-1">{w}</div>
+            ))}
+            {monthGrid.flat().map((d, i) => {
+              if (!d) return <div key={`empty-${i}`} className="min-h-[2.25rem]" />;
+              const dKey = toDateKey(d);
+              const selected = dKey === dateKey;
+              const isTodayDate = dKey === todayKey;
+              return (
+                <button
+                  key={dKey}
+                  onClick={() => selectDay(d)}
+                  className={cn(
+                    'min-h-[2.25rem] py-1 w-full rounded-lg text-sm font-medium flex flex-col items-center justify-center transition-colors',
+                    selected ? `${BRAND_GRADIENT} text-white shadow-sm` : 'text-gray-700 hover:bg-gray-100',
+                    d.getMonth() !== viewDate.getMonth() && 'text-gray-300'
+                  )}
+                >
+                  <span>{d.getDate()}</span>
+                  {isTodayDate && !selected && eventCountForDate(d) === 0 && (
+                    <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />
+                  )}
+                  <CategoryDots dateKey={dKey} events={events} size="sm" selected={selected} />
+                </button>
+              );
+            })}
           </div>
-
-          {/* Mobile: Kompakte Monatsansicht (immer sichtbar) */}
-          <div className="lg:hidden">
-            <div className="grid grid-cols-7 gap-0.5 text-center">
-              {WEEKDAYS_HEADER.map((w) => (
-                <div key={w} className="text-[10px] font-medium text-gray-400 py-0.5">{w}</div>
-              ))}
-              {monthGrid.flat().map((d, i) => {
-                if (!d) return <div key={`m-${i}`} className="min-h-[2rem]" />;
-                const dKey = toDateKey(d);
-                const selected = dKey === dateKey;
-                const isTodayDate = dKey === todayKey;
-                return (
-                  <button
-                    key={dKey}
-                    onClick={() => selectDay(d)}
-                    className={cn(
-                      'min-h-[2rem] py-0.5 w-full rounded-lg text-xs font-medium flex flex-col items-center justify-center transition-colors',
-                      selected ? `${BRAND_GRADIENT} text-white` : 'text-gray-700 hover:bg-gray-50',
-                      d.getMonth() !== viewDate.getMonth() && 'text-gray-300'
-                    )}
-                  >
-                    <span>{d.getDate()}</span>
-                    {isTodayDate && !selected && events.filter((e) => eventOccursOnDate(e, dKey)).length === 0 && (
-                      <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />
-                    )}
-                    <CategoryDots dateKey={dKey} events={events} size="sm" selected={selected} />
-                  </button>
-                );
-              })}
-            </div>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Heute</h3>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-amber-50 text-amber-800 border border-amber-100">🔥 1200 kcal</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-sky-50 text-sky-700 border border-sky-100">💧 1.2L</span>
           </div>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex-1 min-h-[100px]">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Heute fällig</h3>
+          <p className="text-sm text-gray-400">Keine Tasks oder Wetter eingebunden.</p>
         </div>
       </aside>
 
-      {/* RECHTS: Hauptbereich – Gourmet-Style Karte */}
-      <main className="flex-1 min-w-0">
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-          {/* Header + View-Switcher Pills */}
-          <div className="p-4 sm:p-6 border-b border-gray-100">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-                  {isToday ? 'Heute' : WEEKDAYS_LONG[currentDate.getDay()]}, {currentDate.getDate()}. {MONTHS[currentDate.getMonth()]}
-                </h1>
-                {summary && <p className="text-gray-500 text-sm mt-0.5">{summary}</p>}
-              </div>
-              {/* Daily Summary Attrappe */}
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-gray-100 text-gray-600">
-                  🔥 1200 kcal
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-600">
-                  💧 1.2L
-                </span>
-              </div>
+      {/* ========== HAUPTBEREICH: Spatial Timeline ========== */}
+      <main ref={agendaRef} className="flex-1 min-w-0 flex flex-col relative overflow-auto">
+        <div className="px-4 py-3 border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+          <h1 className="text-xl font-bold text-gray-900">
+            {isToday ? 'Heute' : WEEKDAYS_LONG[currentDate.getDay()]}, {currentDate.getDate()}. {MONTHS[currentDate.getMonth()]}
+          </h1>
+          {summary && <p className="text-sm text-gray-500 mt-0.5">{summary}</p>}
+        </div>
+        <div className="relative flex-1 px-4 pb-32">
+          {nowLineTop != null && (
+            <div className="absolute left-0 right-0 z-20 flex items-center pointer-events-none" style={{ top: nowLineTop }}>
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white shadow-md shrink-0 ml-[52px]" aria-hidden />
+              <div className="flex-1 h-0.5 bg-red-500/90 ml-1" aria-hidden />
             </div>
-            <div className="flex gap-2 mt-4">
-              {(['agenda', 'woche', 'monat'] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setViewMode(m)}
-                  className={cn(
-                    'px-4 py-2 rounded-full text-sm font-medium transition-all',
-                    viewMode === m ? `${BRAND_GRADIENT} text-white shadow-md` : 'bg-white text-gray-600 border border-gray-100 hover:bg-gray-50'
-                  )}
-                >
-                  {m === 'agenda' ? 'Agenda' : m === 'woche' ? 'Woche' : 'Monat'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Content */}
-          <div ref={agendaRef} className={cn('p-4 sm:p-6', viewMode !== 'agenda' && 'pb-44 md:pb-36')}>
-            {viewMode === 'agenda' && (
-              <div className="min-h-[600px] bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col">
-                {/* Timeline: vertikale Linie ca. 60px vom linken Rand */}
-                <div className="relative flex-1 min-h-[400px]">
-                  <div className="absolute left-[60px] top-0 bottom-0 w-px border-l border-gray-100" aria-hidden />
-
-                  {agendaItems.length === 0 ? (
-                    <>
-                      {/* Ghost-Zeiten: Struktur auch bei leerem Tag */}
-                      <div className="space-y-6 pl-4">
-                        {['08:00', '12:00', '18:00'].map((t) => (
-                          <div key={t} className="grid grid-cols-[56px_8px_1fr] gap-0 items-center">
-                            <div className="text-right pr-3 text-sm text-gray-300 font-medium">{t}</div>
-                            <div className="flex justify-center">
-                              <span className="w-1.5 h-1.5 rounded-full bg-gray-100" aria-hidden />
-                            </div>
-                            <div />
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex flex-col items-center justify-center py-12 px-4 -mt-24">
-                        <span className="text-4xl mb-3">☀️</span>
-                        <p className="text-lg font-medium text-gray-900">Der Tag gehört dir!</p>
-                        <p className="text-gray-500 text-sm text-center">Tippe unten einen neuen Eintrag ein.</p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="space-y-0">
-                      {agendaItems.map((item) => {
-                        const dotColor = item.type === 'event' ? 'bg-blue-500' : item.type === 'meal' ? 'bg-orange-500' : 'bg-emerald-500';
-                        const endTime = 'endTime' in item.event ? item.event.endTime : undefined;
-                        return (
-                          <SwipeableEventItem
-                            key={item.id}
-                            event={item.event}
-                            onDelete={handleDeleteEvent}
-                            onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
-                            enableSwipe={isMobile}
-                          >
-                            <div className="grid grid-cols-[56px_8px_1fr] gap-0 items-start pb-4">
-                              {/* Zeit an der Linie */}
-                              <div className="text-right pr-3 pt-0.5 shrink-0">
-                                <div className="font-bold text-gray-900 text-sm">{item.time}</div>
-                                {endTime && <div className="text-xs text-gray-400">{endTime}</div>}
-                              </div>
-                              <div className="flex justify-center pt-1.5 relative z-10">
-                                <span className={cn('w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm', dotColor)} aria-hidden />
-                              </div>
-                              {/* Karte: Case A = Meal (Rezept), Case B = Custom Event, Workout */}
-                              <div className="pl-4 min-w-0">
-                                {item.type === 'meal' ? (
-                                  item.recipeLink ? (
-                                    <Link
-                                      href={item.recipeLink}
-                                      className="block overflow-hidden rounded-xl relative min-h-[80px] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      {item.imageUrl ? (
-                                        <>
-                                          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${item.imageUrl})` }} aria-hidden />
-                                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/20" aria-hidden />
-                                          <div className="relative p-4 flex flex-col justify-between min-h-[80px]">
-                                            <h3 className="font-bold text-white drop-shadow-md line-clamp-2">{item.title}</h3>
-                                            <div className="flex flex-wrap gap-1.5 mt-2">
-                                              {item.subtitle && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/20 text-white text-xs font-medium backdrop-blur-sm">
-                                                  🔥 {item.subtitle}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </>
-                                      ) : (
-                                        <div className="bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-500 p-4 rounded-xl min-h-[80px] flex flex-col justify-between">
-                                          <h3 className="font-bold text-gray-900 line-clamp-2">{item.title}</h3>
-                                          {item.subtitle && (
-                                            <span className="inline-flex items-center gap-1 mt-1 text-xs text-gray-600">🔥 {item.subtitle}</span>
-                                          )}
-                                        </div>
-                                      )}
-                                    </Link>
-                                  ) : (
-                                    <div className="bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-500 p-4 rounded-xl min-h-[80px]">
-                                      <h3 className="font-bold text-gray-900 line-clamp-2">{item.title}</h3>
-                                      {item.subtitle && <p className="text-xs text-gray-600 mt-1">{item.subtitle}</p>}
-                                    </div>
-                                  )
-                                ) : item.type === 'workout' ? (
-                                  <div
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
-                                    onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
-                                    className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 hover:shadow-md transition-all cursor-pointer flex items-center gap-3"
-                                  >
-                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                                      <Dumbbell className="w-5 h-5 text-emerald-600" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="font-bold text-gray-900">{item.title}</div>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  /* Case B: Custom Event (z. B. Shisha, Meeting) – weiße Karte, kein Rezept */
-                                  <div
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                                    onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                                    className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 hover:shadow-md transition-all cursor-pointer flex items-start gap-3"
-                                  >
-                                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-                                      <Clock className="w-5 h-5 text-blue-600" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="font-bold text-gray-900">{item.title}</div>
-                                      <div className="text-xs text-gray-500 mt-0.5">{item.time}</div>
-                                      {'location' in item.event && item.event.location && (
-                                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                                          <MapPin className="w-3.5 h-3.5 shrink-0" />
-                                          <span className="truncate">{item.event.location}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                    {'isRecurring' in item && item.isRecurring && (
-                                      <Repeat className="w-4 h-4 text-violet-500 shrink-0 mt-1" aria-label="Wiederkehrend" />
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </SwipeableEventItem>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Magic Input direkt unter dem Tagesplan */}
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  {successMessage && (
-                    <p className="text-sm text-green-600 font-medium animate-in fade-in duration-200 text-center bg-green-50 rounded-full py-2 px-4 border border-green-100 mb-3">
-                      ✓ {successMessage}
-                    </p>
-                  )}
-                  {parsedLive?.recurrenceLabel && !successMessage && (
-                    <p className="text-sm text-violet-600 font-medium animate-in fade-in duration-200 text-center mb-3">
-                      🔄 {parsedLive.recurrenceLabel}
-                    </p>
-                  )}
-                  {smartTags.length > 0 && !successMessage && (
-                    <div className="flex flex-wrap gap-2 justify-center mb-3 animate-in fade-in duration-200">
-                      {smartTags.map((tag, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-100"
-                        >
-                          {tag.label}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <form
-                    onSubmit={handleMagicSubmit}
-                    className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-100 rounded-xl min-w-0 w-full"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setEventModal({ open: true, date: dateKey, time: '09:00' })}
-                      className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-white text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors"
-                      aria-label="Termin hinzufügen"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                    <input
-                      type="text"
-                      value={magicInput}
-                      onChange={(e) => setMagicInput(e.target.value)}
-                      placeholder='z.B. "Jeden Freitag 18 Uhr Fußball" oder "Morgen 14 Uhr Shisha"'
-                      className="flex-1 min-w-0 min-h-[44px] px-4 rounded-lg bg-white border border-gray-200 focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none text-base placeholder:text-gray-400"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!magicInput.trim()}
-                      className={cn('shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-white disabled:opacity-40 transition-colors', BRAND_GRADIENT, BRAND_GRADIENT_HOVER)}
-                      aria-label="Hinzufügen"
-                    >
-                      <Send className="w-5 h-5" />
-                    </button>
-                  </form>
-                </div>
-              </div>
-            )}
-
-            {viewMode === 'woche' && (
-              <div className="relative border-l-2 border-gray-200 pl-4 md:pl-6 -ml-4 md:-ml-6 space-y-0">
-                {weekDays.map((d) => {
-                  const dKey = toDateKey(d);
-                  const items = getDayEvents(dKey, events);
-                  const isTodayDate = dKey === todayKey;
-                  const isEmpty = items.length === 0;
-                  const headerLabel = `${isTodayDate ? 'Heute, ' : ''}${d.getDate()}. ${MONTHS[d.getMonth()].slice(0, 3)}`;
-                  return (
-                    <section key={dKey} className="relative">
-                      {/* Timeline-Knoten auf der vertikalen Linie */}
-                      <span className={cn('absolute -left-4 top-2.5 w-2.5 h-2.5 rounded-full border-2 md:-left-6 md:top-3', isEmpty ? 'bg-gray-100 border-gray-200' : 'bg-white border-violet-400 shadow-sm')} />
-                      <h3
-                        className={cn(
-                          'sticky top-16 z-10 py-2.5 -mx-4 md:-mx-6 px-4 md:px-6 -mt-2 mb-1 text-sm font-semibold bg-white/95 backdrop-blur-sm border-b border-transparent',
-                          isTodayDate ? 'text-violet-600' : 'text-gray-700'
-                        )}
+          )}
+          <div className="grid grid-cols-[3.5rem_1fr] gap-0">
+            {TIMELINE_HOURS.map((hourLabel) => {
+              const hour = hourFromTime(hourLabel);
+              const itemsInHour = eventsByHour.get(hour) ?? [];
+              return (
+                <div key={hourLabel} className="min-h-[80px] border-b border-gray-50 border-dashed grid grid-cols-[3.5rem_1fr] gap-0 col-span-2">
+                  <div className="py-2 text-xs text-gray-400 font-medium pr-2 text-right">{hourLabel}</div>
+                  <div className="py-1 pl-2 space-y-1">
+                    {itemsInHour.map((item) => (
+                      <SwipeableEventItem
+                        key={item.id}
+                        event={item.event}
+                        onDelete={handleDeleteEvent}
+                        onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
+                        enableSwipe={isMobile}
                       >
-                        {WEEKDAYS_SHORT[d.getDay()]} {headerLabel}
-                      </h3>
-                      {isEmpty ? (
-                        <div className="py-1 mb-2 opacity-50">
-                          <span className="text-xs text-gray-400">
-                            {WEEKDAYS_SHORT[d.getDay()]} {d.getDate()}.
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="space-y-2 pb-6">
-                          {items.map((item) => (
-                            <SwipeableEventItem
-                              key={item.id}
-                              event={item.event}
-                              onDelete={handleDeleteEvent}
-                              onEdit={(e) => setEventModal({ open: true, date: e.date, time: e.time ?? '09:00', editEvent: e })}
-                              enableSwipe={isMobile}
+                        {item.type === 'meal' ? (
+                          item.recipeLink ? (
+                            <Link
+                              href={item.recipeLink}
+                              className="block w-full rounded-lg p-3 shadow-sm mb-1 transition-all hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 overflow-hidden relative min-h-[56px]"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <div
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                                onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-                                className={cn(
-                                  'bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 hover:shadow-md transition-all pr-12 cursor-pointer',
-                                  item.type === 'meal' && item.recipeLink && 'border-l-4 border-l-orange-500'
-                                )}
-                              >
-                                <div className="min-w-[48px] text-right border-r border-gray-100 pr-3 shrink-0 flex flex-col items-end gap-0.5">
-                                  <div className="flex items-center gap-1 justify-end">
-                                    <span className="text-sm font-bold text-gray-800">{item.time}</span>
-                                    {item.type === 'event' && 'isRecurring' in item && item.isRecurring && (
-                                      <Repeat className="w-3.5 h-3.5 text-violet-500 shrink-0" aria-label="Wiederkehrend" />
-                                    )}
-                                  </div>
+                              {item.imageUrl ? (
+                                <>
+                                  <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${item.imageUrl})` }} aria-hidden />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-orange-100/80" aria-hidden />
+                                  <span className="relative font-bold text-white drop-shadow line-clamp-2">{item.title}</span>
+                                  {item.subtitle && <span className="relative text-xs text-white/90 mt-0.5 block">{item.subtitle}</span>}
+                                </>
+                              ) : (
+                                <div className="bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-400 rounded-lg p-3 min-h-[56px]">
+                                  <span className="font-bold text-gray-900 line-clamp-2">{item.title}</span>
+                                  {item.subtitle && <span className="text-xs text-gray-600 block mt-0.5">{item.subtitle}</span>}
                                 </div>
-                                <div className={cn(
-                                  'w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-lg',
-                                  item.type === 'event' && ('eventType' in item.event && item.event.eventType === 'health' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'),
-                                  item.type === 'meal' && 'bg-orange-50 text-orange-500',
-                                  item.type === 'workout' && 'bg-pink-100 text-pink-600'
-                                )}>
-                                  {item.type === 'event' && <Calendar className="w-4 h-4" />}
-                                  {item.type === 'meal' && ('mealIcon' in item && item.mealIcon ? <span aria-hidden>{item.mealIcon}</span> : <UtensilsCrossed className="w-4 h-4" />)}
-                                  {item.type === 'workout' && <Dumbbell className="w-4 h-4" />}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-semibold text-gray-800 truncate text-sm md:text-base">{item.title}</div>
-                                  {item.type === 'meal' && 'subtitle' in item && item.subtitle && <div className="text-xs text-gray-400 truncate">{item.subtitle}</div>}
-                                  {item.type === 'meal' && 'recipeLink' in item && item.recipeLink && (
-                                    <Link href={item.recipeLink} className="text-xs font-medium text-orange-600 hover:text-orange-700" onClick={(e) => e.stopPropagation()}>
-                                      Zum Rezept <ExternalLink className="w-3 h-3 inline" />
-                                    </Link>
-                                  )}
-                                </div>
-                              </div>
-                            </SwipeableEventItem>
-                          ))}
-                        </div>
-                      )}
-                    </section>
-                  );
-                })}
-              </div>
+                              )}
+                            </Link>
+                          ) : (
+                            <div className="w-full rounded-lg p-3 shadow-sm mb-1 transition-all hover:scale-[1.01] bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-400 min-h-[56px]">
+                              <span className="font-bold text-gray-900 line-clamp-2">{item.title}</span>
+                              {item.subtitle && <p className="text-xs text-gray-600 mt-0.5">{item.subtitle}</p>}
+                            </div>
+                          )
+                        ) : item.type === 'workout' ? (
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
+                            onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '08:00', editEvent: item.event })}
+                            className="w-full rounded-lg p-3 shadow-sm mb-1 transition-all hover:scale-[1.01] bg-emerald-50 border-l-4 border-emerald-500 flex items-center gap-2 cursor-pointer"
+                          >
+                            <Dumbbell className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span className="font-bold text-gray-900">{item.title}</span>
+                          </div>
+                        ) : (
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                            onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
+                            className="w-full rounded-lg p-3 shadow-sm mb-1 transition-all hover:scale-[1.01] bg-blue-50 border-l-4 border-blue-500 cursor-pointer relative"
+                          >
+                            <span className="font-bold text-blue-900 block">{item.title}</span>
+                            <span className="text-xs text-blue-700 mt-0.5 block">{item.time}</span>
+                            {'location' in item.event && item.event.location && (
+                              <span className="text-xs text-blue-600 flex items-center gap-1 mt-1">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                {item.event.location}
+                              </span>
+                            )}
+                            {'isRecurring' in item && item.isRecurring && (
+                              <Repeat className="w-3.5 h-3.5 text-violet-500 absolute top-2 right-2" aria-label="Wiederkehrend" />
+                            )}
+                          </div>
+                        )}
+                      </SwipeableEventItem>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className={cn('sticky bottom-6 z-50 px-4 pt-4', eventModal.open && 'pointer-events-none opacity-0')}>
+          <div className="max-w-2xl mx-auto">
+            {successMessage && (
+              <p className="text-sm text-green-600 font-medium text-center bg-green-50 rounded-full py-2 px-4 border border-green-100 mb-2">✓ {successMessage}</p>
             )}
-
-            {viewMode === 'monat' && (
-              <div className="grid grid-cols-7 gap-1">
-                {WEEKDAYS_HEADER.map((w) => (
-                  <div key={w} className="text-center text-xs font-medium text-gray-400 py-2">{w}</div>
+            {parsedLive?.recurrenceLabel && !successMessage && (
+              <p className="text-sm text-violet-600 font-medium text-center mb-2">🔄 {parsedLive.recurrenceLabel}</p>
+            )}
+            {smartTags.length > 0 && !successMessage && (
+              <div className="flex flex-wrap gap-2 justify-center mb-2">
+                {smartTags.map((tag, i) => (
+                  <span key={i} className="inline-flex px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700 border border-violet-100">{tag.label}</span>
                 ))}
-                {monthGrid.flat().map((d, i) => {
-                  if (!d) return <div key={`mon-${i}`} className="min-h-[60px]" />;
-                  const dKey = toDateKey(d);
-                  const items = getDayEvents(dKey, events);
-                  const selected = dKey === dateKey;
-                  const isTodayDate = dKey === todayKey;
-                  return (
-                    <button
-                      key={dKey}
-                      onClick={() => selectDay(d)}
-                      title={items.length > 0 ? `${items.length} Einträge` : undefined}
-                      className={cn(
-                        'min-h-[60px] p-2 rounded-xl text-left transition-all group',
-                        selected ? `${BRAND_GRADIENT} text-white` : 'hover:bg-gray-50',
-                        d.getMonth() !== viewDate.getMonth() && 'opacity-40'
-                      )}
-                    >
-                      <span className={cn('text-sm font-medium', selected ? 'text-white' : 'text-gray-700')}>{d.getDate()}</span>
-                      {isTodayDate && !selected && items.length === 0 && <span className="block w-1 h-1 rounded-full bg-violet-500 mt-0.5" />}
-                      {getCategoryDotsForDate(dKey, events).length > 0 ? (
-                        <div className="mt-1 group-hover:scale-110 transition-transform origin-center">
-                          <CategoryDots dateKey={dKey} events={events} size="md" selected={selected} />
-                        </div>
-                      ) : (
-                        <div className="mt-1 min-h-[0.5rem]" />
-                      )}
-                    </button>
-                  );
-                })}
               </div>
             )}
+            <form
+              onSubmit={handleMagicSubmit}
+              className="flex items-center gap-2 p-2 backdrop-blur-xl bg-white/80 border border-gray-200 shadow-2xl rounded-2xl min-w-0 w-full"
+            >
+              <button type="button" onClick={() => setEventModal({ open: true, date: dateKey, time: '09:00' })} className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" aria-label="Termin hinzufügen">
+                <Plus className="w-5 h-5" />
+              </button>
+              <input
+                type="text"
+                value={magicInput}
+                onChange={(e) => setMagicInput(e.target.value)}
+                placeholder='z.B. "Morgen 14 Uhr Shisha" oder "Jeden Freitag 18 Uhr Fußball"'
+                className="flex-1 min-w-0 min-h-[44px] px-4 rounded-xl bg-transparent border-none focus:ring-0 outline-none text-base placeholder:text-gray-400"
+              />
+              <button type="submit" disabled={!magicInput.trim()} className={cn('shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-white disabled:opacity-40 transition-colors', BRAND_GRADIENT, BRAND_GRADIENT_HOVER)} aria-label="Hinzufügen">
+                <Send className="w-5 h-5" />
+              </button>
+            </form>
           </div>
         </div>
       </main>
 
-      {/* Schwebender Magic Input nur bei Woche/Monat – bei Agenda ist er im Blatt */}
-      {viewMode !== 'agenda' && (
+      {/* Schwebender Magic Input (nur falls später wieder Woche/Monat-View) – aktuell nur Timeline */}
+      {false && (
       <motion.div
         className="fixed left-0 right-0 px-4 md:bottom-8 md:left-64 md:right-0 md:px-6 z-[60] pb-[env(safe-area-inset-bottom)] pointer-events-none bottom-[calc(100px+env(safe-area-inset-bottom))] md:bottom-8"
         initial={false}
