@@ -753,23 +753,23 @@ export default function RecipePage() {
             onBack={() => setSelectedRecipe(null)}
           />
         ) : (
-          /* Meine Sammlung: Command Bar + Grid (Tier 1) */
+          /* Meine Sammlung: Command Center (schwebende Karte) + Grid */
           <div className="space-y-6">
-            {/* Command Bar: Glas wie Dashboard-Karten (Bild schimmert durch) */}
-            <div className="relative z-20 mx-auto max-w-5xl px-1">
-              <div className="rounded-2xl p-4 overflow-hidden" style={DASHBOARD_CARD_STYLE}>
-                <div className="flex items-center gap-3 rounded-xl pl-4 pr-3 py-2.5" style={{ background: 'rgba(255,255,255,0.25)', border: '1px solid rgba(255,255,255,0.3)', WebkitBackdropFilter: 'blur(6px)', backdropFilter: 'blur(6px)' }}>
-                  <Search className="w-5 h-5 text-slate-400 shrink-0" aria-hidden />
+            {/* Schwebende Karte: ragt in den Header, Suche + Filter */}
+            <div className="relative z-20 -mt-24 mx-auto max-w-5xl px-4 sm:px-6">
+              <div className="bg-white/90 backdrop-blur-md border border-white/60 shadow-xl rounded-2xl p-6">
+                <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500 transition-shadow">
+                  <Search className="w-5 h-5 text-gray-400 shrink-0" aria-hidden />
                   <input
                     type="search"
                     value={collectionSearch}
                     onChange={(e) => setCollectionSearch(e.target.value)}
                     placeholder="Suche nach Pizza, Pasta oder Zutaten..."
-                    className="flex-1 min-w-0 bg-transparent text-slate-800 placeholder:text-slate-500 text-sm font-medium outline-none"
+                    className="flex-1 min-w-0 bg-white text-gray-900 placeholder-gray-400 text-sm font-medium outline-none border-0 focus:ring-0 p-0"
                     aria-label="Rezepte durchsuchen"
                   />
                 </div>
-                <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                <div className="mt-4 flex flex-wrap gap-2">
                   {COLLECTION_CATEGORIES.map((cat) => {
                     const isActive = collectionCategory === cat.id;
                     return (
@@ -778,10 +778,10 @@ export default function RecipePage() {
                         type="button"
                         onClick={() => setCollectionCategory(cat.id)}
                         className={cn(
-                          'shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all',
+                          'rounded-full px-4 py-1.5 text-sm font-medium transition-all border border-transparent',
                           isActive
-                            ? 'bg-orange-500 text-white shadow-md border border-transparent'
-                            : 'bg-white/60 border border-white/40 text-slate-700 hover:bg-white/80'
+                            ? 'bg-orange-500 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         )}
                       >
                         {cat.label}
