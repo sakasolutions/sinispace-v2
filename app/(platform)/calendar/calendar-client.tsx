@@ -401,47 +401,50 @@ export function CalendarClient() {
 
   return (
     <PageTransition className="min-h-full w-full">
-      {/* ========== CINEMATIC HEADER ========== */}
-      <header className="h-[35vh] w-full relative shrink-0 overflow-hidden">
+      {/* ========== CINEMATIC HEADER (1:1 Dashboard) ========== */}
+      <header className="h-[38vh] min-h-[280px] w-full relative shrink-0 overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=1200&q=80"
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-transparent pointer-events-none" aria-hidden />
-        <div className="absolute inset-0 flex flex-col justify-end p-6 pb-8 text-white">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Dein Tag</h1>
-          <p className="text-lg md:text-xl text-white/90 mt-1">{dayLabel}</p>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/15 to-black/30 pointer-events-none" aria-hidden />
+        <div className="absolute inset-0 flex flex-col justify-end p-6 pb-5 text-white">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Dein Tag</h1>
+          <p className="text-base sm:text-lg text-white/95 mt-0.5">{dayLabel}</p>
+          {/* Wochen-Strip: direkt unter dem Datum, über dem Bild (1:1 Dashboard) */}
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto mt-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {weekDays.map((d) => {
+              const dKey = toDateKey(d);
+              const selected = dKey === dateKey;
+              const isTodayDate = dKey === todayKey;
+              return (
+                <button
+                  key={dKey}
+                  onClick={() => selectDay(d)}
+                  className={cn(
+                    'shrink-0 w-14 sm:w-16 flex flex-col items-center justify-center rounded-xl sm:rounded-2xl py-2.5 px-2 transition-all border',
+                    selected
+                      ? 'bg-gray-900 text-white font-bold border-gray-900 shadow-lg'
+                      : 'bg-white/95 backdrop-blur-sm text-gray-600 border-gray-200/80 hover:bg-white'
+                  )}
+                >
+                  <span className={cn('text-[10px] font-semibold uppercase tracking-wide', selected ? 'text-white' : 'text-gray-500')}>
+                    {WEEKDAYS_SHORT[d.getDay()]}
+                  </span>
+                  <span className={cn('text-base sm:text-lg font-bold mt-0.5', selected ? 'text-white' : 'text-gray-700')}>
+                    {d.getDate()}
+                  </span>
+                  {isTodayDate && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </header>
 
       {/* ========== CONTENT: Glas-Overlay (rutscht über Header) ========== */}
       <div ref={agendaRef} className="-mt-20 relative z-10 px-4 max-w-3xl mx-auto pb-36">
-        {/* Wochen-Strip: horizontale Day-Cards */}
-        <div className="flex gap-3 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {weekDays.map((d) => {
-            const dKey = toDateKey(d);
-            const selected = dKey === dateKey;
-            const isTodayDate = dKey === todayKey;
-            return (
-              <button
-                key={dKey}
-                onClick={() => selectDay(d)}
-                className={cn(
-                  'shrink-0 min-w-[60px] flex flex-col items-center rounded-2xl p-3 transition-all border',
-                  selected
-                    ? 'bg-gray-900 text-white shadow-xl scale-105 border-gray-900'
-                    : 'bg-white/80 backdrop-blur text-gray-600 border-white'
-                )}
-              >
-                <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
-                <span className="text-lg font-bold mt-0.5">{d.getDate()}</span>
-                {isTodayDate && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />}
-              </button>
-            );
-          })}
-        </div>
-
         {/* Event-Liste: Karten mit farbigem Akzent */}
         <div className="flex flex-col gap-4">
           {agendaItems.length === 0 ? (
