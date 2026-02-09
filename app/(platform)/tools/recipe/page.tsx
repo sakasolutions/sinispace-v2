@@ -854,7 +854,7 @@ export default function RecipePage() {
             )}
           </div>
         )
-            ) : null}
+      ) : null}
 
           </DashboardShell>
         </div>
