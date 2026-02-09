@@ -399,14 +399,17 @@ export function CalendarClient() {
 
   const dayLabel = `${isToday ? 'Heute' : WEEKDAYS_LONG[currentDate.getDay()]}, ${currentDate.getDate()}. ${MONTHS[currentDate.getMonth()]}`;
 
-  const termCount = agendaItems.filter((i) => i.type === 'event' || i.type === 'workout').length + agendaItems.filter((i) => i.type === 'meal').length;
+  const termCount = agendaItems.length;
 
   return (
     <>
+      {/* 1:1 Dashboard-Layout (gleicher Header, gleiche Shell) */}
       <DashboardShell
         headerVariant="default"
         headerBackground={
-          <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#1a1c2e] via-[#2d1b4e] to-[#1a1c2e]" aria-hidden />
+          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/dashboard-header.webp)' }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
+          </div>
         }
         title={
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
@@ -430,41 +433,34 @@ export function CalendarClient() {
           </div>
         }
       >
-        {/* Master Glass Card: überlappt Header, -mt-32 Effekt */}
-        <div ref={agendaRef} className="-mt-12 max-w-5xl mx-auto px-4 pb-32 relative z-10">
-          <div className="bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/50 min-h-[600px] p-6">
-            {/* Wochentags-Leiste (Kapsel-Style): Aktiv = Lila/Blau, Inaktiv = Grau transparent */}
-            <div className="flex gap-2 overflow-x-auto pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {weekDays.map((d) => {
-                const dKey = toDateKey(d);
-                const selected = dKey === dateKey;
-                const isTodayDate = dKey === todayKey;
-                return (
-                  <button
-                    key={dKey}
-                    onClick={() => selectDay(d)}
-                    className={cn(
-                      'shrink-0 rounded-full px-4 py-2.5 flex flex-col items-center justify-center transition-all border text-sm font-medium',
-                      selected
-                        ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-transparent shadow-lg'
-                        : 'bg-gray-100/80 text-gray-600 border-gray-200/80 hover:bg-gray-200/80'
-                    )}
-                  >
-                    <span className="text-[10px] uppercase tracking-wide">{WEEKDAYS_SHORT[d.getDay()]}</span>
-                    <span className="font-bold mt-0.5">{d.getDate()}</span>
-                    {isTodayDate && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Event-Liste oder Empty State */}
-            <div className="flex flex-col gap-4">
+        <div ref={agendaRef} className="space-y-6 md:space-y-8">
+          {/* Kalender-Inhalt – hier später komplett ausbauen */}
+          <div className="flex gap-2 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {weekDays.map((d) => {
+              const dKey = toDateKey(d);
+              const selected = dKey === dateKey;
+              const isTodayDate = dKey === todayKey;
+              return (
+                <button
+                  key={dKey}
+                  onClick={() => selectDay(d)}
+                  className={cn(
+                    'shrink-0 min-w-[60px] flex flex-col items-center rounded-2xl py-2.5 px-2 transition-all border',
+                    selected ? 'bg-violet-600 text-white border-violet-600 shadow-lg' : 'bg-white/80 backdrop-blur text-gray-600 border-white'
+                  )}
+                >
+                  <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
+                  <span className="text-lg font-bold mt-0.5">{d.getDate()}</span>
+                  {isTodayDate && !selected && <span className="mt-0.5 w-1 h-1 rounded-full bg-violet-500" />}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex flex-col gap-4">
           {agendaItems.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-16 text-center">
-              <span className="text-5xl mb-4" aria-hidden>☀️</span>
-              <p className="text-lg font-semibold text-gray-800">Der Tag gehört dir!</p>
-              <p className="text-sm text-gray-500 mt-1">Tippe unten einen neuen Eintrag ein.</p>
+            <div className="rounded-2xl p-8 text-center border border-gray-100 bg-white/80 backdrop-blur">
+              <p className="text-gray-500">Keine Termine an diesem Tag.</p>
+              <p className="text-sm text-gray-400 mt-1">Tippe unten einen neuen Eintrag ein.</p>
             </div>
           ) : (
             agendaItems.map((item) => {
@@ -525,13 +521,11 @@ export function CalendarClient() {
               );
             })
           )}
-            </div>
           </div>
         </div>
       </DashboardShell>
 
-      {/* ========== MAGIC INPUT (fixiert unten) ========== */}
-      {/* Action Bar: Magic Input fixiert unten, über allem */}
+      {/* Magic Input fixiert unten */}
       <div
         className={cn(
           'fixed bottom-[90px] left-4 right-4 md:bottom-6 z-50 max-w-2xl mx-auto',
