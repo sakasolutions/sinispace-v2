@@ -545,7 +545,7 @@ export function CalendarClient() {
               <p className="text-sm text-green-600 font-medium text-center bg-green-50 rounded-full py-2 px-4 border border-green-100 mb-2">✓ {successMessage}</p>
             )}
             {parsedLive?.recurrenceLabel && !successMessage && (
-              <p className="text-sm text-violet-600 font-medium text-center mb-2">🔄 {parsedLive.recurrenceLabel}</p>
+              <p className="text-sm text-violet-600 font-medium text-center mb-2">🔄 {parsedLive?.recurrenceLabel}</p>
             )}
             {smartTags.length > 0 && !successMessage && (
               <div className="flex flex-wrap gap-2 justify-center mb-2">
@@ -595,7 +595,7 @@ export function CalendarClient() {
           )}
           {parsedLive?.recurrenceLabel && !successMessage && (
             <p className="text-sm text-violet-600 font-medium animate-in fade-in duration-200 text-center">
-              🔄 {parsedLive.recurrenceLabel}
+              🔄 {parsedLive?.recurrenceLabel}
             </p>
           )}
           {smartTags.length > 0 && !successMessage && (
