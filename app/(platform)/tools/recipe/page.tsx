@@ -757,7 +757,7 @@ export default function RecipePage() {
           <div className="space-y-6">
             {/* Schwebende Karte: ragt in den Header, Suche + Filter */}
             <div className="relative z-20 -mt-8 mx-auto max-w-5xl px-4 sm:px-6">
-              <div className="bg-white/90 backdrop-blur-md border border-white/60 shadow-xl rounded-2xl p-6">
+              <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl rounded-2xl p-6">
                 <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500 transition-shadow">
                   <Search className="w-5 h-5 text-gray-400 shrink-0" aria-hidden />
                   <input
