@@ -169,9 +169,9 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             >
               ← Rezept
             </button>
-            {/* Schritt-Indikator: Wasserzeichen + Label */}
+            {/* Schritt-Indikator: Editorial – Wasserzeichen + Label */}
             <div className="relative">
-              <span className="text-6xl md:text-8xl font-black text-orange-100/50 absolute top-0 right-0 pointer-events-none select-none tabular-nums">
+              <span className="text-6xl md:text-8xl font-black text-orange-100/50 absolute top-4 right-4 pointer-events-none select-none tabular-nums">
                 {String(currentStep + 1).padStart(2, '0')}
               </span>
               <p className="text-xs uppercase tracking-widest text-gray-400 font-bold mb-2">
