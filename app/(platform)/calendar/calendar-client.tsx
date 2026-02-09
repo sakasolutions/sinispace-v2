@@ -169,17 +169,20 @@ const TIMELINE_HOURS = Array.from({ length: 18 }, (_, i) => {
   return `${String(h).padStart(2, '0')}:00`;
 });
 
-/** Stunde aus "HH:mm" extrahieren (0–23) für Raster-Platzierung */
+/** Stunde aus "HH:mm" oder "H:mm" extrahieren (0–23) für Raster-Platzierung */
 function hourFromTime(time: string): number {
-  const [h] = time.split(':').map(Number);
-  return Math.min(23, Math.max(0, h ?? 0));
+  if (!time || typeof time !== 'string') return 9;
+  const [h] = time.trim().split(':').map(Number);
+  const hour = Number.isFinite(h) ? h : 9;
+  return Math.min(23, Math.max(0, hour));
 }
 
-/** Agenda-Items nach Startstunde gruppieren (alle Events inkl. Custom) */
+/** Agenda-Items nach Startstunde gruppieren (06–23), alle Events inkl. Custom */
 function groupAgendaItemsByHour(items: AgendaItem[]): Map<number, AgendaItem[]> {
   const byHour = new Map<number, AgendaItem[]>();
   for (const item of items) {
-    const hour = hourFromTime(item.time);
+    const h = hourFromTime(item.time);
+    const hour = Math.min(23, Math.max(6, h)); // Timeline 06:00–23:00, nichts verlieren
     const list = byHour.get(hour) ?? [];
     list.push(item);
     byHour.set(hour, list);
@@ -428,28 +431,20 @@ export function CalendarClient() {
             })}
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Heute</h3>
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-amber-50 text-amber-800 border border-amber-100">🔥 1200 kcal</span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-sky-50 text-sky-700 border border-sky-100">💧 1.2L</span>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex-1 min-h-[100px]">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Heute fällig</h3>
-          <p className="text-sm text-gray-400">Keine Tasks oder Wetter eingebunden.</p>
-        </div>
       </aside>
 
       {/* ========== HAUPTBEREICH: Spatial Timeline ========== */}
-      <main ref={agendaRef} className="flex-1 min-w-0 flex flex-col relative overflow-auto">
-        <div className="px-4 py-3 border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-          <h1 className="text-xl font-bold text-gray-900">
+      <main
+        ref={agendaRef}
+        className="flex-1 min-w-0 flex flex-col relative overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar]:w-0"
+      >
+        <div className="px-4 py-3 border-b border-gray-100 bg-white sticky top-0 z-10 shrink-0">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             {isToday ? 'Heute' : WEEKDAYS_LONG[currentDate.getDay()]}, {currentDate.getDate()}. {MONTHS[currentDate.getMonth()]}
           </h1>
           {summary && <p className="text-sm text-gray-500 mt-0.5">{summary}</p>}
         </div>
-        <div className="relative flex-1 px-4 pb-32">
+        <div className="relative flex-1 px-4 pb-32 min-h-0">
           {nowLineTop != null && (
             <div className="absolute left-0 right-0 z-20 flex items-center pointer-events-none" style={{ top: nowLineTop }}>
               <span className="w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white shadow-md shrink-0 ml-[52px]" aria-hidden />
@@ -539,7 +534,14 @@ export function CalendarClient() {
             })}
           </div>
         </div>
-        <div className={cn('sticky bottom-6 z-50 px-4 pt-4', eventModal.open && 'pointer-events-none opacity-0')}>
+        {/* Command-Input: Mobile fixed über BottomNav, Desktop sticky – kein Rosa */}
+        <div
+          className={cn(
+            'z-40 px-4 pt-4',
+            'fixed bottom-[90px] left-4 right-4 md:relative md:bottom-auto md:left-auto md:right-auto md:sticky md:bottom-6',
+            eventModal.open && 'pointer-events-none opacity-0'
+          )}
+        >
           <div className="max-w-2xl mx-auto">
             {successMessage && (
               <p className="text-sm text-green-600 font-medium text-center bg-green-50 rounded-full py-2 px-4 border border-green-100 mb-2">✓ {successMessage}</p>
@@ -556,7 +558,7 @@ export function CalendarClient() {
             )}
             <form
               onSubmit={handleMagicSubmit}
-              className="flex items-center gap-2 p-2 backdrop-blur-xl bg-white/80 border border-gray-200 shadow-2xl rounded-2xl min-w-0 w-full"
+              className="flex items-center gap-2 p-2 bg-white border border-gray-200 shadow-xl shadow-gray-200/50 rounded-2xl min-w-0 w-full"
             >
               <button type="button" onClick={() => setEventModal({ open: true, date: dateKey, time: '09:00' })} className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" aria-label="Termin hinzufügen">
                 <Plus className="w-5 h-5" />
