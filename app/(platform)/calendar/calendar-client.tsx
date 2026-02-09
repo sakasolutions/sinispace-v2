@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { PageTransition } from '@/components/ui/PageTransition';
 import {
   ChevronLeft,
   ChevronRight,
@@ -31,6 +30,7 @@ import { parseNaturalLanguage, getSmartTags, type ParsedEvent, type SmartTag } f
 import { EventDetailSheet } from './event-detail-sheet';
 import { RecipePickerModal } from './recipe-picker-modal';
 import { SwipeableEventItem } from './swipeable-event-item';
+import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 const WEEKDAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 const WEEKDAYS_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
@@ -400,19 +400,25 @@ export function CalendarClient() {
   const dayLabel = `${isToday ? 'Heute' : WEEKDAYS_LONG[currentDate.getDay()]}, ${currentDate.getDate()}. ${MONTHS[currentDate.getMonth()]}`;
 
   return (
-    <PageTransition className="min-h-full w-full">
-      {/* ========== CINEMATIC HEADER (1:1 Dashboard) ========== */}
-      <header className="h-[38vh] min-h-[280px] w-full relative shrink-0 overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=1200&q=80"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/15 to-black/30 pointer-events-none" aria-hidden />
-        <div className="absolute inset-0 flex flex-col justify-end p-6 pb-5 text-white">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Dein Tag</h1>
-          <p className="text-base sm:text-lg text-white/95 mt-0.5">{dayLabel}</p>
-          {/* Wochen-Strip: direkt unter dem Datum, über dem Bild (1:1 Dashboard) */}
+    <>
+      <DashboardShell
+        headerVariant="default"
+        headerBackground={
+          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=1200&q=80)' }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/40 z-0" aria-hidden />
+          </div>
+        }
+        title={
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
+            Dein Tag
+          </h1>
+        }
+        subtitle={
+          <p className="text-sm sm:text-base mt-1 font-normal text-white/90" style={{ letterSpacing: '0.1px' }}>
+            {dayLabel}
+          </p>
+        }
+        headerExtra={
           <div className="flex gap-2 sm:gap-3 overflow-x-auto mt-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {weekDays.map((d) => {
               const dKey = toDateKey(d);
@@ -440,13 +446,10 @@ export function CalendarClient() {
               );
             })}
           </div>
-        </div>
-      </header>
-
-      {/* ========== CONTENT: Glas-Overlay (rutscht über Header) ========== */}
-      <div ref={agendaRef} className="-mt-20 relative z-10 px-4 max-w-3xl mx-auto pb-36">
-        {/* Event-Liste: Karten mit farbigem Akzent */}
-        <div className="flex flex-col gap-4">
+        }
+      >
+        <div ref={agendaRef} className="max-w-3xl mx-auto">
+          <div className="flex flex-col gap-4">
           {agendaItems.length === 0 ? (
             <div className="bg-white/80 backdrop-blur rounded-2xl p-8 text-center border border-gray-100 shadow-sm">
               <p className="text-gray-500">Keine Termine an diesem Tag.</p>
@@ -511,8 +514,9 @@ export function CalendarClient() {
               );
             })
           )}
+          </div>
         </div>
-      </div>
+      </DashboardShell>
 
       {/* ========== MAGIC INPUT (fixiert unten) ========== */}
       <div
@@ -642,6 +646,6 @@ export function CalendarClient() {
         onSubmit={handleEventSheetSubmit}
       />
       {recipeModal && <RecipePickerModal isOpen={recipeModal.open} onClose={() => setRecipeModal(null)} date={recipeModal.date} slot={recipeModal.slot} defaultTime={recipeModal.time} onSelect={handleAddMealFromRecipe} />}
-    </PageTransition>
+    </>
   );
 }
