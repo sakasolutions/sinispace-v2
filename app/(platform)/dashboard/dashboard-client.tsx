@@ -322,7 +322,7 @@ const allTools: Tool[] = [
     icon: ShoppingCart,
     color: 'orange',
     category: 'lifestyle',
-    href: '/tools/shopping',
+    href: '/tools/shopping-list',
     available: true,
     size: 'medium',
     priority: 'medium',

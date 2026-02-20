@@ -104,7 +104,7 @@ export function GourmetCockpit({ onVorschlagGenerieren }: Props) {
                 </div>
               </Link>
 
-              <Link href="/tools/shopping" className={cardClass} style={CARD_STYLE}>
+              <Link href="/tools/shopping-list" className={cardClass} style={CARD_STYLE}>
                 <div className="flex w-full justify-between items-start gap-2">
                   <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-600 to-rose-500 shadow-lg shadow-orange-600/30">
                     <ShoppingBasket className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />

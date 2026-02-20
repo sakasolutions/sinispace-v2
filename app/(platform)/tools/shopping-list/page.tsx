@@ -580,7 +580,7 @@ export default function ShoppingListPage() {
           <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-gray-200" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0 rounded-b-[40px]" aria-hidden />
           <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
-            <Link href="/tools/shopping" className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-full text-sm font-medium border border-white/10 mb-3">
+            <Link href="/dashboard" className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-full text-sm font-medium border border-white/10 mb-3">
               <ArrowLeft className="w-4 h-4" />
               Zurück
             </Link>
@@ -607,7 +607,7 @@ export default function ShoppingListPage() {
         title={
           <>
             <Link
-              href="/tools/shopping"
+              href="/dashboard"
               className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
