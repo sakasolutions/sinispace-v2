@@ -607,19 +607,11 @@ export default function ShoppingListPage() {
           </div>
         }
         subtitle={null}
-        headerPrimaryCTA={
-          <button
-            type="button"
-            onClick={() => { setPendingName(''); setModalNewList(true); }}
-            className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white font-bold text-sm transition-all shadow-lg"
-          >
-            <Plus className="w-4 h-4" />
-            Neue Liste
-          </button>
-        }
+        headerPrimaryCTA={null}
         headerActionsRight={
-          <div className="flex items-center gap-2">
-            <WhatIsThisModal
+          <div className="flex flex-col items-end gap-3 mt-2">
+            <div className="flex items-center gap-2">
+              <WhatIsThisModal
               title="Smart Einkaufsliste"
               content={
                 <div className="space-y-3 text-gray-700">
@@ -688,12 +680,21 @@ export default function ShoppingListPage() {
                 )}
               </div>
             )}
+            </div>
+            <button
+              type="button"
+              onClick={() => { setPendingName(''); setModalNewList(true); }}
+              className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold text-sm shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Neue Liste
+            </button>
           </div>
         }
       >
-        {/* Master Card (Tier-1 Dashboard-Style): Überlappung + Glass */}
-        <div className="-mt-6 relative z-10 max-w-5xl mx-auto px-4 sm:px-6 pb-20">
-          <div className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl rounded-3xl overflow-hidden min-h-[600px] p-4 sm:p-6">
+        {/* Master Card (Tier-1 Dashboard-Style): Overlap nur aus Shell (-mt-20), Breite aus Shell (max-w-7xl) */}
+        <div className="relative z-10 w-full pb-20">
+          <div className="bg-white/60 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden min-h-[600px] p-4 sm:p-6 md:p-8">
             {/* Listen-Navigation: Horizontaler Strip (volle Breite) */}
             <div className="w-full mb-4">
               <div className="w-full overflow-x-auto scrollbar-hide flex gap-2 min-h-0">
