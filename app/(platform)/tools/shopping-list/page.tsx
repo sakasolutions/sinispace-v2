@@ -22,6 +22,7 @@ import {
   RotateCcw,
   HelpCircle,
   MoreVertical,
+  Sparkles,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -604,6 +605,16 @@ export default function ShoppingListPage() {
             <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
               Dein intelligenter Begleiter
             </p>
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-medium">
+                <ShoppingCart className="w-3.5 h-3.5" />
+                {(activeList?.items.filter((i) => !i.checked).length ?? 0)} Offen
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-medium">
+                <Sparkles className="w-3.5 h-3.5" />
+                Smart Liste
+              </div>
+            </div>
           </div>
         }
         subtitle={null}
@@ -1001,8 +1012,8 @@ export default function ShoppingListPage() {
                 if (!storeMode) { setEditingItemId(null); setEditingQtyItemId(null); }
               }}
               className={cn(
-                'fixed z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all',
-                'bottom-24 right-4 md:bottom-8 md:right-8',
+                'fixed z-[60] w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all',
+                'bottom-[110px] right-4 md:bottom-8 md:right-8',
                 storeMode
                   ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700'
                   : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700'
