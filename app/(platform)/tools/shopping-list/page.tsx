@@ -597,7 +597,7 @@ export default function ShoppingListPage() {
           </div>
         }
         title={
-          <div className="pt-8 md:pt-12">
+          <div className="flex flex-col">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
               {activeList?.name ?? 'Smarte Einkaufsliste'}
             </h1>
@@ -684,7 +684,7 @@ export default function ShoppingListPage() {
             <button
               type="button"
               onClick={() => { setPendingName(''); setModalNewList(true); }}
-              className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold text-sm shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-medium text-sm backdrop-blur-md border border-white/30 transition-all"
             >
               <Plus className="w-4 h-4" />
               Neue Liste
@@ -992,7 +992,7 @@ export default function ShoppingListPage() {
           )}
           </div>
 
-          {/* FAB: Einkauf starten / Beenden (Store-Modus) */}
+          {/* FAB: Einkauf starten / Beenden (Store-Modus) – außerhalb der Glass-Card, schwebt unten rechts */}
           {activeList && (
             <button
               type="button"
@@ -1001,19 +1001,16 @@ export default function ShoppingListPage() {
                 if (!storeMode) { setEditingItemId(null); setEditingQtyItemId(null); }
               }}
               className={cn(
-                'fixed bottom-6 right-6 z-30 w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all',
+                'fixed z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all',
+                'bottom-24 right-4 md:bottom-8 md:right-8',
                 storeMode
-                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
-                  : 'bg-gradient-to-r from-orange-600 to-rose-500 text-white hover:from-orange-700 hover:to-rose-600 shadow-orange-500/30'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700'
+                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700'
               )}
               aria-label={storeMode ? 'Einkauf beenden' : 'Einkauf starten'}
               title={storeMode ? 'Beenden' : 'Einkauf starten'}
             >
-              {storeMode ? (
-                <ListChecks className="w-6 h-6" />
-              ) : (
-                <ShoppingCart className="w-6 h-6" />
-              )}
+              <ShoppingCart className="w-6 h-6" />
             </button>
           )}
         </div>
