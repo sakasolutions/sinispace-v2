@@ -573,13 +573,14 @@ export default function ShoppingListPage() {
             '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
           )}
         >
-          <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-gradient-to-br from-[#1a1c2e] via-[#2d1b4e] to-[#1a1c2e]" aria-hidden />
+          <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center" style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }} aria-hidden />
+          <div className="absolute top-0 left-0 w-full h-[280px] rounded-b-[40px] bg-gradient-to-b from-[#1a1c2e]/90 via-[#1a1c2e]/60 to-[#1a1c2e]/90 z-0" aria-hidden />
           <div className="pt-8 md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
             <div className="h-8 w-48 bg-white/20 rounded-lg animate-pulse" />
             <div className="h-4 w-64 mt-2 bg-white/10 rounded animate-pulse" />
           </div>
         </header>
-        <div className="relative z-10 mx-auto max-w-5xl px-4 pb-20 -mt-12">
+        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 pb-20 -mt-6">
           <div className="animate-pulse rounded-3xl bg-white/60 h-[600px]" />
         </div>
       </div>
@@ -591,7 +592,9 @@ export default function ShoppingListPage() {
       <DashboardShell
         headerVariant="withCTA"
         headerBackground={
-          <div className="relative w-full h-full bg-gradient-to-br from-[#1a1c2e] via-[#2d1b4e] to-[#1a1c2e]" aria-hidden />
+          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-[#1a1c2e]/90 via-[#1a1c2e]/60 to-[#1a1c2e]/90 z-0" aria-hidden />
+          </div>
         }
         title={
           <div className="pt-8 md:pt-12">
@@ -604,7 +607,16 @@ export default function ShoppingListPage() {
           </div>
         }
         subtitle={null}
-        headerPrimaryCTA={null}
+        headerPrimaryCTA={
+          <button
+            type="button"
+            onClick={() => { setPendingName(''); setModalNewList(true); }}
+            className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white font-bold text-sm transition-all shadow-lg"
+          >
+            <Plus className="w-4 h-4" />
+            Neue Liste
+          </button>
+        }
         headerActionsRight={
           <div className="flex items-center gap-2">
             <WhatIsThisModal
@@ -680,11 +692,11 @@ export default function ShoppingListPage() {
         }
       >
         {/* Master Card (Tier-1 Dashboard-Style): Überlappung + Glass */}
-        <div className="-mt-12 relative z-10 max-w-5xl mx-auto px-4 pb-20">
+        <div className="-mt-6 relative z-10 max-w-5xl mx-auto px-4 sm:px-6 pb-20">
           <div className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl rounded-3xl overflow-hidden min-h-[600px] p-4 sm:p-6">
-            {/* Listen-Navigation: Horizontaler Strip + fester "Neue Liste"-Button */}
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex-1 overflow-x-auto scrollbar-hide flex gap-2 min-h-0">
+            {/* Listen-Navigation: Horizontaler Strip (volle Breite) */}
+            <div className="w-full mb-4">
+              <div className="w-full overflow-x-auto scrollbar-hide flex gap-2 min-h-0">
                 {lists.map((l) => {
                   const isActive = activeListId === l.id;
                   return (
@@ -703,16 +715,6 @@ export default function ShoppingListPage() {
                     </button>
                   );
                 })}
-              </div>
-              <div className="shrink-0 pl-2 border-l border-gray-200/50">
-                <button
-                  type="button"
-                  onClick={() => { setPendingName(''); setModalNewList(true); }}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold text-sm shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
-                >
-                  <Plus className="w-4 h-4" />
-                  Neue Liste
-                </button>
               </div>
             </div>
 
