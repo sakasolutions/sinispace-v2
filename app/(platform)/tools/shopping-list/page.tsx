@@ -621,8 +621,10 @@ export default function ShoppingListPage() {
         headerPrimaryCTA={null}
         headerActionsRight={
           <div className="flex flex-col items-end">
-            <div className="flex items-center gap-2 -mt-1">
-              <WhatIsThisModal
+            {/* Erste Zeile: gleiche Höhe wie links (h1 + mt-1 + subtitle), damit mt-4 darunter exakt wie bei den Pills wirkt */}
+            <div className="min-h-[3.5rem] sm:min-h-[4rem] md:min-h-[4.25rem] flex items-start justify-end">
+              <div className="flex items-center gap-2 -mt-1">
+                <WhatIsThisModal
               title="Smart Einkaufsliste"
               content={
                 <div className="space-y-3 text-gray-700">
@@ -691,11 +693,13 @@ export default function ShoppingListPage() {
                 )}
               </div>
             )}
+              </div>
             </div>
+            {/* Zweite Zeile: mt-4 wie bei den Pills links – gleiche Definition = exakt gleiche Höhe */}
             <button
               type="button"
               onClick={() => { setPendingName(''); setModalNewList(true); }}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 hover:bg-white/20 transition-all mt-[36px]"
+              className="mt-4 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 hover:bg-white/20 transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
               Neue Liste
