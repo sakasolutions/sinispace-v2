@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { BackButton } from '@/components/ui/back-button';
 import {
   Plus,
   Trash2,
@@ -22,7 +20,6 @@ import {
   Snowflake,
   Share2,
   RotateCcw,
-  ArrowLeft,
   HelpCircle,
   MoreVertical,
 } from 'lucide-react';
@@ -47,7 +44,6 @@ import {
   sortCategoriesBySupermarktRoute,
 } from '@/lib/shopping-list-categories';
 import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
-import { CustomSelect } from '@/components/ui/custom-select';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import {
@@ -577,19 +573,14 @@ export default function ShoppingListPage() {
             '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
           )}
         >
-          <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-gray-200" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0 rounded-b-[40px]" aria-hidden />
-          <div className="dashboard-header-pt md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
-            <Link href="/dashboard" className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-full text-sm font-medium border border-white/10 mb-3">
-              <ArrowLeft className="w-4 h-4" />
-              Zurück
-            </Link>
+          <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-gradient-to-br from-[#1a1c2e] via-[#2d1b4e] to-[#1a1c2e]" aria-hidden />
+          <div className="pt-8 md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
             <div className="h-8 w-48 bg-white/20 rounded-lg animate-pulse" />
             <div className="h-4 w-64 mt-2 bg-white/10 rounded animate-pulse" />
           </div>
         </header>
-        <div className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 -mt-20">
-          <div className="animate-pulse rounded-2xl bg-gray-100 h-64" />
+        <div className="relative z-10 mx-auto max-w-5xl px-4 pb-20 -mt-12">
+          <div className="animate-pulse rounded-3xl bg-white/60 h-[600px]" />
         </div>
       </div>
     );
@@ -600,151 +591,134 @@ export default function ShoppingListPage() {
       <DashboardShell
         headerVariant="withCTA"
         headerBackground={
-          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/65 to-black/45 z-0" aria-hidden />
-          </div>
+          <div className="relative w-full h-full bg-gradient-to-br from-[#1a1c2e] via-[#2d1b4e] to-[#1a1c2e]" aria-hidden />
         }
         title={
-          <>
-            <Link
-              href="/dashboard"
-              className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Zurück
-            </Link>
+          <div className="pt-8 md:pt-12">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-              {activeList?.name ?? 'Einkaufsliste'}
+              {activeList?.name ?? 'Smarte Einkaufsliste'}
             </h1>
             <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
-              Smart Input & KI-Kategorien. Einzel-Item oder Liste einfügen.
+              Dein intelligenter Begleiter
             </p>
-          </>
+          </div>
         }
         subtitle={null}
         headerPrimaryCTA={null}
         headerActionsRight={
-          <div className="flex flex-col items-end justify-end gap-3">
-            <div className="flex items-center gap-2">
-              <WhatIsThisModal
-                title="Smart Einkaufsliste"
-                content={
-                  <div className="space-y-3 text-gray-700">
-                    <p>
-                      Deine intelligente Einkaufsliste mit <strong>KI-gestützter Analyse</strong>. Tippe einfach ein Produkt ein – die AI erkennt automatisch Kategorien, korrigiert Tippfehler und sortiert alles nach Supermarkt-Route.
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <strong>Keine Mengen?</strong> Kein Problem. Gib nur an, was du brauchst ("Milch") oder mit Mengen ("3 Tomaten"). Die AI passt sich an.
-                    </p>
-                  </div>
-                }
-                examples={[
-                  '3 Tomaten → AI: 3x Tomaten (Obst/Gemüse)',
-                  'Milch → AI: Milch (Kühlregal)',
-                  'Kusbasi → AI: Kusbasi (Fleisch) - keine Korrektur!',
-                ]}
-                useCases={[
-                  'Einzelne Produkte eintippen oder ganze Listen einfügen (z.B. aus WhatsApp)',
-                  'AI korrigiert Tippfehler, behält aber kulturelle Begriffe bei',
-                  'Automatische Sortierung nach Supermarkt-Gang (Obst/Gemüse → Fleisch → Kühlregal...)',
-                  'Store-Modus: Große Checkboxen für einfaches Abhaken beim Einkaufen',
-                ]}
-                tips={[
-                  'Füge mehrere Produkte mit Zeilenumbrüchen oder Kommas ein',
-                  'Die AI merkt sich häufig gekaufte Artikel (Chips "Oft gekauft")',
-                  'Im Store-Modus sind alle Bearbeitungs-Funktionen ausgeblendet',
-                ]}
-                trigger={
-                  <button type="button" aria-label="Was ist das?" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
-                  </button>
-                }
-              />
-              <button
-                type="button"
-                onClick={shareList}
-                aria-label="Liste teilen"
-                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-              {activeList && !storeMode && (
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setHeaderMenuOpen((o) => !o)}
-                    aria-label="Weitere Aktionen"
-                    className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
-                  >
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
-                  {headerMenuOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" aria-hidden onClick={() => setHeaderMenuOpen(false)} />
-                      <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-                        <button type="button" onClick={() => { openRename(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                          <Pencil className="w-4 h-4" />
-                          Liste umbenennen
-                        </button>
-                        <button type="button" onClick={() => { openDelete(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
-                          <Trash2 className="w-4 h-4" />
-                          Liste löschen
-                        </button>
-                      </div>
-                    </>
-                  )}
+          <div className="flex items-center gap-2">
+            <WhatIsThisModal
+              title="Smart Einkaufsliste"
+              content={
+                <div className="space-y-3 text-gray-700">
+                  <p>
+                    Deine intelligente Einkaufsliste mit <strong>KI-gestützter Analyse</strong>. Tippe einfach ein Produkt ein – die AI erkennt automatisch Kategorien, korrigiert Tippfehler und sortiert alles nach Supermarkt-Route.
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <strong>Keine Mengen?</strong> Kein Problem. Gib nur an, was du brauchst ("Milch") oder mit Mengen ("3 Tomaten"). Die AI passt sich an.
+                  </p>
                 </div>
-              )}
-            </div>
-            <div className="min-w-0 w-full max-w-[220px] sm:max-w-[260px]">
-              <CustomSelect
-                value={activeListId ?? ''}
-                onChange={(v) => setActiveListId(v)}
-                options={lists.map((l) => ({ value: l.id, label: l.name }))}
-                placeholder="Liste wählen…"
-                theme="light"
-                icon={ListChecks}
-                dropdownInPortal
-              />
-            </div>
+              }
+              examples={[
+                '3 Tomaten → AI: 3x Tomaten (Obst/Gemüse)',
+                'Milch → AI: Milch (Kühlregal)',
+                'Kusbasi → AI: Kusbasi (Fleisch) - keine Korrektur!',
+              ]}
+              useCases={[
+                'Einzelne Produkte eintippen oder ganze Listen einfügen (z.B. aus WhatsApp)',
+                'AI korrigiert Tippfehler, behält aber kulturelle Begriffe bei',
+                'Automatische Sortierung nach Supermarkt-Gang (Obst/Gemüse → Fleisch → Kühlregal...)',
+                'Store-Modus: Große Checkboxen für einfaches Abhaken beim Einkaufen',
+              ]}
+              tips={[
+                'Füge mehrere Produkte mit Zeilenumbrüchen oder Kommas ein',
+                'Die AI merkt sich häufig gekaufte Artikel (Chips "Oft gekauft")',
+                'Im Store-Modus sind alle Bearbeitungs-Funktionen ausgeblendet',
+              ]}
+              trigger={
+                <button type="button" aria-label="Was ist das?" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors">
+                  <HelpCircle className="w-4 h-4" />
+                </button>
+              }
+            />
             <button
               type="button"
-              onClick={() => { setPendingName(''); setModalNewList(true); }}
-              className="mt-2 w-full max-w-[220px] sm:max-w-[260px] inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold text-sm shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+              onClick={shareList}
+              aria-label="Liste teilen"
+              className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
             >
-              <Plus className="w-4 h-4" />
-              Neue Liste
+              <Share2 className="w-4 h-4" />
             </button>
+            {activeList && !storeMode && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setHeaderMenuOpen((o) => !o)}
+                  aria-label="Weitere Aktionen"
+                  className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+                {headerMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" aria-hidden onClick={() => setHeaderMenuOpen(false)} />
+                    <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+                      <button type="button" onClick={() => { openRename(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                        <Pencil className="w-4 h-4" />
+                        Liste umbenennen
+                      </button>
+                      <button type="button" onClick={() => { openDelete(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                        <Trash2 className="w-4 h-4" />
+                        Liste löschen
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         }
       >
-        <section className="mb-8 md:mb-10 pb-32">
-          <div className="space-y-4 md:max-w-3xl md:mx-auto px-4 sm:px-6 md:px-8">
-
-        {saveErrorMessage && (
-          <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
-            <div className="font-medium mb-1">Sync fehlgeschlagen.</div>
-            <div className="text-red-700 mb-3">{saveErrorMessage}</div>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={async () => { const { success, error } = await saveShoppingLists(lists); setSaveErrorMessage(success ? null : (error ?? 'Unbekannter Fehler')); }} className="px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-medium text-sm transition-colors">Erneut versuchen</button>
-              <button type="button" onClick={() => window.location.reload()} className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors">Seite neu laden</button>
+        {/* Master Card (Tier-1 Dashboard-Style): Überlappung + Glass */}
+        <div className="-mt-12 relative z-10 max-w-5xl mx-auto px-4 pb-20">
+          <div className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl rounded-3xl overflow-hidden min-h-[600px] p-4 sm:p-6">
+            {/* Listen-Navigation: Horizontaler Strip + fester "Neue Liste"-Button */}
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex-1 overflow-x-auto scrollbar-hide flex gap-2 min-h-0">
+                {lists.map((l) => {
+                  const isActive = activeListId === l.id;
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      onClick={() => setActiveListId(l.id)}
+                      className={cn(
+                        'shrink-0 rounded-2xl border py-2 px-4 text-sm font-medium transition-all',
+                        isActive
+                          ? 'bg-gradient-to-br from-orange-600 to-rose-600 text-white border-transparent shadow-md'
+                          : 'bg-white/60 text-gray-600 border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/80'
+                      )}
+                    >
+                      {l.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="shrink-0 pl-2 border-l border-gray-200/50">
+                <button
+                  type="button"
+                  onClick={() => { setPendingName(''); setModalNewList(true); }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold text-sm shadow-lg shadow-orange-900/30 hover:from-orange-700 hover:to-rose-600 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  Neue Liste
+                </button>
+              </div>
             </div>
-          </div>
-        )}
 
-        {activeList ? (
-            <>
-              <SummaryCard
-                progressLabel={`${checked.length}/${activeList.items.length} erledigt`}
-                progressPercent={activeList.items.length ? (checked.length / activeList.items.length) * 100 : 0}
-                storeMode={storeMode}
-                onToggleStoreMode={() => {
-                  setStoreMode((m) => !m);
-                  if (!storeMode) { setEditingItemId(null); setEditingQtyItemId(null); }
-                }}
-              />
-
-              {!storeMode && (
+            {/* Command Bar: Eingabefeld direkt unter der Listen-Navigation */}
+            {activeList && !storeMode && (
+              <div className="bg-white shadow-lg border border-gray-100 rounded-2xl p-2 mb-6">
                 <FloatingQuickAddCard
                   inputSlot={
                     <div ref={inputContainerRef} className="relative w-full">
@@ -809,7 +783,32 @@ export default function ShoppingListPage() {
                     </div>
                   ) : undefined}
                 />
-              )}
+              </div>
+            )}
+
+        {saveErrorMessage && (
+          <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
+            <div className="font-medium mb-1">Sync fehlgeschlagen.</div>
+            <div className="text-red-700 mb-3">{saveErrorMessage}</div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={async () => { const { success, error } = await saveShoppingLists(lists); setSaveErrorMessage(success ? null : (error ?? 'Unbekannter Fehler')); }} className="px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-medium text-sm transition-colors">Erneut versuchen</button>
+              <button type="button" onClick={() => window.location.reload()} className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors">Seite neu laden</button>
+            </div>
+          </div>
+        )}
+
+        {activeList ? (
+            <>
+              <SummaryCard
+                progressLabel={`${checked.length}/${activeList.items.length} erledigt`}
+                progressPercent={activeList.items.length ? (checked.length / activeList.items.length) * 100 : 0}
+                storeMode={storeMode}
+                onToggleStoreMode={() => {
+                  setStoreMode((m) => !m);
+                  if (!storeMode) { setEditingItemId(null); setEditingQtyItemId(null); }
+                }}
+                showStoreModeButton={false}
+              />
 
               {unchecked.length === 0 && checked.length === 0 ? (
                 <div className="mt-8 p-8 sm:p-12 text-center bg-white rounded-3xl shadow-xl border border-gray-100">
@@ -989,7 +988,32 @@ export default function ShoppingListPage() {
             </div>
           )}
           </div>
-        </section>
+
+          {/* FAB: Einkauf starten / Beenden (Store-Modus) */}
+          {activeList && (
+            <button
+              type="button"
+              onClick={() => {
+                setStoreMode((m) => !m);
+                if (!storeMode) { setEditingItemId(null); setEditingQtyItemId(null); }
+              }}
+              className={cn(
+                'fixed bottom-6 right-6 z-30 w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all',
+                storeMode
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                  : 'bg-gradient-to-r from-orange-600 to-rose-500 text-white hover:from-orange-700 hover:to-rose-600 shadow-orange-500/30'
+              )}
+              aria-label={storeMode ? 'Einkauf beenden' : 'Einkauf starten'}
+              title={storeMode ? 'Beenden' : 'Einkauf starten'}
+            >
+              {storeMode ? (
+                <ListChecks className="w-6 h-6" />
+              ) : (
+                <ShoppingCart className="w-6 h-6" />
+              )}
+            </button>
+          )}
+        </div>
 
       {toast && (
         <div
