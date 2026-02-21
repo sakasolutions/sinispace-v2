@@ -702,6 +702,10 @@ export default function ShoppingListPage() {
                         <Smartphone className="w-5 h-5 text-rose-500 shrink-0" />
                         <span><strong>WhatsApp-Import:</strong> Füge eine kopierte Liste ins Eingabefeld ein – wir machen den Rest!</span>
                       </li>
+                      <li className="flex items-center gap-3 mt-2">
+                        <ShoppingCart className="w-5 h-5 text-blue-500 shrink-0" />
+                        <span><strong>Einkaufs-Modus:</strong> Der blaue Button unten rechts blendet alles Unnötige aus – für den perfekten Überblick im Supermarkt.</span>
+                      </li>
                     </ul>
                   </div>
                 }
