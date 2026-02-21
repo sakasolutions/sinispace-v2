@@ -40,8 +40,8 @@ import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Kurze Untertitel – visuelle Dichte (1–2 Wörter) */
 const TOOL_SUBTITLES: Record<string, string> = {
-  recipe: 'Planer & Rezepte',
-  'shopping-list': 'Smarte Listen',
+  recipe: 'Was koche ich heute?',
+  'shopping-list': 'Intelligente Einkaufsplanung',
   pdf: 'Bilder zu PDF',
   email: 'Vorlagen & Hilfe',
   polish: 'Korrektur & Stil',

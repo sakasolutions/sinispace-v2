@@ -112,7 +112,7 @@ export function GourmetCockpit({ onVorschlagGenerieren }: Props) {
                 </div>
                 <div className="w-full text-left">
                   <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">SmartCart</h3>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Smarte Listen</p>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Intelligente Einkaufsplanung</p>
                 </div>
               </Link>
             </div>

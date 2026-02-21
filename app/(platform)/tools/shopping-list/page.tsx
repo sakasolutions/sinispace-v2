@@ -751,11 +751,11 @@ export default function ShoppingListPage() {
                 </div>
               )}
             </div>
-            {/* Untere Reihe: Button wächst responsiv synchron mit der linken Spalte */}
+            {/* Untere Reihe: Button auf Höhe der linken Pills (symmetrisch) */}
             <button
               type="button"
               onClick={() => { setPendingName(''); setModalNewList(true); }}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 hover:bg-white/20 transition-all mt-8 sm:mt-10 md:mt-4"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 hover:bg-white/20 transition-all mt-8 sm:mt-9 md:mt-7"
             >
               <Plus className="w-3.5 h-3.5" />
               Neue Liste
