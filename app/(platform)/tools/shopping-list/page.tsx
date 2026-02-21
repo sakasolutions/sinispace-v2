@@ -47,7 +47,7 @@ import {
   normalizeItemName,
   sortCategoriesBySupermarktRoute,
 } from '@/lib/shopping-list-categories';
-import { analyzeShoppingItem } from '@/actions/shopping-list-ai';
+import { analyzeShoppingItems } from '@/actions/shopping-list-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import {
@@ -71,7 +71,7 @@ const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   Snowflake,
 };
 
-/** Smart Input & Paste Magic: Einzel-Item vs. Liste (Umbrüche/Kommas) */
+/** Teilt Rohtext in Zeilen/Chunks (für lokalen Fallback bei KI-Fehler). */
 function splitInput(raw: string): string[] {
   return raw
     .split(/[\n,;]+/)
@@ -100,13 +100,15 @@ function parseQtyInput(raw: string): { quantity: number | null; unit: string | n
   return { quantity: q, unit: u || null };
 }
 
-function processChunk(
-  raw: string,
+/** Fallback: Bei KI-Fehler oder leerer Antwort Items lokal splitten und als 'sonstiges' einfügen (kein Datenverlust). */
+function addFallbackItems(
+  rawInput: string,
   listId: string,
   setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>,
   onItemDone?: (displayText: string) => void
 ) {
-  const id = generateId();
+  const chunks = splitInput(rawInput);
+  if (chunks.length === 0) return;
   setLists((prev) =>
     prev.map((l) =>
       l.id !== listId
@@ -115,74 +117,74 @@ function processChunk(
             ...l,
             items: [
               ...l.items,
-              {
-                id,
-                text: raw,
-                checked: false,
-                status: 'analyzing' as const,
-                rawInput: raw,
-              },
+              ...chunks.map((text): ShoppingItem => {
+                onItemDone?.(text);
+                return {
+                  id: generateId(),
+                  text,
+                  category: 'sonstiges',
+                  quantity: null,
+                  unit: null,
+                  status: 'done',
+                  rawInput: text,
+                  checked: false,
+                };
+              }),
             ],
           }
     )
   );
+}
 
-  analyzeShoppingItem(raw).then((res) => {
-    setLists((prev) => {
-      const list = prev.find((l) => l.id === listId);
-      if (!list) return prev;
-      const idx = list.items.findIndex((i) => i.id === id);
-      if (idx < 0) return prev;
-      const item = list.items[idx]!;
+/** Batch: Gesamten Input einmal an KI senden; bei Erfolg alle Items einfügen (mit Merge), bei Fehler Fallback (lokal splitten, sonstiges). */
+function processSmartInput(
+  rawInput: string,
+  listId: string,
+  setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>,
+  onItemDone?: (displayText: string) => void
+) {
+  const trimmed = rawInput.trim();
+  if (!trimmed || !listId) return;
 
-      if (res.error) {
-        const done: ShoppingItem =
-          res.error === 'PREMIUM_REQUIRED'
-            ? { ...item, status: 'done', text: item.rawInput ?? item.text }
-            : { ...item, status: 'error' };
-        if (done.status === 'done') onItemDone?.(done.text);
-        return prev.map((l) =>
-          l.id !== listId ? l : { ...l, items: list.items.map((it, i) => (i === idx ? done : it)) }
-        );
-      }
-
-      const data = res.data!;
-      const norm = normalizeItemName(data.name);
-      const other = list.items.find(
-        (i) =>
-          !i.checked &&
-          i.status === 'done' &&
-          i.id !== id &&
-          normalizeItemName(i.text) === norm
-      );
-
-      if (other) {
-        const qA = data.quantity ?? null;
-        const qO = other.quantity ?? null;
-        if (qA != null && qO != null) {
-          const q = qA + qO;
-          const updated = { ...other, quantity: q, unit: other.unit ?? data.unit ?? null };
-          onItemDone?.(updated.text);
-          const items = list.items
-            .filter((it) => it.id !== id)
-            .map((it) => (it.id === other.id ? updated : it));
-          return prev.map((l) => (l.id !== listId ? l : { ...l, items }));
+  analyzeShoppingItems(trimmed).then((res) => {
+    if (res.data && res.data.length > 0) {
+      setLists((prev) => {
+        const list = prev.find((l) => l.id === listId);
+        if (!list) return prev;
+        let currentItems = [...list.items];
+        for (const data of res.data!) {
+          const norm = normalizeItemName(data.name);
+          const existing = currentItems.find(
+            (i) => !i.checked && i.status === 'done' && normalizeItemName(i.text) === norm
+          );
+          if (existing && data.quantity != null && existing.quantity != null) {
+            const updated: ShoppingItem = {
+              ...existing,
+              quantity: existing.quantity + data.quantity,
+              unit: existing.unit ?? data.unit ?? null,
+            };
+            currentItems = currentItems.map((it) => (it.id === existing.id ? updated : it));
+            onItemDone?.(updated.text);
+          } else {
+            const newItem: ShoppingItem = {
+              id: generateId(),
+              text: data.name,
+              category: data.category,
+              quantity: data.quantity ?? null,
+              unit: data.unit ?? null,
+              status: 'done',
+              rawInput: trimmed,
+              checked: false,
+            };
+            currentItems = [...currentItems, newItem];
+            onItemDone?.(newItem.text);
+          }
         }
-      }
-
-      const updated: ShoppingItem = {
-        ...item,
-        text: data.name,
-        category: data.category,
-        quantity: data.quantity ?? null,
-        unit: data.unit ?? null,
-        status: 'done',
-        rawInput: raw,
-      };
-      onItemDone?.(updated.text);
-      const items = list.items.map((it, i) => (i === idx ? updated : it));
-      return prev.map((l) => (l.id !== listId ? l : { ...l, items }));
-    });
+        return prev.map((l) => (l.id !== listId ? l : { ...l, items: currentItems }));
+      });
+    } else {
+      addFallbackItems(trimmed, listId, setLists, onItemDone);
+    }
   });
 }
 
@@ -373,13 +375,11 @@ export default function ShoppingListPage() {
   };
 
   const submitSmartInput = useCallback(() => {
-    const chunks = splitInput(newItemInput);
-    if (chunks.length === 0 || !activeListId) return;
+    const raw = newItemInput.trim();
+    if (!raw || !activeListId) return;
     setNewItemInput('');
     setTypeAheadOpen(false);
-    chunks.forEach((raw) =>
-      processChunk(raw, activeListId, setLists, (text) => recordFrequentItem(text))
-    );
+    processSmartInput(raw, activeListId, setLists, (text) => recordFrequentItem(text));
   }, [newItemInput, activeListId]);
 
   const toggleItem = (listId: string, itemId: string) => {
@@ -758,8 +758,9 @@ export default function ShoppingListPage() {
                             e.preventDefault();
                             if (typeAheadOpen && typeAheadSuggestions.length > 0) {
                               const first = typeAheadSuggestions[0]!.itemLabel;
-                              processChunk(first, activeList.id, setLists, (t) => recordFrequentItem(t));
-                              setNewItemInput(''); setTypeAheadOpen(false);
+                              processSmartInput(first, activeList.id, setLists, (t) => recordFrequentItem(t));
+                              setNewItemInput('');
+                              setTypeAheadOpen(false);
                               return;
                             }
                             submitSmartInput();
@@ -768,11 +769,12 @@ export default function ShoppingListPage() {
                         }}
                         onPaste={(e) => {
                           const pasted = (e.clipboardData?.getData?.('text') ?? '').trim();
-                          const chunks = splitInput(pasted);
-                          if (chunks.length > 0 && activeListId) {
-                            e.preventDefault(); e.stopPropagation();
-                            chunks.forEach((raw) => processChunk(raw, activeListId, setLists, (text) => recordFrequentItem(text)));
-                            setNewItemInput(''); setTypeAheadOpen(false);
+                          if (pasted && activeListId) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            processSmartInput(pasted, activeListId, setLists, (text) => recordFrequentItem(text));
+                            setNewItemInput('');
+                            setTypeAheadOpen(false);
                           }
                         }}
                         placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
@@ -781,7 +783,7 @@ export default function ShoppingListPage() {
                       {typeAheadOpen && typeAheadSuggestions.length > 0 && (
                         <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
                           {typeAheadSuggestions.map((s) => (
-                            <button key={s.itemLabel} type="button" className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-orange-50 transition-colors" onMouseDown={(e) => { e.preventDefault(); processChunk(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); setNewItemInput(''); setTypeAheadOpen(false); }}>
+                            <button key={s.itemLabel} type="button" className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-orange-50 transition-colors" onMouseDown={(e) => { e.preventDefault(); processSmartInput(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); setNewItemInput(''); setTypeAheadOpen(false); }}>
                               {capitalizeLabel(s.itemLabel)}
                             </button>
                           ))}
@@ -790,17 +792,17 @@ export default function ShoppingListPage() {
                     </div>
                   }
                   addButton={
-                    <button type="button" onClick={submitSmartInput} disabled={!splitInput(newItemInput).length} className="w-12 h-12 shrink-0 aspect-square rounded-xl flex items-center justify-center transition-all bg-gradient-to-r from-orange-600 to-rose-500 text-white shadow-lg shadow-rose-500/20 hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed" title="Hinzufügen">
+                    <button type="button" onClick={submitSmartInput} disabled={!newItemInput.trim()} className="w-12 h-12 shrink-0 aspect-square rounded-xl flex items-center justify-center transition-all bg-gradient-to-r from-orange-600 to-rose-500 text-white shadow-lg shadow-rose-500/20 hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed" title="Hinzufügen">
                       <Plus className="w-6 h-6" />
                     </button>
                   }
-                  helperText="Liste aus WhatsApp einfügen → Zeilen/Kommas werden erkannt, jedes Item einzeln analysiert."
+                  helperText="Liste aus WhatsApp einfügen → Ein Klick, die KI sortiert alles in einem Durchgang."
                   frequentChips={inputFocused && !newItemInput.trim() && frequentItems.length > 0 ? (
                     <div className="mt-3">
                       <p className="text-xs font-medium text-gray-500 mb-2">Oft gekauft</p>
                       <div className="flex gap-2 overflow-x-auto pb-1">
                         {frequentItems.map((f) => (
-                          <button key={f.itemLabel} type="button" onClick={() => { processChunk(f.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); loadFrequentItems(); }} className="shrink-0 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-700 text-sm font-medium transition-colors">
+                          <button key={f.itemLabel} type="button" onClick={() => { processSmartInput(f.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); loadFrequentItems(); }} className="shrink-0 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-700 text-sm font-medium transition-colors">
                             {capitalizeLabel(f.itemLabel)}
                           </button>
                         ))}

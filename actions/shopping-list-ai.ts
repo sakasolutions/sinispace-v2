@@ -17,25 +17,36 @@ const CATEGORIES = [
 
 const CategoryEnum = z.enum(CATEGORIES);
 
-const AnalysisSchema = z.object({
+const ItemSchema = z.object({
   name: z.string().min(1),
   quantity: z.number().nullable().optional(),
   unit: z.string().nullable().optional(),
-  category: CategoryEnum,
+  category: z.string(),
 });
 
-export type ShoppingItemAnalysis = z.infer<typeof AnalysisSchema>;
+const OutputSchema = z.object({
+  items: z.array(ItemSchema),
+});
+
+export type ShoppingItemAnalysis = {
+  name: string;
+  quantity: number | null;
+  unit: string | null;
+  category: (typeof CATEGORIES)[number];
+};
+
+const CATEGORY_LIST = CATEGORIES.join(', ');
 
 const JSON_FORMAT = `{
-  "name": "Korrigierter Produktname",
-  "quantity": null,
-  "unit": null,
-  "category": "obst_gemuese"
+  "items": [
+    { "name": "Korrigierter Produktname", "quantity": null, "unit": null, "category": "obst_gemuese" }
+  ]
 }`;
 
 const SYSTEM_PROMPT = `Du bist ein Einkaufs-Assistent für deutsche Supermärkte.
-Analysiere den User-Input. Aufgaben:
+Analysiere den User-Input, der aus einem oder mehreren Artikeln bestehen kann (z.B. eine WhatsApp-Liste, Zeilen oder Komma-getrennt).
 
+Aufgaben:
 1. Rechtschreibung: Korrigiere Tippfehler NUR, wenn du dir zu 99% sicher bist.
    Wenn ein Wort wie eine spezifische Zutat aus einer anderen Küche aussieht (z.B. Kusbasi, Sucuk, Pak Choi, Mochi, Halloumi, Harissa, Tahini), behalte das Originalwort bei. Ändere es NICHT in ein ähnliches deutsches Wort.
 
@@ -44,14 +55,23 @@ Analysiere den User-Input. Aufgaben:
    - "500g Hack" → quantity: 500, unit: "g".
    - Wenn der User KEINE Menge angibt (z.B. nur "Milch", "Brot"), setze quantity: null und unit: null. Erfinde KEINE Standard-Menge.
 
-3. Kategorie wählen: genau eine von obst_gemuese, kuhlregal, fleisch, brot, haushalt, getraenke, tiefkuhl, sonstiges.
+3. Kategorie: für jeden Artikel genau eine wählen. Erlaubt sind NUR: ${CATEGORY_LIST}.
 
-Antworte NUR mit validem JSON, kein anderer Text. Format: ${JSON_FORMAT}`;
+Antworte NUR mit validem JSON, kein anderer Text. Gib IMMER ein Array von Objekten zurück, auch bei nur einem Artikel.
+Format: ${JSON_FORMAT}`;
 
-export async function analyzeShoppingItem(
+function normalizeCategory(category: string): (typeof CATEGORIES)[number] {
+  const lower = category?.trim().toLowerCase() ?? '';
+  if (CategoryEnum.safeParse(lower).success) {
+    return lower as (typeof CATEGORIES)[number];
+  }
+  return 'sonstiges';
+}
+
+export async function analyzeShoppingItems(
   inputString: string
-): Promise<{ data?: ShoppingItemAnalysis; error?: string }> {
-  const trimmed = (inputString ?? '').trim().slice(0, 500);
+): Promise<{ data?: ShoppingItemAnalysis[]; error?: string }> {
+  const trimmed = (inputString ?? '').trim().slice(0, 2000);
   if (!trimmed) {
     return { error: 'Leerer Eingabetext.' };
   }
@@ -88,16 +108,37 @@ export async function analyzeShoppingItem(
       return { error: 'Ungültiges JSON von der KI.' };
     }
 
-    const parsed = AnalysisSchema.safeParse(raw);
+    const parsed = OutputSchema.safeParse(raw);
     if (!parsed.success) {
       return { error: 'KI-Antwort hat falsches Format.' };
     }
 
-    return { data: parsed.data };
+    const items: ShoppingItemAnalysis[] = parsed.data.items.map((item) => ({
+      name: item.name.trim(),
+      quantity: item.quantity ?? null,
+      unit: item.unit ?? null,
+      category: normalizeCategory(item.category),
+    }));
+
+    if (items.length === 0) {
+      return { error: 'KI hat keine Artikel zurückgegeben.' };
+    }
+
+    return { data: items };
   } catch (e) {
     console.error('[shopping-list-ai]', e);
     return {
       error: e instanceof Error ? e.message : 'Fehler bei der Analyse. Bitte erneut versuchen.',
     };
   }
+}
+
+/** @deprecated Nutze analyzeShoppingItems. Liefert nur das erste Item für Abwärtskompatibilität. */
+export async function analyzeShoppingItem(
+  inputString: string
+): Promise<{ data?: ShoppingItemAnalysis; error?: string }> {
+  const res = await analyzeShoppingItems(inputString);
+  if (res.error) return { error: res.error };
+  if (res.data?.length) return { data: res.data[0] };
+  return { error: 'KI hat keine Artikel zurückgegeben.' };
 }
