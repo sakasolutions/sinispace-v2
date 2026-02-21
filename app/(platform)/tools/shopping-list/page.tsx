@@ -799,56 +799,57 @@ export default function ShoppingListPage() {
               <div className="mb-6 w-full">
                 <FloatingQuickAddCard
                   inputSlot={
-                    <div ref={inputContainerRef} className="relative w-full">
-                      <input
-                        type="text"
-                        value={newItemInput}
-                        onChange={(e) => setNewItemInput(e.target.value)}
-                        onFocus={() => { setInputFocused(true); if (!newItemInput.trim()) loadFrequentItems(); }}
-                        onBlur={() => { setTimeout(() => { setInputFocused(false); setTypeAheadOpen(false); }, 180); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            if (typeAheadOpen && typeAheadSuggestions.length > 0) {
-                              const first = typeAheadSuggestions[0]!.itemLabel;
-                              processSmartInput(first, activeList.id, setLists, (t) => recordFrequentItem(t));
+                    <div className="flex items-center bg-white/40 backdrop-blur-md border border-white/60 rounded-full p-1 shadow-sm focus-within:ring-2 focus-within:ring-red-400/40 transition-all w-full">
+                      <div ref={inputContainerRef} className="relative flex-1 min-w-0">
+                        <input
+                          type="text"
+                          value={newItemInput}
+                          onChange={(e) => setNewItemInput(e.target.value)}
+                          onFocus={() => { setInputFocused(true); if (!newItemInput.trim()) loadFrequentItems(); }}
+                          onBlur={() => { setTimeout(() => { setInputFocused(false); setTypeAheadOpen(false); }, 180); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (typeAheadOpen && typeAheadSuggestions.length > 0) {
+                                const first = typeAheadSuggestions[0]!.itemLabel;
+                                processSmartInput(first, activeList.id, setLists, (t) => recordFrequentItem(t));
+                                setNewItemInput('');
+                                setTypeAheadOpen(false);
+                                return;
+                              }
+                              submitSmartInput();
+                            }
+                            if (e.key === 'Escape') setTypeAheadOpen(false);
+                          }}
+                          onPaste={(e) => {
+                            const pasted = (e.clipboardData?.getData?.('text') ?? '').trim();
+                            if (pasted && activeListId) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              processSmartInput(pasted, activeListId, setLists, (text) => recordFrequentItem(text));
                               setNewItemInput('');
                               setTypeAheadOpen(false);
-                              return;
                             }
-                            submitSmartInput();
-                          }
-                          if (e.key === 'Escape') setTypeAheadOpen(false);
-                        }}
-                        onPaste={(e) => {
-                          const pasted = (e.clipboardData?.getData?.('text') ?? '').trim();
-                          if (pasted && activeListId) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            processSmartInput(pasted, activeListId, setLists, (text) => recordFrequentItem(text));
-                            setNewItemInput('');
-                            setTypeAheadOpen(false);
-                          }
-                        }}
-                        placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
-                        className="w-full bg-white/50 focus:bg-white/80 border border-gray-200/50 rounded-xl px-4 py-3 text-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200/50 transition-all"
-                      />
-                      {typeAheadOpen && typeAheadSuggestions.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
-                          {typeAheadSuggestions.map((s) => (
-                            <button key={s.itemLabel} type="button" className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-orange-50 transition-colors" onMouseDown={(e) => { e.preventDefault(); processSmartInput(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); setNewItemInput(''); setTypeAheadOpen(false); }}>
-                              {capitalizeLabel(s.itemLabel)}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                          }}
+                          placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
+                          className="flex-1 w-full min-w-0 bg-transparent border-none outline-none focus:ring-0 px-4 py-2 text-gray-800 placeholder:text-gray-500"
+                        />
+                        {typeAheadOpen && typeAheadSuggestions.length > 0 && (
+                          <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
+                            {typeAheadSuggestions.map((s) => (
+                              <button key={s.itemLabel} type="button" className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-orange-50 transition-colors" onMouseDown={(e) => { e.preventDefault(); processSmartInput(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); setNewItemInput(''); setTypeAheadOpen(false); }}>
+                                {capitalizeLabel(s.itemLabel)}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button type="button" onClick={submitSmartInput} disabled={!newItemInput.trim()} className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center text-white bg-gradient-to-r from-orange-600 to-rose-500 hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm" title="Hinzufügen">
+                        <Plus className="w-5 h-5" />
+                      </button>
                     </div>
                   }
-                  addButton={
-                    <button type="button" onClick={submitSmartInput} disabled={!newItemInput.trim()} className="w-12 h-12 shrink-0 aspect-square rounded-xl flex items-center justify-center transition-all bg-gradient-to-r from-orange-600 to-rose-500 text-white shadow-lg shadow-rose-500/20 hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed" title="Hinzufügen">
-                      <Plus className="w-6 h-6" />
-                    </button>
-                  }
+                  addButton={null}
                   frequentChips={inputFocused && !newItemInput.trim() && frequentItems.length > 0 ? (
                     <div className="mt-3">
                       <p className="text-xs font-medium text-gray-500 mb-2">Oft gekauft</p>
