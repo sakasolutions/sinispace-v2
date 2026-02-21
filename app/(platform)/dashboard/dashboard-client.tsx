@@ -900,7 +900,7 @@ export default function DashboardClient() {
                       {/* Unten: Titel + Subtext */}
                       <div className="w-full text-left">
                         <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">{tool.title}</h3>
-                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{subtitle}</p>
+                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-2 min-h-[2.5rem]">{subtitle}</p>
                       </div>
                     </div>
                   );
@@ -973,7 +973,7 @@ export default function DashboardClient() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-gray-800 truncate">{tool.title}</p>
-                                <p className="text-sm text-gray-500 line-clamp-2">{subtitle}</p>
+                                <p className="text-sm text-gray-500 line-clamp-2 min-h-[2.5rem]">{subtitle}</p>
                               </div>
                               <ChevronRight className="w-5 h-5 shrink-0 text-gray-400" />
                             </div>
