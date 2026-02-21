@@ -106,11 +106,11 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
         <Link
           href={chatLink}
           className="h-8 px-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white border border-orange-500 transition-all flex items-center gap-1.5 text-xs font-semibold"
-          title={hasMissing ? 'Einkaufsliste an Partner senden' : 'Rezept an Partner senden'}
+          title={hasMissing ? 'SmartCart an Partner senden' : 'Rezept an Partner senden'}
         >
           <Share2 className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">
-            {hasMissing ? 'Einkaufsliste senden' : 'Rezept senden'}
+            {hasMissing ? 'SmartCart senden' : 'Rezept senden'}
           </span>
         </Link>
       </div>

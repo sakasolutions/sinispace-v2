@@ -428,7 +428,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               <ListPlus className="w-4 h-4" />
-              Auf Einkaufsliste
+              In den SmartCart
             </button>
           </div>
         )}

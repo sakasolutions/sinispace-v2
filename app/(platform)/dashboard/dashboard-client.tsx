@@ -209,7 +209,7 @@ const allTools: Tool[] = [
   // HIGH PRIORITY - Large Cards
   {
     id: 'recipe',
-    title: 'Gourmet-Planer',
+    title: 'CookIQ',
     description: 'Was koche ich heute? Leckere Rezepte basierend auf deinem Vorrat.',
     icon: ChefHat,
     color: 'orange',
@@ -317,7 +317,7 @@ const allTools: Tool[] = [
   },
   {
     id: 'shopping-list',
-    title: 'Einkaufslisten',
+    title: 'SmartCart',
     description: 'Mehrere Listen verwalten – Supermarkt, Drogerie, Geburtstag & mehr.',
     icon: ShoppingCart,
     color: 'orange',

@@ -84,7 +84,7 @@ export async function analyzeShoppingItems(
         temperature: 0,
       },
       'shopping-list',
-      'Einkaufslisten'
+      'SmartCart'
     );
 
     const content = response.choices[0]?.message?.content;

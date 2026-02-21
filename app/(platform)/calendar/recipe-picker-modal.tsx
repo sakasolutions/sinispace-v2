@@ -74,13 +74,13 @@ export function RecipePickerModal({ isOpen, onClose, date, slot, defaultTime, on
               <ChefHat className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500">Noch keine Rezepte gespeichert</p>
               <p className="text-sm text-gray-400 mt-1">
-                Erstelle Rezepte im Gourmet-Planer, um sie hier zu sehen
+                Erstelle Rezepte in CookIQ, um sie hier zu sehen
               </p>
               <a
                 href="/tools/recipe"
                 className="inline-block mt-4 px-4 py-2 rounded-xl bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition-colors"
               >
-                Zum Gourmet-Planer
+                Zu CookIQ
               </a>
             </div>
           ) : (

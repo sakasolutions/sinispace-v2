@@ -182,7 +182,7 @@ export const toolInfoMap: Record<string, ToolInfo> = {
 
   // LIFESTYLE
   recipe: {
-    title: 'Gourmet-Planer',
+    title: 'CookIQ',
     description: 'Was koche ich heute? Gib deine vorhandenen Zutaten an und das Tool schlägt dir passende, leckere Rezepte vor. Perfekt für spontanes Kochen ohne Einkaufen!',
     useCases: [
       'Rezepte basierend auf vorhandenen Zutaten finden',
@@ -222,8 +222,8 @@ export const toolInfoMap: Record<string, ToolInfo> = {
     ]
   },
   'shopping-list': {
-    title: 'SiniSpace Einkaufslisten',
-    description: 'Smart Einkaufslisten mit KI, Sync über alle Geräte (wie Gourmet-Planer): Mehrere Listen (Supermarkt, Drogerie, …), Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). KI korrigiert Tippfehler, übernimmt Mengen nur wenn du sie angibst, ordnet Kategorien zu. Aggregation: gleiche Items mit Mengen werden zusammengefasst.',
+    title: 'SmartCart',
+    description: 'SmartCart mit KI, Sync über alle Geräte (wie CookIQ): Mehrere Listen (Supermarkt, Drogerie, …), Einzel-Item oder Liste einfügen (z.B. aus WhatsApp). KI korrigiert Tippfehler, übernimmt Mengen nur wenn du sie angibst, ordnet Kategorien zu. Aggregation: gleiche Items mit Mengen werden zusammengefasst.',
     useCases: [
       'Sync auf Handy & Laptop – gleicher Account, überall dieselben Listen',
       'Mehrere Listen für verschiedene Einkäufe (Supermarkt, Drogerie, etc.)',

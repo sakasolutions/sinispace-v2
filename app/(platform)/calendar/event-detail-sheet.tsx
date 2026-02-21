@@ -171,7 +171,7 @@ function getSmartSuggestions(events: CalendarEvent[], query: string, excludeId?:
 
 export type EventCategory = 'arbeit' | 'essen' | 'sport' | 'privat' | 'gesundheit';
 
-/** Nur wählbare Kategorien – Essen kommt ausschließlich aus dem Gourmet-Planer */
+/** Nur wählbare Kategorien – Essen kommt ausschließlich aus CookIQ */
 const CATEGORIES: { id: EventCategory; label: string; icon: typeof Briefcase; color: string; bg: string; border: string }[] = [
   { id: 'gesundheit', label: 'Gesundheit', icon: Stethoscope, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   { id: 'arbeit', label: 'Arbeit', icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
@@ -180,7 +180,7 @@ const CATEGORIES: { id: EventCategory; label: string; icon: typeof Briefcase; co
 ];
 
 /** Styling für Essens-Events (nur Anzeige/Bearbeitung, nicht wählbar) */
-const ESSEN_READONLY_CONFIG = { id: 'essen' as const, label: 'Essen (aus Gourmet-Planer)', icon: UtensilsCrossed, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' };
+const ESSEN_READONLY_CONFIG = { id: 'essen' as const, label: 'Essen (aus CookIQ)', icon: UtensilsCrossed, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' };
 
 const DURATION_CHIPS = [
   { label: '30 min', minutes: 30 },
@@ -218,7 +218,7 @@ function eventToCategory(e: CalendarEvent): EventCategory {
   return 'privat';
 }
 
-/** Kategorie-Erkennung aus Titel (Essen nicht mehr – nur Gourmet-Planer) */
+/** Kategorie-Erkennung aus Titel (Essen nicht mehr – nur CookIQ) */
 function detectCategoryFromTitle(title: string): EventCategory | null {
   const t = title.toLowerCase();
   if (/\b(arzt|praxis|zahn|ärztin|termin)\b/.test(t)) return 'gesundheit';

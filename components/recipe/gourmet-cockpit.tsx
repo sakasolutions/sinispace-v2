@@ -33,7 +33,7 @@ export function GourmetCockpit({ onVorschlagGenerieren }: Props) {
         title={
           <>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-              Gourmet Planer
+              CookIQ
             </h1>
             <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
               Was kochen wir heute?
@@ -111,7 +111,7 @@ export function GourmetCockpit({ onVorschlagGenerieren }: Props) {
                   </div>
                 </div>
                 <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Einkaufsliste</h3>
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">SmartCart</h3>
                   <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Smarte Listen</p>
                 </div>
               </Link>

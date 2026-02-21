@@ -1,5 +1,5 @@
 /**
- * Kategorien für Smart Einkaufslisten (AI-gestützt).
+ * Kategorien für SmartCart (AI-gestützt).
  * Color-Coded Aisles: bg, border, Lucide-Icon-Name, iconColor pro Kategorie.
  */
 

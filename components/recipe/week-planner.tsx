@@ -867,7 +867,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
             if (!resultId) {
               const saved = await saveResult(
                 'recipe',
-                'Gourmet-Planer',
+                'CookIQ',
                 JSON.stringify(recipe),
                 workspaceId,
                 recipe.recipeName,

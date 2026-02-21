@@ -137,7 +137,7 @@ const allTools: Tool[] = [
   },
   {
     id: 'recipe',
-    title: 'Gourmet-Planer',
+    title: 'CookIQ',
     description: 'Was koche ich heute? Leckere Rezepte basierend auf deinem Vorrat.',
     icon: ChefHat,
     color: 'orange',

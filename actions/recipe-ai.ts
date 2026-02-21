@@ -115,7 +115,7 @@ ${ingredientsRules}
       ],
       response_format: { type: 'json_object' }, // Zwingend JSON
       temperature: 0.8, // Etwas kreativer für Rezepte
-    }, 'recipe', 'Gourmet-Planer');
+    }, 'recipe', 'CookIQ');
 
     const content = response.choices[0].message.content;
     if (!content) {
@@ -196,7 +196,7 @@ ${recipe.instructions.map((step: string, i: number) => `${i + 1}. ${step}`).join
     // Result in Workspace speichern
     const saved = await saveResult(
       'recipe',
-      'Gourmet-Planer',
+      'CookIQ',
       JSON.stringify(recipe),
       workspaceId,
       recipe.recipeName,

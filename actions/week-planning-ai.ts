@@ -244,7 +244,7 @@ Woche ausgewogen und abwechslungsreich gestalten. Alle genannten Filter und Eins
 
         const result = await saveResult(
           'recipe',
-          'Gourmet-Planer',
+          'CookIQ',
           JSON.stringify(recipeData),
           workspaceId,
           recipeData.recipeName,

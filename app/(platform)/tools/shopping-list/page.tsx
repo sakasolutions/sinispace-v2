@@ -661,7 +661,7 @@ export default function ShoppingListPage() {
         title={
           <div className="flex flex-col">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-              {activeList?.name ?? 'Smarte Einkaufsliste'}
+              {activeList?.name ?? 'SmartCart'}
             </h1>
             <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
               Dein intelligenter Begleiter
@@ -685,10 +685,10 @@ export default function ShoppingListPage() {
             {/* Obere Reihe: Icons – ohne min-h Wrapper, leicht nach unten gerückt für h1-Mitte */}
             <div className="flex items-center gap-2 mt-1">
               <WhatIsThisModal
-                title="Smart Einkaufsliste"
+                title="SmartCart"
                 content={
                   <div className="space-y-4 text-sm text-gray-600">
-                    <p className="text-base font-medium text-gray-900">Deine intelligente Einkaufsliste nimmt dir die Arbeit ab:</p>
+                    <p className="text-base font-medium text-gray-900">Dein SmartCart nimmt dir die Arbeit ab:</p>
                     <ul className="space-y-3 mt-4">
                       <li className="flex items-center gap-3">
                         <Sparkles className="w-5 h-5 text-rose-500 shrink-0" />
@@ -755,7 +755,7 @@ export default function ShoppingListPage() {
             <button
               type="button"
               onClick={() => { setPendingName(''); setModalNewList(true); }}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 hover:bg-white/20 transition-all mt-8 sm:mt-10 md:mt-11"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 hover:bg-white/20 transition-all mt-8 sm:mt-10 md:mt-4"
             >
               <Plus className="w-3.5 h-3.5" />
               Neue Liste
@@ -891,7 +891,7 @@ export default function ShoppingListPage() {
               {unchecked.length === 0 && checked.length === 0 ? (
                 <div className="mt-8 p-8 sm:p-12 text-center bg-white rounded-3xl shadow-xl border border-gray-100">
                   <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500 font-medium">Noch keine Einträge.</p>
+                  <p className="text-gray-500 font-medium">Noch keine Einträge in deinem SmartCart.</p>
                   <p className="text-sm text-gray-400 mt-1">
                     Tippe etwas ein oder füge eine Liste ein (z.B. aus WhatsApp).
                   </p>
