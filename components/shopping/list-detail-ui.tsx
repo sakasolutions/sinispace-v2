@@ -294,7 +294,7 @@ export function StickyCategoryHeader({
   return (
     <div
       className={cn(
-        'sticky top-0 z-10 w-full bg-gray-50/80 border-y border-gray-100 py-2 px-4 flex items-center gap-2',
+        'sticky top-0 z-10 w-full bg-gray-50/80 border-y border-gray-100 py-1.5 px-4 flex items-center gap-2',
         theme.headerTextColor,
         className
       )}
@@ -359,7 +359,7 @@ export function UnifiedItemRow({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 p-4 bg-white hover:bg-gray-50 transition-colors group',
+        'flex items-center justify-between gap-3 py-2.5 px-4 bg-white hover:bg-gray-50 transition-colors group last:border-b-0',
         isChecked && 'opacity-90',
         className
       )}
