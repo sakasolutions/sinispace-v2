@@ -26,6 +26,8 @@ import {
   Edit2,
   Bot,
   Smartphone,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -51,7 +53,6 @@ import { analyzeShoppingItems } from '@/actions/shopping-list-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import {
-  SummaryCard,
   FloatingQuickAddCard,
   UnifiedListSheet,
   StickyCategoryHeader,
@@ -229,6 +230,7 @@ export default function ShoppingListPage() {
   const [editingItemValue, setEditingItemValue] = useState('');
   const [toast, setToast] = useState<string | null>(null);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const [isCompletedExpanded, setIsCompletedExpanded] = useState(false);
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -700,7 +702,7 @@ export default function ShoppingListPage() {
                       </li>
                       <li className="flex items-center gap-3">
                         <Smartphone className="w-5 h-5 text-rose-500 shrink-0" />
-                        <span><strong>WhatsApp-Import:</strong> Füge eine kopierte Liste ins Eingabefeld ein – wir machen den Rest!</span>
+                        <span><strong>WhatsApp-Import:</strong> Liste aus WhatsApp einfügen – Ein Klick, die KI sortiert alles in einem Durchgang.</span>
                       </li>
                       <li className="flex items-center gap-3 mt-2">
                         <ShoppingCart className="w-5 h-5 text-blue-500 shrink-0" />
@@ -847,7 +849,6 @@ export default function ShoppingListPage() {
                       <Plus className="w-6 h-6" />
                     </button>
                   }
-                  helperText="Liste aus WhatsApp einfügen → Ein Klick, die KI sortiert alles in einem Durchgang."
                   frequentChips={inputFocused && !newItemInput.trim() && frequentItems.length > 0 ? (
                     <div className="mt-3">
                       <p className="text-xs font-medium text-gray-500 mb-2">Oft gekauft</p>
@@ -877,17 +878,6 @@ export default function ShoppingListPage() {
 
         {activeList ? (
             <>
-              <SummaryCard
-                progressLabel={`${checked.length}/${activeList.items.length} erledigt`}
-                progressPercent={activeList.items.length ? (checked.length / activeList.items.length) * 100 : 0}
-                storeMode={storeMode}
-                onToggleStoreMode={() => {
-                  setStoreMode((m) => !m);
-                  if (!storeMode) { setEditingItemId(null); setEditingQtyItemId(null); }
-                }}
-                showStoreModeButton={false}
-              />
-
               {unchecked.length === 0 && checked.length === 0 ? (
                 <div className="mt-8 p-8 sm:p-12 text-center bg-white rounded-3xl shadow-xl border border-gray-100">
                   <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
@@ -1000,7 +990,21 @@ export default function ShoppingListPage() {
                     })}
                     {checked.length > 0 && (
                       <Fragment key="erledigt">
-                        <StickyCategoryHeader title="Erledigt" count={checked.length} theme={getCategoryTheme('sonstiges')} className="mt-8" />
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setIsCompletedExpanded(!isCompletedExpanded)}
+                          onKeyDown={(e) => e.key === 'Enter' && setIsCompletedExpanded((v) => !v)}
+                          className="flex items-center justify-between cursor-pointer py-2 mt-8 px-1 rounded-lg hover:bg-gray-50 transition-colors"
+                          aria-expanded={isCompletedExpanded}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Erledigt {checked.length}</span>
+                          </div>
+                          {isCompletedExpanded ? <ChevronUp className="w-5 h-5 text-gray-500 shrink-0" /> : <ChevronDown className="w-5 h-5 text-gray-500 shrink-0" />}
+                        </div>
+                        {isCompletedExpanded && (
+                          <div className="mt-1">
                         {checked.map((item) => {
                           const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                           const qtyD = formatQtyDisplay(item);
@@ -1037,6 +1041,8 @@ export default function ShoppingListPage() {
                             </UnifiedItemRow>
                           );
                         })}
+                          </div>
+                        )}
                       </Fragment>
                     )}
                   </UnifiedListSheet>
