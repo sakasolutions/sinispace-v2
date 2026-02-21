@@ -185,6 +185,9 @@ function processSmartInput(
     } else {
       addFallbackItems(trimmed, listId, setLists, onItemDone);
     }
+  }).catch((error) => {
+    console.warn('Netzwerkfehler oder Action-Crash abgefangen. Nutze Fallback:', error);
+    addFallbackItems(trimmed, listId, setLists, onItemDone);
   });
 }
 
