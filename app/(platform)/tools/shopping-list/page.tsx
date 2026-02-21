@@ -708,9 +708,11 @@ export default function ShoppingListPage() {
         {/* Master Card (Tier-1 Dashboard-Style): Overlap nur aus Shell (-mt-20), Breite aus Shell (max-w-7xl) */}
         <div className="relative z-10 w-full pb-20">
           <div className="bg-white/60 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden min-h-[600px] p-4 sm:p-6 md:p-8">
-            {/* Listen-Navigation: Horizontaler Strip (volle Breite) */}
+            {/* Listen-Navigation: Horizontaler Strip (volle Breite), weicher Fade-Out rechts */}
             <div className="w-full mb-4">
-              <div className="w-full overflow-x-auto scrollbar-hide flex gap-2 min-h-0">
+              <div
+                className="w-full overflow-x-auto scrollbar-hide flex gap-2 min-h-0 pr-16 [mask-image:linear-gradient(to_right,white_85%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,white_85%,transparent_100%)]"
+              >
                 {lists.map((l) => {
                   const isActive = activeListId === l.id;
                   return (
