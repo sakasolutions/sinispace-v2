@@ -35,30 +35,21 @@ export type ShoppingItemAnalysis = {
   category: (typeof CATEGORIES)[number];
 };
 
-const CATEGORY_LIST = CATEGORIES.join(', ');
+const SYSTEM_PROMPT = `Du bist ein hochpräziser Einkaufs-Assistent für deutsche Supermärkte. Deine EINZIGE Aufgabe ist es, einen Text mit Einkaufsartikeln in ein JSON-Array zu übersetzen.
+REGELN:
 
-const JSON_FORMAT = `{
-  "items": [
-    { "name": "Korrigierter Produktname", "quantity": null, "unit": null, "category": "obst_gemuese" }
-  ]
-}`;
+ABSOLUTE REGEL: Erstelle für JEDEN eindeutigen Artikel im Text EXAKT EIN EINZIGES JSON-Objekt. Keine Duplikate! Wenn der User 'Spüli, Eier' schreibt, darf das Array EXAKT ZWEI Objekte enthalten.
 
-const SYSTEM_PROMPT = `Du bist ein Einkaufs-Assistent für deutsche Supermärkte.
-Analysiere den User-Input, der aus einem oder mehreren Artikeln bestehen kann (z.B. eine WhatsApp-Liste, Zeilen oder Komma-getrennt).
+Mengen-Zusammenfassung: Wenn der User schreibt 'Bier, Bier, Bier', gib EIN Objekt mit name: 'Bier', quantity: 3, unit: 'Stk' zurück.
 
-Aufgaben:
-1. Rechtschreibung: Korrigiere Tippfehler NUR, wenn du dir zu 99% sicher bist.
-   Wenn ein Wort wie eine spezifische Zutat aus einer anderen Küche aussieht (z.B. Kusbasi, Sucuk, Pak Choi, Mochi, Halloumi, Harissa, Tahini), behalte das Originalwort bei. Ändere es NICHT in ein ähnliches deutsches Wort.
+Rechtschreibung: Korrigiere Tippfehler NUR, wenn du dir zu 99% sicher bist. Exoten (wie Sucuk, Pak Choi) nicht eindeutschen.
 
-2. Menge und Einheit NUR übernehmen, wenn der User sie ausdrücklich angibt:
-   - "3 Tomaten" oder "2x Milch" → quantity: 3 bzw. 2, unit: "Stk" oder leer.
-   - "500g Hack" → quantity: 500, unit: "g".
-   - Wenn der User KEINE Menge angibt (z.B. nur "Milch", "Brot"), setze quantity: null und unit: null. Erfinde KEINE Standard-Menge.
+Mengen: Wenn KEINE Menge genannt wird (z.B. nur 'Milch'), setze quantity: null und unit: null.
 
-3. Kategorie: für jeden Artikel genau eine wählen. Erlaubt sind NUR: ${CATEGORY_LIST}.
+Kategorie: Du DARFST NUR EINE dieser exakten Kategorien wählen: obst_gemuese, kuhlregal, fleisch, brot, haushalt, getraenke, tiefkuhl, sonstiges.
 
-Antworte NUR mit validem JSON, kein anderer Text. Gib IMMER ein Array von Objekten zurück, auch bei nur einem Artikel.
-Format: ${JSON_FORMAT}`;
+Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt, das ein Array 'items' enthält.
+FORMAT: { "items": [ { "name": "...", "quantity": null, "unit": null, "category": "..." } ] }`;
 
 function normalizeCategory(category: string): (typeof CATEGORIES)[number] {
   const lower = category?.trim().toLowerCase() ?? '';
@@ -90,7 +81,7 @@ export async function analyzeShoppingItems(
           { role: 'user', content: `Analysiere diesen Einkaufs-Input:\n\n"${trimmed}"` },
         ],
         response_format: { type: 'json_object' },
-        temperature: 0.2,
+        temperature: 0,
       },
       'shopping-list',
       'Einkaufslisten'
