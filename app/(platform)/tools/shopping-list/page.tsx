@@ -887,8 +887,7 @@ export default function ShoppingListPage() {
                   </p>
                 </div>
               ) : (
-                <div className="mt-8">
-                  <UnifiedListSheet>
+                <UnifiedListSheet>
                     {sortedCategories.map((cat, index) => {
                       const items = grouped[cat] ?? [];
                       if (items.length === 0) return null;
@@ -989,7 +988,6 @@ export default function ShoppingListPage() {
                       );
                     })}
                   </UnifiedListSheet>
-                </div>
               )}
             </>
           ) : (

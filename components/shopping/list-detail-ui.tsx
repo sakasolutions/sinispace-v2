@@ -259,7 +259,7 @@ export function QuantityPill({
 
 // ─── Tier 1 Redesign: Apple Reminders / Bring! – Continuous Sheet ─────────────────────────────
 
-/** Unified list container: one white sheet, divide-y between items/categories */
+/** Structural wrapper for active list – no card styling; items sit on main background */
 export function UnifiedListSheet({
   children,
   className,
@@ -268,18 +268,13 @@ export function UnifiedListSheet({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        'bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden divide-y divide-gray-100',
-        className
-      )}
-    >
+    <div className={cn('mt-6 flex flex-col gap-0', className)}>
       {children}
     </div>
   );
 }
 
-/** Sticky category header – Regalboden mit grauem Balken, farbigem Akzent, volle Breite */
+/** Category header – clean separator, no card; structure only */
 export function StickyCategoryHeader({
   title,
   count,
@@ -294,7 +289,7 @@ export function StickyCategoryHeader({
   return (
     <div
       className={cn(
-        'sticky top-0 z-10 w-full bg-gray-50/80 border-y border-gray-100 py-1.5 px-4 flex items-center gap-2',
+        'flex items-center gap-2 py-3 border-b border-gray-100 first:mt-0',
         theme.headerTextColor,
         className
       )}
@@ -359,7 +354,7 @@ export function UnifiedItemRow({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 py-2.5 px-4 bg-white hover:bg-gray-50 transition-colors group last:border-b-0 last:pb-0',
+        'flex items-center justify-between gap-3 py-2.5 px-4 bg-transparent hover:bg-gray-100/50 transition-colors group last:border-b-0 last:pb-0',
         isChecked && 'opacity-90',
         className
       )}
