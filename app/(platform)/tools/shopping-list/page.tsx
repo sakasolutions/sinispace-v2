@@ -767,7 +767,7 @@ export default function ShoppingListPage() {
       >
         {/* Master Card (Tier-1 Dashboard-Style): Overlap nur aus Shell (-mt-20), Breite aus Shell (max-w-7xl) */}
         <div className="relative z-10 w-full pb-20">
-          <div className="bg-white/60 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden min-h-[300px] pt-4 px-4 pb-0 sm:pt-6 sm:px-6 sm:pb-0 md:pt-8 md:px-8 md:pb-0">
+          <div className="bg-white/60 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden min-h-[300px] pt-4 px-4 pb-4 sm:pt-6 sm:px-6 sm:pb-4 md:pt-8 md:px-8 md:pb-4">
             {/* Listen-Navigation: Horizontaler Strip (volle Breite), weicher Fade-Out rechts */}
             <div className="w-full mb-4">
               <div
