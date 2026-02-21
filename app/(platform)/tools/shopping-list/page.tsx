@@ -1073,7 +1073,7 @@ export default function ShoppingListPage() {
               }}
               className={cn(
                 'fixed z-[60] w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all',
-                'bottom-[110px] right-4 md:bottom-8 md:right-8',
+                'bottom-[calc(115px+env(safe-area-inset-bottom))] right-4 md:bottom-8 md:right-8',
                 storeMode
                   ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700'
                   : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700'
