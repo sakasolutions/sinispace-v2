@@ -359,7 +359,7 @@ export function UnifiedItemRow({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 py-2.5 px-4 bg-white hover:bg-gray-50 transition-colors group last:border-b-0',
+        'flex items-center justify-between gap-3 py-2.5 px-4 bg-white hover:bg-gray-50 transition-colors group last:border-b-0 last:pb-0',
         isChecked && 'opacity-90',
         className
       )}

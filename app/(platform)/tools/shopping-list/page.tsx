@@ -767,7 +767,7 @@ export default function ShoppingListPage() {
       >
         {/* Master Card (Tier-1 Dashboard-Style): Overlap nur aus Shell (-mt-20), Breite aus Shell (max-w-7xl) */}
         <div className="relative z-10 w-full pb-20">
-          <div className="bg-white/60 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden min-h-[600px] p-4 pb-2 sm:p-6 sm:pb-2 md:p-8 md:pb-2">
+          <div className="bg-white/60 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden min-h-[600px] pt-4 px-4 pb-1 sm:pt-6 sm:px-6 sm:pb-1 md:pt-8 md:px-8 md:pb-1">
             {/* Listen-Navigation: Horizontaler Strip (volle Breite), weicher Fade-Out rechts */}
             <div className="w-full mb-4">
               <div
@@ -995,11 +995,11 @@ export default function ShoppingListPage() {
                           tabIndex={0}
                           onClick={() => setIsCompletedExpanded(!isCompletedExpanded)}
                           onKeyDown={(e) => e.key === 'Enter' && setIsCompletedExpanded((v) => !v)}
-                          className="flex items-center justify-between cursor-pointer py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-medium text-sm transition-colors mt-6"
+                          className="flex items-center justify-between cursor-pointer py-3 px-0 bg-transparent border-t border-gray-200 text-gray-700 font-bold text-xs tracking-wider uppercase mt-6 transition-opacity hover:opacity-70"
                           aria-expanded={isCompletedExpanded}
                         >
                           <div className="flex items-center gap-2">
-                            <span className="uppercase tracking-wider">Erledigt {checked.length}</span>
+                            <span>Erledigt {checked.length}</span>
                           </div>
                           {isCompletedExpanded ? <ChevronUp className="w-5 h-5 text-gray-500 shrink-0" /> : <ChevronDown className="w-5 h-5 text-gray-500 shrink-0" />}
                         </div>
