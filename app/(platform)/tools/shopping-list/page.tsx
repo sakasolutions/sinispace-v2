@@ -736,7 +736,7 @@ export default function ShoppingListPage() {
 
             {/* Command Bar: Eingabefeld direkt unter der Listen-Navigation */}
             {activeList && !storeMode && (
-              <div className="bg-white shadow-lg border border-gray-100 rounded-2xl p-2 mb-6">
+              <div className="mb-6 w-full">
                 <FloatingQuickAddCard
                   inputSlot={
                     <div ref={inputContainerRef} className="relative w-full">
@@ -769,7 +769,7 @@ export default function ShoppingListPage() {
                           }
                         }}
                         placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
-                        className="w-full bg-transparent border-none text-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0 px-0"
+                        className="w-full bg-white/50 focus:bg-white/80 border border-gray-200/50 rounded-xl px-4 py-3 text-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200/50 transition-all"
                       />
                       {typeAheadOpen && typeAheadSuggestions.length > 0 && (
                         <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
@@ -783,7 +783,7 @@ export default function ShoppingListPage() {
                     </div>
                   }
                   addButton={
-                    <button type="button" onClick={submitSmartInput} disabled={!splitInput(newItemInput).length} className="w-12 h-12 shrink-0 aspect-square rounded-xl bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-orange-500/20" title="Hinzufügen">
+                    <button type="button" onClick={submitSmartInput} disabled={!splitInput(newItemInput).length} className="w-12 h-12 shrink-0 aspect-square rounded-xl bg-gradient-to-r from-orange-600 to-rose-500 text-white shadow-lg shadow-rose-500/20 hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center" title="Hinzufügen">
                       <Plus className="w-6 h-6" />
                     </button>
                   }

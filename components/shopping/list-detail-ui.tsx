@@ -410,7 +410,7 @@ export function FloatingQuickAddCard({
 }) {
   return (
     <div className={cn('mb-6', className)}>
-      <div className="bg-white border-0 shadow-md rounded-2xl p-4 flex gap-3 items-stretch">
+      <div className="flex gap-3 items-stretch w-full">
         <div className="flex-1 min-w-0 flex items-center">{inputSlot}</div>
         <div className="shrink-0 flex items-center">{addButton}</div>
       </div>
