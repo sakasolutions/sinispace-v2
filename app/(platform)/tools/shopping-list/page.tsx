@@ -621,85 +621,83 @@ export default function ShoppingListPage() {
         headerPrimaryCTA={null}
         headerActionsRight={
           <div className="flex flex-col items-end">
-            {/* Erste Zeile: gleiche Höhe wie links (h1 + mt-1 + subtitle), damit mt-4 darunter exakt wie bei den Pills wirkt */}
-            <div className="min-h-[3.5rem] sm:min-h-[4rem] md:min-h-[4.25rem] flex items-start justify-end">
-              <div className="flex items-center gap-2 -mt-1">
-                <WhatIsThisModal
-              title="Smart Einkaufsliste"
-              content={
-                <div className="space-y-3 text-gray-700">
-                  <p>
-                    Deine intelligente Einkaufsliste mit <strong>KI-gestützter Analyse</strong>. Tippe einfach ein Produkt ein – die AI erkennt automatisch Kategorien, korrigiert Tippfehler und sortiert alles nach Supermarkt-Route.
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>Keine Mengen?</strong> Kein Problem. Gib nur an, was du brauchst ("Milch") oder mit Mengen ("3 Tomaten"). Die AI passt sich an.
-                  </p>
+            {/* Obere Reihe: Icons – ohne min-h Wrapper, leicht nach unten gerückt für h1-Mitte */}
+            <div className="flex items-center gap-2 mt-1">
+              <WhatIsThisModal
+                title="Smart Einkaufsliste"
+                content={
+                  <div className="space-y-3 text-gray-700">
+                    <p>
+                      Deine intelligente Einkaufsliste mit <strong>KI-gestützter Analyse</strong>. Tippe einfach ein Produkt ein – die AI erkennt automatisch Kategorien, korrigiert Tippfehler und sortiert alles nach Supermarkt-Route.
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <strong>Keine Mengen?</strong> Kein Problem. Gib nur an, was du brauchst ("Milch") oder mit Mengen ("3 Tomaten"). Die AI passt sich an.
+                    </p>
+                  </div>
+                }
+                examples={[
+                  '3 Tomaten → AI: 3x Tomaten (Obst/Gemüse)',
+                  'Milch → AI: Milch (Kühlregal)',
+                  'Kusbasi → AI: Kusbasi (Fleisch) - keine Korrektur!',
+                ]}
+                useCases={[
+                  'Einzelne Produkte eintippen oder ganze Listen einfügen (z.B. aus WhatsApp)',
+                  'AI korrigiert Tippfehler, behält aber kulturelle Begriffe bei',
+                  'Automatische Sortierung nach Supermarkt-Gang (Obst/Gemüse → Fleisch → Kühlregal...)',
+                  'Store-Modus: Große Checkboxen für einfaches Abhaken beim Einkaufen',
+                ]}
+                tips={[
+                  'Füge mehrere Produkte mit Zeilenumbrüchen oder Kommas ein',
+                  'Die AI merkt sich häufig gekaufte Artikel (Chips "Oft gekauft")',
+                  'Im Store-Modus sind alle Bearbeitungs-Funktionen ausgeblendet',
+                ]}
+                trigger={
+                  <button type="button" aria-label="Was ist das?" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors">
+                    <HelpCircle className="w-4 h-4" />
+                  </button>
+                }
+              />
+              <button
+                type="button"
+                onClick={shareList}
+                aria-label="Liste teilen"
+                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+              {activeList && !storeMode && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setHeaderMenuOpen((o) => !o)}
+                    aria-label="Weitere Aktionen"
+                    className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                  {headerMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" aria-hidden onClick={() => setHeaderMenuOpen(false)} />
+                      <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+                        <button type="button" onClick={() => { openRename(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                          <Pencil className="w-4 h-4" />
+                          Liste umbenennen
+                        </button>
+                        <button type="button" onClick={() => { openDelete(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                          <Trash2 className="w-4 h-4" />
+                          Liste löschen
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
-              }
-              examples={[
-                '3 Tomaten → AI: 3x Tomaten (Obst/Gemüse)',
-                'Milch → AI: Milch (Kühlregal)',
-                'Kusbasi → AI: Kusbasi (Fleisch) - keine Korrektur!',
-              ]}
-              useCases={[
-                'Einzelne Produkte eintippen oder ganze Listen einfügen (z.B. aus WhatsApp)',
-                'AI korrigiert Tippfehler, behält aber kulturelle Begriffe bei',
-                'Automatische Sortierung nach Supermarkt-Gang (Obst/Gemüse → Fleisch → Kühlregal...)',
-                'Store-Modus: Große Checkboxen für einfaches Abhaken beim Einkaufen',
-              ]}
-              tips={[
-                'Füge mehrere Produkte mit Zeilenumbrüchen oder Kommas ein',
-                'Die AI merkt sich häufig gekaufte Artikel (Chips "Oft gekauft")',
-                'Im Store-Modus sind alle Bearbeitungs-Funktionen ausgeblendet',
-              ]}
-              trigger={
-                <button type="button" aria-label="Was ist das?" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors">
-                  <HelpCircle className="w-4 h-4" />
-                </button>
-              }
-            />
-            <button
-              type="button"
-              onClick={shareList}
-              aria-label="Liste teilen"
-              className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
-            {activeList && !storeMode && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setHeaderMenuOpen((o) => !o)}
-                  aria-label="Weitere Aktionen"
-                  className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </button>
-                {headerMenuOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" aria-hidden onClick={() => setHeaderMenuOpen(false)} />
-                    <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-                      <button type="button" onClick={() => { openRename(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                        <Pencil className="w-4 h-4" />
-                        Liste umbenennen
-                      </button>
-                      <button type="button" onClick={() => { openDelete(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
-                        <Trash2 className="w-4 h-4" />
-                        Liste löschen
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-              </div>
+              )}
             </div>
-            {/* Zweite Zeile: mt-4 wie bei den Pills links – gleiche Definition = exakt gleiche Höhe */}
+            {/* Untere Reihe: Button wächst responsiv synchron mit der linken Spalte */}
             <button
               type="button"
               onClick={() => { setPendingName(''); setModalNewList(true); }}
-              className="mt-4 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 hover:bg-white/20 transition-all"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 hover:bg-white/20 transition-all mt-8 sm:mt-10 md:mt-11"
             >
               <Plus className="w-3.5 h-3.5" />
               Neue Liste
