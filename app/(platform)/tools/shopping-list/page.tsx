@@ -958,7 +958,7 @@ export default function ShoppingListPage() {
                                 ) : item.status === 'analyzing' ? (
                                   <span className={cn('text-gray-500 italic', isStriking && 'line-through')}>Analysiere …</span>
                                 ) : item.status === 'error' ? (
-                                  <span className={cn('font-medium text-gray-900', isStriking && 'line-through')}>{item.text}</span>
+                                  <span className={cn('font-medium text-gray-900 capitalize', isStriking && 'line-through')}>{item.text}</span>
                                 ) : isEditingQty ? (
                                   <>
                                     <input
@@ -974,7 +974,7 @@ export default function ShoppingListPage() {
                                       className="w-24 rounded-lg border border-gray-200 px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200"
                                       autoFocus
                                     />
-                                    <span className={cn('font-medium text-gray-900', isStriking && 'line-through')}>{item.text}</span>
+                                    <span className={cn('font-medium text-gray-900 capitalize', isStriking && 'line-through')}>{item.text}</span>
                                   </>
                                 ) : (
                                   <>
@@ -987,7 +987,7 @@ export default function ShoppingListPage() {
                                     {!storeMode && !hasQty && (
                                       <UnifiedQuantityBadge label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
                                     )}
-                                    <span className={cn('font-medium text-gray-900', isStriking && 'text-gray-400 line-through')}>
+                                    <span className={cn('font-medium text-gray-900 capitalize', isStriking && 'text-gray-400 line-through')}>
                                       {hasQty ? item.text : displayLabel}
                                     </span>
                                   </>
@@ -1032,7 +1032,7 @@ export default function ShoppingListPage() {
                                   <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
                                 </>
                               ) : (
-                                <span className="text-gray-400 line-through">{erledigtLabel}</span>
+                                <span className="text-gray-400 line-through capitalize">{erledigtLabel}</span>
                               )}
                             </UnifiedItemRow>
                           );
