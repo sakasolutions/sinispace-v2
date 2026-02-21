@@ -23,6 +23,7 @@ import {
   HelpCircle,
   MoreVertical,
   Sparkles,
+  Edit2,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -1084,14 +1085,17 @@ export default function ShoppingListPage() {
 
       {modalRename && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md p-4"
           onClick={() => setModalRename(null)}
         >
           <div
-            className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6"
+            className="w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl border border-white/20 p-6 sm:p-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Liste umbenennen</h3>
+            <div className="flex items-center gap-3 mb-6">
+              <Edit2 className="w-5 h-5 text-rose-500" />
+              <h3 className="text-xl font-semibold text-gray-900 tracking-tight">Liste umbenennen</h3>
+            </div>
             <input
               type="text"
               value={pendingName}
@@ -1101,21 +1105,21 @@ export default function ShoppingListPage() {
                 if (e.key === 'Escape') setModalRename(null);
               }}
               placeholder="Name der Liste"
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 mb-4"
+              className="w-full bg-gray-50/50 hover:bg-gray-50 focus:bg-white border border-gray-200/60 rounded-2xl px-4 py-3.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-400 transition-all mb-8"
               autoFocus
             />
-            <div className="flex gap-2 justify-end">
+            <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setModalRename(null)}
-                className="px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
+                className="px-5 py-2.5 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100/80 font-medium text-sm transition-all"
               >
                 Abbrechen
               </button>
               <button
                 type="button"
                 onClick={() => renameList(pendingName)}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium text-sm hover:from-orange-600 hover:to-pink-600 transition-colors shadow-md shadow-orange-500/25"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-rose-500 text-white font-medium text-sm shadow-lg shadow-rose-500/20 hover:from-orange-700 hover:to-rose-600 transition-all"
               >
                 Speichern
               </button>
