@@ -988,76 +988,8 @@ export default function ShoppingListPage() {
                         </Fragment>
                       );
                     })}
-                    {checked.length > 0 && (
-                      <Fragment key="erledigt">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setIsCompletedExpanded(!isCompletedExpanded)}
-                          onKeyDown={(e) => e.key === 'Enter' && setIsCompletedExpanded((v) => !v)}
-                          className="flex items-center justify-between cursor-pointer py-3 px-0 bg-transparent border-t border-gray-200 text-gray-700 font-bold text-xs tracking-wider uppercase mt-6 transition-opacity hover:opacity-70"
-                          aria-expanded={isCompletedExpanded}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span>Erledigt {checked.length}</span>
-                          </div>
-                          {isCompletedExpanded ? <ChevronUp className="w-5 h-5 text-gray-500 shrink-0" /> : <ChevronDown className="w-5 h-5 text-gray-500 shrink-0" />}
-                        </div>
-                        {isCompletedExpanded && (
-                          <div className="mt-1">
-                        {checked.map((item) => {
-                          const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
-                          const qtyD = formatQtyDisplay(item);
-                          const erledigtLabel = hasQty
-                            ? (item.quantity != null && !(item.unit?.trim()) ? `${item.quantity}x ${item.text}` : `${qtyD} ${item.text}`.trim())
-                            : item.text;
-                          const isEditingText = editingItemId === item.id;
-                          const showActions = !storeMode && !isEditingText;
-                          const theme = getCategoryTheme('sonstiges');
-                          return (
-                            <UnifiedItemRow
-                              key={item.id}
-                              isChecked
-                              checkbox={
-                                <UnifiedCheckbox checked onToggle={() => handleToggleItem(activeList!.id, item.id)} theme={theme} ariaLabel="Rückgängig" />
-                              }
-                              actions={
-                                showActions ? (
-                                  <>
-                                    <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, erledigtLabel); }} className="p-2 rounded-lg hover:bg-gray-100 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
-                                    <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList!.id, item.id); }} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
-                                  </>
-                                ) : null
-                              }
-                            >
-                              {isEditingText ? (
-                                <>
-                                  <input type="text" value={editingItemValue} onChange={(e) => setEditingItemValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); } if (e.key === 'Escape') cancelEditItem(); }} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200" autoFocus />
-                                  <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
-                                </>
-                              ) : (
-                                <span className="text-gray-400 line-through capitalize">{erledigtLabel}</span>
-                              )}
-                            </UnifiedItemRow>
-                          );
-                        })}
-                          </div>
-                        )}
-                      </Fragment>
-                    )}
                   </UnifiedListSheet>
                 </div>
-              )}
-              {checked.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => activeListId && resetChecked(activeListId)}
-                  className="w-full py-3 mt-4 text-sm font-medium text-gray-500 bg-transparent border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:text-gray-700 hover:border-gray-400 transition-all flex items-center justify-center gap-2"
-                  title="Erledigte wiederherstellen"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Erledigte wiederherstellen
-                </button>
               )}
             </>
           ) : (
@@ -1070,6 +1002,71 @@ export default function ShoppingListPage() {
             </div>
           )}
           </div>
+
+          {activeList && checked.length > 0 && (
+            <div className="mt-6 bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setIsCompletedExpanded(!isCompletedExpanded)}
+                onKeyDown={(e) => e.key === 'Enter' && setIsCompletedExpanded((v) => !v)}
+                className="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors"
+                aria-expanded={isCompletedExpanded}
+              >
+                <span className="text-sm font-semibold text-gray-700">Erledigt ({checked.length})</span>
+                {isCompletedExpanded ? <ChevronUp className="w-5 h-5 text-gray-500 shrink-0" /> : <ChevronDown className="w-5 h-5 text-gray-500 shrink-0" />}
+              </div>
+              {isCompletedExpanded && (
+                <div className="border-t border-gray-100 px-4 pb-4 pt-2">
+                  {checked.map((item) => {
+                    const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
+                    const qtyD = formatQtyDisplay(item);
+                    const erledigtLabel = hasQty
+                      ? (item.quantity != null && !(item.unit?.trim()) ? `${item.quantity}x ${item.text}` : `${qtyD} ${item.text}`.trim())
+                      : item.text;
+                    const isEditingText = editingItemId === item.id;
+                    const showActions = !storeMode && !isEditingText;
+                    const theme = getCategoryTheme('sonstiges');
+                    return (
+                      <UnifiedItemRow
+                        key={item.id}
+                        isChecked
+                        checkbox={
+                          <UnifiedCheckbox checked onToggle={() => handleToggleItem(activeList!.id, item.id)} theme={theme} ariaLabel="Rückgängig" />
+                        }
+                        actions={
+                          showActions ? (
+                            <>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, erledigtLabel); }} className="p-2 rounded-lg hover:bg-gray-100 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
+                              <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList!.id, item.id); }} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
+                            </>
+                          ) : null
+                        }
+                      >
+                        {isEditingText ? (
+                          <>
+                            <input type="text" value={editingItemValue} onChange={(e) => setEditingItemValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); } if (e.key === 'Escape') cancelEditItem(); }} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200" autoFocus />
+                            <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
+                          </>
+                        ) : (
+                          <span className="text-gray-400 line-through capitalize">{erledigtLabel}</span>
+                        )}
+                      </UnifiedItemRow>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => activeListId && resetChecked(activeListId)}
+                    className="w-full py-3 mt-4 text-sm font-medium text-gray-500 bg-transparent border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:text-gray-700 hover:border-gray-400 transition-all flex items-center justify-center gap-2"
+                    title="Erledigte wiederherstellen"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Erledigte wiederherstellen
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* FAB: Einkauf starten / Beenden (Store-Modus) – außerhalb der Glass-Card, schwebt unten rechts */}
           {activeList && (
