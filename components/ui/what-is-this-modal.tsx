@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, HelpCircle, Lightbulb } from 'lucide-react';
 
 type WhatIsThisModalProps = {
@@ -21,6 +22,8 @@ export function WhatIsThisModal({
   trigger
 }: WhatIsThisModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <>
@@ -38,7 +41,7 @@ export function WhatIsThisModal({
         </button>
       )}
 
-      {isOpen && (
+      {isOpen && mounted && createPortal(
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md p-4"
           onClick={() => setIsOpen(false)}
@@ -142,7 +145,8 @@ export function WhatIsThisModal({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
