@@ -781,7 +781,7 @@ export default function ShoppingListPage() {
                     </div>
                   }
                   addButton={
-                    <button type="button" onClick={submitSmartInput} disabled={!splitInput(newItemInput).length} className="w-12 h-12 shrink-0 aspect-square rounded-xl bg-gradient-to-r from-orange-600 to-rose-500 text-white shadow-lg shadow-rose-500/20 hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center" title="Hinzufügen">
+                    <button type="button" onClick={submitSmartInput} disabled={!splitInput(newItemInput).length} className="w-12 h-12 shrink-0 aspect-square rounded-xl flex items-center justify-center transition-all bg-gradient-to-r from-orange-600 to-rose-500 text-white shadow-lg shadow-rose-500/20 hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed" title="Hinzufügen">
                       <Plus className="w-6 h-6" />
                     </button>
                   }

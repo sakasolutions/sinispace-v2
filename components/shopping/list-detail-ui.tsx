@@ -243,9 +243,9 @@ export function QuantityPill({
   className?: string;
 }) {
   const base =
-    'px-2.5 py-1 rounded-full text-xs font-medium shrink-0 ' +
+    'rounded-full px-2 py-1 text-xs font-medium shrink-0 transition-all ' +
     (onClick
-      ? 'bg-gray-100 hover:bg-orange-100 text-gray-600 hover:text-orange-600 transition-colors'
+      ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
       : 'bg-gray-100 text-gray-600');
   if (onClick) {
     return (
@@ -333,8 +333,8 @@ export function UnifiedCheckbox({
       className={cn(
         'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200',
         checked
-          ? 'bg-gradient-to-r from-orange-500 to-amber-500 border-transparent'
-          : 'bg-white border-gray-300 hover:border-gray-400'
+          ? 'bg-gradient-to-r from-orange-600 to-rose-500 border-transparent text-white'
+          : 'bg-white border-gray-300/80 hover:border-gray-400'
       )}
     >
       {checked && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
