@@ -226,6 +226,17 @@ export default function ShoppingListPage() {
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    if (modalRename) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [modalRename]);
+
   const activeList = lists.find((l) => l.id === activeListId);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -569,7 +580,7 @@ export default function ShoppingListPage() {
 
   if (!hydrated) {
     return (
-      <div className="min-h-screen min-h-full w-full relative bg-gray-50">
+      <div className="min-h-[100dvh] flex flex-col w-full relative bg-gray-50">
         <header
           className={cn(
             'relative z-[1] min-h-[280px]',
@@ -592,7 +603,7 @@ export default function ShoppingListPage() {
   }
 
   return (
-    <div className="min-h-screen min-h-full w-full relative bg-gray-50">
+    <div className="min-h-[100dvh] flex flex-col w-full relative bg-gray-50">
       <DashboardShell
         headerVariant="withCTA"
         headerBackground={
@@ -741,7 +752,7 @@ export default function ShoppingListPage() {
                         value={newItemInput}
                         onChange={(e) => setNewItemInput(e.target.value)}
                         onFocus={() => { setInputFocused(true); if (!newItemInput.trim()) loadFrequentItems(); }}
-                        onBlur={() => { setTimeout(() => { setInputFocused(false); setTypeAheadOpen(false); }, 180); }}
+                        onBlur={() => { setTimeout(() => { setInputFocused(false); setTypeAheadOpen(false); }, 180); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
@@ -1095,6 +1106,7 @@ export default function ShoppingListPage() {
               type="text"
               value={pendingName}
               onChange={(e) => setPendingName(e.target.value)}
+              onBlur={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') renameList(pendingName);
                 if (e.key === 'Escape') setModalRename(null);
