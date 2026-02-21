@@ -953,38 +953,42 @@ export default function ChatDetailPage() {
         >
           <div className="px-4 pb-2 md:px-0 md:pb-0 max-w-4xl mx-auto md:mx-0">
           <div className="max-w-4xl mx-auto px-4 md:px-6">
-            <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white/95 backdrop-blur-md rounded-xl border border-gray-200/80 shadow-xl shadow-black/5 transition-all focus-within:border-violet-300 focus-within:shadow-violet-500/10">
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                onChange={handleFileUpload}
-                accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="w-10 h-10 bg-white border-0 outline-none flex items-center justify-center disabled:opacity-30 rounded-l-xl hover:bg-gray-50 transition-colors"
-                aria-label="Datei hochladen"
-              >
-                <Upload className={`w-5 h-5 text-gray-600 ${isUploading ? 'animate-pulse' : ''}`} />
-              </button>
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Nachricht eingeben..."
-                className="flex-1 px-4 py-4 text-base bg-gray-50 border-0 outline-none resize-none placeholder-gray-400 focus:bg-white focus:outline-none transition-colors"
-              />
-              <button
-                type="submit"
-                disabled={(!input.trim() && documents.length === 0) || isLoading}
-                className="w-10 h-10 bg-white border-0 outline-none flex items-center justify-center disabled:opacity-30 rounded-r-xl hover:bg-gray-50 transition-colors"
-                aria-label="Nachricht senden"
-              >
-                <Send className="w-5 h-5 text-gray-600" />
-              </button>
+            <form onSubmit={handleSubmit} className="w-full">
+              <div className="relative w-full rounded-full p-[2px] transition-all duration-300 bg-white/60 focus-within:bg-gradient-to-r focus-within:from-orange-400 focus-within:via-pink-500 focus-within:to-purple-600 shadow-sm">
+                <div className="flex items-center w-full bg-white/80 backdrop-blur-md rounded-full px-2 py-1">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept=".pdf,.doc,.docx,.txt,.md,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center disabled:opacity-30 text-gray-600 hover:bg-gray-100/80 hover:text-gray-800 transition-colors"
+                    aria-label="Datei hochladen"
+                  >
+                    <Upload className={`w-5 h-5 ${isUploading ? 'animate-pulse' : ''}`} />
+                  </button>
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Nachricht eingeben..."
+                    className="flex-1 min-w-0 bg-transparent border-none outline-none focus:ring-0 px-3 py-2 text-gray-800 placeholder:text-gray-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={(!input.trim() && documents.length === 0) || isLoading}
+                    className="w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center disabled:opacity-30 text-gray-600 hover:bg-gray-100/80 hover:text-orange-500 transition-colors"
+                    aria-label="Nachricht senden"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
             </form>
           </div>
           </div>
