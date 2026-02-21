@@ -24,6 +24,8 @@ import {
   MoreVertical,
   Sparkles,
   Edit2,
+  Bot,
+  Smartphone,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -627,31 +629,24 @@ export default function ShoppingListPage() {
               <WhatIsThisModal
                 title="Smart Einkaufsliste"
                 content={
-                  <div className="space-y-3 text-gray-700">
-                    <p>
-                      Deine intelligente Einkaufsliste mit <strong>KI-gestützter Analyse</strong>. Tippe einfach ein Produkt ein – die AI erkennt automatisch Kategorien, korrigiert Tippfehler und sortiert alles nach Supermarkt-Route.
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <strong>Keine Mengen?</strong> Kein Problem. Gib nur an, was du brauchst ("Milch") oder mit Mengen ("3 Tomaten"). Die AI passt sich an.
-                    </p>
+                  <div className="space-y-4 text-sm text-gray-600">
+                    <p className="text-base font-medium text-gray-900">Deine intelligente Einkaufsliste nimmt dir die Arbeit ab:</p>
+                    <ul className="space-y-3 mt-4">
+                      <li className="flex items-center gap-3">
+                        <Sparkles className="w-5 h-5 text-rose-500 shrink-0" />
+                        <span><strong>KI-Sortierung:</strong> Artikel werden automatisch in Supermarkt-Kategorien sortiert.</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <Bot className="w-5 h-5 text-rose-500 shrink-0" />
+                        <span><strong>Mengen-Erkennung:</strong> &quot;3 Äpfel&quot; oder &quot;500g Mehl&quot; werden direkt verstanden.</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <Smartphone className="w-5 h-5 text-rose-500 shrink-0" />
+                        <span><strong>WhatsApp-Import:</strong> Füge eine kopierte Liste ins Eingabefeld ein – wir machen den Rest!</span>
+                      </li>
+                    </ul>
                   </div>
                 }
-                examples={[
-                  '3 Tomaten → AI: 3x Tomaten (Obst/Gemüse)',
-                  'Milch → AI: Milch (Kühlregal)',
-                  'Kusbasi → AI: Kusbasi (Fleisch) - keine Korrektur!',
-                ]}
-                useCases={[
-                  'Einzelne Produkte eintippen oder ganze Listen einfügen (z.B. aus WhatsApp)',
-                  'AI korrigiert Tippfehler, behält aber kulturelle Begriffe bei',
-                  'Automatische Sortierung nach Supermarkt-Gang (Obst/Gemüse → Fleisch → Kühlregal...)',
-                  'Store-Modus: Große Checkboxen für einfaches Abhaken beim Einkaufen',
-                ]}
-                tips={[
-                  'Füge mehrere Produkte mit Zeilenumbrüchen oder Kommas ein',
-                  'Die AI merkt sich häufig gekaufte Artikel (Chips "Oft gekauft")',
-                  'Im Store-Modus sind alle Bearbeitungs-Funktionen ausgeblendet',
-                ]}
                 trigger={
                   <button type="button" aria-label="Was ist das?" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors">
                     <HelpCircle className="w-4 h-4" />

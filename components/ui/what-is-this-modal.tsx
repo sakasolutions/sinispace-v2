@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, HelpCircle } from 'lucide-react';
+import { X, HelpCircle, Lightbulb } from 'lucide-react';
 
 type WhatIsThisModalProps = {
   title: string;
@@ -40,31 +40,31 @@ export function WhatIsThisModal({
 
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md p-4"
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="bg-white border border-gray-200 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="relative w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl border border-white/20 p-6 sm:p-8 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              aria-label="Schließen"
+              className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center">
-                  <HelpCircle className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 tracking-tight">{title}</h2>
+            <div className="pr-10 flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-orange-600 to-rose-500 flex items-center justify-center shrink-0">
+                <HelpCircle className="w-5 h-5 text-white" />
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <h2 className="text-xl font-bold text-gray-900 tracking-tight">{title}</h2>
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6">
+            <div className="space-y-6">
               {/* Main Description */}
               <div>
                 {typeof content === 'string' ? (
@@ -116,8 +116,8 @@ export function WhatIsThisModal({
               {tips.length > 0 && (
                 <div>
                   <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2 tracking-tight">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    💡 Tipps
+                    <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
+                    Tipps
                   </h3>
                   <ul className="space-y-2">
                     {tips.map((tip, index) => (
@@ -132,10 +132,11 @@ export function WhatIsThisModal({
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4">
+            <div className="mt-6 pt-4 border-t border-gray-100">
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
-                className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium py-2.5 transition-colors shadow-md"
+                className="w-full rounded-xl bg-gradient-to-r from-orange-600 to-rose-500 hover:from-orange-700 hover:to-rose-600 text-white font-medium py-2.5 transition-colors shadow-lg shadow-rose-500/20"
               >
                 Verstanden
               </button>
