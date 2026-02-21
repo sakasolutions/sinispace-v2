@@ -1003,20 +1003,20 @@ export default function ShoppingListPage() {
           </div>
 
           {activeList && checked.length > 0 && (
-            <div className="mt-6 bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="mt-6">
               <div
                 role="button"
                 tabIndex={0}
                 onClick={() => setIsCompletedExpanded(!isCompletedExpanded)}
                 onKeyDown={(e) => e.key === 'Enter' && setIsCompletedExpanded((v) => !v)}
-                className="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between w-full py-3 px-2 text-gray-500 hover:text-gray-700 transition-colors border-b border-gray-300/50 cursor-pointer"
                 aria-expanded={isCompletedExpanded}
               >
-                <span className="text-sm font-semibold text-gray-700">Erledigt ({checked.length})</span>
-                {isCompletedExpanded ? <ChevronUp className="w-5 h-5 text-gray-500 shrink-0" /> : <ChevronDown className="w-5 h-5 text-gray-500 shrink-0" />}
+                <span className="text-sm font-semibold">Erledigt ({checked.length})</span>
+                {isCompletedExpanded ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
               </div>
               {isCompletedExpanded && (
-                <div className="border-t border-gray-100 px-4 pb-4 pt-2">
+                <div className="px-2 pb-4 pt-2">
                   {checked.map((item) => {
                     const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                     const qtyD = formatQtyDisplay(item);
@@ -1030,6 +1030,7 @@ export default function ShoppingListPage() {
                       <UnifiedItemRow
                         key={item.id}
                         isChecked
+                        className="bg-transparent opacity-90 hover:opacity-100"
                         checkbox={
                           <UnifiedCheckbox checked onToggle={() => handleToggleItem(activeList!.id, item.id)} theme={theme} ariaLabel="Rückgängig" />
                         }
@@ -1048,7 +1049,7 @@ export default function ShoppingListPage() {
                             <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
                           </>
                         ) : (
-                          <span className="text-gray-400 line-through capitalize">{erledigtLabel}</span>
+                          <span className="text-gray-500 line-through capitalize">{erledigtLabel}</span>
                         )}
                       </UnifiedItemRow>
                     );
