@@ -894,7 +894,7 @@ export default function ShoppingListPage() {
                       const theme = getCategoryTheme(cat);
                       return (
                         <Fragment key={cat}>
-                          <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} className={index === 0 ? undefined : 'mt-4'} />
+                          <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} className={index === 0 ? 'border-t-0 pt-0' : undefined} />
                           {items.map((item) => {
                             const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                             const isEditingQty = !storeMode && editingQtyItemId === item.id;
@@ -977,7 +977,7 @@ export default function ShoppingListPage() {
                                       <UnifiedQuantityBadge label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
                                     )}
                                     <span className={cn('font-medium text-gray-900 capitalize', isStriking && 'text-gray-400 line-through')}>
-                                      {hasQty ? item.text : displayLabel}
+                                      {storeMode ? displayLabel : (hasQty ? item.text : displayLabel)}
                                     </span>
                                   </>
                                 )}

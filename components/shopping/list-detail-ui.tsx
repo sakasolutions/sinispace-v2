@@ -289,7 +289,7 @@ export function StickyCategoryHeader({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 py-3 border-b border-gray-100 first:mt-0',
+        'flex items-center gap-2 pt-3 pb-3 border-t border-b border-gray-100',
         theme.headerTextColor,
         className
       )}
