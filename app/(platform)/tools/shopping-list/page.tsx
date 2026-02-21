@@ -252,23 +252,51 @@ export default function ShoppingListPage() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      const loaded = await getShoppingLists();
-      if (cancelled) return;
-      hasInitiallyLoaded.current = true;
-      const listIdFromUrl = searchParams.get('listId');
-      if (loaded.length > 0) {
-        setLists(loaded);
-        const preferredId = listIdFromUrl && loaded.some((l) => l.id === listIdFromUrl) ? listIdFromUrl : loaded[0]!.id;
-        setActiveListId(preferredId);
+    getShoppingLists()
+      .then((loaded) => {
+        if (cancelled) return;
+        hasInitiallyLoaded.current = true;
+        const listIdFromUrl = searchParams.get('listId');
+        if (loaded && loaded.length > 0) {
+          setLists(loaded);
+          const preferredId = listIdFromUrl && loaded.some((l) => l.id === listIdFromUrl) ? listIdFromUrl : loaded[0]!.id;
+          setActiveListId(preferredId);
+          if (typeof window !== 'undefined') localStorage.setItem('shopping_lists_backup', JSON.stringify(loaded));
+        } else {
+          const def = defaultList();
+          setLists([def]);
+          setActiveListId(def.id);
+        }
         setHydrated(true);
-        return;
-      }
-      const def = defaultList();
-      setLists([def]);
-      setActiveListId(def.id);
-      setHydrated(true);
-    })();
+      })
+      .catch((err) => {
+        console.warn('Konnte Listen nicht vom Server laden (Offline). Lade lokales Backup.', err);
+        if (cancelled) return;
+        hasInitiallyLoaded.current = true;
+        if (typeof window !== 'undefined') {
+          const backup = localStorage.getItem('shopping_lists_backup');
+          if (backup) {
+            try {
+              const parsed = JSON.parse(backup);
+              setLists(parsed);
+              if (parsed.length > 0) setActiveListId(parsed[0].id);
+            } catch {
+              const def = defaultList();
+              setLists([def]);
+              setActiveListId(def.id);
+            }
+          } else {
+            const def = defaultList();
+            setLists([def]);
+            setActiveListId(def.id);
+          }
+        } else {
+          const def = defaultList();
+          setLists([def]);
+          setActiveListId(def.id);
+        }
+        setHydrated(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -313,6 +341,9 @@ export default function ShoppingListPage() {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(async () => {
       saveTimeoutRef.current = null;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('shopping_lists_backup', JSON.stringify(lists));
+      }
       const { success, error } = await saveShoppingLists(lists);
       setSaveErrorMessage(success ? null : (error ?? 'Unbekannter Fehler'));
     }, 400);
@@ -320,6 +351,19 @@ export default function ShoppingListPage() {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
   }, [lists, hydrated]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('Internet wieder da! Synchronisiere Offline-Änderungen...');
+      if (lists.length > 0) {
+        saveShoppingLists(lists).catch((err) => console.error('Sync fehlgeschlagen', err));
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+      return () => window.removeEventListener('online', handleOnline);
+    }
+  }, [lists]);
 
   // Quick-Add: beim Fokussieren des leeren Eingabefelds häufig gekaufte Items laden
   const loadFrequentItems = useCallback(async () => {
