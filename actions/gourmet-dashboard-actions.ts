@@ -3,7 +3,8 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { getShoppingLists } from './shopping-list-actions';
-import { getCalendarEvents } from './calendar-actions';
+
+type MealEventLike = { type: string; date: string; time?: string; recipeName?: string; resultId?: string };
 
 export type GourmetDashboardData = {
   shoppingCount: number;
@@ -47,9 +48,14 @@ export async function getGourmetDashboardData(): Promise<GourmetDashboardData> {
   const { start: weekStart, end: weekEnd } = getWeekRange();
 
   const userId = session.user.id;
-  const [lists, calendarRes, recipeCountResult, recipeRecent] = await Promise.all([
+  const [lists, userCalendar, dbMealEvents, recipeCountResult, recipeRecent] = await Promise.all([
     getShoppingLists(),
-    getCalendarEvents(),
+    prisma.userCalendar.findUnique({ where: { userId } }),
+    prisma.calendarEvent.findMany({
+      where: { userId, eventType: 'meal' },
+      orderBy: [{ date: 'asc' }, { time: 'asc' }],
+      select: { date: true, time: true, title: true, resultId: true },
+    }),
     prisma.result.count({ where: { userId, toolId: 'recipe' } }),
     prisma.result.findMany({
       where: { userId, toolId: 'recipe' },
@@ -64,8 +70,26 @@ export async function getGourmetDashboardData(): Promise<GourmetDashboardData> {
     0
   );
 
-  const events = calendarRes.success && calendarRes.events ? calendarRes.events : [];
-  const mealEvents = events.filter((e): e is typeof e & { type: 'meal' } => e.type === 'meal');
+  const jsonEvents: MealEventLike[] = (() => {
+    try {
+      const raw = userCalendar?.eventsJson ?? '[]';
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  })();
+  const mealFromJson = jsonEvents.filter((e) => e.type === 'meal') as MealEventLike[];
+  const mealFromDb = dbMealEvents.map((e) => ({
+    type: 'meal' as const,
+    date: e.date,
+    time: e.time,
+    recipeName: e.title ?? undefined,
+    resultId: e.resultId ?? undefined,
+  }));
+  const mealEvents: MealEventLike[] = [...mealFromJson, ...mealFromDb].sort(
+    (a, b) => (a.date === b.date ? (a.time || '').localeCompare(b.time || '') : a.date.localeCompare(b.date))
+  );
 
   const plannedDaysSet = new Set<string>();
   mealEvents.forEach((e) => {
@@ -79,9 +103,9 @@ export async function getGourmetDashboardData(): Promise<GourmetDashboardData> {
   const nextMealEvent = futureMeals[0];
   const nextMeal = nextMealEvent
     ? {
-        title: (nextMealEvent as { recipeName?: string }).recipeName ?? 'Geplantes Gericht',
+        title: nextMealEvent.recipeName ?? 'Geplantes Gericht',
         date: nextMealEvent.date,
-        resultId: (nextMealEvent as { resultId?: string }).resultId,
+        resultId: nextMealEvent.resultId,
       }
     : null;
 

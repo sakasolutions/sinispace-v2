@@ -25,6 +25,7 @@
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
     "cookie-parser": "^1.4.6",
+    "date-fns": "^4.1.0",
     "express": "^4.18.2",
     "framer-motion": "^12.23.26",
     "jspdf": "^4.1.0",

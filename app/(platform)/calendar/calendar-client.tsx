@@ -1,567 +1,126 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
+import { format, startOfWeek, addDays, isToday, getDay, parseISO } from 'date-fns';
+import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Send, ChevronLeft, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
-import { rrulestr } from 'rrule';
-import {
-  getCalendarEvents,
-  saveCalendarEvents,
-  removeCalendarEvent,
-  type CalendarEvent,
-} from '@/actions/calendar-actions';
-import { parseNaturalLanguage } from '@/lib/parse-natural-language';
-import { EventDetailSheet } from './event-detail-sheet';
-import { SwipeableEventItem } from './swipeable-event-item';
 
-const WEEKDAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-const WEEKDAYS_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-
-function toDateKey(d: Date): string {
-  const y = d.getFullYear();
-  const m = (d.getMonth() + 1).toString().padStart(2, '0');
-  const day = d.getDate().toString().padStart(2, '0');
-  return `${y}-${m}-${day}`;
+interface MockEvent {
+  id: string;
+  title: string;
+  time: string;
+  categoryColor: string;
 }
 
-type AgendaItem =
-  | { id: string; type: 'event'; time: string; endTime?: string; title: string; subtitle?: string; isRecurring?: boolean; event: CalendarEvent }
-  | { id: string; type: 'meal'; time: string; endTime?: string; title: string; subtitle?: string; event: CalendarEvent; recipeLink?: string; imageUrl?: string | null }
-  | { id: string; type: 'workout'; time: string; endTime?: string; title: string; event: CalendarEvent };
+const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
-/** Blau = Arbeit/Termin, Orange = Essen, Pink = Privat (wie Spec) */
-function getAccentForItem(item: AgendaItem): { border: string; bar: string; text: string } {
-  if (item.type === 'meal') return { border: 'border-l-orange-500', bar: 'bg-orange-500', text: 'text-orange-600' };
-  if (item.type === 'workout') return { border: 'border-l-pink-500', bar: 'bg-pink-500', text: 'text-pink-600' };
-  const eventType = item.type === 'event' && 'eventType' in item.event ? item.event.eventType : 'reminder';
-  if (eventType === 'work' || eventType === 'meeting') return { border: 'border-l-blue-500', bar: 'bg-blue-500', text: 'text-blue-600' };
-  return { border: 'border-l-pink-500', bar: 'bg-pink-500', text: 'text-pink-600' };
-}
-
-function eventOccursOnDate(e: CalendarEvent, dateKey: string): boolean {
-  if (e.date === dateKey) return true;
-  if (e.type !== 'custom' || !('rrule' in e) || !e.rrule) return false;
-  try {
-    const rule = rrulestr(e.rrule);
-    const [y, m, d] = dateKey.split('-').map(Number);
-    const dayStart = new Date(y, m - 1, d, 0, 0, 0);
-    const dayEnd = new Date(y, m - 1, d, 23, 59, 59);
-    const occurrences = rule.between(dayStart, dayEnd, true);
-    return occurrences.length > 0;
-  } catch {
-    return false;
-  }
-}
-
-function getDayEvents(dateKey: string, events: CalendarEvent[]): AgendaItem[] {
-  const dayEvents = events
-    .filter((e) => eventOccursOnDate(e, dateKey))
-    .sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
-  const items: AgendaItem[] = dayEvents.map((e) => {
-    if (e.type === 'meal') {
-      const label = e.recipeName ? `${e.slot === 'breakfast' ? 'Frühstück' : e.slot === 'lunch' ? 'Mittagessen' : e.slot === 'dinner' ? 'Abendessen' : 'Snack'}: ${e.recipeName}` : e.slot;
-      const cal = e.calories ? (String(e.calories).toLowerCase().includes('kcal') ? e.calories : `${e.calories} kcal`) : undefined;
-      const servings = 'servings' in e ? e.servings : undefined;
-      const subtitleParts: string[] = [];
-      if (servings != null) subtitleParts.push(`${servings} Portionen`);
-      if (cal) subtitleParts.push(cal);
-      const subtitle = subtitleParts.length > 0 ? subtitleParts.join(' • ') : cal;
-      const recipeLink = e.resultId ? `/tools/recipe?open=${encodeURIComponent(e.resultId)}` : undefined;
-      const imageUrl = 'imageUrl' in e ? e.imageUrl : undefined;
-      return { id: e.id, type: 'meal' as const, time: e.time || '12:00', endTime: undefined, title: label, subtitle, event: e, recipeLink, imageUrl };
-    }
-    if (e.type === 'workout') return { id: e.id, type: 'workout' as const, time: e.time || '08:00', endTime: e.endTime, title: e.label || 'Workout', event: e };
-    const isRecurring = !!(e.type === 'custom' && 'rrule' in e && e.rrule);
-    const endTime = e.type === 'custom' && e.endTime ? e.endTime : undefined;
-    return { id: e.id, type: 'event' as const, time: e.time || '09:00', endTime, title: e.title, event: e, isRecurring };
-  });
-  return items.sort((a, b) => a.time.localeCompare(b.time));
-}
-
-/** Datum formatieren: "Montag, 9. Februar" */
-function formatHeaderDate(d: Date): string {
-  return `${WEEKDAYS_LONG[d.getDay()]}, ${d.getDate()}. ${MONTHS[d.getMonth()]}`;
-}
-
-/** ISO-Kalenderwoche (1–53) für Pagination "KW 07" */
-function getISOWeek(d: Date): number {
-  const date = new Date(d);
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-  const week1 = new Date(date.getFullYear(), 0, 4);
-  return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-}
-
-/** Monats-Grid (7 Spalten, Mo–So); leere Zellen am Anfang = null */
-function getMonthGrid(year: number, month: number): (Date | null)[][] {
-  const first = new Date(year, month, 1);
-  const last = new Date(year, month + 1, 0);
-  const startPad = (first.getDay() + 6) % 7; // Mo = 0
-  const daysInMonth = last.getDate();
-  const days: (Date | null)[] = [];
-  for (let i = 0; i < startPad; i++) days.push(null);
-  for (let d = 1; d <= daysInMonth; d++) days.push(new Date(year, month, d));
-  const total = days.length;
-  const rows = Math.ceil(total / 7);
-  while (days.length < rows * 7) days.push(null);
-  const grid: (Date | null)[][] = [];
-  for (let i = 0; i < rows; i++) grid.push(days.slice(i * 7, (i + 1) * 7));
-  return grid;
-}
-
-function hasEventOnDate(dateKey: string, events: CalendarEvent[]): boolean {
-  return events.some((e) => eventOccursOnDate(e, dateKey));
-}
-
-const CALENDAR_EVENTS_STORAGE_KEY = 'calendarEvents';
-
-function loadEventsFromStorage(): CalendarEvent[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const saved = window.localStorage.getItem(CALENDAR_EVENTS_STORAGE_KEY);
-    if (!saved) return [];
-    const a = JSON.parse(saved);
-    return Array.isArray(a) ? a : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveEventsToStorage(events: CalendarEvent[]) {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(CALENDAR_EVENTS_STORAGE_KEY, JSON.stringify(events));
-  } catch {
-    // ignore
-  }
-}
-
-/** Kurzformat für Woche-Überschrift: "Montag, 09.02" */
-function formatDayShort(d: Date): string {
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  return `${WEEKDAYS_LONG[d.getDay()]}, ${day}.${month}.`;
+function getTodayDateKey(d: Date): string {
+  return format(d, 'yyyy-MM-dd');
 }
 
 export function CalendarClient() {
-  const [events, setEvents] = useState<CalendarEvent[]>(() => []);
-  const [currentDate, setCurrentDate] = useState(() => new Date());
-  const [viewDate, setViewDate] = useState(() => new Date()); // für Monats-Ansicht (welcher Monat)
-  const [view, setView] = useState<'day' | 'week' | 'month'>('day');
-  const [magicInput, setMagicInput] = useState('');
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [eventModal, setEventModal] = useState<{ open: boolean; date: string; time?: string; editEvent?: CalendarEvent }>({ open: false, date: '', time: undefined });
+  const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
 
-  const dateKey = toDateKey(currentDate);
-  const todayKey = toDateKey(new Date());
-  const agendaItems = useMemo(() => getDayEvents(dateKey, events), [dateKey, events]);
-  const termCountToday = useMemo(() => getDayEvents(todayKey, events).length, [events, todayKey]);
+  const todayKey = getTodayDateKey(new Date());
+  const currentKey = getTodayDateKey(currentDate);
 
   const weekDays = useMemo(() => {
-    const d = new Date(currentDate);
-    const start = d.getDate() - ((d.getDay() + 6) % 7);
-    return Array.from({ length: 7 }, (_, i) => {
-      const x = new Date(d);
-      x.setDate(start + i);
-      return x;
-    });
+    const start = startOfWeek(currentDate, { weekStartsOn: 1 });
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }, [currentDate]);
 
-  const monthGrid = useMemo(
-    () => getMonthGrid(viewDate.getFullYear(), viewDate.getMonth()),
-    [viewDate]
+  const monthYearLabel = useMemo(
+    () => format(currentDate, 'MMMM yyyy', { locale: de }),
+    [currentDate]
   );
 
-  /** Montag der aktuellen Woche (für Pagination & Strip) */
-  const weekStart = useMemo(() => {
-    const d = new Date(currentDate);
-    const day = d.getDay();
-    const diff = (day + 6) % 7; // Mo=0
-    d.setDate(d.getDate() - diff);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }, [currentDate]);
-
-  const goPrevWeek = useCallback(() => {
-    const next = new Date(weekStart);
-    next.setDate(next.getDate() - 7);
-    setCurrentDate(next);
-  }, [weekStart]);
-
-  const goNextWeek = useCallback(() => {
-    const next = new Date(weekStart);
-    next.setDate(next.getDate() + 7);
-    setCurrentDate(next);
-  }, [weekStart]);
-
-  const goPrevMonth = useCallback(() => {
-    setViewDate((d) => {
-      const next = new Date(d);
-      next.setMonth(next.getMonth() - 1);
-      return next;
-    });
-  }, []);
-
-  const goNextMonth = useCallback(() => {
-    setViewDate((d) => {
-      const next = new Date(d);
-      next.setMonth(next.getMonth() + 1);
-      return next;
-    });
-  }, []);
-
-  useEffect(() => {
-    getCalendarEvents().then((r) => {
-      if (r.success) setEvents(r.events ?? []);
-    });
-  }, []);
-
-  useEffect(() => {
-    saveEventsToStorage(events);
-  }, [events]);
-
-  const selectDay = useCallback((d: Date) => {
-    setCurrentDate(d);
-  }, []);
-
-  const handleMagicSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const text = magicInput.trim();
-    if (!text) return;
-    setMagicInput('');
-
-    const parsed = parseNaturalLanguage(text, new Date());
-    if (parsed.isMeal) {
-      const slot = parsed.time < '11:00' ? 'breakfast' : parsed.time < '15:00' ? 'lunch' : parsed.time < '17:00' ? 'snack' : 'dinner';
-      const newEvent: CalendarEvent = {
-        id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        type: 'meal',
-        slot,
-        date: parsed.date,
-        time: parsed.time,
-        recipeName: parsed.title,
-      };
-      const next = [...events, newEvent];
-      setEvents(next);
-      const saved = await saveCalendarEvents(next);
-      if (!saved.success) setEvents(events);
-      const [, mon, day] = parsed.date.split('-').map(Number);
-      setSuccessMessage(saved.success ? `${parsed.title} am ${day}. ${MONTHS[mon - 1]} um ${parsed.time}` : null);
-    } else {
-      let endTime = parsed.endTime;
-      if (!endTime && parsed.durationMinutes) {
-        const [h, m] = parsed.time.split(':').map(Number);
-        const endM = h * 60 + m + parsed.durationMinutes;
-        endTime = `${String(Math.floor(endM / 60) % 24).padStart(2, '0')}:${String(endM % 60).padStart(2, '0')}`;
-      }
-      const newEvent: CalendarEvent = {
-        id: `ev-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        type: 'custom',
-        eventType: 'reminder',
-        title: parsed.title,
-        date: parsed.date,
-        time: parsed.time,
-        endTime,
-        rrule: parsed.rrule,
-        until: parsed.until,
-        durationMinutes: parsed.durationMinutes,
-        location: parsed.location,
-        withPerson: parsed.withPerson,
-      };
-      const next = [...events, newEvent];
-      setEvents(next);
-      const saved = await saveCalendarEvents(next);
-      if (!saved.success) setEvents(events);
-      const [, mon, day] = parsed.date.split('-').map(Number);
-      const recur = parsed.recurrenceLabel ? ' (wiederkehrend)' : '';
-      setSuccessMessage(saved.success ? `${parsed.title} am ${day}. ${MONTHS[mon - 1]} um ${parsed.time}${recur}` : null);
-    }
-    setTimeout(() => setSuccessMessage(null), 3000);
-  };
-
-  const handleEventSheetSubmit = async (event: CalendarEvent) => {
-    const existing = events.find((e) => e.id === event.id);
-    const next = existing ? events.map((e) => (e.id === event.id ? event : e)) : [...events, event];
-    setEvents(next as CalendarEvent[]);
-    const result = await saveCalendarEvents(next as CalendarEvent[]);
-    if (!result.success) setEvents(events);
-    setEventModal({ open: false, date: '', time: undefined });
-  };
-
-  const handleDeleteEvent = async (eventId: string) => {
-    const prev = events;
-    setEvents((e) => e.filter((ev) => ev.id !== eventId));
-    const result = await removeCalendarEvent(eventId);
-    if (!result.success) {
-      setEvents(prev);
-    }
-  };
-
-  const headerDateLabel = formatHeaderDate(currentDate);
-  const paginationLabel = view === 'month' ? `${MONTHS[viewDate.getMonth()]} ${viewDate.getFullYear()}` : `KW ${String(getISOWeek(weekStart)).padStart(2, '0')}`;
-
-  const renderEventCard = useCallback(
-    (item: AgendaItem) => {
-      const accent = getAccentForItem(item);
-      const subline = item.type === 'meal' ? item.subtitle : ('location' in item.event && item.event.location ? item.event.location : null);
-      const cardContent = (
-        <>
-          <div className={cn('absolute left-0 top-0 bottom-0 w-1 rounded-l-lg', accent.bar)} aria-hidden />
-          <div className="flex gap-4 items-start min-w-0 flex-1">
-            <div className="shrink-0 w-16 text-left">
-              <span className={cn('block text-sm font-bold', accent.text)}>{item.time}</span>
-              {item.endTime && <span className="block text-xs text-gray-500 mt-0.5">bis {item.endTime}</span>}
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base font-semibold text-gray-900">{item.title}</h3>
-              {subline && <p className="text-sm text-gray-500 mt-0.5">{subline}</p>}
-            </div>
-            {item.endTime && <div className="shrink-0 w-1 rounded-full bg-gray-200 self-stretch min-h-[32px]" aria-hidden />}
-          </div>
-          {item.type === 'meal' && item.imageUrl && (
-            <img src={item.imageUrl} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0 absolute right-4 top-1/2 -translate-y-1/2" />
-          )}
-        </>
-      );
-      const cardClass = 'bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden flex items-start gap-3 min-h-[72px]';
-      return (
-        <SwipeableEventItem
-          key={item.id}
-          event={item.event}
-          onDelete={handleDeleteEvent}
-          onEdit={(ev) => setEventModal({ open: true, date: ev.date, time: ev.time ?? '09:00', editEvent: ev })}
-          enableSwipe={typeof navigator !== 'undefined' && 'ontouchstart' in window}
-        >
-          {item.type === 'meal' && item.recipeLink ? (
-            <Link href={item.recipeLink} onClick={(e) => e.stopPropagation()} className={cn(cardClass, 'hover:shadow-md transition-all')}>
-              {cardContent}
-            </Link>
-          ) : (
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-              onKeyDown={(k) => k.key === 'Enter' && setEventModal({ open: true, date: item.event.date, time: item.event.time ?? '09:00', editEvent: item.event })}
-              className={cn(cardClass, 'cursor-pointer hover:shadow-md transition-all')}
-            >
-              {cardContent}
-            </div>
-          )}
-        </SwipeableEventItem>
-      );
-    },
-    [handleDeleteEvent]
+  const mockEvents: MockEvent[] = useMemo(
+    () => [
+      { id: '1', title: 'Meeting', time: '09:00', categoryColor: 'bg-orange-500' },
+      { id: '2', title: 'Mittag', time: '13:00', categoryColor: 'bg-pink-500' },
+      { id: '3', title: 'Sport', time: '18:30', categoryColor: 'bg-purple-500' },
+      { id: '4', title: 'Abendessen', time: '19:30', categoryColor: 'bg-rose-500' },
+    ],
+    []
   );
+
+  const displayEvents = useMemo(() => {
+    if (currentKey !== todayKey) return [];
+    return mockEvents.sort((a, b) => a.time.localeCompare(b.time));
+  }, [currentKey, todayKey, mockEvents]);
 
   return (
-    <div data-header-full-bleed className="min-h-full w-full relative">
-      {/* 1. Header: identisch zu anderen Seiten (h-[280px]), mehr Padding, Stats-Pill */}
-      <header className="relative w-full min-h-[280px] h-[280px] overflow-hidden rounded-b-[40px] -mt-[max(0.5rem,env(safe-area-inset-top))]">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/dashboard-header.webp)' }} aria-hidden />
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-12 md:pt-16">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white" style={{ letterSpacing: '-0.3px' }}>
-            Dein Kalender
-          </h1>
-          <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
-            {headerDateLabel}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
-              <span className="mr-1.5" aria-hidden>📅</span>
-              {termCountToday === 0 ? 'Keine Termine heute' : termCountToday === 1 ? '1 Termin heute' : `${termCountToday} Termine heute`}
-            </span>
-          </div>
+    <div className="min-h-full w-full relative">
+      {/* Immersive Header */}
+      <header className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 pt-12 pb-24 px-4 sm:px-6 md:px-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white capitalize">
+          {monthYearLabel}
+        </h1>
+        <div className="flex justify-center sm:justify-start gap-2 mt-6 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {weekDays.map((d) => {
+            const dayKey = getTodayDateKey(d);
+            const selected = dayKey === currentKey;
+            const isTodayDay = isToday(d);
+            return (
+              <button
+                key={dayKey}
+                type="button"
+                onClick={() => setCurrentDate(d)}
+                className={cn(
+                  'shrink-0 flex flex-col items-center justify-center min-w-[44px] py-2.5 px-2 rounded-full text-white transition-all',
+                  selected && isTodayDay && 'bg-white/20 backdrop-blur-md',
+                  !selected && 'hover:bg-white/10'
+                )}
+              >
+                <span className="text-xs font-medium">{WEEKDAY_LABELS[(getDay(d) + 6) % 7]}</span>
+                <span className="text-sm font-bold mt-0.5">{format(d, 'd')}</span>
+              </button>
+            );
+          })}
         </div>
       </header>
 
-      {/* Main: Command Bar (Overlap) + Glass-Card getrennt, wie Dashboard */}
-      <div className="max-w-5xl mx-auto px-4 relative z-10 pb-20">
-        {/* Element 1: Command Bar – Gradient-Focus-Pill */}
-        <section aria-labelledby="calendar-input-heading" className="-mt-8 mb-8">
-          <h2 id="calendar-input-heading" className="sr-only">Neuer Termin</h2>
-          <div className="relative rounded-full p-[2px] bg-white/40 backdrop-blur-md transition-all duration-300 focus-within:bg-gradient-to-r focus-within:from-orange-400 focus-within:via-pink-500 focus-within:to-purple-500">
-            <form onSubmit={handleMagicSubmit} className="flex items-center w-full rounded-full bg-white/80 min-w-0">
-              <input
-                type="text"
-                value={magicInput}
-                onChange={(e) => setMagicInput(e.target.value)}
-                placeholder="Neuer Termin..."
-                className="flex-1 min-w-0 w-full rounded-full bg-white/80 px-6 py-4 outline-none placeholder:text-gray-400 text-gray-900"
-                aria-label="Neuer Termin eingeben"
-              />
-              <button
-                type="submit"
-                className="shrink-0 rounded-full bg-gray-900 text-white p-2.5 mr-1 hover:bg-gray-800 transition-colors"
-                aria-label="Erstellen"
+      {/* Main Content */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 relative z-10 -mt-8 pb-20">
+        {/* Schwebe Magic-Input */}
+        <div className="mb-8">
+          <input
+            type="text"
+            placeholder="Neuer Termin..."
+            className="w-full bg-white/80 backdrop-blur-xl shadow-xl rounded-full px-6 py-4 outline-none placeholder:text-gray-400 text-gray-900 border-0"
+            aria-label="Neuer Termin eingeben"
+          />
+        </div>
+
+        {/* Clean Agenda */}
+        <div className="flex flex-col">
+          {displayEvents.length === 0 ? (
+            <p className="py-8 text-gray-400 text-sm text-center">
+              {currentKey === todayKey
+                ? 'Keine Termine für heute.'
+                : `Keine Termine für den ${format(parseISO(currentKey), 'd. MMMM', { locale: de })}.`}
+            </p>
+          ) : (
+            displayEvents.map((event) => (
+              <div
+                key={event.id}
+                className="flex items-center gap-4 py-4 border-b border-gray-100 last:border-b-0"
               >
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
-          {successMessage && (
-            <p className="text-sm text-green-600 font-medium mt-2">{successMessage}</p>
+                <span className="text-gray-400 text-sm font-medium w-16 shrink-0">
+                  {event.time}
+                </span>
+                <span
+                  className={cn('w-3 h-3 rounded-full shrink-0', event.categoryColor)}
+                  aria-hidden
+                />
+                <span className="text-gray-800 font-medium flex-1 min-w-0">
+                  {event.title}
+                </span>
+              </div>
+            ))
           )}
-        </section>
-
-        {/* Element 2: Main-Glass-Card – View-Toggle, Nav, Content */}
-        <div className="w-full min-h-[300px] bg-white/60 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-2xl p-6 mt-6">
-          {/* View Toggle: Tag | Woche | Monat */}
-          <div className="flex items-center justify-center bg-white/40 backdrop-blur-sm p-1 rounded-full mx-auto w-fit mb-6 border border-white/30" role="tablist" aria-label="Ansicht">
-            {(['day', 'week', 'month'] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                role="tab"
-                aria-selected={view === v}
-                onClick={() => setView(v)}
-                className={cn(
-                  'px-4 py-2 rounded-full text-sm transition-colors',
-                  view === v ? 'bg-white shadow-sm text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-700'
-                )}
-              >
-                {v === 'day' ? 'Tag' : v === 'week' ? 'Woche' : 'Monat'}
-              </button>
-            ))}
-          </div>
-
-          {/* Pagination: Prev / Label / Next */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <button
-              type="button"
-              onClick={view === 'month' ? goPrevMonth : goPrevWeek}
-              className="p-2 rounded-lg hover:bg-white/40 text-gray-600 transition-colors"
-              aria-label={view === 'month' ? 'Vorheriger Monat' : 'Vorherige Woche'}
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <span className="min-w-[120px] text-center text-sm font-medium text-gray-700">
-              {paginationLabel}
-            </span>
-            <button
-              type="button"
-              onClick={view === 'month' ? goNextMonth : goNextWeek}
-              className="p-2 rounded-lg hover:bg-white/40 text-gray-600 transition-colors"
-              aria-label={view === 'month' ? 'Nächster Monat' : 'Nächste Woche'}
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Content-Area: Tag/Woche = Strip + Agenda | Monat = Grid */}
-          <div>
-            {view === 'month' ? (
-              <section aria-labelledby="calendar-month-heading">
-                <h2 id="calendar-month-heading" className="sr-only">Monatsansicht</h2>
-                <div className="grid grid-cols-7 gap-px text-center">
-                  {WEEKDAYS_SHORT.map((wd) => (
-                    <div key={wd} className="py-1 text-xs font-medium text-gray-500">{wd}</div>
-                  ))}
-                  {monthGrid.flat().map((cell, i) => {
-                    if (!cell) return <div key={`e-${i}`} className="aspect-square min-h-[40px]" />;
-                    const dKey = toDateKey(cell);
-                    const isToday = dKey === todayKey;
-                    const hasEvent = hasEventOnDate(dKey, events);
-                    const isSelected = dKey === dateKey;
-                    return (
-                      <button
-                        key={dKey}
-                        type="button"
-                        onClick={() => { setCurrentDate(cell); setView('day'); }}
-                        className={cn(
-                          'aspect-square min-h-[40px] flex flex-col items-center justify-center rounded-lg text-sm transition-all',
-                          isSelected && 'bg-violet-600 text-white font-medium',
-                          !isSelected && isToday && 'bg-violet-100 text-violet-700 font-medium',
-                          !isSelected && !isToday && 'text-gray-700 hover:bg-gray-100'
-                        )}
-                      >
-                        {cell.getDate()}
-                        {hasEvent && <span className={cn('w-1.5 h-1.5 rounded-full mt-0.5', isSelected ? 'bg-white' : 'bg-violet-400')} />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ) : (
-              <section aria-labelledby="calendar-day-heading">
-                <h2 id="calendar-day-heading" className="sr-only">{view === 'week' ? 'Wochenansicht' : 'Tagesansicht'}</h2>
-                {/* Wochen-Strip: nur in Tag-Ansicht; Padding damit Border nicht abgeschnitten; Mobile zentriert */}
-                {view === 'day' && (
-                  <div className="flex justify-center md:justify-start gap-2 overflow-x-auto py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {weekDays.map((d) => {
-                      const dKey = toDateKey(d);
-                      const selected = dKey === dateKey;
-                      const isToday = dKey === todayKey;
-                      const isActive = selected || isToday;
-                      return (
-                        <button
-                          key={dKey}
-                          type="button"
-                          onClick={() => selectDay(d)}
-                          className={cn(
-                            'flex flex-col items-center justify-center w-12 h-16 rounded-full shrink-0 transition-all',
-                            isActive
-                              ? 'bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30'
-                              : 'bg-white/40 border border-white/50 text-gray-500 hover:text-gray-700 hover:border-white/70'
-                          )}
-                        >
-                          <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
-                          <span className="text-sm font-bold mt-0.5">{String(d.getDate()).padStart(2, '0')}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Event-Liste: Tag = ein Tag; Woche = vertikale Liste aller 7 Tage mit Überschrift + Events */}
-                <div className="flex flex-col gap-4">
-                  {view === 'week' ? (
-                    /* Woche: 7 Tage untereinander, je Überschrift + Events */
-                    weekDays.map((d) => {
-                      const dayKey = toDateKey(d);
-                      const dayItems = getDayEvents(dayKey, events);
-                      const isTodayDay = dayKey === todayKey;
-                      return (
-                        <div key={dayKey} className="space-y-2">
-                          <h3 className={cn('text-sm font-semibold text-gray-700 sticky top-0 bg-white/95 py-1 backdrop-blur-sm', isTodayDay && 'text-orange-600')}>
-                            {formatDayShort(d)}{isTodayDay && ' · Heute'}
-                          </h3>
-                          {dayItems.length === 0 ? (
-                            <p className="text-xs text-gray-400 pl-1">Keine Termine</p>
-                          ) : (
-                            <div className="flex flex-col gap-2">
-                              {dayItems.map((item) => renderEventCard(item))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  ) : agendaItems.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center w-full py-12 bg-white/30 rounded-2xl border border-white/40 text-gray-500">
-                      <p>Keine Termine an diesem Tag.</p>
-                      <p className="text-sm mt-1 opacity-90">Tippe oben einen neuen Eintrag ein.</p>
-                    </div>
-                  ) : (
-                    agendaItems.map((item) => renderEventCard(item))
-                  )}
-                </div>
-              </section>
-            )}
-          </div>
         </div>
       </div>
-
-      <EventDetailSheet
-        isOpen={eventModal.open}
-        onClose={() => setEventModal({ open: false, date: '', time: undefined })}
-        date={eventModal.editEvent?.date ?? eventModal.date}
-        defaultTime={eventModal.editEvent?.time ?? eventModal.time ?? '09:00'}
-        editEvent={eventModal.editEvent}
-        events={events}
-        onSubmit={handleEventSheetSubmit}
-      />
     </div>
   );
 }
