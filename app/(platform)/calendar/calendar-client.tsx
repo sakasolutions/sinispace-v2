@@ -376,22 +376,22 @@ export function CalendarClient() {
 
       {/* Main: Command Bar (Overlap) + Glass-Card getrennt, wie Dashboard */}
       <div className="max-w-5xl mx-auto px-4 relative z-10 pb-20">
-        {/* Element 1: Command Bar – schwebt separat, dezent über Header (-mt-8) */}
+        {/* Element 1: Command Bar – Gradient-Focus-Pill */}
         <section aria-labelledby="calendar-input-heading" className="-mt-8 mb-8">
           <h2 id="calendar-input-heading" className="sr-only">Neuer Termin</h2>
-          <div className="bg-white shadow-xl shadow-gray-200/50 rounded-2xl p-2 flex items-center gap-4 border border-gray-100">
-            <form onSubmit={handleMagicSubmit} className="flex-1 flex items-center gap-3 min-w-0">
+          <div className="relative rounded-full p-[2px] bg-white/40 backdrop-blur-md transition-all duration-300 focus-within:bg-gradient-to-r focus-within:from-orange-400 focus-within:via-pink-500 focus-within:to-purple-500">
+            <form onSubmit={handleMagicSubmit} className="flex items-center w-full rounded-full bg-white/80 min-w-0">
               <input
                 type="text"
                 value={magicInput}
                 onChange={(e) => setMagicInput(e.target.value)}
                 placeholder="Neuer Termin..."
-                className="flex-1 min-w-0 border-0 bg-transparent py-2 px-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                className="flex-1 min-w-0 w-full rounded-full bg-white/80 px-6 py-4 outline-none placeholder:text-gray-400 text-gray-900"
                 aria-label="Neuer Termin eingeben"
               />
               <button
                 type="submit"
-                className="shrink-0 rounded-full bg-gray-900 text-white p-2.5 hover:bg-gray-800 transition-colors"
+                className="shrink-0 rounded-full bg-gray-900 text-white p-2.5 mr-1 hover:bg-gray-800 transition-colors"
                 aria-label="Erstellen"
               >
                 <Send className="w-4 h-4" />
@@ -403,58 +403,52 @@ export function CalendarClient() {
           )}
         </section>
 
-        {/* Element 2: Main-Glass-Card – nur Nav + Content */}
-        <div
-          className={cn(
-            'bg-white/80 backdrop-blur-xl border border-white/60 shadow-2xl rounded-3xl overflow-hidden min-h-[600px]'
-          )}
-        >
-          {/* Navigation: Pills + Pagination */}
-          <div className="flex flex-wrap justify-between items-center gap-4 p-6 bg-gray-50/50 border-b border-gray-100">
-            <div className="w-full md:w-auto flex justify-center md:justify-start" role="tablist" aria-label="Ansicht">
-              <div className="flex rounded-xl bg-gray-100/80 p-1">
-              {(['day', 'week', 'month'] as const).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  role="tab"
-                  aria-selected={view === v}
-                  onClick={() => setView(v)}
-                  className={cn(
-                    'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                    view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                  )}
-                >
-                  {v === 'day' ? 'Tag' : v === 'week' ? 'Woche' : 'Monat'}
-                </button>
-              ))}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
+        {/* Element 2: Main-Glass-Card – View-Toggle, Nav, Content */}
+        <div className="w-full min-h-[300px] bg-white/60 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-2xl p-6 mt-6">
+          {/* View Toggle: Tag | Woche | Monat */}
+          <div className="flex items-center justify-center bg-white/40 backdrop-blur-sm p-1 rounded-full mx-auto w-fit mb-6 border border-white/30" role="tablist" aria-label="Ansicht">
+            {(['day', 'week', 'month'] as const).map((v) => (
               <button
+                key={v}
                 type="button"
-                onClick={view === 'month' ? goPrevMonth : goPrevWeek}
-                className="p-2 rounded-lg hover:bg-gray-200/80 text-gray-600 transition-colors"
-                aria-label={view === 'month' ? 'Vorheriger Monat' : 'Vorherige Woche'}
+                role="tab"
+                aria-selected={view === v}
+                onClick={() => setView(v)}
+                className={cn(
+                  'px-4 py-2 rounded-full text-sm transition-colors',
+                  view === v ? 'bg-white shadow-sm text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-700'
+                )}
               >
-                <ChevronLeft className="w-5 h-5" />
+                {v === 'day' ? 'Tag' : v === 'week' ? 'Woche' : 'Monat'}
               </button>
-              <span className="min-w-[120px] text-center text-sm font-medium text-gray-700">
-                {paginationLabel}
-              </span>
-              <button
-                type="button"
-                onClick={view === 'month' ? goNextMonth : goNextWeek}
-                className="p-2 rounded-lg hover:bg-gray-200/80 text-gray-600 transition-colors"
-                aria-label={view === 'month' ? 'Nächster Monat' : 'Nächste Woche'}
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
+            ))}
           </div>
 
-          {/* C) Content-Area: Tag/Woche = Strip + Agenda | Monat = Grid */}
-          <div className="p-6">
+          {/* Pagination: Prev / Label / Next */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <button
+              type="button"
+              onClick={view === 'month' ? goPrevMonth : goPrevWeek}
+              className="p-2 rounded-lg hover:bg-white/40 text-gray-600 transition-colors"
+              aria-label={view === 'month' ? 'Vorheriger Monat' : 'Vorherige Woche'}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className="min-w-[120px] text-center text-sm font-medium text-gray-700">
+              {paginationLabel}
+            </span>
+            <button
+              type="button"
+              onClick={view === 'month' ? goNextMonth : goNextWeek}
+              className="p-2 rounded-lg hover:bg-white/40 text-gray-600 transition-colors"
+              aria-label={view === 'month' ? 'Nächster Monat' : 'Nächste Woche'}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Content-Area: Tag/Woche = Strip + Agenda | Monat = Grid */}
+          <div>
             {view === 'month' ? (
               <section aria-labelledby="calendar-month-heading">
                 <h2 id="calendar-month-heading" className="sr-only">Monatsansicht</h2>
@@ -492,26 +486,26 @@ export function CalendarClient() {
                 <h2 id="calendar-day-heading" className="sr-only">{view === 'week' ? 'Wochenansicht' : 'Tagesansicht'}</h2>
                 {/* Wochen-Strip: nur in Tag-Ansicht; Padding damit Border nicht abgeschnitten; Mobile zentriert */}
                 {view === 'day' && (
-                  <div className="flex justify-center md:justify-start gap-2 overflow-x-auto p-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="flex justify-center md:justify-start gap-2 overflow-x-auto py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {weekDays.map((d) => {
                       const dKey = toDateKey(d);
                       const selected = dKey === dateKey;
                       const isToday = dKey === todayKey;
+                      const isActive = selected || isToday;
                       return (
                         <button
                           key={dKey}
                           type="button"
                           onClick={() => selectDay(d)}
                           className={cn(
-                            'shrink-0 min-w-[48px] flex flex-col items-center rounded-2xl border py-2 px-1.5 transition-all',
-                            selected && 'bg-gradient-to-br from-violet-600 to-indigo-700 text-white border-transparent shadow-md',
-                            !selected && 'bg-white text-gray-600 border-gray-100 hover:border-gray-200',
-                            isToday && !selected && 'ring-2 ring-orange-400'
+                            'flex flex-col items-center justify-center w-12 h-16 rounded-full shrink-0 transition-all',
+                            isActive
+                              ? 'bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30'
+                              : 'bg-white/40 border border-white/50 text-gray-500 hover:text-gray-700 hover:border-white/70'
                           )}
                         >
                           <span className="text-[10px] font-medium uppercase">{WEEKDAYS_SHORT[d.getDay()]}</span>
                           <span className="text-sm font-bold mt-0.5">{String(d.getDate()).padStart(2, '0')}</span>
-                          {isToday && !selected && <span className="mt-0.5 w-2 h-2 rounded-full bg-orange-400" aria-hidden />}
                         </button>
                       );
                     })}
@@ -542,9 +536,9 @@ export function CalendarClient() {
                       );
                     })
                   ) : agendaItems.length === 0 ? (
-                    <div className="rounded-2xl p-8 text-center border border-gray-100 bg-gray-50/80">
-                      <p className="text-gray-500">Keine Termine an diesem Tag.</p>
-                      <p className="text-sm text-gray-400 mt-1">Tippe oben einen neuen Eintrag ein.</p>
+                    <div className="flex flex-col items-center justify-center w-full py-12 bg-white/30 rounded-2xl border border-white/40 text-gray-500">
+                      <p>Keine Termine an diesem Tag.</p>
+                      <p className="text-sm mt-1 opacity-90">Tippe oben einen neuen Eintrag ein.</p>
                     </div>
                   ) : (
                     agendaItems.map((item) => renderEventCard(item))
