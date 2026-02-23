@@ -50,16 +50,24 @@ const MONTH_DE: Record<string, number> = {
   august: 7, september: 8, oktober: 9, november: 10, dezember: 11,
 };
 
+/** Relative Tagesbegriffe (Deutsch/Englisch) → Tage relativ zu heute. Case-insensitive. */
+const RELATIVE_DAYS: { pattern: RegExp; daysToAdd: number }[] = [
+  { pattern: /\b(übermorgen|uebermorgen|day\s+after)\b/i, daysToAdd: 2 },
+  { pattern: /\b(morgen|tomorrow)\b/i, daysToAdd: 1 },
+  { pattern: /\b(heute|today)\b/i, daysToAdd: 0 },
+];
+
 /**
- * Parst natürliche Sprache (z.B. "Morgen 18 Uhr Fussball", "21. März Kool Savas", "21.03. Konzert")
- * zu title, date (YYYY-MM-DD), time (HH:mm). Nutzt currentDate als Referenz.
+ * Parst natürliche Sprache (z.B. "Morgen 18 Uhr Fussball", "Übermorgen 13 Uhr Zahnarzt", "21. März Kool Savas")
+ * zu title, date (YYYY-MM-DD), time (HH:mm). Nutzt currentDate als Referenz. Case-insensitive.
  * Das zurückgegebene date wird exakt so im Event gespeichert.
  */
 function parseNaturalLanguage(
   inputText: string,
   currentDate: Date
 ): { title: string; date: string; time: string } {
-  const text = inputText.trim().toLowerCase();
+  const original = inputText.trim();
+  const text = original.toLowerCase();
   let resolvedDate = new Date(currentDate);
   let time = '09:00';
 
@@ -87,29 +95,36 @@ function parseNaturalLanguage(
         candidate = new Date(currentDate.getFullYear() + 1, month, day);
       }
       resolvedDate = candidate;
-    } else if (/\b(morgen|tomorrow)\b/.test(text)) {
-      resolvedDate = addDays(currentDate, 1);
-    } else if (/\b(übermorgen|day after)\b/.test(text)) {
-      resolvedDate = addDays(currentDate, 2);
     } else {
-      // 3) Wochentag: "Mittwoch", "nächsten Freitag" etc.
-      const dayMatch = text.match(/\b(nächsten?\s*)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/i);
-      if (dayMatch) {
-        const dayName = dayMatch[2].toLowerCase();
-        const targetDay = WEEKDAY_DE[dayName] ?? 1;
-        const currentDay = getDay(currentDate);
-        let daysToAdd = (targetDay - currentDay + 7) % 7;
-        if (daysToAdd === 0 && !/nächsten?\s*/i.test(dayMatch[1] ?? '')) {
-          daysToAdd = 0;
-        } else if (daysToAdd === 0) {
-          daysToAdd = 7;
+      // 3) Relative Tage: übermorgen (+2), morgen (+1), heute (+0) – Reihenfolge wichtig (längere Begriffe zuerst)
+      let matchedRelative = false;
+      for (const { pattern, daysToAdd } of RELATIVE_DAYS) {
+        if (pattern.test(text)) {
+          resolvedDate = addDays(currentDate, daysToAdd);
+          matchedRelative = true;
+          break;
         }
-        resolvedDate = addDays(currentDate, daysToAdd);
+      }
+      if (!matchedRelative) {
+        // 4) Wochentag: "Mittwoch", "nächsten Freitag" etc.
+        const dayMatch = text.match(/\b(nächsten?\s*)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/i);
+        if (dayMatch) {
+          const dayName = dayMatch[2].toLowerCase();
+          const targetDay = WEEKDAY_DE[dayName] ?? 1;
+          const currentDay = getDay(currentDate);
+          let daysToAdd = (targetDay - currentDay + 7) % 7;
+          if (daysToAdd === 0 && !/nächsten?\s*/i.test(dayMatch[1] ?? '')) {
+            daysToAdd = 0;
+          } else if (daysToAdd === 0) {
+            daysToAdd = 7;
+          }
+          resolvedDate = addDays(currentDate, daysToAdd);
+        }
       }
     }
   }
 
-  // Uhrzeit: "18 Uhr", "18:00", "18.30", "um 10 uhr"
+  // Uhrzeit: "18 Uhr", "18:00", "18.30", "um 10 uhr" (case-insensitive durch toLowerCase)
   const timeMatch =
     text.match(/\b(\d{1,2})\s*[.:]\s*(\d{2})\s*(?:uhr)?\b/i) ||
     text.match(/\b(?:um\s*)?(\d{1,2})\s*uhr\b/i);
@@ -119,16 +134,22 @@ function parseNaturalLanguage(
     time = `${h}:${m}`;
   }
 
-  // Titel: Alle erkannten Datum- und Zeit-Strings entfernen (Cleanup)
-  let title = text
+  // Titel: aus ORIGINAL-String (Original-Casing) alle erkannten Datum/Zeit-Strings entfernen (case-insensitive mit /gi)
+  let title = original
     .replace(/\b\d{1,2}\.\s*(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember)\b/gi, '')
     .replace(/\b\d{1,2}\.\d{1,2}\.?\b/g, '')
-    .replace(/\b(heute|morgen|übermorgen|tomorrow)\b/gi, '')
+    .replace(/\b(übermorgen|uebermorgen|day\s+after)\b/gi, '')
+    .replace(/\b(morgen|tomorrow)\b/gi, '')
+    .replace(/\b(heute|today)\b/gi, '')
     .replace(/\b(?:nächsten?\s*)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/gi, '')
     .replace(/\b(?:um\s*)?\d{1,2}\s*[.:]?\s*\d{0,2}\s*uhr\b/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
   if (!title) title = 'Termin';
+  // Ersten Buchstaben groß (Rest unverändert, z. B. "termin beim Zahnarzt" → "Termin beim Zahnarzt")
+  if (title.length > 0) {
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+  }
 
   const parsedDateStr = format(resolvedDate, 'yyyy-MM-dd');
   return {
