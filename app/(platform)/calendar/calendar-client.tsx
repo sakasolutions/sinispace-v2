@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   format,
   startOfMonth,
@@ -12,15 +12,8 @@ import {
 } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Sparkles } from 'lucide-react';
-
-interface MockEvent {
-  id: string;
-  title: string;
-  startTime: string;
-  endTime: string;
-  dotColor: string;
-}
+import { Sparkles, Loader2 } from 'lucide-react';
+import { getCalendarEvents, createMagicEvent, type CalendarEventJson } from '@/actions/calendar-actions';
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -39,15 +32,17 @@ function getMonthGridDays(viewDate: Date): Date[] {
   return days;
 }
 
-/** Mock-Termine für „heute“ (zur Laufzeit); andere Tage können leer sein oder hier ergänzt werden. */
-const MOCK_TODAY_EVENTS: MockEvent[] = [
-  { id: '1', title: 'Meeting', startTime: '15:00', endTime: '16:00', dotColor: 'bg-orange-400' },
-  { id: '2', title: 'Sport', startTime: '18:00', endTime: '19:30', dotColor: 'bg-violet-500' },
-  { id: '3', title: 'Abendessen', startTime: '20:00', endTime: '21:00', dotColor: 'bg-pink-400' },
-];
+const DOT_COLORS = ['bg-orange-400', 'bg-violet-500', 'bg-pink-400', 'bg-rose-400'] as const;
+
+function getDotColor(index: number): string {
+  return DOT_COLORS[index % DOT_COLORS.length];
+}
 
 export function CalendarClient() {
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
+  const [events, setEvents] = useState<CalendarEventJson[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentKey = getDateKey(currentDate);
   const monthYearLabel = useMemo(
@@ -57,15 +52,48 @@ export function CalendarClient() {
 
   const monthGridDays = useMemo(() => getMonthGridDays(currentDate), [currentDate]);
 
+  useEffect(() => {
+    let cancelled = false;
+    getCalendarEvents().then((list) => {
+      if (!cancelled) setEvents(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const displayEvents = useMemo(() => {
-    const list = isToday(currentDate) ? MOCK_TODAY_EVENTS : [];
-    return [...list].sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [currentKey, currentDate]);
+    const list = events.filter((e) => e.date === currentKey);
+    return [...list].sort((a, b) => a.time.localeCompare(b.time));
+  }, [events, currentKey]);
 
   const selectedDayLabel = useMemo(() => {
     if (isToday(currentDate)) return 'Heute';
     return format(parseISO(currentKey), 'EEEE, d. MMMM', { locale: de });
   }, [currentDate, currentKey]);
+
+  async function handleSubmit() {
+    const trimmed = inputValue.trim();
+    if (!trimmed || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const result = await createMagicEvent(trimmed, new Date());
+      if (result.success) {
+        const next = await getCalendarEvents();
+        setEvents(next);
+        setInputValue('');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit();
+    }
+  }
 
   return (
     <div className="min-h-full w-full relative">
@@ -121,16 +149,26 @@ export function CalendarClient() {
           <div className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-gray-700 shadow-inner flex items-center justify-between mb-8">
             <input
               type="text"
-              placeholder="z.B. Morgen 18 Uhr Fussball"
-              className="flex-1 min-w-0 bg-transparent outline-none placeholder:text-gray-500 text-gray-800"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder={isSubmitting ? 'Wird gespeichert...' : 'z.B. Morgen 18 Uhr Fussball'}
+              disabled={isSubmitting}
+              className="flex-1 min-w-0 bg-transparent outline-none placeholder:text-gray-500 text-gray-800 disabled:opacity-70"
               aria-label="Termin in natürlicher Sprache eingeben"
             />
             <button
               type="button"
-              className="shrink-0 p-2 rounded-full text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !inputValue.trim()}
+              className="shrink-0 p-2 rounded-full text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
               aria-label="Eingabe senden"
             >
-              <Sparkles className="w-5 h-5" strokeWidth={2} />
+              {isSubmitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2} />
+              ) : (
+                <Sparkles className="w-5 h-5" strokeWidth={2} />
+              )}
             </button>
           </div>
 
@@ -143,22 +181,23 @@ export function CalendarClient() {
           <div className="relative border-l-2 border-dashed border-gray-200 ml-3">
             {displayEvents.length === 0 ? (
               <p className="pl-8 text-gray-400 text-sm">
-                Keine Termine für diesen Tag.
+                Keine Termine an diesem Tag.
               </p>
             ) : (
-              displayEvents.map((event) => (
+              displayEvents.map((event, index) => (
                 <div key={event.id} className="relative pl-8 mb-8">
-                  {/* Timeline-Punkt auf der Linie */}
                   <span
                     className={cn(
                       'absolute -left-[5px] top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm',
-                      event.dotColor
+                      getDotColor(index)
                     )}
                     aria-hidden
                   />
                   <p className="text-lg font-semibold text-gray-800">{event.title}</p>
                   <p className="text-sm text-gray-400 flex items-center gap-2 mt-1">
-                    {event.startTime} – {event.endTime} Uhr
+                    {event.endTime
+                      ? `${event.time} – ${event.endTime} Uhr`
+                      : `${event.time} Uhr`}
                   </p>
                 </div>
               ))
