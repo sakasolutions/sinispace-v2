@@ -12,8 +12,8 @@ import {
 } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Sparkles, Loader2 } from 'lucide-react';
-import { getCalendarEvents, createMagicEvent, type CalendarEventJson } from '@/actions/calendar-actions';
+import { Sparkles, Loader2, Trash2 } from 'lucide-react';
+import { getCalendarEvents, createMagicEvent, deleteCalendarEvent, type CalendarEventJson } from '@/actions/calendar-actions';
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -44,7 +44,10 @@ export function CalendarClient() {
   const [inputValue, setInputValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentKey = getDateKey(currentDate);
+  const selectedDateKey = useMemo(
+    () => format(currentDate, 'yyyy-MM-dd'),
+    [currentDate]
+  );
   const monthYearLabel = useMemo(
     () => format(currentDate, 'MMMM yyyy', { locale: de }),
     [currentDate]
@@ -63,14 +66,14 @@ export function CalendarClient() {
   }, []);
 
   const displayEvents = useMemo(() => {
-    const list = events.filter((e) => e.date === currentKey);
+    const list = events.filter((e) => e.date === selectedDateKey);
     return [...list].sort((a, b) => a.time.localeCompare(b.time));
-  }, [events, currentKey]);
+  }, [events, selectedDateKey]);
 
   const selectedDayLabel = useMemo(() => {
     if (isToday(currentDate)) return 'Heute';
-    return format(parseISO(currentKey), 'EEEE, d. MMMM', { locale: de });
-  }, [currentDate, currentKey]);
+    return format(parseISO(selectedDateKey), 'EEEE, d. MMMM', { locale: de });
+  }, [currentDate, selectedDateKey]);
 
   async function handleSubmit() {
     const trimmed = inputValue.trim();
@@ -119,7 +122,7 @@ export function CalendarClient() {
         <div className="grid grid-cols-7 gap-1 sm:gap-2 mt-2">
           {monthGridDays.map((d) => {
             const dayKey = getDateKey(d);
-            const selected = dayKey === currentKey;
+            const selected = dayKey === selectedDateKey;
             const inMonth = isSameMonth(d, currentDate);
             return (
               <button
@@ -172,7 +175,7 @@ export function CalendarClient() {
             </button>
           </div>
 
-          {/* Überschrift: Heute / Ausgewählter Tag */}
+          {/* Dynamische Überschrift: Heute oder formatiertes Datum (z. B. Mittwoch, 25. Februar) */}
           <h2 className="text-2xl font-bold text-gray-800 mb-6 capitalize">
             {selectedDayLabel}
           </h2>
@@ -185,20 +188,33 @@ export function CalendarClient() {
               </p>
             ) : (
               displayEvents.map((event, index) => (
-                <div key={event.id} className="relative pl-8 mb-8">
-                  <span
-                    className={cn(
-                      'absolute -left-[5px] top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm',
-                      getDotColor(index)
-                    )}
-                    aria-hidden
-                  />
-                  <p className="text-lg font-semibold text-gray-800">{event.title}</p>
-                  <p className="text-sm text-gray-400 flex items-center gap-2 mt-1">
-                    {event.endTime
-                      ? `${event.time} – ${event.endTime} Uhr`
-                      : `${event.time} Uhr`}
-                  </p>
+                <div key={event.id} className="relative pl-8 mb-8 flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span
+                      className={cn(
+                        'absolute -left-[5px] top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm',
+                        getDotColor(index)
+                      )}
+                      aria-hidden
+                    />
+                    <p className="text-lg font-semibold text-gray-800">{event.title}</p>
+                    <p className="text-sm text-gray-400 flex items-center gap-2 mt-1">
+                      {event.endTime
+                        ? `${event.time} – ${event.endTime} Uhr`
+                        : `${event.time} Uhr`}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEvents((prev) => prev.filter((e) => e.id !== event.id));
+                      void deleteCalendarEvent(event.id);
+                    }}
+                    className="text-gray-300 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 ml-auto shrink-0"
+                    aria-label={`Termin „${event.title}" löschen`}
+                  >
+                    <Trash2 className="w-5 h-5" strokeWidth={2} />
+                  </button>
                 </div>
               ))
             )}
