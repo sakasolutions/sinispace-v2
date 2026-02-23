@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
-import { addDays, format, getDay } from 'date-fns';
+import { addDays, format, getDay, isBefore, startOfDay } from 'date-fns';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -44,9 +44,16 @@ const WEEKDAY_DE: Record<string, number> = {
   sonntag: 0, montag: 1, dienstag: 2, mittwoch: 3, donnerstag: 4, freitag: 5, samstag: 6,
 };
 
+/** Deutsche Monatsnamen → Monatsindex (0 = Januar, 11 = Dezember) */
+const MONTH_DE: Record<string, number> = {
+  januar: 0, februar: 1, märz: 2, april: 3, mai: 4, juni: 5, juli: 6,
+  august: 7, september: 8, oktober: 9, november: 10, dezember: 11,
+};
+
 /**
- * Parst natürliche Sprache (z.B. "Morgen 18 Uhr Fussball", "Mittwoch Ikea") zu title, date (YYYY-MM-DD), time (HH:mm).
- * Nutzt currentDate als Referenz. Das zurückgegebene date wird exakt so im Event gespeichert.
+ * Parst natürliche Sprache (z.B. "Morgen 18 Uhr Fussball", "21. März Kool Savas", "21.03. Konzert")
+ * zu title, date (YYYY-MM-DD), time (HH:mm). Nutzt currentDate als Referenz.
+ * Das zurückgegebene date wird exakt so im Event gespeichert.
  */
 function parseNaturalLanguage(
   inputText: string,
@@ -56,25 +63,49 @@ function parseNaturalLanguage(
   let resolvedDate = new Date(currentDate);
   let time = '09:00';
 
-  // Datum: heute / morgen / übermorgen
-  if (/\b(morgen|tomorrow)\b/.test(text)) {
-    resolvedDate = addDays(currentDate, 1);
-  } else if (/\b(übermorgen|day after)\b/.test(text)) {
-    resolvedDate = addDays(currentDate, 2);
+  // 1) Explizites Datum: "21. März" / "21. märz" (DD. Monat)
+  const dayMonthNameMatch = text.match(/\b(\d{1,2})\.\s*(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember)\b/i);
+  if (dayMonthNameMatch) {
+    const day = Math.max(1, Math.min(31, parseInt(dayMonthNameMatch[1], 10)));
+    const monthName = dayMonthNameMatch[2].toLowerCase();
+    const monthIndex = MONTH_DE[monthName] ?? 0;
+    let candidate = new Date(currentDate.getFullYear(), monthIndex, day);
+    const today = startOfDay(currentDate);
+    if (isBefore(candidate, today)) {
+      candidate = new Date(currentDate.getFullYear() + 1, monthIndex, day);
+    }
+    resolvedDate = candidate;
   } else {
-    // Wochentag: "Mittwoch", "nächsten Freitag" etc. → nächstes Vorkommen dieses Wochentags
-    const dayMatch = text.match(/\b(nächsten?\s*)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/i);
-    if (dayMatch) {
-      const dayName = dayMatch[2].toLowerCase() as keyof typeof WEEKDAY_DE;
-      const targetDay = WEEKDAY_DE[dayName] ?? 1;
-      const currentDay = getDay(currentDate); // 0=So, 1=Mo, …
-      let daysToAdd = (targetDay - currentDay + 7) % 7;
-      if (daysToAdd === 0 && !/nächsten?\s*/i.test(dayMatch[1] ?? '')) {
-        daysToAdd = 0; // "Mittwoch" und heute ist Mittwoch → heute
-      } else if (daysToAdd === 0) {
-        daysToAdd = 7; // "nächsten Mittwoch" und heute Mittwoch → nächste Woche
+    // 2) Explizites Datum: "21.03." / "21.03" (DD.MM. oder DD.MM)
+    const dayMonthNumMatch = text.match(/\b(\d{1,2})\.(\d{1,2})\.?\b/);
+    if (dayMonthNumMatch) {
+      const day = Math.max(1, Math.min(31, parseInt(dayMonthNumMatch[1], 10)));
+      const month = Math.max(1, Math.min(12, parseInt(dayMonthNumMatch[2], 10))) - 1; // 0-indexed
+      let candidate = new Date(currentDate.getFullYear(), month, day);
+      const today = startOfDay(currentDate);
+      if (isBefore(candidate, today)) {
+        candidate = new Date(currentDate.getFullYear() + 1, month, day);
       }
-      resolvedDate = addDays(currentDate, daysToAdd);
+      resolvedDate = candidate;
+    } else if (/\b(morgen|tomorrow)\b/.test(text)) {
+      resolvedDate = addDays(currentDate, 1);
+    } else if (/\b(übermorgen|day after)\b/.test(text)) {
+      resolvedDate = addDays(currentDate, 2);
+    } else {
+      // 3) Wochentag: "Mittwoch", "nächsten Freitag" etc.
+      const dayMatch = text.match(/\b(nächsten?\s*)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/i);
+      if (dayMatch) {
+        const dayName = dayMatch[2].toLowerCase();
+        const targetDay = WEEKDAY_DE[dayName] ?? 1;
+        const currentDay = getDay(currentDate);
+        let daysToAdd = (targetDay - currentDay + 7) % 7;
+        if (daysToAdd === 0 && !/nächsten?\s*/i.test(dayMatch[1] ?? '')) {
+          daysToAdd = 0;
+        } else if (daysToAdd === 0) {
+          daysToAdd = 7;
+        }
+        resolvedDate = addDays(currentDate, daysToAdd);
+      }
     }
   }
 
@@ -88,8 +119,10 @@ function parseNaturalLanguage(
     time = `${h}:${m}`;
   }
 
-  // Titel: Rest des Textes ohne Datum/Zeit-Keywords (inkl. Wochentage)
+  // Titel: Alle erkannten Datum- und Zeit-Strings entfernen (Cleanup)
   let title = text
+    .replace(/\b\d{1,2}\.\s*(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember)\b/gi, '')
+    .replace(/\b\d{1,2}\.\d{1,2}\.?\b/g, '')
     .replace(/\b(heute|morgen|übermorgen|tomorrow)\b/gi, '')
     .replace(/\b(?:nächsten?\s*)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/gi, '')
     .replace(/\b(?:um\s*)?\d{1,2}\s*[.:]?\s*\d{0,2}\s*uhr\b/gi, '')
@@ -97,7 +130,6 @@ function parseNaturalLanguage(
     .trim();
   if (!title) title = 'Termin';
 
-  // WICHTIG: Dieses date (YYYY-MM-DD) wird 1:1 im Event gespeichert – kein Fallback auf „heute“.
   const parsedDateStr = format(resolvedDate, 'yyyy-MM-dd');
   return {
     title,
