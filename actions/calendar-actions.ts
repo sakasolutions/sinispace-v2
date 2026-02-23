@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, unstable_noStore } from 'next/cache';
 import type { Prisma } from '@prisma/client';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
@@ -83,6 +83,7 @@ export type WeeklyPlanEntry = {
 
 /** Kalender-Events laden: JSON (UserCalendar) + DB (CalendarEvent mit Recipe) */
 export async function getCalendarEvents() {
+  unstable_noStore();
   const session = await auth();
   if (!session?.user?.id) return { success: false as const, error: 'Nicht angemeldet', events: [] };
 

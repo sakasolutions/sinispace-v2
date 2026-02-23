@@ -146,7 +146,7 @@ function formatDayShort(d: Date): string {
 }
 
 export function CalendarClient() {
-  const [events, setEvents] = useState<CalendarEvent[]>(loadEventsFromStorage);
+  const [events, setEvents] = useState<CalendarEvent[]>(() => []);
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [viewDate, setViewDate] = useState(() => new Date()); // für Monats-Ansicht (welcher Monat)
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
@@ -214,7 +214,7 @@ export function CalendarClient() {
 
   useEffect(() => {
     getCalendarEvents().then((r) => {
-      if (r.success && r.events && r.events.length > 0) setEvents(r.events);
+      if (r.success) setEvents(r.events ?? []);
     });
   }, []);
 
@@ -245,9 +245,10 @@ export function CalendarClient() {
       };
       const next = [...events, newEvent];
       setEvents(next);
-      await saveCalendarEvents(next);
+      const saved = await saveCalendarEvents(next);
+      if (!saved.success) setEvents(events);
       const [, mon, day] = parsed.date.split('-').map(Number);
-      setSuccessMessage(`${parsed.title} am ${day}. ${MONTHS[mon - 1]} um ${parsed.time}`);
+      setSuccessMessage(saved.success ? `${parsed.title} am ${day}. ${MONTHS[mon - 1]} um ${parsed.time}` : null);
     } else {
       let endTime = parsed.endTime;
       if (!endTime && parsed.durationMinutes) {
@@ -271,10 +272,11 @@ export function CalendarClient() {
       };
       const next = [...events, newEvent];
       setEvents(next);
-      await saveCalendarEvents(next);
+      const saved = await saveCalendarEvents(next);
+      if (!saved.success) setEvents(events);
       const [, mon, day] = parsed.date.split('-').map(Number);
       const recur = parsed.recurrenceLabel ? ' (wiederkehrend)' : '';
-      setSuccessMessage(`${parsed.title} am ${day}. ${MONTHS[mon - 1]} um ${parsed.time}${recur}`);
+      setSuccessMessage(saved.success ? `${parsed.title} am ${day}. ${MONTHS[mon - 1]} um ${parsed.time}${recur}` : null);
     }
     setTimeout(() => setSuccessMessage(null), 3000);
   };
@@ -283,7 +285,8 @@ export function CalendarClient() {
     const existing = events.find((e) => e.id === event.id);
     const next = existing ? events.map((e) => (e.id === event.id ? event : e)) : [...events, event];
     setEvents(next as CalendarEvent[]);
-    await saveCalendarEvents(next as CalendarEvent[]);
+    const result = await saveCalendarEvents(next as CalendarEvent[]);
+    if (!result.success) setEvents(events);
     setEventModal({ open: false, date: '', time: undefined });
   };
 
