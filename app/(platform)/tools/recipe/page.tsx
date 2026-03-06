@@ -159,6 +159,13 @@ export default function RecipePage() {
   const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
   const [isMagicGenerating, setIsMagicGenerating] = useState(false);
   const [magicQuery, setMagicQuery] = useState('');
+  const [isWeekPlannerOpen, setIsWeekPlannerOpen] = useState(false);
+  const [weekMeals, setWeekMeals] = useState({
+    breakfast: false,
+    lunch: false,
+    dinner: true,
+  });
+  const [isPlanningWeek, setIsPlanningWeek] = useState(false);
   const router = useRouter();
 
   /** Filter-Chips für Sammlung: Alle, Hauptgericht, Frühstück, Dessert, Salat, Veggie */
@@ -474,7 +481,7 @@ export default function RecipePage() {
               setIngredients('');
             }}
             onMagicWunsch={() => setIsMagicModalOpen(true)}
-            onWochePlanen={() => setAddToListToast({ message: 'Das neue Tier-1-Update kommt bald!' })}
+            onWochePlanen={() => setIsWeekPlannerOpen(true)}
           />
         </div>
       ) : (
@@ -962,6 +969,73 @@ export default function RecipePage() {
                 </form>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Wochenplaner Setup-Modal (Tier 1 Phase 1) */}
+      {isWeekPlannerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="week-planner-modal-title">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              type="button"
+              onClick={() => setIsWeekPlannerOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-1"
+              aria-label="Schließen"
+            >
+              ✕
+            </button>
+
+            <h3 id="week-planner-modal-title" className="text-2xl font-bold mb-2 text-gray-800">Woche planen</h3>
+            <p className="text-sm text-gray-500 mb-6">Was soll dein Smart-Chef für dich vorbereiten?</p>
+
+            {/* Mahlzeiten-Auswahl */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Welche Mahlzeiten?</label>
+              <div className="flex gap-2">
+                {[
+                  { id: 'breakfast', label: 'Frühstück', icon: '🥐' },
+                  { id: 'lunch', label: 'Mittag', icon: '🥗' },
+                  { id: 'dinner', label: 'Abends', icon: '🍽️' },
+                ].map((meal) => (
+                  <button
+                    key={meal.id}
+                    type="button"
+                    onClick={() => setWeekMeals((prev) => ({ ...prev, [meal.id]: !prev[meal.id as keyof typeof prev] }))}
+                    className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl text-sm font-medium transition-all ${
+                      weekMeals[meal.id as keyof typeof weekMeals]
+                        ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 shadow-sm transform scale-105'
+                        : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="text-xl" aria-hidden>{meal.icon}</span>
+                    {meal.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Magic Input für die Woche */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Besondere Wünsche?</label>
+              <textarea
+                placeholder="z.B. Alles High Protein, am Wochenende etwas Aufwendigeres, unter der Woche schnell..."
+                className="w-full border-2 border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium resize-none h-28"
+                rows={4}
+              />
+            </div>
+
+            {/* Action Button */}
+            <button
+              type="button"
+              onClick={() => {
+                console.log('Starte Generierung für:', weekMeals);
+              }}
+              disabled={!weekMeals.breakfast && !weekMeals.lunch && !weekMeals.dinner}
+              className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-xl py-4 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:hover:scale-100"
+            >
+              ✨ Wochenplan zaubern
+            </button>
           </div>
         </div>
       )}
