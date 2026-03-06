@@ -112,7 +112,7 @@ export function CustomSelect({
   const dropdownList = (
     <div
       ref={dropdownRef}
-      className={`custom-select-dropdown rounded-xl z-[100] max-h-[200px] overflow-auto ${
+      className={`custom-select-dropdown rounded-xl z-[100] max-h-48 overflow-y-auto scrollbar-thin ${
         theme === 'light'
           ? 'bg-white border-2 border-orange-200 shadow-lg shadow-orange-500/15 ring-2 ring-orange-100/80'
           : 'bg-zinc-900 border border-white/10 shadow-xl'
