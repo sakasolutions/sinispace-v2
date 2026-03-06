@@ -6,13 +6,18 @@ import {
   startOfMonth,
   startOfWeek,
   addDays,
+  addMonths,
+  subMonths,
+  addYears,
+  subYears,
+  eachDayOfInterval,
   isSameMonth,
   parseISO,
   isToday,
 } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Sparkles, Loader2, Trash2 } from 'lucide-react';
+import { Sparkles, Loader2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { getCalendarEvents, createMagicEvent, deleteCalendarEvent, type CalendarEventJson } from '@/actions/calendar-actions';
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -32,6 +37,12 @@ function getMonthGridDays(viewDate: Date): Date[] {
   return days;
 }
 
+/** Montag–Sonntag der Woche, die das gegebene Datum enthält. */
+function getWeekDays(anchorDate: Date): Date[] {
+  const weekStart = startOfWeek(anchorDate, { weekStartsOn: 1 });
+  return eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
+}
+
 const DOT_COLORS = ['bg-orange-400', 'bg-violet-500', 'bg-pink-400', 'bg-rose-400'] as const;
 
 function getDotColor(index: number): string {
@@ -40,6 +51,7 @@ function getDotColor(index: number): string {
 
 export function CalendarClient() {
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
+  const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [events, setEvents] = useState<CalendarEventJson[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,6 +66,22 @@ export function CalendarClient() {
   );
 
   const monthGridDays = useMemo(() => getMonthGridDays(currentDate), [currentDate]);
+  const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
+
+  function prevMonth() {
+    setCurrentDate((d) => subMonths(d, 1));
+  }
+  function nextMonth() {
+    setCurrentDate((d) => addMonths(d, 1));
+  }
+  function prevYear() {
+    setCurrentDate((d) => subYears(d, 1));
+  }
+  function nextYear() {
+    setCurrentDate((d) => addYears(d, 1));
+  }
+
+  const gridDays = viewMode === 'week' ? weekDays : monthGridDays;
 
   useEffect(() => {
     let cancelled = false;
@@ -100,14 +128,78 @@ export function CalendarClient() {
 
   return (
     <div className="min-h-full w-full relative">
-      {/* Immersive Header – voller Monatskalender */}
+      {/* Immersive Header – dynamische Wochen-/Monatsansicht */}
       <header className="w-full pt-12 pb-8 px-4 sm:px-6 relative overflow-hidden rounded-b-[40px] bg-gradient-to-br from-purple-900 via-indigo-800 to-purple-800">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white capitalize tracking-tight">
-          {monthYearLabel}
-        </h1>
+        {/* Navigation: Jahr/Monat + zentrierter Titel + Ansicht-Toggle */}
+        <div className="flex items-center justify-between w-full mb-6">
+          <div className="flex items-center shrink-0" aria-hidden />
+          <div className="flex items-center justify-center gap-0 sm:gap-1">
+            <button
+              type="button"
+              onClick={prevYear}
+              className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
+              aria-label="Vorheriges Jahr"
+            >
+              <ChevronsLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+            </button>
+            <button
+              type="button"
+              onClick={prevMonth}
+              className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
+              aria-label="Vorheriger Monat"
+            >
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+            </button>
+            <span className="text-2xl font-bold text-white capitalize mx-2 sm:mx-4 min-w-[140px] sm:min-w-[180px] text-center">
+              {monthYearLabel}
+            </span>
+            <button
+              type="button"
+              onClick={nextMonth}
+              className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
+              aria-label="Nächster Monat"
+            >
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+            </button>
+            <button
+              type="button"
+              onClick={nextYear}
+              className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
+              aria-label="Nächstes Jahr"
+            >
+              <ChevronsRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+            </button>
+          </div>
+          <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => setViewMode('week')}
+              className={cn(
+                'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                viewMode === 'week'
+                  ? 'bg-white text-purple-700 shadow-md'
+                  : 'text-white/70 hover:text-white'
+              )}
+            >
+              Woche
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('month')}
+              className={cn(
+                'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                viewMode === 'month'
+                  ? 'bg-white text-purple-700 shadow-md'
+                  : 'text-white/70 hover:text-white'
+              )}
+            >
+              Monat
+            </button>
+          </div>
+        </div>
 
         {/* Wochentags-Leiste (7er-Grid) */}
-        <div className="grid grid-cols-7 gap-1 mt-6 text-center">
+        <div className="grid grid-cols-7 gap-1 text-center">
           {WEEKDAY_LABELS.map((label) => (
             <span
               key={label}
@@ -118,9 +210,14 @@ export function CalendarClient() {
           ))}
         </div>
 
-        {/* Monats-Grid (7 Spalten) */}
-        <div className="grid grid-cols-7 gap-1 sm:gap-2 mt-2">
-          {monthGridDays.map((d) => {
+        {/* Dynamisches Grid: Woche (1 Zeile) oder Monat (6 Zeilen) */}
+        <div
+          className={cn(
+            'grid grid-cols-7 gap-1 sm:gap-2 mt-2 transition-all duration-300 ease-in-out',
+            viewMode === 'week' ? 'grid-rows-1' : ''
+          )}
+        >
+          {gridDays.map((d) => {
             const dayKey = getDateKey(d);
             const selected = dayKey === selectedDateKey;
             const inMonth = isSameMonth(d, currentDate);
