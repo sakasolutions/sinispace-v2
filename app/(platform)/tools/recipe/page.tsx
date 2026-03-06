@@ -26,7 +26,6 @@ import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
-import { WeekPlanner } from '@/components/recipe/week-planner';
 import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
@@ -141,7 +140,7 @@ export default function RecipePage() {
   const [state, formAction] = useActionState(generateRecipe, null);
 
   const [showCockpit, setShowCockpit] = useState(true);
-  const [activeTab, setActiveTab] = useState<'create' | 'my-recipes' | 'week-planner'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'my-recipes'>('create');
   const [ingredients, setIngredients] = useState('');
   const [shoppingMode, setShoppingMode] = useState<'strict' | 'shopping'>('strict');
   const [mealType, setMealType] = useState('Hauptgericht');
@@ -172,11 +171,11 @@ export default function RecipePage() {
     { id: 'Veggie', label: 'Veggie' },
   ];
 
-  // ?tab=week-planner | ?tab=my-recipes: Direkt zum Tab (z. B. von GourmetCockpit-Links)
+  // ?tab=my-recipes: Direkt zum Tab (z. B. von GourmetCockpit-Links)
   useEffect(() => {
-    if (tabParam === 'week-planner' || tabParam === 'my-recipes') {
+    if (tabParam === 'my-recipes') {
       setShowCockpit(false);
-      setActiveTab(tabParam);
+      setActiveTab('my-recipes');
     }
   }, [tabParam]);
 
@@ -285,9 +284,9 @@ export default function RecipePage() {
     }
   };
 
-  // Lade "Meine Rezepte" wenn Tab gewechselt wird (auch für Wochenplaner)
+  // Lade "Meine Rezepte" wenn Tab gewechselt wird
   useEffect(() => {
-    if (activeTab === 'my-recipes' || activeTab === 'week-planner') {
+    if (activeTab === 'my-recipes') {
       loadMyRecipes();
     }
   }, [activeTab]);
@@ -475,19 +474,7 @@ export default function RecipePage() {
               setIngredients('');
             }}
             onMagicWunsch={() => setIsMagicModalOpen(true)}
-          />
-        </div>
-      ) : activeTab === 'week-planner' ? (
-        /* Planer-Modus: nur WeekPlanner */
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
-          <WeekPlanner
-            myRecipes={myRecipes}
-            workspaceId={undefined}
-            onBackToCockpit={() => setShowCockpit(true)}
-            onRequestNewRecipe={() => {
-              setShowCockpit(false);
-              setActiveTab('create');
-            }}
+            onWochePlanen={() => setAddToListToast({ message: 'Das neue Tier-1-Update kommt bald!' })}
           />
         </div>
       ) : (
