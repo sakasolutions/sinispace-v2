@@ -4,7 +4,7 @@ import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg, Pizza, Drumstick } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg, Pizza, Drumstick, CalendarDays, RefreshCw, Rocket } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus, createPortal } from 'react-dom';
@@ -1115,30 +1115,54 @@ export default function RecipePage() {
             {/* --- PHASE 3: DAS LABOR (Entwurf) --- */}
             {plannerPhase === 'lab' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-[80vh]">
-                <div className="shrink-0 mb-4 pt-2">
-                  <h3 className="text-2xl font-bold text-gray-800">Dein Wochenplan</h3>
-                  <p className="text-sm text-gray-500">Prüfe den Entwurf. Du kannst einzelne Gerichte austauschen.</p>
+                {/* Header */}
+                <div className="shrink-0 mb-6 pt-2">
+                  <h3 className="text-2xl font-bold text-gray-800 tracking-tight">Dein Wochenplan</h3>
+                  <p className="text-sm text-gray-500 mt-1">Prüfe den Entwurf. Tausche einzelne Gerichte einfach aus.</p>
                 </div>
 
                 {/* Scrollbarer Bereich für die Tage */}
-                <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin space-y-6 pb-6 min-h-0">
+                <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin space-y-8 pb-8 min-h-0">
                   {weekDraft.map((dayPlan, idx) => (
-                    <div key={idx} className="bg-orange-50/50 rounded-2xl p-4 border border-orange-100">
-                      <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
-                        📅 {dayPlan.day}
-                      </h4>
-                      <div className="space-y-3">
+                    <div key={idx} className="relative">
+                      {/* Tages-Header mit Icon */}
+                      <div className="flex items-center gap-2 mb-4 sticky top-0 bg-white/90 backdrop-blur-sm py-2 z-10">
+                        <CalendarDays className="w-5 h-5 text-orange-500" />
+                        <h4 className="font-bold text-lg text-gray-800">
+                          {dayPlan.day}
+                        </h4>
+                      </div>
+
+                      {/* Mahlzeiten */}
+                      <div className="space-y-3 pl-2 border-l-2 border-orange-100/50 ml-2">
                         {dayPlan.meals.map((meal: { type: string; title: string; calories: string; time: string }, mIdx: number) => (
-                          <div key={mIdx} className="bg-white rounded-xl p-3 shadow-sm flex items-center justify-between border border-gray-100">
-                            <div>
-                              <span className="text-xs font-bold text-orange-500 uppercase tracking-wider block mb-1">
+                          <div key={mIdx} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between border border-gray-100 group relative overflow-hidden">
+                            {/* Dezenter Farb-Akzent am linken Rand */}
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-orange-300 to-orange-500" aria-hidden />
+
+                            <div className="pl-3">
+                              <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest block mb-1.5">
                                 {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
                               </span>
-                              <p className="font-semibold text-gray-800 text-sm leading-tight mb-1">{meal.title}</p>
-                              <p className="text-xs text-gray-500">{meal.time} • {meal.calories}</p>
+                              <p className="font-bold text-gray-800 text-base leading-tight mb-2 pr-4">{meal.title}</p>
+
+                              <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3.5 h-3.5" /> {meal.time}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Flame className="w-3.5 h-3.5 text-orange-400" /> {meal.calories}
+                                </span>
+                              </div>
                             </div>
-                            <button type="button" className="shrink-0 ml-2 p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors" title="Gericht austauschen">
-                              🔄
+
+                            {/* Edler Re-Roll Button */}
+                            <button
+                              type="button"
+                              className="shrink-0 ml-2 p-3 text-gray-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                              title="Gericht neu generieren"
+                            >
+                              <RefreshCw className="w-5 h-5" />
                             </button>
                           </div>
                         ))}
@@ -1148,13 +1172,14 @@ export default function RecipePage() {
                 </div>
 
                 {/* Footer / Commit Action */}
-                <div className="shrink-0 pt-4 mt-2 border-t border-gray-100 bg-white">
+                <div className="shrink-0 pt-4 mt-2 bg-white">
                   <button
                     type="button"
                     onClick={() => console.log('Finalisiere Plan...')}
-                    className="w-full bg-gray-900 text-white rounded-xl py-4 font-bold shadow-lg hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                   >
-                    🚀 Plan finalisieren & speichern
+                    <Rocket className="w-5 h-5 text-orange-400" />
+                    Plan finalisieren & speichern
                   </button>
                 </div>
               </div>
