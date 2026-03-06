@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, Check, CheckCircle2, ListPlus, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed, CalendarDays, X } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed, CalendarDays, X } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { scheduleSingleRecipe } from '@/actions/calendar-actions';
@@ -53,7 +53,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   /** Welche Zutaten im „Einkaufen“-Modal angezeigt werden: alle (vom Einkaufen-Button) oder nur fehlende (vom Auf Einkaufsliste-Button). */
   const [addToListIngredients, setAddToListIngredients] = useState<string[]>([]);
   const [toast, setToast] = useState<{ message: string } | null>(null);
-  const [showMissingIngredients, setShowMissingIngredients] = useState(false);
   const [cookingMode, setCookingMode] = useState(false);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [scheduleDate, setScheduleDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -67,15 +66,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   }, [toast]);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
-  const toggleIngredient = (index: number) => {
-    setCheckedIngredients((prev) => {
-      const next = new Set(prev);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
-      return next;
-    });
-  };
 
   const handleScheduleRecipe = async () => {
     setIsScheduling(true);
@@ -465,56 +455,74 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
       {/* Content: Zutaten (sticky) | Zubereitung – Editorial Layout */}
       <div className="max-w-5xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
-        {/* Linke Spalte: Zutaten (sticky auf Desktop) */}
+        {/* Linke Spalte: Zutaten (sticky auf Desktop) – getrennt: Vorhanden / Fehlt noch */}
         <div className="md:col-span-4 md:sticky md:top-24">
-          <h2 className="text-lg font-bold text-gray-900 mb-3">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
-            <div className="flex flex-col sm:flex-row gap-2 mb-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setAddToListIngredients(adjustedIngredients);
-                  setIsAddToListOpen(true);
-                }}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
-              >
-                <ShoppingBasket className="w-4 h-4" />
-                Einkaufen
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsCalendarModalOpen(true)}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl font-medium text-sm transition-colors"
-              >
-                <CalendarDays className="w-4 h-4" />
-                Im Kalender planen
-              </button>
-            </div>
-          <ul className="divide-y divide-gray-100">
-            {adjustedIngredients.map((ingredient, index) => {
-              const checked = checkedIngredients.has(index);
-              return (
-                <li key={index}>
-                  <button
-                    type="button"
-                    onClick={() => toggleIngredient(index)}
-                    className="w-full flex items-center gap-3 py-3 text-left rounded-lg hover:bg-gray-50/80 transition-colors"
-                  >
-                    <span
-                      className={cn(
-                        'w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors',
-                        checked ? 'bg-gradient-to-r from-orange-500 to-amber-500' : 'border-2 border-gray-300 bg-white'
-                      )}
-                    >
-                      {checked && <Check className="w-4 h-4 text-white" strokeWidth={2.5} />}
-                    </span>
-                    <span className={cn('text-sm leading-relaxed flex-1 min-w-0', checked ? 'text-gray-400 line-through' : 'text-gray-800')}>
-                      {formatIngredientDisplay(ingredient)}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+            <button
+              type="button"
+              onClick={() => {
+                setAddToListIngredients(adjustedShoppingList.length > 0 ? adjustedShoppingList : adjustedIngredients);
+                setIsAddToListOpen(true);
+              }}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              <ShoppingBasket className="w-4 h-4" />
+              Einkaufen
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsCalendarModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl font-medium text-sm transition-colors"
+            >
+              <CalendarDays className="w-4 h-4" />
+              Im Kalender planen
+            </button>
+          </div>
+
+          {adjustedShoppingList.length > 0 ? (
+            <>
+              {adjustedIngredients.length > 0 && (
+                <>
+                  <h2 className="text-lg font-bold text-gray-900 mb-3">Zutaten (Vorhanden)</h2>
+                  <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
+                  <ul className="divide-y divide-gray-100 mb-6">
+                    {adjustedIngredients.map((ingredient, index) => (
+                      <li key={index} className="flex items-start gap-2 py-2.5">
+                        <span className="text-gray-400 mt-0.5 shrink-0">•</span>
+                        <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" aria-hidden />
+                Fehlt noch
+              </h2>
+              <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
+              <ul className="divide-y divide-gray-100">
+                {adjustedShoppingList.map((ingredient, index) => (
+                  <li key={index} className="flex items-start gap-2 py-2.5">
+                    <span className="text-amber-500 mt-0.5 shrink-0">•</span>
+                    <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <>
+              <h2 className="text-lg font-bold text-gray-900 mb-3">Zutaten</h2>
+              <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
+              <ul className="divide-y divide-gray-100">
+                {adjustedIngredients.map((ingredient, index) => (
+                  <li key={index} className="flex items-start gap-2 py-2.5">
+                    <span className="text-gray-400 mt-0.5 shrink-0">•</span>
+                    <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
 
         {/* Rechte Spalte: Zubereitung */}
