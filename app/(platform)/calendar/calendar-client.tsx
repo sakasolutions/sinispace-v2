@@ -64,6 +64,7 @@ function getEventDotStyle(actionTag?: string) {
 }
 
 export function CalendarClient() {
+  // selectedDate & viewDate: ein State – initial immer „heute“
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [events, setEvents] = useState<CalendarEventJson[]>([]);
@@ -233,10 +234,19 @@ export function CalendarClient() {
                   <ChevronsRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
                 </button>
               </div>
-              <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1 shrink-0">
+              <div className="flex items-center shrink-0">
                 <button
                   type="button"
-                  onClick={() => setViewMode('week')}
+                  onClick={() => setCurrentDate(new Date())}
+                  className="text-sm font-medium text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-4 py-1.5 rounded-full transition-all backdrop-blur-md mr-3"
+                  aria-label="Heute anzeigen"
+                >
+                  Heute
+                </button>
+                <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('week')}
                   className={cn(
                     'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
                     viewMode === 'week'
@@ -258,6 +268,7 @@ export function CalendarClient() {
                 >
                   Monat
                 </button>
+                </div>
               </div>
             </div>
 
@@ -281,10 +292,12 @@ export function CalendarClient() {
                 const dayKey = getDateKey(d);
                 const selected = dayKey === selectedDateKey;
                 const inMonth = isSameMonth(d, currentDate);
+                const hasEvents = events.some((e) => e.date === dayKey);
+                const isTodayDay = isToday(d);
                 return (
                   <div
                     key={dayKey}
-                    className="flex flex-col items-center justify-center h-16"
+                    className="relative flex flex-col items-center justify-center h-16"
                   >
                     <button
                       type="button"
@@ -293,11 +306,24 @@ export function CalendarClient() {
                         'rounded-full text-sm font-medium transition-all flex items-center justify-center',
                         selected
                           ? 'w-10 h-10 rounded-full flex items-center justify-center bg-white text-purple-600 font-bold shadow-[0_4px_14px_0_rgba(0,0,0,0.1)]'
-                          : cn('aspect-square w-full max-w-12', inMonth ? 'text-white hover:bg-white/15' : 'text-white/40')
+                          : cn(
+                              'aspect-square w-full max-w-12',
+                              inMonth ? 'text-white hover:bg-white/15' : 'text-white/40',
+                              isTodayDay && !selected && 'border border-white/50'
+                            )
                       )}
                     >
                       {format(d, 'd')}
                     </button>
+                    {hasEvents && (
+                      <div
+                        className="w-1 h-1 rounded-full mt-1 absolute bottom-2 left-1/2 -translate-x-1/2"
+                        style={{
+                          backgroundColor: selected ? '#9333ea' : 'white',
+                        }}
+                        aria-hidden
+                      />
+                    )}
                   </div>
                 );
               })}
