@@ -173,8 +173,9 @@ export function CalendarClient() {
 
   return (
     <div className="min-h-full w-full relative">
-      {/* Immersive Header – dynamische Wochen-/Monatsansicht */}
-      <header className="w-full pt-12 pb-8 px-4 sm:px-6 relative overflow-hidden rounded-b-[40px] bg-gradient-to-br from-purple-900 via-indigo-800 to-purple-800">
+      {/* Immersive Header – dynamische Wochen-/Monatsansicht (Maße wie Dashboard-Karte) */}
+      <div className="mx-4 sm:mx-6 mt-4">
+        <header className="w-full pt-12 pb-8 px-4 sm:px-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 text-white">
         {/* Navigation: Jahr/Monat + zentrierter Titel + Ansicht-Toggle */}
         <div className="flex items-center justify-between w-full mb-6">
           <div className="flex items-center shrink-0" aria-hidden />
@@ -272,12 +273,10 @@ export function CalendarClient() {
                 type="button"
                 onClick={() => setCurrentDate(d)}
                 className={cn(
-                  'aspect-square flex items-center justify-center rounded-full text-sm font-medium transition-all',
+                  'rounded-full text-sm font-medium transition-all flex items-center justify-center',
                   selected
-                    ? 'bg-orange-400 text-white font-bold shadow-lg'
-                    : inMonth
-                      ? 'text-white hover:bg-white/15'
-                      : 'text-white/40'
+                    ? 'w-10 h-10 bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white font-bold shadow-lg shadow-purple-500/30'
+                    : cn('aspect-square', inMonth ? 'text-white hover:bg-white/15' : 'text-white/40')
                 )}
               >
                 {format(d, 'd')}
@@ -287,8 +286,8 @@ export function CalendarClient() {
         </div>
       </header>
 
-      {/* Weißer Body (Overlap & Magic Input) */}
-      <div className="bg-white w-full rounded-t-[40px] px-6 pt-8 pb-24 -mt-6 relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.15)]">
+        {/* Weißer Body (Overlap & Magic Input) – gleiche Breite wie Header durch gemeinsamen Wrapper */}
+        <div className="bg-white w-full rounded-t-3xl px-6 pt-8 pb-24 -mt-6 relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.15)]">
         <div className="max-w-2xl mx-auto">
           {/* Magic Input – natürliche Spracheingabe */}
           <div className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-gray-700 shadow-inner flex items-center justify-between mb-8">
@@ -403,6 +402,7 @@ export function CalendarClient() {
             )}
           </div>
         </div>
+      </div>
       </div>
 
       {/* Smart Edit Modal */}
