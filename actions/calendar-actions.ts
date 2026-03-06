@@ -296,6 +296,56 @@ export async function deleteCalendarEvent(
   }
 }
 
+/** Aktualisierbare Felder (ohne id, type, eventType). */
+export type CalendarEventUpdate = Partial<
+  Pick<CalendarEventJson, 'title' | 'date' | 'time' | 'endTime' | 'location' | 'actionTag'>
+>;
+
+/**
+ * Aktualisiert ein Event im eventsJson: Sucht per eventId, überschreibt mit updatedData, speichert, revalidiert.
+ */
+export async function updateCalendarEvent(
+  eventId: string,
+  updatedData: CalendarEventUpdate
+): Promise<{ success: true } | { success: false; error: string }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Nicht angemeldet' };
+  }
+
+  if (!eventId?.trim()) {
+    return { success: false, error: 'Keine Event-ID' };
+  }
+
+  try {
+    const calendar = await prisma.userCalendar.findUnique({
+      where: { userId: session.user.id },
+    });
+    if (!calendar) {
+      return { success: false, error: 'Kalender nicht gefunden' };
+    }
+
+    const events = (JSON.parse(calendar.eventsJson) as CalendarEventJson[]) || [];
+    const index = events.findIndex((e) => e.id === eventId);
+    if (index === -1) {
+      return { success: false, error: 'Termin nicht gefunden' };
+    }
+
+    events[index] = { ...events[index], ...updatedData };
+
+    await prisma.userCalendar.update({
+      where: { userId: session.user.id },
+      data: { eventsJson: JSON.stringify(events) },
+    });
+
+    revalidatePath('/calendar');
+    return { success: true };
+  } catch (e) {
+    console.error('[CALENDAR] updateCalendarEvent:', e);
+    return { success: false, error: 'Fehler beim Speichern' };
+  }
+}
+
 /** Ein Eintrag für saveWeeklyPlan: ein Tag + Rezept (aus AI/Wochenplaner) */
 export type WeeklyPlanEntry = {
   date: string; // YYYY-MM-DD

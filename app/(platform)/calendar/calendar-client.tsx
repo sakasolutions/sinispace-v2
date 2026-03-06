@@ -17,8 +17,8 @@ import {
 } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Sparkles, Loader2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MapPin, ShoppingCart, Utensils, Calendar } from 'lucide-react';
-import { getCalendarEvents, createMagicEvent, deleteCalendarEvent, type CalendarEventJson } from '@/actions/calendar-actions';
+import { Sparkles, Loader2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MapPin, ShoppingCart, Utensils, Calendar, X } from 'lucide-react';
+import { getCalendarEvents, createMagicEvent, deleteCalendarEvent, updateCalendarEvent, type CalendarEventJson } from '@/actions/calendar-actions';
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -69,6 +69,8 @@ export function CalendarClient() {
   const [events, setEvents] = useState<CalendarEventJson[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<CalendarEventJson | null>(null);
+  const [editForm, setEditForm] = useState({ title: '', date: '', time: '', location: '' });
 
   const selectedDateKey = useMemo(
     () => format(currentDate, 'yyyy-MM-dd'),
@@ -107,6 +109,17 @@ export function CalendarClient() {
     };
   }, []);
 
+  useEffect(() => {
+    if (editingEvent) {
+      setEditForm({
+        title: editingEvent.title,
+        date: editingEvent.date,
+        time: editingEvent.time,
+        location: editingEvent.location ?? '',
+      });
+    }
+  }, [editingEvent]);
+
   const displayEvents = useMemo(() => {
     const list = events.filter((e) => e.date === selectedDateKey);
     return [...list].sort((a, b) => a.time.localeCompare(b.time));
@@ -137,6 +150,24 @@ export function CalendarClient() {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleSubmit();
+    }
+  }
+
+  async function handleUpdateEvent() {
+    if (!editingEvent) return;
+    const payload = {
+      title: editForm.title.trim() || editingEvent.title,
+      date: editForm.date || editingEvent.date,
+      time: editForm.time || editingEvent.time,
+      location: editForm.location.trim() || undefined,
+    };
+    const eventId = editingEvent.id;
+    const updated = { ...editingEvent, ...payload };
+    setEvents((prev) => prev.map((e) => (e.id === eventId ? updated : e)));
+    setEditingEvent(null);
+    const result = await updateCalendarEvent(eventId, payload);
+    if (!result.success) {
+      setEvents((prev) => prev.map((e) => (e.id === eventId ? editingEvent : e)));
     }
   }
 
@@ -312,8 +343,14 @@ export function CalendarClient() {
                     >
                       <DotIcon className="w-3 h-3 text-white" strokeWidth={2.5} aria-hidden />
                     </span>
-                    {/* Rich Event Card */}
-                    <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-4 w-full group transition-all hover:shadow-md">
+                    {/* Rich Event Card (klickbar → Smart Edit Modal) */}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setEditingEvent(event)}
+                      onKeyDown={(e) => e.key === 'Enter' && setEditingEvent(event)}
+                      className="bg-white border border-gray-100 shadow-sm rounded-2xl p-4 w-full group transition-all hover:shadow-md cursor-pointer"
+                    >
                       {/* Obere Reihe: Titel + Lösch-Button */}
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-lg font-semibold text-gray-800 flex-1 min-w-0">
@@ -321,8 +358,9 @@ export function CalendarClient() {
                         </p>
                         <button
                           type="button"
-                          onClick={() => {
-                            setEvents((prev) => prev.filter((e) => e.id !== event.id));
+                          onClick={(evt) => {
+                            evt.stopPropagation();
+                            setEvents((prev) => prev.filter((x) => x.id !== event.id));
                             void deleteCalendarEvent(event.id);
                           }}
                           className="text-gray-300 hover:text-red-500 opacity-70 group-hover:opacity-100 transition-all p-2 rounded-full hover:bg-red-50 shrink-0"
@@ -366,6 +404,110 @@ export function CalendarClient() {
           </div>
         </div>
       </div>
+
+      {/* Smart Edit Modal */}
+      {editingEvent && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-event-title"
+        >
+          <div
+            className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header mit Gradient-Streifen + X */}
+            <div className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 h-1 w-full" />
+            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+              <h3 id="edit-event-title" className="text-lg font-semibold text-gray-800">
+                Termin bearbeiten
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingEvent(null)}
+                className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                aria-label="Schließen"
+              >
+                <X className="w-5 h-5" strokeWidth={2} />
+              </button>
+            </div>
+
+            {/* Formular (minimalistische Inputs) */}
+            <form
+              className="p-5 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleUpdateEvent();
+              }}
+            >
+              <div>
+                <label htmlFor="edit-title" className="sr-only">
+                  Titel
+                </label>
+                <input
+                  id="edit-title"
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                  className="text-xl font-bold border-b border-gray-200 bg-transparent focus:border-purple-500 outline-none w-full py-2 text-gray-800 placeholder:text-gray-400"
+                  placeholder="Titel"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="edit-date" className="block text-xs font-medium text-gray-500 mb-1">
+                    Datum
+                  </label>
+                  <input
+                    id="edit-date"
+                    type="date"
+                    value={editForm.date}
+                    onChange={(e) => setEditForm((f) => ({ ...f, date: e.target.value }))}
+                    className="border-b border-gray-200 bg-transparent focus:border-purple-500 outline-none w-full py-2 text-gray-800"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-time" className="block text-xs font-medium text-gray-500 mb-1">
+                    Zeit
+                  </label>
+                  <input
+                    id="edit-time"
+                    type="time"
+                    value={editForm.time}
+                    onChange={(e) => setEditForm((f) => ({ ...f, time: e.target.value }))}
+                    className="border-b border-gray-200 bg-transparent focus:border-purple-500 outline-none w-full py-2 text-gray-800"
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="edit-location" className="sr-only">
+                  Ort
+                </label>
+                <div className="flex items-center gap-2 border-b border-gray-200 focus-within:border-purple-500 transition-colors">
+                  <MapPin className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={2} />
+                  <input
+                    id="edit-location"
+                    type="text"
+                    value={editForm.location}
+                    onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))}
+                    className="flex-1 bg-transparent focus:outline-none py-2 text-gray-800 placeholder:text-gray-400"
+                    placeholder="Ort (optional)"
+                  />
+                </div>
+              </div>
+
+              {/* Action: Speichern */}
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-full py-3 font-semibold shadow-lg hover:shadow-xl transition-all mt-6"
+              >
+                Speichern
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
