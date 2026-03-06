@@ -66,7 +66,10 @@ export async function generateRecipe(prevState: any, formData: FormData) {
 }`;
 
   const imageSearchRule = `
-- imageSearchQuery (String): Ein einfacher, generischer ENGLISCHER Suchbegriff für das Gericht, um ein hochwertiges Foto auf Unsplash zu finden. Kurz halten (2–3 Wörter). Beispiel: Statt "Spicy Low Carb Chicken Curry with Tofu" nur "Chicken Curry" oder "Tofu Curry".
+- imageSearchQuery (String): Ein generischer ENGLISCHER Suchbegriff für Food-Fotografie auf Unsplash.
+  Regel 1: Vermeide lebende Tiere oder rohe Zutaten! (z.B. NIE nur "Chicken", "Cow" oder "Pig"). Nutze stattdessen "Chicken Dish", "Roasted Chicken" oder "Meat Food".
+  Regel 2: Mache zu spezifische Gerichte generischer. (Statt "Rigatoni Alfredo" nutze "Pasta Alfredo" oder "Creamy Pasta").
+  Regel 3: Hänge bei Bedarf das Wort "food" an, um sicherzugehen, dass es ein Tellergericht ist. (Maximal 2-3 Wörter).
 `;
 
   const categoryIconRules = `

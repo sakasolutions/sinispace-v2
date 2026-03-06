@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, ListPlus, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed, CalendarDays, X } from 'lucide-react';
-import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed, CalendarDays, X } from 'lucide-react';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { scheduleSingleRecipe } from '@/actions/calendar-actions';
 import { cn } from '@/lib/utils';
@@ -48,7 +47,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   // Original-Servings aus Recipe (normalerweise 2)
   const originalServings = 2;
   const [servings, setServings] = useState(originalServings);
-  const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isAddToListOpen, setIsAddToListOpen] = useState(false);
   /** Welche Zutaten im „Einkaufen“-Modal angezeigt werden: alle (vom Einkaufen-Button) oder nur fehlende (vom Auf Einkaufsliste-Button). */
   const [addToListIngredients, setAddToListIngredients] = useState<string[]>([]);
@@ -133,31 +131,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
     const newCalories = Math.round(originalCalories * ratio);
     return `${newCalories} kcal`;
   }, [recipe.stats?.calories, servings, originalServings]);
-
-  // Smart "Was fehlt mir?" - Priorität: Hauptzutaten > Gewürze (mit angepassten Mengen)
-  const prioritizedMissingIngredients = useMemo(() => {
-    if (!adjustedShoppingList || adjustedShoppingList.length === 0) return [];
-    
-    // Kategorisiere Zutaten nach Priorität (mit angepassten Mengen)
-    const mainIngredients = adjustedShoppingList.filter(ing => {
-      const lower = ing.toLowerCase();
-      return lower.includes('fleisch') || lower.includes('hack') || lower.includes('huhn') || 
-             lower.includes('fisch') || lower.includes('reis') || lower.includes('nudeln') ||
-             lower.includes('kartoffel') || lower.includes('tomate') || lower.includes('zwiebel') ||
-             lower.includes('paprika') || lower.includes('käse') || lower.includes('milch');
-    });
-    
-    const spices = adjustedShoppingList.filter(ing => {
-      const lower = ing.toLowerCase();
-      return lower.includes('salz') || lower.includes('pfeffer') || lower.includes('gewürz') ||
-             lower.includes('paprika') || lower.includes('kümmel') || lower.includes('oregano');
-    });
-    
-    // Priorität: Hauptzutaten zuerst, dann Rest
-    return [...mainIngredients, ...adjustedShoppingList.filter(ing => 
-      !mainIngredients.includes(ing) && !spices.includes(ing)
-    ), ...spices];
-  }, [adjustedShoppingList]);
 
   // Parse Kochzeit für Timer
   const parseTime = (timeStr: string) => {
@@ -427,30 +400,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             </div>
           </div>
         </div>
-
-        {prioritizedMissingIngredients.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setIsShoppingListOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
-            >
-              <AlertCircle className="w-4 h-4" />
-              Was fehlt mir?
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAddToListIngredients(prioritizedMissingIngredients);
-                setIsAddToListOpen(true);
-              }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
-            >
-              <ListPlus className="w-4 h-4" />
-              In den SmartCart
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Content: Zutaten (sticky) | Zubereitung – Editorial Layout */}
@@ -565,18 +514,6 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             <p className="text-gray-700 italic leading-relaxed">{recipe.chefTip}</p>
           </div>
         </div>
-      )}
-
-      {/* Export-Modal (WhatsApp/Copy) */}
-      {prioritizedMissingIngredients.length > 0 && (
-        <ShoppingListModal
-          isOpen={isShoppingListOpen}
-          onClose={() => setIsShoppingListOpen(false)}
-          ingredients={prioritizedMissingIngredients}
-          recipeName={recipe.recipeName}
-          showBackToRecipe={true}
-          onBackToRecipe={() => setIsShoppingListOpen(false)}
-        />
       )}
 
       {/* Auf Einkaufsliste setzen – Modal + Toast */}
