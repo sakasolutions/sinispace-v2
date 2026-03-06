@@ -167,6 +167,8 @@ export default function RecipePage() {
   });
   const [isPlanningWeek, setIsPlanningWeek] = useState(false);
   const [selectedWeekFilters, setSelectedWeekFilters] = useState<string[]>([]);
+  const [plannerPhase, setPlannerPhase] = useState<'setup' | 'loading' | 'lab'>('setup');
+  const [weekDraft, setWeekDraft] = useState<any[]>([]);
   const router = useRouter();
 
   const quickFilters = [
@@ -987,89 +989,176 @@ export default function RecipePage() {
       {isWeekPlannerOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="week-planner-modal-title">
           <div className="relative z-[101] w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
-            <button
-              type="button"
-              onClick={() => setIsWeekPlannerOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-1"
-              aria-label="Schließen"
-            >
-              ✕
-            </button>
+            {/* Close Button (nur im Setup & Lab anzeigen) */}
+            {plannerPhase !== 'loading' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsWeekPlannerOpen(false);
+                  setTimeout(() => setPlannerPhase('setup'), 300);
+                }}
+                className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                aria-label="Schließen"
+              >
+                ✕
+              </button>
+            )}
 
-            <h3 id="week-planner-modal-title" className="text-2xl font-bold mb-2 text-gray-800">Woche planen</h3>
-            <p className="text-sm text-gray-500 mb-1">Was soll dein Smart-Chef für dich vorbereiten?</p>
-            <p className="text-xs text-gray-400 mb-6">Plan startet immer am kommenden Montag (Mo–So).</p>
+            {/* --- PHASE 1: SETUP --- */}
+            {plannerPhase === 'setup' && (
+              <div className="animate-in fade-in duration-300">
+                <h3 id="week-planner-modal-title" className="text-2xl font-bold mb-2 text-gray-800">Woche planen</h3>
+                <p className="text-sm text-gray-500 mb-1">Was soll dein Smart-Chef für dich vorbereiten?</p>
+                <p className="text-xs text-gray-400 mb-6">Plan startet immer am kommenden Montag (Mo–So).</p>
 
-            {/* Mahlzeiten-Auswahl */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Welche Mahlzeiten?</label>
-              <div className="flex gap-2">
-                {[
-                  { id: 'breakfast', label: 'Frühstück', icon: '🥐' },
-                  { id: 'lunch', label: 'Mittag', icon: '🥗' },
-                  { id: 'dinner', label: 'Abends', icon: '🍽️' },
-                ].map((meal) => (
-                  <button
-                    key={meal.id}
-                    type="button"
-                    onClick={() => setWeekMeals((prev) => ({ ...prev, [meal.id]: !prev[meal.id as keyof typeof prev] }))}
-                    className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl text-sm font-medium transition-all ${
-                      weekMeals[meal.id as keyof typeof weekMeals]
-                        ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 shadow-sm transform scale-105'
-                        : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
-                    }`}
-                  >
-                    <span className="text-xl" aria-hidden>{meal.icon}</span>
-                    {meal.label}
-                  </button>
-                ))}
+                {/* Mahlzeiten-Auswahl */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Welche Mahlzeiten?</label>
+                  <div className="flex gap-2">
+                    {[
+                      { id: 'breakfast', label: 'Frühstück', icon: '🥐' },
+                      { id: 'lunch', label: 'Mittag', icon: '🥗' },
+                      { id: 'dinner', label: 'Abends', icon: '🍽️' },
+                    ].map((meal) => (
+                      <button
+                        key={meal.id}
+                        type="button"
+                        onClick={() => setWeekMeals((prev) => ({ ...prev, [meal.id]: !prev[meal.id as keyof typeof prev] }))}
+                        className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl text-sm font-medium transition-all ${
+                          weekMeals[meal.id as keyof typeof weekMeals]
+                            ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 shadow-sm transform scale-105'
+                            : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
+                        }`}
+                      >
+                        <span className="text-xl" aria-hidden>{meal.icon}</span>
+                        {meal.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Schnell-Filter (Smart Chips) */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Ernährung & Fokus</label>
+                  <div className="flex flex-wrap gap-2">
+                    {quickFilters.map((filter) => (
+                      <button
+                        key={filter}
+                        type="button"
+                        onClick={() => setSelectedWeekFilters((prev) =>
+                          prev.includes(filter) ? prev.filter((f) => f !== filter) : [...prev, filter]
+                        )}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                          selectedWeekFilters.includes(filter)
+                            ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 scale-105'
+                            : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
+                        }`}
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Weitere Wünsche (Optional) */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Weitere Wünsche? (Optional)</label>
+                  <textarea
+                    placeholder="z.B. Mittwoch etwas mit Kürbis, am Wochenende etwas Aufwendigeres..."
+                    className="w-full border-2 border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium resize-none h-28"
+                    rows={4}
+                  />
+                </div>
+
+                {/* Action Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPlannerPhase('loading');
+                    setTimeout(() => {
+                      const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+                      const mockPlan = days.map((day) => ({
+                        day,
+                        meals: Object.entries(weekMeals)
+                          .filter(([, isSelected]) => isSelected)
+                          .map(([type]) => ({
+                            type,
+                            title: type === 'breakfast' ? 'Protein-Pancakes' : type === 'lunch' ? 'Fitness Bowl' : 'Steak mit Süßkartoffeln',
+                            calories: '450 kcal',
+                            time: '20 Min',
+                          })),
+                      }));
+                      setWeekDraft(mockPlan);
+                      setPlannerPhase('lab');
+                    }, 2000);
+                  }}
+                  disabled={!weekMeals.breakfast && !weekMeals.lunch && !weekMeals.dinner}
+                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-xl py-4 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:hover:scale-100"
+                >
+                  ✨ Wochenplan zaubern
+                </button>
               </div>
-            </div>
+            )}
 
-            {/* Schnell-Filter (Smart Chips) */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Ernährung & Fokus</label>
-              <div className="flex flex-wrap gap-2">
-                {quickFilters.map((filter) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    onClick={() => setSelectedWeekFilters((prev) =>
-                      prev.includes(filter) ? prev.filter((f) => f !== filter) : [...prev, filter]
-                    )}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
-                      selectedWeekFilters.includes(filter)
-                        ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 scale-105'
-                        : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
-                    }`}
-                  >
-                    {filter}
-                  </button>
-                ))}
+            {/* --- PHASE 2: LOADING --- */}
+            {plannerPhase === 'loading' && (
+              <div className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in duration-300">
+                <div className="text-6xl animate-bounce mb-6" aria-hidden>👨‍🍳</div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Dein Speiseplan entsteht...</h3>
+                <p className="text-sm text-gray-500 mb-8 px-4">
+                  Unsere KI analysiert deine Wünsche und stellt 7 perfekte Tage zusammen.
+                </p>
+                <div className="w-12 h-12 border-4 border-orange-100 border-t-orange-500 rounded-full animate-spin" aria-hidden />
               </div>
-            </div>
+            )}
 
-            {/* Weitere Wünsche (Optional) */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Weitere Wünsche? (Optional)</label>
-              <textarea
-                placeholder="z.B. Mittwoch etwas mit Kürbis, am Wochenende etwas Aufwendigeres..."
-                className="w-full border-2 border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium resize-none h-28"
-                rows={4}
-              />
-            </div>
+            {/* --- PHASE 3: DAS LABOR (Entwurf) --- */}
+            {plannerPhase === 'lab' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-[80vh]">
+                <div className="shrink-0 mb-4 pt-2">
+                  <h3 className="text-2xl font-bold text-gray-800">Dein Wochenplan</h3>
+                  <p className="text-sm text-gray-500">Prüfe den Entwurf. Du kannst einzelne Gerichte austauschen.</p>
+                </div>
 
-            {/* Action Button */}
-            <button
-              type="button"
-              onClick={() => {
-                console.log('Starte Generierung für:', weekMeals, 'Filter:', selectedWeekFilters);
-              }}
-              disabled={!weekMeals.breakfast && !weekMeals.lunch && !weekMeals.dinner}
-              className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-xl py-4 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:hover:scale-100"
-            >
-              ✨ Wochenplan zaubern
-            </button>
+                {/* Scrollbarer Bereich für die Tage */}
+                <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin space-y-6 pb-6 min-h-0">
+                  {weekDraft.map((dayPlan, idx) => (
+                    <div key={idx} className="bg-orange-50/50 rounded-2xl p-4 border border-orange-100">
+                      <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        📅 {dayPlan.day}
+                      </h4>
+                      <div className="space-y-3">
+                        {dayPlan.meals.map((meal: { type: string; title: string; calories: string; time: string }, mIdx: number) => (
+                          <div key={mIdx} className="bg-white rounded-xl p-3 shadow-sm flex items-center justify-between border border-gray-100">
+                            <div>
+                              <span className="text-xs font-bold text-orange-500 uppercase tracking-wider block mb-1">
+                                {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
+                              </span>
+                              <p className="font-semibold text-gray-800 text-sm leading-tight mb-1">{meal.title}</p>
+                              <p className="text-xs text-gray-500">{meal.time} • {meal.calories}</p>
+                            </div>
+                            <button type="button" className="shrink-0 ml-2 p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors" title="Gericht austauschen">
+                              🔄
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer / Commit Action */}
+                <div className="shrink-0 pt-4 mt-2 border-t border-gray-100 bg-white">
+                  <button
+                    type="button"
+                    onClick={() => console.log('Finalisiere Plan...')}
+                    className="w-full bg-gray-900 text-white rounded-xl py-4 font-bold shadow-lg hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  >
+                    🚀 Plan finalisieren & speichern
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>,
         document.body
