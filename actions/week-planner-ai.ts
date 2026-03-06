@@ -1,7 +1,9 @@
 'use server';
 
+import { addDays, format, startOfDay, startOfWeek } from 'date-fns';
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
+import { saveWeeklyPlan as saveWeeklyPlanToCalendar } from '@/actions/calendar-actions';
 
 export type WeekDraftMeal = {
   type: 'breakfast' | 'lunch' | 'dinner';
