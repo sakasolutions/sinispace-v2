@@ -21,6 +21,8 @@ export type CalendarEventJson = {
   endTime?: string; // HH:mm, optional
   location?: string;
   actionTag?: CalendarActionTag;
+  /** Rezept-Verknüpfung (CookIQ: „Im Kalender planen“) – für Link „Jetzt kochen“. */
+  recipeResultId?: string;
 };
 
 /**
@@ -225,6 +227,68 @@ export async function createMagicEvent(
   } catch (e) {
     console.error('[CALENDAR] createMagicEvent:', e);
     return { success: false, error: 'Fehler beim Speichern' };
+  }
+}
+
+/** Standard-Zeiten für Mahlzeiten (CookIQ Einzelrezept → Kalender). */
+const MEAL_TIME_MAP: Record<'breakfast' | 'lunch' | 'dinner', string> = {
+  breakfast: '08:00',
+  lunch: '12:30',
+  dinner: '19:00',
+};
+
+/**
+ * Plant ein einzelnes Rezept an einem Tag im Kalender (CookIQ Detailansicht).
+ * Speichert in UserCalendar.eventsJson wie Magic-Events, mit actionTag 'food' und recipeResultId für „Jetzt kochen“.
+ */
+export async function scheduleSingleRecipe(
+  recipeId: string,
+  title: string,
+  dateStr: string,
+  mealType: 'breakfast' | 'lunch' | 'dinner'
+): Promise<{ success: true } | { success: false; error: string }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Nicht angemeldet' };
+  }
+
+  const time = MEAL_TIME_MAP[mealType];
+  const eventTitle = `🍽️ ${title}`.trim();
+
+  try {
+    let calendar = await prisma.userCalendar.findUnique({
+      where: { userId: session.user.id },
+    });
+    if (!calendar) {
+      calendar = await prisma.userCalendar.create({
+        data: { userId: session.user.id, eventsJson: '[]' },
+      });
+    }
+
+    const events = (JSON.parse(calendar.eventsJson) as CalendarEventJson[]) || [];
+    const newEvent: CalendarEventJson = {
+      id: randomUUID(),
+      type: 'custom',
+      title: eventTitle,
+      date: dateStr,
+      time,
+      eventType: 'personal',
+      actionTag: 'food',
+      recipeResultId: recipeId,
+    };
+    events.push(newEvent);
+
+    await prisma.userCalendar.update({
+      where: { userId: session.user.id },
+      data: { eventsJson: JSON.stringify(events) },
+    });
+
+    revalidatePath('/calendar');
+    revalidatePath('/tools/recipe');
+    return { success: true };
+  } catch (e) {
+    console.error('[CALENDAR] scheduleSingleRecipe:', e);
+    return { success: false, error: 'Konnte nicht im Kalender gespeichert werden.' };
   }
 }
 

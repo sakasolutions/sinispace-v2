@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, Check, CheckCircle2, ListPlus, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, Check, CheckCircle2, ListPlus, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed, CalendarDays, X } from 'lucide-react';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
+import { scheduleSingleRecipe } from '@/actions/calendar-actions';
 import { cn } from '@/lib/utils';
 import { parseIngredient, formatIngredientDisplay } from '@/lib/format-ingredient';
 
@@ -51,6 +52,10 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   const [toast, setToast] = useState<{ message: string } | null>(null);
   const [showMissingIngredients, setShowMissingIngredients] = useState(false);
   const [cookingMode, setCookingMode] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [scheduleMealType, setScheduleMealType] = useState<'breakfast' | 'lunch' | 'dinner'>('dinner');
+  const [isScheduling, setIsScheduling] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -67,6 +72,23 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
       else next.add(index);
       return next;
     });
+  };
+
+  const handleScheduleRecipe = async () => {
+    setIsScheduling(true);
+    const res = await scheduleSingleRecipe(
+      resultId,
+      recipe.recipeName,
+      scheduleDate,
+      scheduleMealType
+    );
+    setIsScheduling(false);
+    if (res?.success) {
+      setIsCalendarModalOpen(false);
+      setToast({ message: 'Rezept im Kalender geplant!' });
+    } else {
+      setToast({ message: res?.error ?? 'Konnte nicht gespeichert werden.' });
+    }
   };
 
   const adjustIngredientForServings = (ingredient: string, originalServings: number, newServings: number) => {
@@ -439,17 +461,27 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
         {/* Linke Spalte: Zutaten (sticky auf Desktop) */}
         <div className="md:col-span-4 md:sticky md:top-24">
           <h2 className="text-lg font-bold text-gray-900 mb-3">Zutaten für {servings} {servings === 1 ? 'Person' : 'Personen'}</h2>
-          <button
-            type="button"
-            onClick={() => {
-              setAddToListIngredients(adjustedIngredients);
-              setIsAddToListOpen(true);
-            }}
-            className="w-full mb-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
-          >
-            <ShoppingBasket className="w-4 h-4" />
-            Einkaufen
-          </button>
+            <div className="flex flex-col sm:flex-row gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setAddToListIngredients(adjustedIngredients);
+                  setIsAddToListOpen(true);
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                <ShoppingBasket className="w-4 h-4" />
+                Einkaufen
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCalendarModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl font-medium text-sm transition-colors"
+              >
+                <CalendarDays className="w-4 h-4" />
+                Im Kalender planen
+              </button>
+            </div>
           <ul className="divide-y divide-gray-100">
             {adjustedIngredients.map((ingredient, index) => {
               const checked = checkedIngredients.has(index);
@@ -543,6 +575,67 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             });
           }}
         />
+
+      {/* Im Kalender planen – Modal */}
+      {isCalendarModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="calendar-modal-title">
+          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-6 relative">
+            <button
+              type="button"
+              onClick={() => setIsCalendarModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Schließen"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 id="calendar-modal-title" className="text-xl font-bold mb-4 text-gray-800">Wann kochen?</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="schedule-date" className="block text-sm font-medium text-gray-600 mb-1">Datum</label>
+                <input
+                  id="schedule-date"
+                  type="date"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:border-purple-500 bg-gray-50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Mahlzeit</label>
+                <div className="flex gap-2">
+                  {[
+                    { id: 'breakfast' as const, label: 'Frühstück' },
+                    { id: 'lunch' as const, label: 'Mittag' },
+                    { id: 'dinner' as const, label: 'Abends' },
+                  ].map((type) => (
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => setScheduleMealType(type.id)}
+                      className={cn(
+                        'flex-1 py-2 rounded-xl text-sm font-medium transition-all border-2',
+                        scheduleMealType === type.id
+                          ? 'bg-purple-100 text-purple-700 border-purple-200'
+                          : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'
+                      )}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleScheduleRecipe}
+                disabled={isScheduling}
+                className="w-full mt-4 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-xl py-3 font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+              >
+                {isScheduling ? 'Wird geplant...' : 'Im Kalender eintragen'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div
