@@ -59,12 +59,12 @@ const LOCATION_PREPOSITION = /\b(im|in der|bei|nach)\s+([^,]+?)(?=\s*$|\s+und\s)
  */
 function parseMagicInput(input: string): { title: string; date: string; time: string } {
   const now = new Date();
-  let date = new Date(now);
+  let date = now;
   let time = '12:00';
 
   let titleStr = input.trim();
 
-  // 1. UHRZEIT ERKENNEN (strikt: "uhr" oder Minuten-Trenner nötig, damit "21." nicht als Uhrzeit gilt)
+  // 1. UHRZEIT ERKENNEN
   const timeRegex = /(?:^|\s)([0-1]?[0-9]|2[0-3])([:.][0-5][0-9]|\s*uhr)(?:\s|$|[.,])/i;
   const timeMatch = titleStr.match(timeRegex);
 
@@ -76,7 +76,7 @@ function parseMagicInput(input: string): { title: string; date: string; time: st
     titleStr = titleStr.replace(timeMatch[0], ' ');
   }
 
-  // 2. RELATIVE TAGE (ohne \b wegen Umlaut bei "übermorgen")
+  // 2. RELATIVE TAGE ERKENNEN (heute, morgen, übermorgen)
   const relativeRegex = /(?:^|\s)(heute|morgen|übermorgen)(?:\s|$|[.,])/i;
   const relativeMatch = titleStr.match(relativeRegex);
 
@@ -85,35 +85,58 @@ function parseMagicInput(input: string): { title: string; date: string; time: st
     if (word === 'morgen') date = addDays(now, 1);
     if (word === 'übermorgen') date = addDays(now, 2);
     titleStr = titleStr.replace(relativeMatch[0], ' ');
-  } else {
-    // 3. EXPLIZITE DATEN (ohne \b wegen Umlauten wie "märz")
-    const months = ['januar', 'februar', 'märz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember'];
+  }
+  // 3. WOCHENTAGE ERKENNEN (Montag, Dienstag, etc.)
+  else {
+    const weekdayRegex = /(?:^|\s)(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)(?:\s|$|[.,])/i;
+    const weekdayMatch = titleStr.match(weekdayRegex);
 
-    const dateNumRegex = /(?:^|\s)([0-3]?[0-9])\.([0-1]?[0-9])\.(?:\s|$)/;
-    const dateTextRegex = new RegExp(`(?:^|\\s)([0-3]?[0-9])\\.\\s*(${months.join('|')})(?:\\s|$|[.,])`, 'i');
+    if (weekdayMatch) {
+      const daysMap: Record<string, number> = {
+        'sonntag': 0, 'montag': 1, 'dienstag': 2, 'mittwoch': 3,
+        'donnerstag': 4, 'freitag': 5, 'samstag': 6,
+      };
 
-    const numMatch = titleStr.match(dateNumRegex);
-    const textMatch = titleStr.match(dateTextRegex);
+      const targetDay = daysMap[weekdayMatch[1].toLowerCase()];
+      const currentDay = now.getDay(); // 0 = Sonntag, 1 = Montag...
 
-    if (numMatch) {
-      const day = parseInt(numMatch[1], 10);
-      const monthIndex = parseInt(numMatch[2], 10) - 1;
-      date = new Date(now.getFullYear(), monthIndex, day);
-      titleStr = titleStr.replace(numMatch[0], ' ');
-    } else if (textMatch) {
-      const day = parseInt(textMatch[1], 10);
-      const monthWord = textMatch[2].toLowerCase();
-      const monthIndex = months.indexOf(monthWord);
-      date = new Date(now.getFullYear(), monthIndex, day);
-      titleStr = titleStr.replace(textMatch[0], ' ');
+      let daysToAdd = targetDay - currentDay;
+      if (daysToAdd <= 0) {
+        daysToAdd += 7; // Nächste Woche, wenn heute oder schon vorbei
+      }
+
+      date = addDays(now, daysToAdd);
+      titleStr = titleStr.replace(weekdayMatch[0], ' ');
     }
+    // 4. EXPLIZITE DATEN ERKENNEN (z.B. 21. März)
+    else {
+      const months = ['januar', 'februar', 'märz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember'];
+      const dateNumRegex = /(?:^|\s)([0-3]?[0-9])\.([0-1]?[0-9])\.(?:\s|$)/;
+      const dateTextRegex = new RegExp(`(?:^|\\s)([0-3]?[0-9])\\.\\s*(${months.join('|')})(?:\\s|$|[.,])`, 'i');
 
-    if ((numMatch || textMatch) && isBefore(date, startOfDay(now))) {
-      date = setYear(date, now.getFullYear() + 1);
+      const numMatch = titleStr.match(dateNumRegex);
+      const textMatch = titleStr.match(dateTextRegex);
+
+      if (numMatch) {
+        const day = parseInt(numMatch[1], 10);
+        const monthIndex = parseInt(numMatch[2], 10) - 1;
+        date = new Date(now.getFullYear(), monthIndex, day);
+        titleStr = titleStr.replace(numMatch[0], ' ');
+      } else if (textMatch) {
+        const day = parseInt(textMatch[1], 10);
+        const monthWord = textMatch[2].toLowerCase();
+        const monthIndex = months.indexOf(monthWord);
+        date = new Date(now.getFullYear(), monthIndex, day);
+        titleStr = titleStr.replace(textMatch[0], ' ');
+      }
+
+      if (isBefore(date, startOfDay(now)) && (numMatch || textMatch)) {
+        date = addDays(setYear(date, now.getFullYear() + 1), 0);
+      }
     }
   }
 
-  // 4. TITEL AUFRÄUMEN
+  // 5. TITEL AUFRÄUMEN
   titleStr = titleStr
     .replace(/(?:^|\s)(am|um)(?:\s|$)/gi, ' ')
     .replace(/\s+/g, ' ')
