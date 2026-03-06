@@ -27,6 +27,7 @@ import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list
 import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
 import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
+import { generateWeekDraft } from '@/actions/week-planner-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Erweiterter Rezept-Typ (CookIQ Tier 1: Makros, SmartCart-Trennung). Kompatibel mit RecipeDetailView. */
@@ -169,6 +170,7 @@ export default function RecipePage() {
   const [selectedWeekFilters, setSelectedWeekFilters] = useState<string[]>([]);
   const [plannerPhase, setPlannerPhase] = useState<'setup' | 'loading' | 'lab'>('setup');
   const [weekDraft, setWeekDraft] = useState<any[]>([]);
+  const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const router = useRouter();
 
   const quickFilters = [
@@ -1064,6 +1066,8 @@ export default function RecipePage() {
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-3">Weitere Wünsche? (Optional)</label>
                   <textarea
+                    value={customWeekPrompt}
+                    onChange={(e) => setCustomWeekPrompt(e.target.value)}
                     placeholder="z.B. Mittwoch etwas mit Kürbis, am Wochenende etwas Aufwendigeres..."
                     className="w-full border-2 border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium resize-none h-28"
                     rows={4}
@@ -1073,24 +1077,17 @@ export default function RecipePage() {
                 {/* Action Button */}
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     setPlannerPhase('loading');
-                    setTimeout(() => {
-                      const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
-                      const mockPlan = days.map((day) => ({
-                        day,
-                        meals: Object.entries(weekMeals)
-                          .filter(([, isSelected]) => isSelected)
-                          .map(([type]) => ({
-                            type,
-                            title: type === 'breakfast' ? 'Protein-Pancakes' : type === 'lunch' ? 'Fitness Bowl' : 'Steak mit Süßkartoffeln',
-                            calories: '450 kcal',
-                            time: '20 Min',
-                          })),
-                      }));
-                      setWeekDraft(mockPlan);
+                    const res = await generateWeekDraft(weekMeals, selectedWeekFilters, customWeekPrompt || '');
+                    if (res?.success && res.draft) {
+                      setWeekDraft(res.draft);
                       setPlannerPhase('lab');
-                    }, 2000);
+                    } else {
+                      const errMsg = res && !res.success ? res.error : 'Plan konnte nicht erstellt werden.';
+                      setAddToListToast({ message: errMsg });
+                      setPlannerPhase('setup');
+                    }
                   }}
                   disabled={!weekMeals.breakfast && !weekMeals.lunch && !weekMeals.dinner}
                   className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-xl py-4 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:hover:scale-100"
