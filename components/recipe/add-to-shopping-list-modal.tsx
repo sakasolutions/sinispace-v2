@@ -110,7 +110,7 @@ export function AddToShoppingListModal({
             Zutaten auswählen (abwählen, wenn du sie schon hast):
           </p>
 
-          <div className="bg-white max-h-[60vh] overflow-y-auto rounded-xl divide-y divide-gray-100">
+          <div className="bg-white max-h-[45vh] overflow-y-auto pr-2 scrollbar-thin rounded-xl divide-y divide-gray-100">
             {ingredients.map((ing, i) => {
               const isSelected = selected.has(ing);
               return (
@@ -160,7 +160,7 @@ export function AddToShoppingListModal({
                 variant="dropdown"
                 dropdownInPortal
                 icon={ListChecks}
-                triggerClassName="!bg-gray-50 !border-gray-200 focus:!ring-orange-500/20 focus:!border-orange-400"
+                triggerClassName="!bg-gray-50 !border-gray-200 focus:!ring-orange-500/20 focus:!border-orange-400 pl-10"
               />
             )}
             {!loading && isNewList && (
