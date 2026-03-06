@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import {
   format,
   startOfMonth,
@@ -422,23 +423,31 @@ export function CalendarClient() {
                             ? `${event.time} – ${event.endTime} Uhr`
                             : `${event.time} Uhr`}
                         </p>
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {event.location && (
-                            <span className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
-                              <MapPin className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-                              {event.location}
-                            </span>
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
+                          {(event.actionTag === 'food' || event.recipeResultId) && (
+                            <Link
+                              href={event.recipeResultId ? `/tools/recipe?open=${event.recipeResultId}` : '/tools/recipe'}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 hover:scale-105 active:scale-95 transition-all rounded-full text-xs font-bold shadow-sm"
+                            >
+                              <Utensils className="w-3.5 h-3.5 shrink-0" />
+                              Zum Rezept
+                            </Link>
                           )}
                           {event.actionTag === 'shopping' && (
-                            <span className="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
-                              <ShoppingCart className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-                              SmartCart öffnen
-                            </span>
+                            <Link
+                              href="/tools/shopping-list"
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:scale-105 active:scale-95 transition-all rounded-full text-xs font-bold shadow-sm"
+                            >
+                              <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
+                              Zur Einkaufsliste
+                            </Link>
                           )}
-                          {event.actionTag === 'food' && (
-                            <span className="text-xs bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
-                              <Utensils className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-                              CookIQ Rezept
+                          {event.location && event.actionTag !== 'food' && event.actionTag !== 'shopping' && (
+                            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold">
+                              <MapPin className="w-3.5 h-3.5 shrink-0" />
+                              {event.location}
                             </span>
                           )}
                         </div>

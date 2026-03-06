@@ -150,7 +150,14 @@ function parseMagicInput(input: string): { title: string; date: string; time: st
     titleStr = 'Neuer Termin';
   }
 
-  return { title: titleStr, date: format(date, 'yyyy-MM-dd'), time };
+  // 6. EVENT-TYP ERKENNEN (Intelligentes Tagging)
+  let eventType: 'default' | 'shopping' = 'default';
+  const shoppingKeywords = /(einkaufen|supermarkt|aldi|lidl|rewe|edeka|kaufland|dm|rossmann|markt)/i;
+  if (shoppingKeywords.test(titleStr)) {
+    eventType = 'shopping';
+  }
+
+  return { title: titleStr, date: format(date, 'yyyy-MM-dd'), time, type: eventType };
 }
 
 /**
@@ -193,7 +200,8 @@ export async function createMagicEvent(
 
   try {
     const parsed = parseMagicInput(trimmed);
-    const { location, actionTag } = extractLocationAndTag(trimmed);
+    const { location, actionTag: extractedTag } = extractLocationAndTag(trimmed);
+    const actionTag = extractedTag ?? (parsed.type === 'shopping' ? 'shopping' : undefined);
 
     let calendar = await prisma.userCalendar.findUnique({
       where: { userId: session.user.id },
