@@ -194,10 +194,52 @@ export function CalendarClient() {
         {/* Inhalt des Headers */}
         <div className="dashboard-header-pt md:pt-12 relative z-10 w-full pb-12">
           <div className="max-w-7xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8">
-            {/* 1. Reihe: Monat/Jahr, << < > >>, Woche/Monat Toggle */}
-            <div className="flex items-center justify-between w-full mb-6">
-              <div className="flex items-center shrink-0" aria-hidden />
-              <div className="flex items-center justify-center gap-0 sm:gap-1">
+            {/* Responsive Navigation Wrapper */}
+            <div className="grid grid-cols-2 md:flex md:flex-row md:items-center md:justify-between w-full mb-6 gap-y-5">
+              {/* 1. Oben Links (Mobile) / Links (Desktop): Heute Button */}
+              <div className="flex justify-start md:w-1/3 order-1">
+                <button
+                  type="button"
+                  onClick={() => setCurrentDate(new Date())}
+                  className="text-sm font-medium text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-4 py-1.5 rounded-full transition-all backdrop-blur-md"
+                  aria-label="Heute anzeigen"
+                >
+                  Heute
+                </button>
+              </div>
+
+              {/* 2. Oben Rechts (Mobile) / Rechts (Desktop): Toggle Button */}
+              <div className="flex justify-end md:w-1/3 order-2 md:order-3">
+                <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('week')}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                      viewMode === 'week'
+                        ? 'bg-white text-purple-700 shadow-md'
+                        : 'text-white/70 hover:text-white'
+                    )}
+                  >
+                    Woche
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('month')}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                      viewMode === 'month'
+                        ? 'bg-white text-purple-700 shadow-md'
+                        : 'text-white/70 hover:text-white'
+                    )}
+                  >
+                    Monat
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Zweite Zeile (Mobile) / Mitte (Desktop): Monat & Pfeile */}
+              <div className="col-span-2 flex items-center justify-center gap-2 md:w-1/3 order-3 md:order-2">
                 <button
                   type="button"
                   onClick={prevYear}
@@ -233,42 +275,6 @@ export function CalendarClient() {
                 >
                   <ChevronsRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
                 </button>
-              </div>
-              <div className="flex items-center shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setCurrentDate(new Date())}
-                  className="text-sm font-medium text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-4 py-1.5 rounded-full transition-all backdrop-blur-md mr-3"
-                  aria-label="Heute anzeigen"
-                >
-                  Heute
-                </button>
-                <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('week')}
-                  className={cn(
-                    'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                    viewMode === 'week'
-                      ? 'bg-white text-purple-700 shadow-md'
-                      : 'text-white/70 hover:text-white'
-                  )}
-                >
-                  Woche
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('month')}
-                  className={cn(
-                    'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                    viewMode === 'month'
-                      ? 'bg-white text-purple-700 shadow-md'
-                      : 'text-white/70 hover:text-white'
-                  )}
-                >
-                  Monat
-                </button>
-                </div>
               </div>
             </div>
 
