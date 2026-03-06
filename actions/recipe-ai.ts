@@ -66,10 +66,12 @@ export async function generateRecipe(prevState: any, formData: FormData) {
 }`;
 
   const imageSearchRule = `
-- imageSearchQuery (String): Ein generischer ENGLISCHER Suchbegriff für Food-Fotografie auf Unsplash.
-  Regel 1: Vermeide lebende Tiere oder rohe Zutaten! (z.B. NIE nur "Chicken", "Cow" oder "Pig"). Nutze stattdessen "Chicken Dish", "Roasted Chicken" oder "Meat Food".
-  Regel 2: Mache zu spezifische Gerichte generischer. (Statt "Rigatoni Alfredo" nutze "Pasta Alfredo" oder "Creamy Pasta").
-  Regel 3: Hänge bei Bedarf das Wort "food" an, um sicherzugehen, dass es ein Tellergericht ist. (Maximal 2-3 Wörter).
+- imageSearchQuery (String): Ein präziser ENGLISCHER Suchbegriff für Food-Fotografie.
+  ABSOLUTE REGELN FÜR DIE BILDSUCHE:
+  1. Fokus auf die ART des Gerichts (Kebab, Pasta, Sandwich, Curry, Bowl), NICHT auf das Fleisch!
+  2. Bei "Hähnchen Döner" oder ähnlichem nutze ZWINGEND "Doner Kebab", "Shawarma" oder "Kebab Food" (NIEMALS nur "Chicken"!).
+  3. Bei Nudelgerichten (z.B. Rigatoni Alfredo) mache es generisch: "Creamy Pasta" oder "Pasta Dish".
+  4. Vermeide Tiernamen als alleiniges Suchwort. Hänge im Zweifel immer "Food", "Dish" oder "Meal" an. (Maximal 2-3 Wörter).
 `;
 
   const categoryIconRules = `
