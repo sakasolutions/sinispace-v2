@@ -166,7 +166,17 @@ export default function RecipePage() {
     dinner: true,
   });
   const [isPlanningWeek, setIsPlanningWeek] = useState(false);
+  const [selectedWeekFilters, setSelectedWeekFilters] = useState<string[]>([]);
   const router = useRouter();
+
+  const quickFilters = [
+    '💪 High Protein',
+    '🥦 Low Carb',
+    '🌱 Vegetarisch',
+    '⏱️ Unter 30 Min',
+    '👨‍👩‍👧 Familienfreundlich',
+    '💰 Günstig',
+  ];
 
   /** Filter-Chips für Sammlung: Alle, Hauptgericht, Frühstück, Dessert, Salat, Veggie */
   const COLLECTION_CATEGORIES = [
@@ -987,7 +997,8 @@ export default function RecipePage() {
             </button>
 
             <h3 id="week-planner-modal-title" className="text-2xl font-bold mb-2 text-gray-800">Woche planen</h3>
-            <p className="text-sm text-gray-500 mb-6">Was soll dein Smart-Chef für dich vorbereiten?</p>
+            <p className="text-sm text-gray-500 mb-1">Was soll dein Smart-Chef für dich vorbereiten?</p>
+            <p className="text-xs text-gray-400 mb-6">Plan startet immer am kommenden Montag (Mo–So).</p>
 
             {/* Mahlzeiten-Auswahl */}
             <div className="mb-6">
@@ -1015,11 +1026,34 @@ export default function RecipePage() {
               </div>
             </div>
 
-            {/* Magic Input für die Woche */}
+            {/* Schnell-Filter (Smart Chips) */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Besondere Wünsche?</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Ernährung & Fokus</label>
+              <div className="flex flex-wrap gap-2">
+                {quickFilters.map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setSelectedWeekFilters((prev) =>
+                      prev.includes(filter) ? prev.filter((f) => f !== filter) : [...prev, filter]
+                    )}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                      selectedWeekFilters.includes(filter)
+                        ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 scale-105'
+                        : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Weitere Wünsche (Optional) */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Weitere Wünsche? (Optional)</label>
               <textarea
-                placeholder="z.B. Alles High Protein, am Wochenende etwas Aufwendigeres, unter der Woche schnell..."
+                placeholder="z.B. Mittwoch etwas mit Kürbis, am Wochenende etwas Aufwendigeres..."
                 className="w-full border-2 border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium resize-none h-28"
                 rows={4}
               />
@@ -1029,7 +1063,7 @@ export default function RecipePage() {
             <button
               type="button"
               onClick={() => {
-                console.log('Starte Generierung für:', weekMeals);
+                console.log('Starte Generierung für:', weekMeals, 'Filter:', selectedWeekFilters);
               }}
               disabled={!weekMeals.breakfast && !weekMeals.lunch && !weekMeals.dinner}
               className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-xl py-4 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:hover:scale-100"
