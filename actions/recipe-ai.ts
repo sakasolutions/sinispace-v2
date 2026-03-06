@@ -19,14 +19,16 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   const isAllowed = await isUserPremium();
   if (!isAllowed) return { result: UPSELL_MESSAGE };
 
+  const magicPrompt = (formData.get('magicPrompt') as string)?.trim() ?? '';
   const ingredients = (formData.get('ingredients') as string)?.trim() ?? '';
-  const mealType = (formData.get('mealType') as string) || 'Hauptgericht';
-  const servings = parseInt(formData.get('servings') as string) || 2;
-  const filters = formData.getAll('filters') as string[];
+  const mealTypeRaw = (formData.get('mealType') as string) || 'Hauptgericht';
+  const mealType = magicPrompt ? 'Wunschgericht' : mealTypeRaw;
+  const servings = magicPrompt ? (parseInt(formData.get('servings') as string) || 2) : (parseInt(formData.get('servings') as string) || 2);
+  const filters = magicPrompt ? [] : (formData.getAll('filters') as string[]);
   const shoppingMode = (formData.get('shoppingMode') as string) || 'strict';
   const workspaceId = formData.get('workspaceId') as string || undefined;
 
-  const isInspiration = ingredients.length === 0;
+  const isInspiration = magicPrompt ? false : ingredients.length === 0;
 
   if (servings < 1 || servings > 20) {
     return { error: 'Die Anzahl der Personen muss zwischen 1 und 20 liegen.' };
@@ -84,7 +86,26 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   let systemPrompt: string;
   let userPrompt: string;
 
-  if (isInspiration) {
+  if (magicPrompt) {
+    systemPrompt = `Du bist ein 5-Sterne-Koch. Der User hat einen freien Wunsch geäußert (Magic Input).
+Erstelle exakt dafür ein passendes, kreatives Rezept. Das Gericht soll den Wunsch treffend umsetzen.
+
+Du berechnest exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
+
+INTELLIGENZ- & FILTER-REGELN:
+- Makros & Kalorien: Die Werte in "stats" müssen mathematisch realistisch sein.
+- SmartCart-Trennung (ABSOLUT STRIKT):
+  Regel 1: "ingredients" (Vorhanden) darf AUSSCHLIESSLICH absolute Gewürz-Basics enthalten (Salz, Pfeffer, Öl, Wasser).
+  Regel 2: "shoppingList" (Fehlt noch) MUSS ALLE echten Zutaten für dieses Gericht enthalten (Fleisch, Gemüse, Kohlenhydrate, Milchprodukte etc.).
+  Regel 3: KEINE DOPPELUNGEN! Eine Zutat darf NIEMALS in "ingredients" und "shoppingList" gleichzeitig vorkommen.
+- Situativer Chef-Tipp ("chefTip"): Ein brillanter kulinarischer Kniff zu diesem Gericht.
+
+Antworte NUR mit validem JSON: ${jsonFormat}
+${imageSearchRule}
+${categoryIconRules}
+${ingredientsRules}`;
+    userPrompt = `Wunsch des Users: "${magicPrompt}". Erstelle exakt dafür ein passendes, kreatives Rezept. Trenne die Zutaten strikt in 'ingredients' (nur absolute Basics wie Salz, Öl) und 'shoppingList' (alle echten Zutaten für dieses Gericht).`;
+  } else if (isInspiration) {
     systemPrompt = `Du bist ein 5-Sterne-Koch. Der User will eine ÜBERRASCHUNG: Er hat keine Zutaten angegeben (Inspirations-Modus).
 Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'.${filterText ? ` Berücksichtige: ${filters.join(', ')}.` : ''}
 Wähle selbst passende, gut erhältliche Zutaten. Das Gericht soll überraschen und begeistern.
@@ -213,9 +234,11 @@ ${recipe.instructions.map((step: string, i: number) => `${i + 1}. ${step}`).join
 
 💡 **Profi-Tipp:** ${recipe.chefTip || ''}`;
 
-    const userInput = isInspiration
-      ? `Inspiration · ${mealType}, ${servings} Pers.${filters.length > 0 ? ` · ${filters.join(', ')}` : ''}`
-      : `Kategorie: ${mealType}, Personen: ${servings}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
+    const userInput = magicPrompt
+      ? `Wunschgericht: ${magicPrompt}`
+      : isInspiration
+        ? `Inspiration · ${mealType}, ${servings} Pers.${filters.length > 0 ? ` · ${filters.join(', ')}` : ''}`
+        : `Kategorie: ${mealType}, Personen: ${servings}, Zutaten: ${ingredients.substring(0, 100)}${ingredients.length > 100 ? '...' : ''}${filters.length > 0 ? `, Filter: ${filters.join(', ')}` : ''}`;
     await createHelperChat('recipe', userInput, formattedRecipe);
 
     // Result in Workspace speichern

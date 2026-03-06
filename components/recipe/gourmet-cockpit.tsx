@@ -15,12 +15,13 @@ const CARD_STYLE: React.CSSProperties = {
 
 type Props = {
   onVorschlagGenerieren: () => void;
+  onMagicWunsch?: () => void;
 };
 
 const cardClass =
   'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full';
 
-export function GourmetCockpit({ onVorschlagGenerieren }: Props) {
+export function GourmetCockpit({ onVorschlagGenerieren, onMagicWunsch }: Props) {
   return (
     <div className="min-h-screen w-full relative overflow-x-visible bg-white">
       <DashboardShell
@@ -92,17 +93,22 @@ export function GourmetCockpit({ onVorschlagGenerieren }: Props) {
                 </div>
               </Link>
 
-              <Link href="/tools/recipe" className={cardClass} style={CARD_STYLE}>
+              <button
+                type="button"
+                onClick={onMagicWunsch}
+                className={cardClass}
+                style={CARD_STYLE}
+              >
                 <div className="flex w-full justify-between items-start gap-2">
                   <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/30">
-                    <Utensils className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                    <Sparkles className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
                   </div>
                 </div>
                 <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Heute</h3>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Koch-Modus starten</p>
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Wunschgericht</h3>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Tippe, worauf du Lust hast</p>
                 </div>
-              </Link>
+              </button>
 
               <Link href="/tools/shopping-list" className={cardClass} style={CARD_STYLE}>
                 <div className="flex w-full justify-between items-start gap-2">

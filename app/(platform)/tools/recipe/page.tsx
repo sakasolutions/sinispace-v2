@@ -157,6 +157,7 @@ export default function RecipePage() {
   const [collectionSearch, setCollectionSearch] = useState('');
   const [collectionCategory, setCollectionCategory] = useState<string>('Alle');
   const [collectionMenuOpen, setCollectionMenuOpen] = useState<string | null>(null);
+  const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
   const router = useRouter();
 
   /** Filter-Chips für Sammlung: Alle, Hauptgericht, Frühstück, Dessert, Salat, Veggie */
@@ -255,6 +256,7 @@ export default function RecipePage() {
   // Sofortiger Redirect zum Rezept (kein Erfolgs-Modal)
   useEffect(() => {
     if (state?.resultId && !state?.error) {
+      setIsMagicModalOpen(false);
       router.push('/tools/recipe?open=' + state.resultId);
     }
   }, [state?.resultId, state?.error, router]);
@@ -448,6 +450,7 @@ export default function RecipePage() {
               setActiveTab('create');
               setIngredients('');
             }}
+            onMagicWunsch={() => setIsMagicModalOpen(true)}
           />
         </div>
       ) : activeTab === 'week-planner' ? (
@@ -890,6 +893,49 @@ export default function RecipePage() {
           role="status"
         >
           {addToListToast.message}
+        </div>
+      )}
+
+      {/* Magic-Input-Modal: Wunschgericht */}
+      {isMagicModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="magic-modal-title">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative">
+            <button
+              type="button"
+              onClick={() => setIsMagicModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors"
+              aria-label="Schließen"
+            >
+              ✕
+            </button>
+
+            <h3 id="magic-modal-title" className="text-xl font-bold mb-2 text-gray-800">Worauf hast du Lust?</h3>
+            <p className="text-sm text-gray-500 mb-6">Beschreibe dein Wunschgericht. Unsere KI zaubert das perfekte Rezept daraus.</p>
+
+            <form action={formAction} method="post">
+              <input type="hidden" name="mealType" value="Wunschgericht" />
+              <input type="hidden" name="servings" value="2" />
+              <input type="hidden" name="ingredients" value="" />
+              <input type="hidden" name="shoppingMode" value="strict" />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="magicPrompt"
+                  placeholder="z.B. Hausgemachter Döner mit viel Knoblauch..."
+                  className="w-full border-2 border-orange-100 rounded-xl pl-4 pr-12 py-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium"
+                  autoFocus
+                  required
+                />
+                <button
+                  type="submit"
+                  className="absolute right-2 top-2 bottom-2 aspect-square bg-gradient-to-br from-orange-400 to-pink-500 text-white rounded-lg flex items-center justify-center shadow-md hover:scale-105 transition-transform"
+                  aria-label="Rezept zaubern"
+                >
+                  ✨
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </>
