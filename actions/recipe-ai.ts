@@ -93,7 +93,10 @@ Du berechnest exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. 
 
 INTELLIGENZ- & FILTER-REGELN:
 - Makros & Kalorien: Die Werte in "stats" müssen mathematisch realistisch sein. Wenn der Filter "High Protein" aktiv ist, zwinge das Rezept auf >30g Protein pro Portion. Bei "Unter 600 kcal" oder "Low Carb" passe die Zutaten strikt an diese Grenzen an.
-- SmartCart-Trennung (WICHTIG): Trenne die Zutaten messerscharf! "ingredients" enthält NUR die Zutaten, die der User im Prompt angegeben hat + Basics (Salz, Öl). "shoppingList" enthält ALLE ZUSÄTZLICHEN Zutaten, die für das Rezept benötigt werden, aber dem User fehlen. Im Inspirations-Modus (wo der User nichts angibt) kommt alles in die "shoppingList".
+- SmartCart-Trennung (ABSOLUT STRIKT):
+  Regel 1: "ingredients" (Vorhanden) darf AUSSCHLIESSLICH Zutaten enthalten, die der User explizit im Prompt nennt, PLUS absolute Gewürz-Basics (Salz, Pfeffer, Öl, Wasser). Wenn der User KEINE Zutaten nennt (Inspirations-Modus), dürfen hier NUR diese Basics stehen!
+  Regel 2: "shoppingList" (Fehlt noch) MUSS zwingend ALLE Hauptzutaten (Fleisch, Gemüse, Kohlenhydrate, Milchprodukte etc.) enthalten, die der User NICHT genannt hat. Im Inspirations-Modus landen also fast alle Zutaten hier!
+  Regel 3: KEINE DOPPELUNGEN! Eine Zutat darf NIEMALS in "ingredients" und gleichzeitig in "shoppingList" auftauchen. Prüfe das JSON vor der Ausgabe genau!
 - Situativer Chef-Tipp ("chefTip"): Passe den Tipp an die Filter an. Bei "Date Night": Empfiehl eine Weinbegleitung oder edles Anrichten. Bei "Familienfreundlich": Tipp zum Verstecken von Gemüse. Bei "Schnell": Tipp, wie man noch mehr Zeit spart. Sonst: Ein brillanter kulinarischer Kniff.
 
 Antworte NUR mit validem JSON: ${jsonFormat}
@@ -114,7 +117,10 @@ Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzis
 
 INTELLIGENZ- & FILTER-REGELN:
 - Makros & Kalorien: Die Werte in "stats" müssen mathematisch realistisch sein. Wenn der Filter "High Protein" aktiv ist, zwinge das Rezept auf >30g Protein pro Portion. Bei "Unter 600 kcal" oder "Low Carb" passe die Zutaten strikt an diese Grenzen an.
-- SmartCart-Trennung (WICHTIG): Trenne die Zutaten messerscharf! "ingredients" enthält NUR die Zutaten, die der User im Prompt angegeben hat + Basics (Salz, Öl). "shoppingList" enthält ALLE ZUSÄTZLICHEN Zutaten, die für das Rezept benötigt werden, aber dem User fehlen. Im Inspirations-Modus (wo der User nichts angibt) kommt alles in die "shoppingList".
+- SmartCart-Trennung (ABSOLUT STRIKT):
+  Regel 1: "ingredients" (Vorhanden) darf AUSSCHLIESSLICH Zutaten enthalten, die der User explizit im Prompt nennt, PLUS absolute Gewürz-Basics (Salz, Pfeffer, Öl, Wasser). Wenn der User KEINE Zutaten nennt (Inspirations-Modus), dürfen hier NUR diese Basics stehen!
+  Regel 2: "shoppingList" (Fehlt noch) MUSS zwingend ALLE Hauptzutaten (Fleisch, Gemüse, Kohlenhydrate, Milchprodukte etc.) enthalten, die der User NICHT genannt hat. Im Inspirations-Modus landen also fast alle Zutaten hier!
+  Regel 3: KEINE DOPPELUNGEN! Eine Zutat darf NIEMALS in "ingredients" und gleichzeitig in "shoppingList" auftauchen. Prüfe das JSON vor der Ausgabe genau!
 - Situativer Chef-Tipp ("chefTip"): Passe den Tipp an die Filter an. Bei "Date Night": Empfiehl eine Weinbegleitung oder edles Anrichten. Bei "Familienfreundlich": Tipp zum Verstecken von Gemüse. Bei "Schnell": Tipp, wie man noch mehr Zeit spart. Sonst: Ein brillanter kulinarischer Kniff.
 
 Antworte NUR mit validem JSON: ${jsonFormat}
