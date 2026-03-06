@@ -292,7 +292,7 @@ export function CalendarClient() {
                       className={cn(
                         'rounded-full text-sm font-medium transition-all flex items-center justify-center',
                         selected
-                          ? 'w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white font-bold shadow-lg shadow-purple-500/30'
+                          ? 'w-10 h-10 rounded-full flex items-center justify-center bg-white text-purple-600 font-bold shadow-[0_4px_14px_0_rgba(0,0,0,0.1)]'
                           : cn('aspect-square w-full max-w-12', inMonth ? 'text-white hover:bg-white/15' : 'text-white/40')
                       )}
                     >
