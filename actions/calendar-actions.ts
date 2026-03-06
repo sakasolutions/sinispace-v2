@@ -54,8 +54,9 @@ const LOCATION_PREPOSITION = /\b(im|in der|bei|nach)\s+([^,]+?)(?=\s*$|\s+und\s)
 /**
  * Robuste Erkennung von Datum und Uhrzeit aus natürlicher Sprache.
  * Gibt title (bereinigt), date (Date) und time (HH:mm) zurück.
+ * (Nicht exportiert: In 'use server'-Dateien müssen exportierte Funktionen async sein.)
  */
-export function parseMagicInput(input: string): { title: string; date: Date; time: string } {
+function parseMagicInput(input: string): { title: string; date: Date; time: string } {
   const now = new Date();
   let date = new Date(now);
   let time = '12:00';
