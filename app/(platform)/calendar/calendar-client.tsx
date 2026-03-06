@@ -173,10 +173,20 @@ export function CalendarClient() {
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
-      {/* Ebene 2: Hero-Header (volle Breite, unten abgerundet) – Dashboard-Schablone */}
-      <header className="relative z-[1] min-h-[280px] w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8 -mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8">
-        {/* Hintergrund SiniSpace Gradient */}
-        <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px]">
+      {/* Ebene 2: Hero-Header (volle Breite, unten abgerundet) – Höhe dynamisch für Monatsansicht */}
+      <header
+        className={cn(
+          'relative z-[1] w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8 -mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8',
+          viewMode === 'month' ? 'min-h-[500px]' : 'min-h-[280px]'
+        )}
+      >
+        {/* Hintergrund SiniSpace Gradient – Höhe an Header anpassen */}
+        <div
+          className={cn(
+            'absolute top-0 left-0 w-full z-0 overflow-hidden rounded-b-[40px]',
+            viewMode === 'month' ? 'min-h-[500px]' : 'h-[280px]'
+          )}
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600" aria-hidden />
         </div>
 
@@ -260,31 +270,35 @@ export function CalendarClient() {
               ))}
             </div>
 
-            {/* Dynamisches Grid: Woche (1 Zeile) oder Monat (6 Zeilen) – aktiver Tag: w-10 h-10, bg-white text-purple-600 */}
+            {/* Dynamisches Grid: Woche (1 Zeile) oder Monat (6 Zeilen) – jede Zelle h-16, aktiver Tag mit Gradient */}
             <div
               className={cn(
                 'grid grid-cols-7 gap-1 sm:gap-2 mt-2 transition-all duration-300 ease-in-out',
                 viewMode === 'week' ? 'grid-rows-1' : ''
               )}
             >
-              {gridDays.map((d) => {
+              {(viewMode === 'month' ? monthGridDays : weekDays).map((d) => {
                 const dayKey = getDateKey(d);
                 const selected = dayKey === selectedDateKey;
                 const inMonth = isSameMonth(d, currentDate);
                 return (
-                  <button
+                  <div
                     key={dayKey}
-                    type="button"
-                    onClick={() => setCurrentDate(d)}
-                    className={cn(
-                      'rounded-full text-sm font-medium transition-all flex items-center justify-center',
-                      selected
-                        ? 'w-10 h-10 bg-white text-purple-600 font-bold shadow-md'
-                        : cn('aspect-square', inMonth ? 'text-white hover:bg-white/15' : 'text-white/40')
-                    )}
+                    className="flex flex-col items-center justify-center h-16"
                   >
-                    {format(d, 'd')}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentDate(d)}
+                      className={cn(
+                        'rounded-full text-sm font-medium transition-all flex items-center justify-center',
+                        selected
+                          ? 'w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white font-bold shadow-lg shadow-purple-500/30'
+                          : cn('aspect-square w-full max-w-12', inMonth ? 'text-white hover:bg-white/15' : 'text-white/40')
+                      )}
+                    >
+                      {format(d, 'd')}
+                    </button>
+                  </div>
                 );
               })}
             </div>
