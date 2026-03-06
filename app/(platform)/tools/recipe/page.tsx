@@ -24,23 +24,14 @@ const DASHBOARD_CARD_STYLE: React.CSSProperties = {
 import { getWorkspaceResults, deleteResult, cleanupOldResults, getResultById } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
-import { RecipeDetailView } from '@/components/recipe/recipe-detail-view';
+import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
 import { WeekPlanner } from '@/components/recipe/week-planner';
 import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
-type Recipe = {
-  recipeName: string;
-  stats: {
-    time: string;
-    calories: string;
-    difficulty: string;
-  };
-  ingredients: string[];
-  shoppingList: string[];
-  instructions: string[];
-  chefTip: string;
+/** Erweiterter Rezept-Typ (CookIQ Tier 1: Makros, SmartCart-Trennung). Kompatibel mit RecipeDetailView. */
+type Recipe = RecipeDetailRecipe & {
   /** Von der KI gesetzt: pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast */
   categoryIcon?: string;
   /** Unsplash-Foto-URL (neu generierte Rezepte); null bei Legacy. */
@@ -199,7 +190,7 @@ export default function RecipePage() {
         if (!content.recipeName && legacy.title) (content as Recipe).recipeName = legacy.title as string;
         if (!content.ingredients && Array.isArray(legacy.ingredients)) (content as Recipe).ingredients = legacy.ingredients as string[];
         if (!content.instructions && Array.isArray(legacy.steps)) (content as Recipe).instructions = legacy.steps as string[];
-        if (!content.stats) (content as Recipe).stats = { time: '', calories: '', difficulty: '' };
+        if (!content.stats) (content as Recipe).stats = { time: '', calories: '', difficulty: '', protein: undefined, carbs: undefined, fat: undefined };
         if (!Array.isArray(content.shoppingList)) (content as Recipe).shoppingList = (legacy.missingIngredients as string[]) ?? [];
         if (!content.chefTip) (content as Recipe).chefTip = (legacy.tip as string) ?? '';
         setSelectedRecipe({
@@ -242,8 +233,11 @@ export default function RecipePage() {
         if (!recipe.stats) {
           recipe.stats = {
             time: legacy.time || '',
-            calories: legacy.calories || '',
+            calories: legacy.calories ?? '',
             difficulty: legacy.difficulty || '',
+            protein: legacy.stats?.protein,
+            carbs: legacy.stats?.carbs,
+            fat: legacy.stats?.fat,
           };
         }
         if (!Array.isArray(recipe.shoppingList)) {
@@ -481,13 +475,18 @@ export default function RecipePage() {
             }
             title={
               <>
-                <Link
-                  href="/tools/recipe"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCockpit(true);
+                    setActiveTab('create');
+                    setWizardStep(1);
+                  }}
                   className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
                 >
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   Zurück zur Übersicht
-                </Link>
+                </button>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1 mt-0" style={{ letterSpacing: '-0.3px' }}>
                   {activeTab === 'my-recipes' ? 'Meine Sammlung' : 'Rezept Generator'}
                 </h1>

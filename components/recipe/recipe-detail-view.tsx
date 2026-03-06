@@ -8,12 +8,15 @@ import { scheduleSingleRecipe } from '@/actions/calendar-actions';
 import { cn } from '@/lib/utils';
 import { parseIngredient, formatIngredientDisplay } from '@/lib/format-ingredient';
 
-type Recipe = {
+export type RecipeDetailRecipe = {
   recipeName: string;
   stats: {
     time: string;
-    calories: string;
+    calories: string | number;
     difficulty: string;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
   };
   ingredients: string[];
   shoppingList: string[];
@@ -24,7 +27,7 @@ type Recipe = {
 };
 
 interface RecipeDetailViewProps {
-  recipe: Recipe;
+  recipe: RecipeDetailRecipe;
   resultId: string;
   createdAt: Date;
   onBack: () => void;
@@ -124,17 +127,21 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
     );
   }, [recipe.shoppingList, servings, originalServings]);
 
-  // Kalorien pro Portion anpassen
+  // Kalorien pro Portion anpassen (unterstützt Zahl oder String wie "450 kcal")
   const adjustedCalories = useMemo(() => {
-    if (!recipe.stats?.calories) return null;
-    const match = recipe.stats.calories.match(/(\d+)/);
-    if (match) {
-      const originalCalories = parseInt(match[1]);
-      const ratio = servings / originalServings;
-      const newCalories = Math.round(originalCalories * ratio);
-      return `${newCalories} kcal`;
+    if (recipe.stats?.calories == null) return null;
+    const raw = recipe.stats.calories;
+    let originalCalories: number;
+    if (typeof raw === 'number') {
+      originalCalories = raw;
+    } else {
+      const match = String(raw).match(/(\d+)/);
+      if (!match) return raw as string;
+      originalCalories = parseInt(match[1], 10);
     }
-    return recipe.stats.calories;
+    const ratio = servings / originalServings;
+    const newCalories = Math.round(originalCalories * ratio);
+    return `${newCalories} kcal`;
   }, [recipe.stats?.calories, servings, originalServings]);
 
   // Smart "Was fehlt mir?" - Priorität: Hauptzutaten > Gewürze (mit angepassten Mengen)

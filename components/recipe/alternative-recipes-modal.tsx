@@ -134,7 +134,7 @@ export function AlternativeRecipesModal({
                   {alt.stats && (
                     <div className="flex gap-3 text-sm text-zinc-400">
                       {alt.stats.time && <span>⏱️ {alt.stats.time}</span>}
-                      {alt.stats.calories && <span>🔥 {alt.stats.calories}</span>}
+                      {alt.stats.calories != null && <span>🔥 {typeof alt.stats.calories === 'number' ? `${alt.stats.calories} kcal` : alt.stats.calories}</span>}
                       {alt.stats.difficulty && <span>📊 {alt.stats.difficulty}</span>}
                     </div>
                   )}

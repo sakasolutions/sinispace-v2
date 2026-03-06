@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 export type RecipeCardRecipe = {
   recipeName: string;
-  stats?: { time?: string; calories?: string; difficulty?: string };
+  stats?: { time?: string; calories?: string | number; difficulty?: string; protein?: number; carbs?: number; fat?: number };
   imageUrl?: string | null;
   imageCredit?: string | null;
   [key: string]: unknown;
@@ -141,10 +141,10 @@ export function RecipeCard({
               {recipe.stats.time}
             </span>
           )}
-          {recipe.stats?.calories && (
+          {recipe.stats?.calories != null && (
             <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-md border border-gray-100">
               <Flame className="w-3.5 h-3.5 shrink-0" />
-              {recipe.stats.calories}
+              {typeof recipe.stats.calories === 'number' ? `${recipe.stats.calories} kcal` : recipe.stats.calories}
             </span>
           )}
           {showVeganBadge && (

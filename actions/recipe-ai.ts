@@ -46,12 +46,19 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   }
 
   const jsonFormat = `{
-  "recipeName": "Name des Gerichts",
-  "stats": { "time": "z.B. 20 Min", "calories": "z.B. 450 kcal", "difficulty": "Einfach/Mittel/Schwer" },
-  "ingredients": [ "2 große Tomaten", "150 g Feta-Käse" ],
-  "shoppingList": [ "1 Packung Feta (ca. 150g)" ],
+  "recipeName": "Kreativer Name des Gerichts",
+  "stats": { 
+    "time": "20 Min", 
+    "calories": 450, 
+    "protein": 35, 
+    "carbs": 40, 
+    "fat": 15, 
+    "difficulty": "Einfach/Mittel/Schwer" 
+  },
+  "ingredients": [ "Menge Einheit Name (NUR Zutaten, die der User bereits hat oder absolute Basics)" ],
+  "shoppingList": [ "Menge Einheit Name (NUR fehlende Zutaten, die der User noch einkaufen muss)" ],
   "instructions": ["Schritt 1", "Schritt 2"],
-  "chefTip": "Ein kurzer Profi-Tipp dazu",
+  "chefTip": "Situativer Profi-Tipp",
   "categoryIcon": "pasta",
   "imageSearchQuery": "Chicken Curry"
 }`;
@@ -83,6 +90,12 @@ Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'.${filt
 Wähle selbst passende, gut erhältliche Zutaten. Das Gericht soll überraschen und begeistern.
 
 Du berechnest exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
+
+INTELLIGENZ- & FILTER-REGELN:
+- Makros & Kalorien: Die Werte in "stats" müssen mathematisch realistisch sein. Wenn der Filter "High Protein" aktiv ist, zwinge das Rezept auf >30g Protein pro Portion. Bei "Unter 600 kcal" oder "Low Carb" passe die Zutaten strikt an diese Grenzen an.
+- SmartCart-Trennung (WICHTIG): Trenne die Zutaten messerscharf! "ingredients" enthält NUR die Zutaten, die der User im Prompt angegeben hat + Basics (Salz, Öl). "shoppingList" enthält ALLE ZUSÄTZLICHEN Zutaten, die für das Rezept benötigt werden, aber dem User fehlen. Im Inspirations-Modus (wo der User nichts angibt) kommt alles in die "shoppingList".
+- Situativer Chef-Tipp ("chefTip"): Passe den Tipp an die Filter an. Bei "Date Night": Empfiehl eine Weinbegleitung oder edles Anrichten. Bei "Familienfreundlich": Tipp zum Verstecken von Gemüse. Bei "Schnell": Tipp, wie man noch mehr Zeit spart. Sonst: Ein brillanter kulinarischer Kniff.
+
 Antworte NUR mit validem JSON: ${jsonFormat}
 ${imageSearchRule}
 ${categoryIconRules}
@@ -98,6 +111,12 @@ Modus: ${shoppingMode}
 - "shopping": Nutze die Zutaten als Basis. Füge fehlende Zutaten (Gemüse, Kräuter, Beilagen) hinzu.
 
 Rezept exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
+
+INTELLIGENZ- & FILTER-REGELN:
+- Makros & Kalorien: Die Werte in "stats" müssen mathematisch realistisch sein. Wenn der Filter "High Protein" aktiv ist, zwinge das Rezept auf >30g Protein pro Portion. Bei "Unter 600 kcal" oder "Low Carb" passe die Zutaten strikt an diese Grenzen an.
+- SmartCart-Trennung (WICHTIG): Trenne die Zutaten messerscharf! "ingredients" enthält NUR die Zutaten, die der User im Prompt angegeben hat + Basics (Salz, Öl). "shoppingList" enthält ALLE ZUSÄTZLICHEN Zutaten, die für das Rezept benötigt werden, aber dem User fehlen. Im Inspirations-Modus (wo der User nichts angibt) kommt alles in die "shoppingList".
+- Situativer Chef-Tipp ("chefTip"): Passe den Tipp an die Filter an. Bei "Date Night": Empfiehl eine Weinbegleitung oder edles Anrichten. Bei "Familienfreundlich": Tipp zum Verstecken von Gemüse. Bei "Schnell": Tipp, wie man noch mehr Zeit spart. Sonst: Ein brillanter kulinarischer Kniff.
+
 Antworte NUR mit validem JSON: ${jsonFormat}
 ${imageSearchRule}
 ${categoryIconRules}
@@ -176,7 +195,7 @@ ${ingredientsRules}
     // Formatiere Rezept für Chat (schön lesbar, nicht als JSON)
     const formattedRecipe = `# ${recipe.recipeName}
 
-**⏱ Zeit:** ${recipe.stats?.time || ''} | **Schwierigkeit:** ${recipe.stats?.difficulty || ''} | **🔥 Kalorien:** ${recipe.stats?.calories || ''}
+**⏱ Zeit:** ${recipe.stats?.time || ''} | **Schwierigkeit:** ${recipe.stats?.difficulty || ''} | **🔥 Kalorien:** ${typeof recipe.stats?.calories === 'number' ? `${recipe.stats.calories} kcal` : (recipe.stats?.calories || '')}${recipe.stats?.protein != null ? ` | **Protein:** ${recipe.stats.protein}g` : ''}${recipe.stats?.carbs != null ? ` | **Kohlenhydrate:** ${recipe.stats.carbs}g` : ''}${recipe.stats?.fat != null ? ` | **Fett:** ${recipe.stats.fat}g` : ''}
 
 ## Zutaten
 
