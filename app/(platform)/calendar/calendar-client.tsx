@@ -209,7 +209,7 @@ export function CalendarClient() {
               </div>
 
               {/* 2. Monat & Pfeile: Bestimmt die Höhe, sitzt zentriert */}
-              <div className="flex items-center justify-center gap-1 sm:gap-2 md:w-1/3">
+              <div className="flex items-center justify-center gap-1 sm:gap-2 md:w-1/3 mt-6 md:mt-0">
                 <button
                   type="button"
                   onClick={prevYear}
