@@ -112,7 +112,7 @@ export function CustomSelect({
   const dropdownList = (
     <div
       ref={dropdownRef}
-      className={`custom-select-dropdown rounded-xl z-[100] max-h-48 overflow-y-auto scrollbar-thin ${
+      className={`custom-select-dropdown rounded-xl z-[100] overflow-hidden ${
         theme === 'light'
           ? 'bg-white border-2 border-orange-200 shadow-lg shadow-orange-500/15 ring-2 ring-orange-100/80'
           : 'bg-zinc-900 border border-white/10 shadow-xl'
@@ -123,34 +123,45 @@ export function CustomSelect({
           : undefined
       }
     >
-      {normalizedOptions.map((option) => {
-        const isSelected = option.value === value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => handleSelect(option.value)}
-            className={`appearance-none w-full p-3 text-left text-sm transition-colors flex items-center justify-between ${
-              theme === 'light'
-                ? isSelected
-                  ? 'bg-orange-50 text-orange-700 font-medium shadow-[inset_4px_0_0_0_#f97316]'
-                  : 'text-gray-700 hover:bg-orange-50/50'
-                : isSelected
-                  ? 'bg-indigo-500/10 text-indigo-400'
-                  : 'text-zinc-300 hover:bg-zinc-800'
-            } ${
-              normalizedOptions.indexOf(option) === 0 ? 'rounded-t-xl' : ''
-            } ${
-              normalizedOptions.indexOf(option) === normalizedOptions.length - 1 ? 'rounded-b-xl' : ''
-            }`}
-          >
-            <span>{option.label}</span>
-            {isSelected && (
-              <Check className={`w-4 h-4 shrink-0 ${theme === 'light' ? 'text-orange-500' : 'text-indigo-400'}`} />
-            )}
-          </button>
-        );
-      })}
+      <ul className="max-h-48 overflow-y-auto pt-2 pb-6 pr-2 scrollbar-thin">
+        {normalizedOptions.map((option) => {
+          const isSelected = option.value === value;
+          return (
+            <li key={option.value}>
+              <button
+                type="button"
+                onClick={() => handleSelect(option.value)}
+                className={`appearance-none w-full p-3 text-left text-sm transition-colors flex items-center justify-between ${
+                  theme === 'light'
+                    ? isSelected
+                      ? 'bg-orange-50 text-orange-700 font-medium shadow-[inset_4px_0_0_0_#f97316]'
+                      : 'text-gray-700 hover:bg-orange-50/50'
+                    : isSelected
+                      ? 'bg-indigo-500/10 text-indigo-400'
+                      : 'text-zinc-300 hover:bg-zinc-800'
+                } ${
+                  normalizedOptions.indexOf(option) === 0 ? 'rounded-t-xl' : ''
+                } ${
+                  normalizedOptions.indexOf(option) === normalizedOptions.length - 1 ? 'rounded-b-xl' : ''
+                }`}
+              >
+                <span>{option.label}</span>
+                {isSelected && (
+                  <Check className={`w-4 h-4 shrink-0 ${theme === 'light' ? 'text-orange-500' : 'text-indigo-400'}`} />
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <div
+        className={`absolute bottom-0 left-0 w-full h-8 pointer-events-none rounded-b-xl ${
+          theme === 'light'
+            ? 'bg-gradient-to-t from-white via-white/80 to-transparent'
+            : 'bg-gradient-to-t from-zinc-900 via-zinc-900/80 to-transparent'
+        }`}
+        aria-hidden="true"
+      />
     </div>
   );
 
