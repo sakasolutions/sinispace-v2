@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg, Pizza, Drumstick } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useFormStatus } from 'react-dom';
+import { useFormStatus, createPortal } from 'react-dom';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import { FeedbackButton } from '@/components/ui/feedback-button';
 import { cn } from '@/lib/utils';
@@ -973,10 +973,10 @@ export default function RecipePage() {
         </div>
       )}
 
-      {/* Wochenplaner Setup-Modal (Tier 1 Phase 1) */}
-      {isWeekPlannerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="week-planner-modal-title">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative animate-in fade-in zoom-in-95 duration-200">
+      {/* Wochenplaner Setup-Modal (Tier 1 Phase 1) – per Portal für korrekte Darstellung auf Mobile */}
+      {isWeekPlannerOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="week-planner-modal-title">
+          <div className="relative z-[101] w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
             <button
               type="button"
               onClick={() => setIsWeekPlannerOpen(false)}
@@ -1037,7 +1037,8 @@ export default function RecipePage() {
               ✨ Wochenplan zaubern
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
