@@ -59,7 +59,7 @@ const LOCATION_PREPOSITION = /\b(im|in der|bei|nach)\s+([^,]+?)(?=\s*$|\s+und\s)
  * Strikte Uhrzeit-Regex, damit "21." aus Datum nicht als 21:00 erkannt wird.
  * Gibt date direkt als YYYY-MM-DD zurück.
  */
-function parseMagicInput(input: string): { title: string; date: string; time: string } {
+function parseMagicInput(input: string): { title: string; date: string; time: string; type: 'default' | 'shopping' } {
   const now = new Date();
   let date = now;
   let time = '12:00';
