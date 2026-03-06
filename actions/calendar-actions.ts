@@ -53,57 +53,59 @@ const LOCATION_PREPOSITION = /\b(im|in der|bei|nach)\s+([^,]+?)(?=\s*$|\s+und\s)
 
 /**
  * Robuste Erkennung von Datum und Uhrzeit aus natürlicher Sprache.
- * Gibt title (bereinigt), date (Date) und time (HH:mm) zurück.
- * (Nicht exportiert: In 'use server'-Dateien müssen exportierte Funktionen async sein.)
+ * Nutzt Leerzeichen/String-Grenzen statt \b (Umlaute wie übermorgen/märz).
+ * Strikte Uhrzeit-Regex, damit "21." aus Datum nicht als 21:00 erkannt wird.
+ * Gibt date direkt als YYYY-MM-DD zurück.
  */
-function parseMagicInput(input: string): { title: string; date: Date; time: string } {
+function parseMagicInput(input: string): { title: string; date: string; time: string } {
   const now = new Date();
   let date = new Date(now);
   let time = '12:00';
 
   let titleStr = input.trim();
 
-  // 1. UHRZEIT ERKENNEN (z.B. "18 uhr", "18:30", "8:00 uhr")
-  const timeRegex = /\b([0-1]?[0-9]|2[0-3])(?:[:.]([0-5][0-9]))?(?:\s*uhr)?\b/i;
-  const timeMatch = input.match(timeRegex);
+  // 1. UHRZEIT ERKENNEN (strikt: "uhr" oder Minuten-Trenner nötig, damit "21." nicht als Uhrzeit gilt)
+  const timeRegex = /(?:^|\s)([0-1]?[0-9]|2[0-3])([:.][0-5][0-9]|\s*uhr)(?:\s|$|[.,])/i;
+  const timeMatch = titleStr.match(timeRegex);
 
   if (timeMatch) {
     const hours = timeMatch[1].padStart(2, '0');
-    const minutes = timeMatch[2] ? timeMatch[2] : '00';
+    const minutesMatch = timeMatch[2].match(/[0-5][0-9]/);
+    const minutes = minutesMatch ? minutesMatch[0] : '00';
     time = `${hours}:${minutes}`;
-    titleStr = titleStr.replace(timeMatch[0], '');
+    titleStr = titleStr.replace(timeMatch[0], ' ');
   }
 
-  // 2. RELATIVE TAGE ERKENNEN (heute, morgen, übermorgen)
-  const relativeRegex = /\b(heute|morgen|übermorgen)\b/i;
-  const relativeMatch = input.match(relativeRegex);
+  // 2. RELATIVE TAGE (ohne \b wegen Umlaut bei "übermorgen")
+  const relativeRegex = /(?:^|\s)(heute|morgen|übermorgen)(?:\s|$|[.,])/i;
+  const relativeMatch = titleStr.match(relativeRegex);
 
   if (relativeMatch) {
     const word = relativeMatch[1].toLowerCase();
     if (word === 'morgen') date = addDays(now, 1);
     if (word === 'übermorgen') date = addDays(now, 2);
-    titleStr = titleStr.replace(relativeMatch[0], '');
+    titleStr = titleStr.replace(relativeMatch[0], ' ');
   } else {
-    // 3. EXPLIZITE DATEN ERKENNEN (z.B. "21. März", "21.03.")
+    // 3. EXPLIZITE DATEN (ohne \b wegen Umlauten wie "märz")
     const months = ['januar', 'februar', 'märz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember'];
 
-    const dateNumRegex = /\b([0-3]?[0-9])\.([0-1]?[0-9])\.?\b/;
-    const dateTextRegex = new RegExp(`\\b([0-3]?[0-9])\\.\\s*(${months.join('|')})\\b`, 'i');
+    const dateNumRegex = /(?:^|\s)([0-3]?[0-9])\.([0-1]?[0-9])\.(?:\s|$)/;
+    const dateTextRegex = new RegExp(`(?:^|\\s)([0-3]?[0-9])\\.\\s*(${months.join('|')})(?:\\s|$|[.,])`, 'i');
 
-    const numMatch = input.match(dateNumRegex);
-    const textMatch = input.match(dateTextRegex);
+    const numMatch = titleStr.match(dateNumRegex);
+    const textMatch = titleStr.match(dateTextRegex);
 
     if (numMatch) {
       const day = parseInt(numMatch[1], 10);
       const monthIndex = parseInt(numMatch[2], 10) - 1;
       date = new Date(now.getFullYear(), monthIndex, day);
-      titleStr = titleStr.replace(numMatch[0], '');
+      titleStr = titleStr.replace(numMatch[0], ' ');
     } else if (textMatch) {
       const day = parseInt(textMatch[1], 10);
       const monthWord = textMatch[2].toLowerCase();
       const monthIndex = months.indexOf(monthWord);
       date = new Date(now.getFullYear(), monthIndex, day);
-      titleStr = titleStr.replace(textMatch[0], '');
+      titleStr = titleStr.replace(textMatch[0], ' ');
     }
 
     if ((numMatch || textMatch) && isBefore(date, startOfDay(now))) {
@@ -113,7 +115,7 @@ function parseMagicInput(input: string): { title: string; date: Date; time: stri
 
   // 4. TITEL AUFRÄUMEN
   titleStr = titleStr
-    .replace(/\b(am|um)\b/gi, '')
+    .replace(/(?:^|\s)(am|um)(?:\s|$)/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -123,7 +125,7 @@ function parseMagicInput(input: string): { title: string; date: Date; time: stri
     titleStr = 'Neuer Termin';
   }
 
-  return { title: titleStr, date, time };
+  return { title: titleStr, date: format(date, 'yyyy-MM-dd'), time };
 }
 
 /**
@@ -166,7 +168,6 @@ export async function createMagicEvent(
 
   try {
     const parsed = parseMagicInput(trimmed);
-    const dateStr = format(parsed.date, 'yyyy-MM-dd');
     const { location, actionTag } = extractLocationAndTag(trimmed);
 
     let calendar = await prisma.userCalendar.findUnique({
@@ -183,7 +184,7 @@ export async function createMagicEvent(
       id: randomUUID(),
       type: 'custom',
       title: parsed.title,
-      date: dateStr,
+      date: parsed.date,
       time: parsed.time,
       eventType: 'personal',
       ...(location && { location }),
