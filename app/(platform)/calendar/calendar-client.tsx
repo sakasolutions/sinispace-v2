@@ -172,237 +172,238 @@ export function CalendarClient() {
   }
 
   return (
-    <div className="min-h-full w-full relative">
-      {/* Immersive Header – dynamische Wochen-/Monatsansicht (Maße wie Dashboard-Karte) */}
-      <div className="mx-4 sm:mx-6 mt-4">
-        <header className="w-full pt-12 pb-8 px-4 sm:px-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 text-white">
-        {/* Navigation: Jahr/Monat + zentrierter Titel + Ansicht-Toggle */}
-        <div className="flex items-center justify-between w-full mb-6">
-          <div className="flex items-center shrink-0" aria-hidden />
-          <div className="flex items-center justify-center gap-0 sm:gap-1">
-            <button
-              type="button"
-              onClick={prevYear}
-              className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
-              aria-label="Vorheriges Jahr"
-            >
-              <ChevronsLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              onClick={prevMonth}
-              className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
-              aria-label="Vorheriger Monat"
-            >
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
-            </button>
-            <span className="text-2xl font-bold text-white capitalize mx-2 sm:mx-4 min-w-[140px] sm:min-w-[180px] text-center">
-              {monthYearLabel}
-            </span>
-            <button
-              type="button"
-              onClick={nextMonth}
-              className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
-              aria-label="Nächster Monat"
-            >
-              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              onClick={nextYear}
-              className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
-              aria-label="Nächstes Jahr"
-            >
-              <ChevronsRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
-            </button>
-          </div>
-          <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1 shrink-0">
-            <button
-              type="button"
-              onClick={() => setViewMode('week')}
-              className={cn(
-                'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                viewMode === 'week'
-                  ? 'bg-white text-purple-700 shadow-md'
-                  : 'text-white/70 hover:text-white'
-              )}
-            >
-              Woche
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('month')}
-              className={cn(
-                'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                viewMode === 'month'
-                  ? 'bg-white text-purple-700 shadow-md'
-                  : 'text-white/70 hover:text-white'
-              )}
-            >
-              Monat
-            </button>
-          </div>
+    <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
+      {/* Ebene 2: Hero-Header (volle Breite, unten abgerundet) – Dashboard-Schablone */}
+      <header className="relative z-[1] min-h-[280px] w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8 -mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8">
+        {/* Hintergrund SiniSpace Gradient */}
+        <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px]">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600" aria-hidden />
         </div>
 
-        {/* Wochentags-Leiste (7er-Grid) */}
-        <div className="grid grid-cols-7 gap-1 text-center">
-          {WEEKDAY_LABELS.map((label) => (
-            <span
-              key={label}
-              className="text-sm text-white/80 font-medium"
-            >
-              {label}
-            </span>
-          ))}
-        </div>
+        {/* Inhalt des Headers */}
+        <div className="dashboard-header-pt md:pt-12 relative z-10 w-full pb-12">
+          <div className="max-w-7xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8">
+            {/* 1. Reihe: Monat/Jahr, << < > >>, Woche/Monat Toggle */}
+            <div className="flex items-center justify-between w-full mb-6">
+              <div className="flex items-center shrink-0" aria-hidden />
+              <div className="flex items-center justify-center gap-0 sm:gap-1">
+                <button
+                  type="button"
+                  onClick={prevYear}
+                  className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
+                  aria-label="Vorheriges Jahr"
+                >
+                  <ChevronsLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+                </button>
+                <button
+                  type="button"
+                  onClick={prevMonth}
+                  className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
+                  aria-label="Vorheriger Monat"
+                >
+                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+                </button>
+                <span className="text-2xl font-bold text-white capitalize mx-2 sm:mx-4 min-w-[140px] sm:min-w-[180px] text-center">
+                  {monthYearLabel}
+                </span>
+                <button
+                  type="button"
+                  onClick={nextMonth}
+                  className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
+                  aria-label="Nächster Monat"
+                >
+                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+                </button>
+                <button
+                  type="button"
+                  onClick={nextYear}
+                  className="text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-full transition"
+                  aria-label="Nächstes Jahr"
+                >
+                  <ChevronsRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+                </button>
+              </div>
+              <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('week')}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                    viewMode === 'week'
+                      ? 'bg-white text-purple-700 shadow-md'
+                      : 'text-white/70 hover:text-white'
+                  )}
+                >
+                  Woche
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('month')}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                    viewMode === 'month'
+                      ? 'bg-white text-purple-700 shadow-md'
+                      : 'text-white/70 hover:text-white'
+                  )}
+                >
+                  Monat
+                </button>
+              </div>
+            </div>
 
-        {/* Dynamisches Grid: Woche (1 Zeile) oder Monat (6 Zeilen) */}
-        <div
-          className={cn(
-            'grid grid-cols-7 gap-1 sm:gap-2 mt-2 transition-all duration-300 ease-in-out',
-            viewMode === 'week' ? 'grid-rows-1' : ''
-          )}
-        >
-          {gridDays.map((d) => {
-            const dayKey = getDateKey(d);
-            const selected = dayKey === selectedDateKey;
-            const inMonth = isSameMonth(d, currentDate);
-            return (
-              <button
-                key={dayKey}
-                type="button"
-                onClick={() => setCurrentDate(d)}
-                className={cn(
-                  'rounded-full text-sm font-medium transition-all flex items-center justify-center',
-                  selected
-                    ? 'w-10 h-10 bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white font-bold shadow-lg shadow-purple-500/30'
-                    : cn('aspect-square', inMonth ? 'text-white hover:bg-white/15' : 'text-white/40')
-                )}
-              >
-                {format(d, 'd')}
-              </button>
-            );
-          })}
+            {/* 2. Reihe: Wochentags-Grid (Mo, Di, Mi …) */}
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {WEEKDAY_LABELS.map((label) => (
+                <span key={label} className="text-sm text-white/80 font-medium">
+                  {label}
+                </span>
+              ))}
+            </div>
+
+            {/* Dynamisches Grid: Woche (1 Zeile) oder Monat (6 Zeilen) – aktiver Tag: w-10 h-10, bg-white text-purple-600 */}
+            <div
+              className={cn(
+                'grid grid-cols-7 gap-1 sm:gap-2 mt-2 transition-all duration-300 ease-in-out',
+                viewMode === 'week' ? 'grid-rows-1' : ''
+              )}
+            >
+              {gridDays.map((d) => {
+                const dayKey = getDateKey(d);
+                const selected = dayKey === selectedDateKey;
+                const inMonth = isSameMonth(d, currentDate);
+                return (
+                  <button
+                    key={dayKey}
+                    type="button"
+                    onClick={() => setCurrentDate(d)}
+                    className={cn(
+                      'rounded-full text-sm font-medium transition-all flex items-center justify-center',
+                      selected
+                        ? 'w-10 h-10 bg-white text-purple-600 font-bold shadow-md'
+                        : cn('aspect-square', inMonth ? 'text-white hover:bg-white/15' : 'text-white/40')
+                    )}
+                  >
+                    {format(d, 'd')}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </header>
 
-        {/* Weißer Body (Overlap & Magic Input) – gleiche Breite wie Header durch gemeinsamen Wrapper */}
-        <div className="bg-white w-full rounded-t-3xl px-6 pt-8 pb-24 -mt-6 relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.15)]">
-        <div className="max-w-2xl mx-auto">
-          {/* Magic Input – natürliche Spracheingabe */}
-          <div className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-gray-700 shadow-inner flex items-center justify-between mb-8">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={onKeyDown}
-              placeholder={isSubmitting ? 'Wird gespeichert...' : 'z.B. Morgen 18 Uhr Fussball'}
-              disabled={isSubmitting}
-              className="flex-1 min-w-0 bg-transparent outline-none placeholder:text-gray-500 text-gray-800 disabled:opacity-70"
-              aria-label="Termin in natürlicher Sprache eingeben"
-            />
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting || !inputValue.trim()}
-              className="shrink-0 p-2 rounded-full text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-              aria-label="Eingabe senden"
-            >
-              {isSubmitting ? (
-                <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2} />
+      {/* Ebene 3 & 4: Overlap & Content (schwebender Bereich) – -mt-20 lappt über Header */}
+      <div className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20 pt-9">
+        <div className="space-y-6 md:space-y-8">
+          <div className="max-w-2xl mx-auto">
+            {/* Magic Input – saubere Box */}
+            <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 flex items-center justify-between mb-8">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={onKeyDown}
+                placeholder={isSubmitting ? 'Wird gespeichert...' : 'z.B. Morgen 18 Uhr Fussball'}
+                disabled={isSubmitting}
+                className="flex-1 min-w-0 bg-transparent outline-none placeholder:text-gray-500 text-gray-800 disabled:opacity-70"
+                aria-label="Termin in natürlicher Sprache eingeben"
+              />
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting || !inputValue.trim()}
+                className="shrink-0 p-2 rounded-full text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                aria-label="Eingabe senden"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2} />
+                ) : (
+                  <Sparkles className="w-5 h-5" strokeWidth={2} />
+                )}
+              </button>
+            </div>
+
+            {/* Event-Timeline: Heute / formatiertes Datum + Liste */}
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 capitalize">
+              {selectedDayLabel}
+            </h2>
+
+            <div className="relative border-l-2 border-dashed border-gray-200 ml-3">
+              {displayEvents.length === 0 ? (
+                <p className="pl-8 text-gray-400 text-sm">
+                  Keine Termine an diesem Tag.
+                </p>
               ) : (
-                <Sparkles className="w-5 h-5" strokeWidth={2} />
-              )}
-            </button>
-          </div>
-
-          {/* Dynamische Überschrift: Heute oder formatiertes Datum (z. B. Mittwoch, 25. Februar) */}
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 capitalize">
-            {selectedDayLabel}
-          </h2>
-
-          {/* Event-Timeline (Rich Event Cards) */}
-          <div className="relative border-l-2 border-dashed border-gray-200 ml-3">
-            {displayEvents.length === 0 ? (
-              <p className="pl-8 text-gray-400 text-sm">
-                Keine Termine an diesem Tag.
-              </p>
-            ) : (
-              displayEvents.map((event, index) => {
-                const { bg: dotBg, Icon: DotIcon } = getEventDotStyle(event.actionTag);
-                return (
-                  <div key={event.id} className="relative pl-10 mb-6">
-                    {/* Timeline-Punkt mit Kategorie-Icon */}
-                    <span
-                      className={cn(
-                        'absolute -left-[11px] top-5 w-6 h-6 rounded-full border-2 border-white shadow-sm flex items-center justify-center',
-                        dotBg
-                      )}
-                      aria-hidden
-                    >
-                      <DotIcon className="w-3 h-3 text-white" strokeWidth={2.5} aria-hidden />
-                    </span>
-                    {/* Rich Event Card (klickbar → Smart Edit Modal) */}
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setEditingEvent(event)}
-                      onKeyDown={(e) => e.key === 'Enter' && setEditingEvent(event)}
-                      className="bg-white border border-gray-100 shadow-sm rounded-2xl p-4 w-full group transition-all hover:shadow-md cursor-pointer"
-                    >
-                      {/* Obere Reihe: Titel + Lösch-Button */}
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-lg font-semibold text-gray-800 flex-1 min-w-0">
-                          {event.title}
+                displayEvents.map((event) => {
+                  const { bg: dotBg, Icon: DotIcon } = getEventDotStyle(event.actionTag);
+                  return (
+                    <div key={event.id} className="relative pl-10 mb-6">
+                      <span
+                        className={cn(
+                          'absolute -left-[11px] top-5 w-6 h-6 rounded-full border-2 border-white shadow-sm flex items-center justify-center',
+                          dotBg
+                        )}
+                        aria-hidden
+                      >
+                        <DotIcon className="w-3 h-3 text-white" strokeWidth={2.5} aria-hidden />
+                      </span>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setEditingEvent(event)}
+                        onKeyDown={(e) => e.key === 'Enter' && setEditingEvent(event)}
+                        className="bg-white border border-gray-100 shadow-sm rounded-2xl p-4 w-full group transition-all hover:shadow-md cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-lg font-semibold text-gray-800 flex-1 min-w-0">
+                            {event.title}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={(evt) => {
+                              evt.stopPropagation();
+                              setEvents((prev) => prev.filter((x) => x.id !== event.id));
+                              void deleteCalendarEvent(event.id);
+                            }}
+                            className="text-gray-300 hover:text-red-500 opacity-70 group-hover:opacity-100 transition-all p-2 rounded-full hover:bg-red-50 shrink-0"
+                            aria-label={`Termin „${event.title}" löschen`}
+                          >
+                            <Trash2 className="w-5 h-5" strokeWidth={2} />
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-500 font-medium mt-0.5">
+                          {event.endTime
+                            ? `${event.time} – ${event.endTime} Uhr`
+                            : `${event.time} Uhr`}
                         </p>
-                        <button
-                          type="button"
-                          onClick={(evt) => {
-                            evt.stopPropagation();
-                            setEvents((prev) => prev.filter((x) => x.id !== event.id));
-                            void deleteCalendarEvent(event.id);
-                          }}
-                          className="text-gray-300 hover:text-red-500 opacity-70 group-hover:opacity-100 transition-all p-2 rounded-full hover:bg-red-50 shrink-0"
-                          aria-label={`Termin „${event.title}" löschen`}
-                        >
-                          <Trash2 className="w-5 h-5" strokeWidth={2} />
-                        </button>
-                      </div>
-                      {/* Mittlere Reihe: Uhrzeit */}
-                      <p className="text-sm text-gray-500 font-medium mt-0.5">
-                        {event.endTime
-                          ? `${event.time} – ${event.endTime} Uhr`
-                          : `${event.time} Uhr`}
-                      </p>
-                      {/* Action Chips */}
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {event.location && (
-                          <span className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
-                            <MapPin className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-                            {event.location}
-                          </span>
-                        )}
-                        {event.actionTag === 'shopping' && (
-                          <span className="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
-                            <ShoppingCart className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-                            SmartCart öffnen
-                          </span>
-                        )}
-                        {event.actionTag === 'food' && (
-                          <span className="text-xs bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
-                            <Utensils className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-                            CookIQ Rezept
-                          </span>
-                        )}
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {event.location && (
+                            <span className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
+                              <MapPin className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+                              {event.location}
+                            </span>
+                          )}
+                          {event.actionTag === 'shopping' && (
+                            <span className="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
+                              <ShoppingCart className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+                              SmartCart öffnen
+                            </span>
+                          )}
+                          {event.actionTag === 'food' && (
+                            <span className="text-xs bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
+                              <Utensils className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+                              CookIQ Rezept
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Smart Edit Modal */}
