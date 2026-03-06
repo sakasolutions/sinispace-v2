@@ -17,7 +17,7 @@ import {
 } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Sparkles, Loader2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Sparkles, Loader2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MapPin, ShoppingCart, Utensils, Calendar } from 'lucide-react';
 import { getCalendarEvents, createMagicEvent, deleteCalendarEvent, type CalendarEventJson } from '@/actions/calendar-actions';
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -47,6 +47,20 @@ const DOT_COLORS = ['bg-orange-400', 'bg-violet-500', 'bg-pink-400', 'bg-rose-40
 
 function getDotColor(index: number): string {
   return DOT_COLORS[index % DOT_COLORS.length];
+}
+
+/** Icon + Hintergrundfarbe für den Timeline-Punkt je nach actionTag. */
+function getEventDotStyle(actionTag?: string) {
+  switch (actionTag) {
+    case 'food':
+      return { bg: 'bg-pink-500', Icon: Utensils };
+    case 'shopping':
+      return { bg: 'bg-orange-500', Icon: ShoppingCart };
+    case 'location':
+      return { bg: 'bg-blue-500', Icon: MapPin };
+    default:
+      return { bg: 'bg-violet-500', Icon: Calendar };
+  }
 }
 
 export function CalendarClient() {
@@ -277,43 +291,77 @@ export function CalendarClient() {
             {selectedDayLabel}
           </h2>
 
-          {/* Event-Timeline (gestrichelte Linie + Punkte) */}
+          {/* Event-Timeline (Rich Event Cards) */}
           <div className="relative border-l-2 border-dashed border-gray-200 ml-3">
             {displayEvents.length === 0 ? (
               <p className="pl-8 text-gray-400 text-sm">
                 Keine Termine an diesem Tag.
               </p>
             ) : (
-              displayEvents.map((event, index) => (
-                <div key={event.id} className="relative pl-8 mb-8 flex items-start gap-2">
-                  <div className="flex-1 min-w-0">
+              displayEvents.map((event, index) => {
+                const { bg: dotBg, Icon: DotIcon } = getEventDotStyle(event.actionTag);
+                return (
+                  <div key={event.id} className="relative pl-10 mb-6">
+                    {/* Timeline-Punkt mit Kategorie-Icon */}
                     <span
                       className={cn(
-                        'absolute -left-[5px] top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm',
-                        getDotColor(index)
+                        'absolute -left-[11px] top-5 w-6 h-6 rounded-full border-2 border-white shadow-sm flex items-center justify-center',
+                        dotBg
                       )}
                       aria-hidden
-                    />
-                    <p className="text-lg font-semibold text-gray-800">{event.title}</p>
-                    <p className="text-sm text-gray-400 flex items-center gap-2 mt-1">
-                      {event.endTime
-                        ? `${event.time} – ${event.endTime} Uhr`
-                        : `${event.time} Uhr`}
-                    </p>
+                    >
+                      <DotIcon className="w-3 h-3 text-white" strokeWidth={2.5} aria-hidden />
+                    </span>
+                    {/* Rich Event Card */}
+                    <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-4 w-full group transition-all hover:shadow-md">
+                      {/* Obere Reihe: Titel + Lösch-Button */}
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-lg font-semibold text-gray-800 flex-1 min-w-0">
+                          {event.title}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEvents((prev) => prev.filter((e) => e.id !== event.id));
+                            void deleteCalendarEvent(event.id);
+                          }}
+                          className="text-gray-300 hover:text-red-500 opacity-70 group-hover:opacity-100 transition-all p-2 rounded-full hover:bg-red-50 shrink-0"
+                          aria-label={`Termin „${event.title}" löschen`}
+                        >
+                          <Trash2 className="w-5 h-5" strokeWidth={2} />
+                        </button>
+                      </div>
+                      {/* Mittlere Reihe: Uhrzeit */}
+                      <p className="text-sm text-gray-500 font-medium mt-0.5">
+                        {event.endTime
+                          ? `${event.time} – ${event.endTime} Uhr`
+                          : `${event.time} Uhr`}
+                      </p>
+                      {/* Action Chips */}
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {event.location && (
+                          <span className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
+                            <MapPin className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+                            {event.location}
+                          </span>
+                        )}
+                        {event.actionTag === 'shopping' && (
+                          <span className="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
+                            <ShoppingCart className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+                            SmartCart öffnen
+                          </span>
+                        )}
+                        {event.actionTag === 'food' && (
+                          <span className="text-xs bg-pink-50 text-pink-600 px-3 py-1.5 rounded-full flex items-center gap-1 font-medium w-fit">
+                            <Utensils className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+                            CookIQ Rezept
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEvents((prev) => prev.filter((e) => e.id !== event.id));
-                      void deleteCalendarEvent(event.id);
-                    }}
-                    className="text-gray-300 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 ml-auto shrink-0"
-                    aria-label={`Termin „${event.title}" löschen`}
-                  >
-                    <Trash2 className="w-5 h-5" strokeWidth={2} />
-                  </button>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

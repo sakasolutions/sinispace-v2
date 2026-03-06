@@ -7,6 +7,9 @@ import { addDays, format, getDay, isBefore, startOfDay } from 'date-fns';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
+/** Smart-Tag für kontextbezogene Aktionen (Chips, Icons). */
+export type CalendarActionTag = 'food' | 'shopping' | 'location';
+
 /** Event-Objekt im UserCalendar.eventsJson (Magic-Input / Custom) */
 export type CalendarEventJson = {
   id: string;
@@ -16,6 +19,8 @@ export type CalendarEventJson = {
   time: string; // HH:mm
   eventType: 'personal';
   endTime?: string; // HH:mm, optional
+  location?: string;
+  actionTag?: CalendarActionTag;
 };
 
 /**
@@ -57,15 +62,21 @@ const RELATIVE_DAYS: { pattern: RegExp; daysToAdd: number }[] = [
   { pattern: /\b(heute|today)\b/i, daysToAdd: 0 },
 ];
 
+/** Keywords für actionTag 'food' (case-insensitive). */
+const FOOD_KEYWORDS = /\b(essen|dinner|grillen|party|rezept|kochen|lunch|breakfast|mittag|frühstück|abendessen|mittagessen)\b/i;
+/** Keywords für actionTag 'shopping'. */
+const SHOPPING_KEYWORDS = /\b(einkauf|supermarkt|einkaufen|smartcart)\b/i;
+/** Orts-Präpositionen für Location-Extraktion (im, in der, bei, nach). */
+const LOCATION_PREPOSITION = /\b(im|in der|bei|nach)\s+([^,]+?)(?=\s*$|\s+und\s)/i;
+
 /**
- * Parst natürliche Sprache (z.B. "Morgen 18 Uhr Fussball", "Übermorgen 13 Uhr Zahnarzt", "21. März Kool Savas")
- * zu title, date (YYYY-MM-DD), time (HH:mm). Nutzt currentDate als Referenz. Case-insensitive.
- * Das zurückgegebene date wird exakt so im Event gespeichert.
+ * Parst natürliche Sprache zu title, date, time, location, actionTag.
+ * Case-insensitive. Orts-Erkennung (im/in der/bei/nach) und Kategorie-Keywords (food/shopping).
  */
 function parseNaturalLanguage(
   inputText: string,
   currentDate: Date
-): { title: string; date: string; time: string } {
+): { title: string; date: string; time: string; location?: string; actionTag?: CalendarActionTag } {
   const original = inputText.trim();
   const text = original.toLowerCase();
   let resolvedDate = new Date(currentDate);
@@ -146,9 +157,35 @@ function parseNaturalLanguage(
     .replace(/\s+/g, ' ')
     .trim();
   if (!title) title = 'Termin';
-  // Ersten Buchstaben groß (Rest unverändert, z. B. "termin beim Zahnarzt" → "Termin beim Zahnarzt")
+  // Orts-Erkennung: "im Vapiano", "in der Praxis", "bei Dr. Müller", "nach Hamburg" → location, aus title entfernen
+  let location: string | undefined;
+  const locMatch = title.match(LOCATION_PREPOSITION);
+  if (locMatch) {
+    const fullPhrase = locMatch[0].trim();
+    const locValue = locMatch[2].trim();
+    if (locValue.length > 0) {
+      location = locValue.charAt(0).toUpperCase() + locValue.slice(1);
+      const escaped = fullPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      title = title.replace(new RegExp(escaped, 'i'), '').replace(/\s+/g, ' ').trim();
+    } else {
+      location = undefined;
+    }
+  }
+
+  // Ersten Buchstaben groß (Rest unverändert)
   if (title.length > 0) {
     title = title.charAt(0).toUpperCase() + title.slice(1);
+  }
+
+  // Kategorie-Erkennung (Smart Tags): food, shopping, sonst bei Ort → location
+  const combined = `${title} ${location ?? ''}`.toLowerCase();
+  let actionTag: CalendarEventJson['actionTag'];
+  if (FOOD_KEYWORDS.test(combined)) {
+    actionTag = 'food';
+  } else if (SHOPPING_KEYWORDS.test(combined)) {
+    actionTag = 'shopping';
+  } else if (location) {
+    actionTag = 'location';
   }
 
   const parsedDateStr = format(resolvedDate, 'yyyy-MM-dd');
@@ -156,6 +193,8 @@ function parseNaturalLanguage(
     title,
     date: parsedDateStr,
     time,
+    location: location || undefined,
+    actionTag,
   };
 }
 
@@ -178,8 +217,7 @@ export async function createMagicEvent(
 
   try {
     const parsed = parseNaturalLanguage(trimmed, currentDate);
-    // Explizit: Das vom Parser gelieferte date wird ins Event übernommen (kein currentDate).
-    const { title, date: parsedDate, time } = parsed;
+    const { title, date: parsedDate, time, location, actionTag } = parsed;
 
     let calendar = await prisma.userCalendar.findUnique({
       where: { userId: session.user.id },
@@ -198,6 +236,8 @@ export async function createMagicEvent(
       date: parsedDate,
       time,
       eventType: 'personal',
+      ...(location && { location }),
+      ...(actionTag && { actionTag }),
     };
     events.push(newEvent);
 
