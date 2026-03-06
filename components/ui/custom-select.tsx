@@ -36,7 +36,7 @@ export function CustomSelect({
   triggerClassName,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [portalRect, setPortalRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [portalRect, setPortalRect] = useState<{ top: number; left: number; width: number; triggerTop: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -102,7 +102,7 @@ export function CustomSelect({
     }
     const update = () => {
       const r = containerRef.current?.getBoundingClientRect();
-      if (r) setPortalRect({ top: r.bottom + 8, left: r.left, width: r.width });
+      if (r) setPortalRect({ top: r.bottom + 8, left: r.left, width: r.width, triggerTop: r.top });
     };
     update();
     window.addEventListener('resize', update);
@@ -116,14 +116,14 @@ export function CustomSelect({
         theme === 'light'
           ? 'bg-white border-2 border-orange-200 shadow-lg shadow-orange-500/15 ring-2 ring-orange-100/80'
           : 'bg-zinc-900 border border-white/10 shadow-xl'
-      } ${dropdownInPortal && portalRect ? 'fixed' : 'absolute top-full left-0 w-full mt-2'}`}
+      } ${dropdownInPortal && portalRect ? 'fixed' : 'absolute bottom-full left-0 w-full mb-2'}`}
       style={
         dropdownInPortal && portalRect
-          ? { top: portalRect.top, left: portalRect.left, width: portalRect.width }
+          ? { bottom: window.innerHeight - portalRect.triggerTop + 8, left: portalRect.left, width: portalRect.width }
           : undefined
       }
     >
-      <ul className="max-h-48 overflow-y-auto pt-2 pb-6 pr-2 scrollbar-thin">
+      <ul className="max-h-48 overflow-y-auto py-2 scrollbar-thin">
         {normalizedOptions.map((option) => {
           const isSelected = option.value === value;
           return (
@@ -154,14 +154,6 @@ export function CustomSelect({
           );
         })}
       </ul>
-      <div
-        className={`absolute bottom-0 left-0 w-full h-8 pointer-events-none rounded-b-xl ${
-          theme === 'light'
-            ? 'bg-gradient-to-t from-white via-white/80 to-transparent'
-            : 'bg-gradient-to-t from-zinc-900 via-zinc-900/80 to-transparent'
-        }`}
-        aria-hidden="true"
-      />
     </div>
   );
 
