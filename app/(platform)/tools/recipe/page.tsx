@@ -4,7 +4,7 @@ import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg, Pizza, Drumstick, CalendarDays, RefreshCw, Rocket } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg, Pizza, Drumstick, CalendarDays, RefreshCw, Rocket, ArrowRightLeft } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus, createPortal } from 'react-dom';
@@ -516,6 +516,33 @@ export default function RecipePage() {
     } finally {
       setRollingMealId(null);
     }
+  };
+
+  const handleSwapMeal = (sourceDayIdx: number, mealIdx: number, targetDayIdx: number) => {
+    if (sourceDayIdx === targetDayIdx) return;
+
+    setWeekDraft((prev) => {
+      const newDraft = JSON.parse(JSON.stringify(prev)) as typeof prev;
+      const sourceMeal = newDraft[sourceDayIdx].meals[mealIdx];
+      if (!sourceMeal) return prev;
+
+      const targetMealIdx = newDraft[targetDayIdx].meals.findIndex((m: { type: string }) => m.type === sourceMeal.type);
+
+      if (targetMealIdx !== -1) {
+        const targetMeal = newDraft[targetDayIdx].meals[targetMealIdx];
+        newDraft[targetDayIdx].meals[targetMealIdx] = { ...sourceMeal };
+        newDraft[sourceDayIdx].meals[mealIdx] = { ...targetMeal };
+      } else {
+        newDraft[targetDayIdx].meals.push({ ...sourceMeal });
+        newDraft[sourceDayIdx].meals.splice(mealIdx, 1);
+        const order: Record<string, number> = { breakfast: 1, lunch: 2, dinner: 3 };
+        newDraft[targetDayIdx].meals.sort(
+          (a: { type: string }, b: { type: string }) => (order[a.type] ?? 0) - (order[b.type] ?? 0)
+        );
+      }
+
+      return newDraft;
+    });
   };
 
   return (
@@ -1188,18 +1215,50 @@ export default function RecipePage() {
                               </div>
                             </div>
 
-                            {/* Edler Re-Roll Button */}
-                            <button
-                              type="button"
-                              onClick={() => handleReRollMeal(idx, mIdx, dayPlan.day, meal.type, meal.title)}
-                              disabled={rollingMealId === `${dayPlan.day}-${meal.type}`}
-                              className="shrink-0 ml-2 p-3 text-gray-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-100 disabled:text-orange-500"
-                              title="Gericht neu generieren"
-                            >
-                              <RefreshCw
-                                className={`w-5 h-5 ${rollingMealId === `${dayPlan.day}-${meal.type}` ? 'animate-spin text-orange-500' : ''}`}
-                              />
-                            </button>
+                            {/* Actions Container */}
+                            <div className="flex items-center shrink-0 ml-2 gap-1">
+                              {/* SWAP / MOVE Button (mit nativem Select Overlay) */}
+                              <div className="relative group/swap">
+                                <button
+                                  type="button"
+                                  className="p-3 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 pointer-events-none sm:pointer-events-auto"
+                                  title="Auf anderen Tag verschieben"
+                                  tabIndex={-1}
+                                >
+                                  <ArrowRightLeft className="w-5 h-5" />
+                                </button>
+                                <select
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                  value=""
+                                  onChange={(e) => {
+                                    const targetIdx = parseInt(e.target.value, 10);
+                                    if (!Number.isNaN(targetIdx)) handleSwapMeal(idx, mIdx, targetIdx);
+                                    e.currentTarget.value = '';
+                                  }}
+                                  aria-label="Gericht auf anderen Tag verschieben"
+                                >
+                                  <option value="" disabled>Verschieben nach...</option>
+                                  {weekDraft.map((d, dIdx) => (
+                                    <option key={dIdx} value={dIdx} disabled={dIdx === idx}>
+                                      {d.day}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              {/* RE-ROLL Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleReRollMeal(idx, mIdx, dayPlan.day, meal.type, meal.title)}
+                                disabled={rollingMealId === `${dayPlan.day}-${meal.type}`}
+                                className="p-3 text-gray-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-100 disabled:text-orange-500"
+                                title="Gericht neu generieren"
+                              >
+                                <RefreshCw
+                                  className={`w-5 h-5 ${rollingMealId === `${dayPlan.day}-${meal.type}` ? 'animate-spin text-orange-500' : ''}`}
+                                />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
