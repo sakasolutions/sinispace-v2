@@ -27,7 +27,7 @@ import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list
 import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
 import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
-import { generateWeekDraft } from '@/actions/week-planner-ai';
+import { generateWeekDraft, regenerateSingleMealDraft } from '@/actions/week-planner-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Erweiterter Rezept-Typ (CookIQ Tier 1: Makros, SmartCart-Trennung). Kompatibel mit RecipeDetailView. */
@@ -171,6 +171,7 @@ export default function RecipePage() {
   const [plannerPhase, setPlannerPhase] = useState<'setup' | 'loading' | 'lab'>('setup');
   const [weekDraft, setWeekDraft] = useState<any[]>([]);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
+  const [rollingMealId, setRollingMealId] = useState<string | null>(null);
   const router = useRouter();
 
   const quickFilters = [
@@ -482,6 +483,40 @@ export default function RecipePage() {
       ],
     },
   ];
+
+  const handleReRollMeal = async (
+    dayIndex: number,
+    mealIndex: number,
+    day: string,
+    mealType: string,
+    oldTitle: string
+  ) => {
+    const mealId = `${day}-${mealType}`;
+    setRollingMealId(mealId);
+    try {
+      const res = await regenerateSingleMealDraft(
+        day,
+        mealType,
+        selectedWeekFilters,
+        customWeekPrompt || '',
+        oldTitle
+      );
+      if (res?.success && res.meal) {
+        setWeekDraft((prev) => {
+          const newDraft = [...prev];
+          if (newDraft[dayIndex]?.meals) {
+            newDraft[dayIndex] = { ...newDraft[dayIndex], meals: [...newDraft[dayIndex].meals] };
+            newDraft[dayIndex].meals[mealIndex] = { ...res.meal, type: res.meal.type };
+          }
+          return newDraft;
+        });
+      } else if (res && !res.success) {
+        setAddToListToast({ message: res.error });
+      }
+    } finally {
+      setRollingMealId(null);
+    }
+  };
 
   return (
     <>
@@ -1156,10 +1191,14 @@ export default function RecipePage() {
                             {/* Edler Re-Roll Button */}
                             <button
                               type="button"
-                              className="shrink-0 ml-2 p-3 text-gray-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                              onClick={() => handleReRollMeal(idx, mIdx, dayPlan.day, meal.type, meal.title)}
+                              disabled={rollingMealId === `${dayPlan.day}-${meal.type}`}
+                              className="shrink-0 ml-2 p-3 text-gray-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-100 disabled:text-orange-500"
                               title="Gericht neu generieren"
                             >
-                              <RefreshCw className="w-5 h-5" />
+                              <RefreshCw
+                                className={`w-5 h-5 ${rollingMealId === `${dayPlan.day}-${meal.type}` ? 'animate-spin text-orange-500' : ''}`}
+                              />
                             </button>
                           </div>
                         ))}

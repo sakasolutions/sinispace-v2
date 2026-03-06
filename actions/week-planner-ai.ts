@@ -113,3 +113,77 @@ Format: ${jsonSchema}`;
     return { success: false, error: 'Konnte Plan nicht generieren.' };
   }
 }
+
+export async function regenerateSingleMealDraft(
+  day: string,
+  mealType: string,
+  filters: string[],
+  customPrompt: string,
+  oldTitle: string
+): Promise<{ success: true; meal: WeekDraftMeal } | { success: false; error: string }> {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) {
+    return { success: false, error: 'Premium-Feature. Bitte upgrade deinen Account.' };
+  }
+
+  try {
+    const filterText = filters.length > 0 ? `Beachte strikt diese Ernährungs-Filter: ${filters.join(', ')}.` : '';
+    const customText = customPrompt.trim() ? `Besonderer Wunsch des Users: "${customPrompt.trim()}".` : '';
+
+    const typeNorm = mealType === 'breakfast' || mealType === 'lunch' || mealType === 'dinner' ? mealType : 'dinner';
+
+    const systemPrompt = `Du bist ein 5-Sterne Meal-Prep Coach. Der User hat einen Wochenplan, aber möchte EIN Gericht austauschen.
+Es geht um den Tag: ${day}, Mahlzeit: ${typeNorm}.
+Das bisherige Gericht war "${oldTitle}". Generiere eine NEUE, völlig ANDERE Alternative dafür.
+${filterText}
+${customText}
+
+Regeln:
+1. Generiere nur EIN Gericht.
+2. Die Werte für 'calories' und 'time' müssen realistisch sein.
+3. Antworte NUR mit einem JSON-Objekt mit genau einem Schlüssel "meal": { "type": "${typeNorm}", "title": "...", "time": "...", "calories": "..." }`;
+
+    const response = await createChatCompletion(
+      {
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: 'Generiere die Alternative als JSON (ein Objekt "meal" mit type, title, time, calories).' },
+        ],
+        response_format: { type: 'json_object' as const },
+        temperature: 0.8,
+      },
+      'recipe',
+      'CookIQ Week Planner Re-Roll'
+    );
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      return { success: false, error: 'Keine Antwort von der KI erhalten.' };
+    }
+
+    let parsed: { meal?: any };
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      return { success: false, error: 'Fehler beim Verarbeiten der Antwort.' };
+    }
+
+    const m = parsed?.meal;
+    if (!m || typeof m.title !== 'string') {
+      return { success: false, error: 'Ungültiges Format.' };
+    }
+
+    const meal: WeekDraftMeal = {
+      type: typeNorm,
+      title: String(m.title ?? ''),
+      time: typeof m.time === 'string' ? m.time : String(m.time ?? ''),
+      calories: typeof m.calories === 'string' ? m.calories : String(m.calories ?? ''),
+    };
+
+    return { success: true, meal };
+  } catch (error) {
+    console.error('Fehler beim Re-Roll:', error);
+    return { success: false, error: 'Konnte Gericht nicht austauschen.' };
+  }
+}
