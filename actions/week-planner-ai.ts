@@ -5,6 +5,9 @@ import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { saveWeeklyPlan as saveWeeklyPlanToCalendar } from '@/actions/calendar-actions';
 import { saveResult } from '@/actions/workspace-actions';
+import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
+import { appendToList, defaultList } from '@/lib/shopping-lists-storage';
+import { auth } from '@/auth';
 
 export type WeekDraftMeal = {
   type: 'breakfast' | 'lunch' | 'dinner';
@@ -327,36 +330,81 @@ export async function saveWeeklyPlan(
 
 /**
  * Master-Einkaufsliste aus den Rezept-Titeln der Woche (ohne volle Rezepte zu laden).
- * Später: KI-Aufruf für aggregierte, kategorisierte Zutatenliste.
+ * KI generiert aggregierte Zutatenliste; Speicherung in UserShoppingLists (SmartCart).
  */
 export async function generateMasterShoppingList(
   weekPlan: WeekDraftDay[]
 ): Promise<{ success: true; list: string[] } | { success: false }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false };
+  }
+
   try {
-    const mealTitles = weekPlan.flatMap((day) => day.meals.map((m: WeekDraftMeal) => m.title));
+    const mealsContext = weekPlan
+      .flatMap((day) =>
+        day.meals.map((m: WeekDraftMeal) => `- ${m.title} (${m.calories ?? '—'})`)
+      )
+      .join('\n');
 
-    // Später: KI-Aufruf (Vercel AI / OpenAI) für aggregierte Liste aus Titeln
-    // const systemPrompt = `Du bist ein intelligenter Einkaufs-Assistent. Der User möchte folgende Gerichte diese Woche kochen: ${mealTitles.join(', ')}.
-    // Erstelle eine aggregierte, realistische Einkaufsliste für ALLE diese Gerichte zusammen.
-    // Fasse gleiche Zutaten zusammen (z.B. wenn 3 Gerichte Zwiebeln brauchen, schreibe "1 Netz Zwiebeln" oder "5 Zwiebeln").
-    // Kategorisiere sie (Gemüse, Fleisch, Milchprodukte, etc.).`;
-    // const { object } = await generateObject({ ... schema: z.object({ items: z.array(z.string()) }) });
-    // return { success: true, list: object.items };
+    const systemPrompt = `Du bist ein intelligenter Einkaufs-Assistent.
+Der User kocht diese Woche folgende Gerichte:
 
-    await new Promise((resolve) => setTimeout(resolve, 4000));
+${mealsContext}
 
-    return {
-      success: true,
-      list: [
-        '1kg Hähnchenbrust',
-        '500g Rinderhack',
-        '2 Netze Zwiebeln',
-        'Knoblauch',
-        'Zucchini (3 Stück)',
-        'Kirschtomaten',
-        'Vollkorn-Spaghetti',
-      ],
-    };
+Deine Aufgabe:
+1. Leite die logischen Zutaten für diese Gerichte ab (für ca. 2 Personen, falls nicht anders angegeben).
+2. Fasse gleiche Zutaten intelligent zusammen (z.B. aus 2x "1 Zwiebel" wird "2 Zwiebeln").
+3. Ignoriere absolute Basis-Zutaten (Salz, Pfeffer, Leitungswasser).
+Antworte NUR mit einem JSON-Objekt mit genau einem Schlüssel "items", der ein Array von Strings ist. Jeder String ist ein Einkaufslisten-Eintrag (z.B. "500g Hähnchenbrust", "1 Netz Zwiebeln").`;
+
+    const response = await createChatCompletion(
+      {
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: 'Generiere die aggregierte Einkaufsliste als JSON mit Schlüssel "items" (Array von Strings).' },
+        ],
+        response_format: { type: 'json_object' as const },
+        temperature: 0.4,
+      },
+      'recipe',
+      'CookIQ Master SmartCart'
+    );
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      return { success: false };
+    }
+
+    let parsed: { items?: string[] };
+    try {
+      parsed = JSON.parse(content) as { items?: string[] };
+    } catch {
+      return { success: false };
+    }
+
+    const shoppingListItems = Array.isArray(parsed?.items)
+      ? parsed.items.filter((s): s is string => typeof s === 'string' && s.trim().length > 0).map((s) => s.trim())
+      : [];
+
+    if (shoppingListItems.length === 0) {
+      return { success: false };
+    }
+
+    let lists = await getShoppingLists();
+    if (lists.length === 0) {
+      lists = [defaultList()];
+    }
+    const targetListId = lists[0].id;
+    const { lists: updatedLists } = appendToList(lists, targetListId, shoppingListItems);
+    const saveRes = await saveShoppingLists(updatedLists);
+    if (!saveRes.success) {
+      console.error('Master-Liste: Speichern in SmartCart fehlgeschlagen', saveRes.error);
+      return { success: false };
+    }
+
+    return { success: true, list: shoppingListItems };
   } catch (error) {
     console.error('Fehler bei der Master-Liste:', error);
     return { success: false };

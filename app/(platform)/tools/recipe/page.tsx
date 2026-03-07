@@ -1305,8 +1305,8 @@ export default function RecipePage() {
                       const res = await generateMasterShoppingList(weekDraft);
                       setIsGeneratingSmartCart(false);
                       if (res?.success) {
-                        console.log('Generierte Wochenliste:', res.list);
-                        alert('Erfolg! Die Zutaten wurden generiert und in deine SmartCart verschoben (Siehe Console)!');
+                        setIsWeekPlannerOpen(false);
+                        router.push('/tools/shopping-list');
                       } else {
                         alert('Fehler beim Erstellen der Einkaufsliste.');
                       }
