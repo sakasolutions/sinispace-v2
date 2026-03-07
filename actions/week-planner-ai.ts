@@ -189,3 +189,45 @@ Regeln:
     return { success: false, error: 'Konnte Gericht nicht austauschen.' };
   }
 }
+
+/**
+ * Speichert den finalen Wochenplan-Entwurf: schreibt in den Kalender (CalendarEvent)
+ * und nutzt die kommende Woche (Start: nächster Montag).
+ */
+export async function saveWeeklyPlan(
+  weekDraft: WeekDraftDay[]
+): Promise<{ success: true } | { success: false; error?: string }> {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) {
+    return { success: false, error: 'Premium-Feature. Bitte upgrade deinen Account.' };
+  }
+
+  if (!weekDraft?.length) {
+    return { success: false, error: 'Kein Plan zum Speichern.' };
+  }
+
+  try {
+    const today = startOfDay(new Date());
+    const thisMonday = startOfWeek(today, { weekStartsOn: 1 });
+    const nextMonday = thisMonday > today ? thisMonday : addDays(thisMonday, 7);
+
+    const planData = weekDraft.flatMap((dayObj, dayIndex) => {
+      const date = addDays(nextMonday, dayIndex);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      return (dayObj.meals ?? []).map((meal) => ({
+        date: dateStr,
+        title: meal.title || 'Gericht',
+        mealType: meal.type,
+      }));
+    });
+
+    const res = await saveWeeklyPlanToCalendar(planData);
+    if (res.success === false) {
+      return { success: false, error: res.error };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Fehler beim Speichern des Wochenplans:', error);
+    return { success: false, error: 'Konnte Plan nicht speichern.' };
+  }
+}

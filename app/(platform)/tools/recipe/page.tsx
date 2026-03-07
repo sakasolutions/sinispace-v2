@@ -26,8 +26,8 @@ import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
-import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
-import { generateWeekDraft, regenerateSingleMealDraft } from '@/actions/week-planner-ai';
+import { GourmetCockpit, type GourmetCockpitProps } from '@/components/recipe/gourmet-cockpit';
+import { generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan } from '@/actions/week-planner-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Erweiterter Rezept-Typ (CookIQ Tier 1: Makros, SmartCart-Trennung). Kompatibel mit RecipeDetailView. */
@@ -170,6 +170,8 @@ export default function RecipePage() {
   const [selectedWeekFilters, setSelectedWeekFilters] = useState<string[]>([]);
   const [plannerPhase, setPlannerPhase] = useState<'setup' | 'loading' | 'lab'>('setup');
   const [weekDraft, setWeekDraft] = useState<any[]>([]);
+  const [activeWeekPlan, setActiveWeekPlan] = useState<any[] | null>(null);
+  const [isCommitting, setIsCommitting] = useState(false);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const [rollingMealId, setRollingMealId] = useState<string | null>(null);
   const router = useRouter();
@@ -551,13 +553,24 @@ export default function RecipePage() {
       {showCockpit ? (
         <div data-header-full-bleed className="min-h-screen w-full relative overflow-x-visible">
           <GourmetCockpit
-            onVorschlagGenerieren={() => {
-              setShowCockpit(false);
-              setActiveTab('create');
-              setIngredients('');
-            }}
-            onMagicWunsch={() => setIsMagicModalOpen(true)}
-            onWochePlanen={() => setIsWeekPlannerOpen(true)}
+            {...({
+              onVorschlagGenerieren: () => {
+                setShowCockpit(false);
+                setActiveTab('create');
+                setIngredients('');
+              },
+              onMagicWunsch: () => setIsMagicModalOpen(true),
+              activeWeekPlan,
+              onWochePlanen: () => {
+                if (activeWeekPlan?.length) {
+                  setWeekDraft(activeWeekPlan);
+                  setPlannerPhase('lab');
+                  setIsWeekPlannerOpen(true);
+                } else {
+                  setIsWeekPlannerOpen(true);
+                }
+              },
+            } satisfies GourmetCockpitProps)}
           />
         </div>
       ) : (
@@ -1270,11 +1283,25 @@ export default function RecipePage() {
                 <div className="shrink-0 pt-4 mt-2 bg-white">
                   <button
                     type="button"
-                    onClick={() => console.log('Finalisiere Plan...')}
-                    className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    onClick={async () => {
+                      setIsCommitting(true);
+                      const res = await saveWeeklyPlan(weekDraft);
+                      setIsCommitting(false);
+                      if (res?.success) {
+                        setActiveWeekPlan(weekDraft);
+                        setIsWeekPlannerOpen(false);
+                        setPlannerPhase('setup');
+                      }
+                    }}
+                    disabled={isCommitting}
+                    className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    <Rocket className="w-5 h-5 text-orange-400" />
-                    Plan finalisieren & speichern
+                    {isCommitting ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Rocket className="w-5 h-5 text-orange-400" />
+                    )}
+                    {isCommitting ? 'Speichere Plan & synchronisiere Kalender...' : 'Plan finalisieren & speichern'}
                   </button>
                 </div>
               </div>

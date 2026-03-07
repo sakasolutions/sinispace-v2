@@ -13,16 +13,19 @@ const CARD_STYLE: React.CSSProperties = {
   backdropFilter: 'blur(8px)',
 };
 
-type Props = {
+export type GourmetCockpitProps = {
   onVorschlagGenerieren: () => void;
   onMagicWunsch?: () => void;
   onWochePlanen?: () => void;
+  /** Wenn gesetzt: Karte zeigt "Dein Wochenplan" (aktiv) statt "Woche planen". */
+  activeWeekPlan?: unknown[] | null;
 };
 
 const cardClass =
   'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full';
 
-export function GourmetCockpit({ onVorschlagGenerieren, onMagicWunsch, onWochePlanen }: Props) {
+export function GourmetCockpit(props: GourmetCockpitProps) {
+  const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null } = props;
   return (
     <div className="min-h-screen w-full relative overflow-x-visible bg-white">
       <DashboardShell
@@ -72,19 +75,35 @@ export function GourmetCockpit({ onVorschlagGenerieren, onMagicWunsch, onWochePl
             <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
               <button
                 type="button"
-                onClick={onWochePlanen ?? (() => console.log('Wochenplaner wird neu gebaut'))}
+                onClick={onWochePlanen ?? (() => {})}
                 className={cardClass}
                 style={CARD_STYLE}
               >
-                <div className="flex w-full justify-between items-start gap-2">
-                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30">
-                    <CalendarDays className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
-                  </div>
-                </div>
-                <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Woche planen</h3>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Dein Essensplan</p>
-                </div>
+                {activeWeekPlan && activeWeekPlan.length > 0 ? (
+                  <>
+                    <div className="flex w-full justify-between items-start gap-2">
+                      <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg shadow-green-500/30">
+                        <CalendarDays className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                      </div>
+                    </div>
+                    <div className="w-full text-left">
+                      <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Dein Wochenplan</h3>
+                      <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Aktiv • Klick zum Ansehen</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex w-full justify-between items-start gap-2">
+                      <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30">
+                        <CalendarDays className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
+                      </div>
+                    </div>
+                    <div className="w-full text-left">
+                      <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Woche planen</h3>
+                      <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Dein Essensplan</p>
+                    </div>
+                  </>
+                )}
               </button>
 
               <Link href="/tools/recipe?tab=my-recipes" className={cardClass} style={CARD_STYLE}>

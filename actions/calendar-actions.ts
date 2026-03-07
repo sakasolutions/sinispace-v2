@@ -396,7 +396,7 @@ export async function updateCalendarEvent(
 export type WeeklyPlanEntry = {
   date: string; // YYYY-MM-DD
   recipeId?: string | null;
-  resultId: string;
+  resultId?: string | null; // Optional für Draft-Pläne (nur Titel im Kalender)
   title: string;
   mealType?: 'breakfast' | 'lunch' | 'dinner';
 };
@@ -439,7 +439,7 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
       title: entry.title,
       recipeId: entry.recipeId ?? null,
       mealType: entry.mealType ?? 'dinner',
-      resultId: entry.resultId,
+      resultId: entry.resultId ?? null,
       isMeal: true,
     }));
     await prisma.calendarEvent.createMany({ data: rows });
