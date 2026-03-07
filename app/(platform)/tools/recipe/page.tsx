@@ -168,7 +168,7 @@ export default function RecipePage() {
   });
   const [isPlanningWeek, setIsPlanningWeek] = useState(false);
   const [selectedWeekFilters, setSelectedWeekFilters] = useState<string[]>([]);
-  const [plannerPhase, setPlannerPhase] = useState<'setup' | 'loading' | 'lab' | 'committing'>('setup');
+  const [plannerPhase, setPlannerPhase] = useState<'setup' | 'loading' | 'lab' | 'committing' | 'active-view'>('setup');
   const [weekDraft, setWeekDraft] = useState<any[]>([]);
   const [activeWeekPlan, setActiveWeekPlan] = useState<any[] | null>(null);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
@@ -563,9 +563,10 @@ export default function RecipePage() {
               onWochePlanen: () => {
                 if (activeWeekPlan?.length) {
                   setWeekDraft(activeWeekPlan);
-                  setPlannerPhase('lab');
+                  setPlannerPhase('active-view');
                   setIsWeekPlannerOpen(true);
                 } else {
+                  setPlannerPhase('setup');
                   setIsWeekPlannerOpen(true);
                 }
               },
@@ -1196,6 +1197,83 @@ export default function RecipePage() {
                 </p>
                 <div className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full w-1/2 bg-gradient-to-r from-orange-400 to-pink-500 rounded-full animate-pulse" aria-hidden />
+                </div>
+              </div>
+            )}
+
+            {/* --- PHASE 5: AKTIVE WOCHE (Lese-Ansicht) --- */}
+            {plannerPhase === 'active-view' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-[85vh]">
+                <div className="shrink-0 mb-6 pt-2 px-2 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
+                      <CalendarDays className="w-6 h-6 text-green-500" />
+                      Deine Woche
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">Hier ist dein aktueller Speiseplan.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('Möchtest du diesen Wochenplan wirklich verwerfen?')) {
+                        setActiveWeekPlan(null);
+                        setIsWeekPlannerOpen(false);
+                      }
+                    }}
+                    className="text-xs font-semibold text-red-400 hover:text-red-600 bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    Plan löschen
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin space-y-8 pb-8">
+                  {weekDraft.map((dayPlan, idx) => (
+                    <div key={idx} className="relative">
+                      <div className="flex items-center gap-2 mb-4 sticky top-0 bg-white/90 backdrop-blur-sm py-2 z-10">
+                        <h4 className="font-bold text-lg text-gray-800 border-b-2 border-green-500 pb-0.5">
+                          {dayPlan.day}
+                        </h4>
+                      </div>
+
+                      <div className="space-y-3 pl-2 border-l-2 border-gray-100 ml-2">
+                        {dayPlan.meals.map((meal: { type: string; title: string; time?: string; calories?: string }, mIdx: number) => (
+                          <div key={mIdx} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between border border-gray-100 group relative overflow-hidden">
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-emerald-500" aria-hidden />
+
+                            <div className="pl-3">
+                              <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest block mb-1.5">
+                                {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
+                              </span>
+                              <p className="font-bold text-gray-800 text-base leading-tight mb-2 pr-4">{meal.title}</p>
+
+                              <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3.5 h-3.5" /> {meal.time}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Flame className="w-3.5 h-3.5 text-orange-400" /> {meal.calories}
+                                </span>
+                              </div>
+                            </div>
+
+                            <button type="button" className="shrink-0 ml-2 p-2.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all text-sm font-semibold flex items-center gap-1">
+                              Rezept <span className="text-lg">›</span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="shrink-0 pt-4 mt-2 bg-white">
+                  <button
+                    type="button"
+                    onClick={() => console.log('Starte Master SmartCart...')}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl py-4 font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  >
+                    🛒 Zutaten für die Woche einkaufen
+                  </button>
                 </div>
               </div>
             )}
