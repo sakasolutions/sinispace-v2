@@ -207,6 +207,9 @@ export async function saveWeeklyPlan(
   }
 
   try {
+    // Künstlicher Delay für UX-Testing (später entfernen, wenn echte DB-Logik ausreichend Laufzeit hat)
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+
     const today = startOfDay(new Date());
     const thisMonday = startOfWeek(today, { weekStartsOn: 1 });
     const nextMonday = thisMonday > today ? thisMonday : addDays(thisMonday, 7);

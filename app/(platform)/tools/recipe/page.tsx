@@ -1300,14 +1300,22 @@ export default function RecipePage() {
                   <button
                     type="button"
                     onClick={async () => {
-                      setPlannerPhase('committing');
+                      setPlannerPhase('committing'); // Raketen-Screen anzeigen
+
+                      // Warten auf das (nun künstlich verlangsamte) Backend
                       const res = await saveWeeklyPlan(weekDraft);
+
                       if (res?.success) {
-                        setActiveWeekPlan(weekDraft);
-                        setIsWeekPlannerOpen(false);
-                        setTimeout(() => setPlannerPhase('setup'), 500);
+                        setActiveWeekPlan(weekDraft); // Dashboard-Karte updaten
+                        setIsWeekPlannerOpen(false); // Modal schließen
+
+                        // Phase im Hintergrund für das nächste Mal zurücksetzen
+                        setTimeout(() => {
+                          setPlannerPhase('setup');
+                        }, 500);
                       } else {
-                        setPlannerPhase('lab');
+                        setPlannerPhase('lab'); // Bei Fehler zurück zur Ansicht
+                        console.error('Fehler beim Speichern');
                       }
                     }}
                     className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
