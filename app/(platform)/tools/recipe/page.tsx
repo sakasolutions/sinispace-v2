@@ -4,7 +4,7 @@ import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg, Pizza, Drumstick, CalendarDays, RefreshCw, Rocket, ArrowRightLeft } from 'lucide-react';
+import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg, Pizza, Drumstick, CalendarDays, RefreshCw, Rocket, ArrowRightLeft, Heart } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useFormStatus, createPortal } from 'react-dom';
@@ -172,6 +172,8 @@ export default function RecipePage() {
   const [weekDraft, setWeekDraft] = useState<any[]>([]);
   const [activeWeekPlan, setActiveWeekPlan] = useState<any[] | null>(null);
   const [loadingRecipeId, setLoadingRecipeId] = useState<string | null>(null);
+  const [savingRecipeId, setSavingRecipeId] = useState<string | null>(null);
+  const [savedRecipeIds, setSavedRecipeIds] = useState<string[]>([]);
   const [isGeneratingSmartCart, setIsGeneratingSmartCart] = useState(false);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const [rollingMealId, setRollingMealId] = useState<string | null>(null);
@@ -583,12 +585,13 @@ export default function RecipePage() {
               onMagicWunsch: () => setIsMagicModalOpen(true),
               activeWeekPlan,
               onWochePlanen: () => {
+                setPlannerPhase('setup');
+                setIsWeekPlannerOpen(true);
+              },
+              onAktiveWocheAnsehen: () => {
                 if (activeWeekPlan?.length) {
                   setWeekDraft(activeWeekPlan);
                   setPlannerPhase('active-view');
-                  setIsWeekPlannerOpen(true);
-                } else {
-                  setPlannerPhase('setup');
                   setIsWeekPlannerOpen(true);
                 }
               },
@@ -1278,18 +1281,55 @@ export default function RecipePage() {
                               </div>
                             </div>
 
-                            <button
-                              type="button"
-                              onClick={() => handleOpenRecipe(dayPlan.day, meal)}
-                              disabled={loadingRecipeId === `${dayPlan.day}-${meal.title}`}
-                              className="shrink-0 ml-2 p-2.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all text-sm font-bold flex items-center gap-1.5 disabled:opacity-50 w-[90px] justify-center"
-                            >
-                              {loadingRecipeId === `${dayPlan.day}-${meal.title}` ? (
-                                <div className="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
-                              ) : (
-                                <>Rezept <span className="text-lg leading-none">›</span></>
-                              )}
-                            </button>
+                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                              <button
+                                type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const rId = `${dayPlan.day}-${meal.title}`;
+                                  if (savedRecipeIds.includes(rId)) return;
+                                  setSavingRecipeId(rId);
+                                  const res = await generateAndSaveFullRecipe(meal.title, meal.calories ?? '', meal.time ?? '');
+                                  setSavingRecipeId(null);
+                                  if (res?.success) {
+                                    setSavedRecipeIds((prev) => [...prev, rId]);
+                                  }
+                                }}
+                                disabled={
+                                  savingRecipeId === `${dayPlan.day}-${meal.title}` ||
+                                  savedRecipeIds.includes(`${dayPlan.day}-${meal.title}`)
+                                }
+                                className={`p-2.5 rounded-xl transition-all flex items-center justify-center ${
+                                  savedRecipeIds.includes(`${dayPlan.day}-${meal.title}`)
+                                    ? 'text-pink-500 bg-pink-50'
+                                    : 'text-gray-400 hover:text-pink-500 hover:bg-pink-50'
+                                }`}
+                                title="In Sammlung speichern"
+                              >
+                                {savingRecipeId === `${dayPlan.day}-${meal.title}` ? (
+                                  <div className="w-4 h-4 border-2 border-pink-500/30 border-t-pink-500 rounded-full animate-spin" />
+                                ) : (
+                                  <Heart
+                                    className="w-[18px] h-[18px]"
+                                    fill={savedRecipeIds.includes(`${dayPlan.day}-${meal.title}`) ? 'currentColor' : 'none'}
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                  />
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenRecipe(dayPlan.day, meal)}
+                                disabled={loadingRecipeId === `${dayPlan.day}-${meal.title}`}
+                                className="p-2.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all text-sm font-bold flex items-center gap-1.5 disabled:opacity-50 w-[85px] justify-center"
+                              >
+                                {loadingRecipeId === `${dayPlan.day}-${meal.title}` ? (
+                                  <div className="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+                                ) : (
+                                  <>Rezept <span className="text-lg leading-none">›</span></>
+                                )}
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>

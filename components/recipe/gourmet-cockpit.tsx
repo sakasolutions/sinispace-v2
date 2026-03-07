@@ -17,15 +17,17 @@ export type GourmetCockpitProps = {
   onVorschlagGenerieren: () => void;
   onMagicWunsch?: () => void;
   onWochePlanen?: () => void;
-  /** Wenn gesetzt: Karte zeigt "Dein Wochenplan" (aktiv) statt "Woche planen". */
+  /** Für die Full-Width-Karte "Deine aktuelle Woche" (nur sichtbar wenn gesetzt). */
   activeWeekPlan?: unknown[] | null;
+  /** Klick auf die aktive-Woche-Karte: öffnet active-view. */
+  onAktiveWocheAnsehen?: () => void;
 };
 
 const cardClass =
   'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full';
 
 export function GourmetCockpit(props: GourmetCockpitProps) {
-  const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null } = props;
+  const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null, onAktiveWocheAnsehen } = props;
   return (
     <div className="min-h-screen w-full relative overflow-x-visible bg-white">
       <DashboardShell
@@ -75,35 +77,18 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
             <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
               <button
                 type="button"
-                onClick={onWochePlanen ?? (() => {})}
-                className={cardClass}
-                style={CARD_STYLE}
+                onClick={() => {
+                  onWochePlanen?.();
+                }}
+                className="group relative overflow-hidden bg-white/60 backdrop-blur-xl border border-white/40 shadow-sm hover:shadow-md transition-all rounded-[2rem] p-6 text-left aspect-square flex flex-col items-start justify-end"
               >
-                {activeWeekPlan && activeWeekPlan.length > 0 ? (
-                  <>
-                    <div className="flex w-full justify-between items-start gap-2">
-                      <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg shadow-green-500/30">
-                        <CalendarDays className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
-                      </div>
-                    </div>
-                    <div className="w-full text-left">
-                      <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Dein Wochenplan</h3>
-                      <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Aktiv • Klick zum Ansehen</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex w-full justify-between items-start gap-2">
-                      <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30">
-                        <CalendarDays className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
-                      </div>
-                    </div>
-                    <div className="w-full text-left">
-                      <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Woche planen</h3>
-                      <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Dein Essensplan</p>
-                    </div>
-                  </>
-                )}
+                <div className="relative z-10">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30 mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3">
+                    <CalendarDays className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 text-lg mb-1 tracking-tight leading-tight">Woche planen</h3>
+                  <p className="text-gray-500 font-medium text-sm">Dein Essensplan</p>
+                </div>
               </button>
 
               <Link href="/tools/recipe?tab=my-recipes" className={cardClass} style={CARD_STYLE}>
@@ -147,6 +132,31 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                 </div>
               </Link>
             </div>
+
+            {/* MVP Cockpit: Aktiver Wochenplan (Full Width) */}
+            {activeWeekPlan && Array.isArray(activeWeekPlan) && activeWeekPlan.length > 0 && onAktiveWocheAnsehen && (
+              <button
+                type="button"
+                onClick={onAktiveWocheAnsehen}
+                className="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-[2rem] p-6 text-left shadow-lg shadow-green-500/20 hover:shadow-xl hover:scale-[1.01] transition-all group relative overflow-hidden flex items-center justify-between md:max-w-3xl md:mx-auto"
+              >
+                <div className="absolute right-0 top-0 bottom-0 w-64 bg-gradient-to-l from-white/20 to-transparent skew-x-12 translate-x-10 group-hover:translate-x-20 transition-transform duration-700" aria-hidden />
+                <div className="relative z-10 flex items-center gap-4">
+                  <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
+                    <CalendarDays className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-xl mb-1 tracking-tight">Deine aktuelle Woche</h3>
+                    <p className="text-green-50 font-medium text-sm">
+                      {activeWeekPlan.reduce((acc: number, day: { meals?: unknown[] }) => acc + (day.meals?.length ?? 0), 0)} Gerichte geplant • Klick zum Öffnen
+                    </p>
+                  </div>
+                </div>
+                <div className="relative z-10 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 text-white font-bold text-sm border border-white/30 group-hover:bg-white group-hover:text-green-600 transition-colors">
+                  Ansehen ›
+                </div>
+              </button>
+            )}
           </section>
         </div>
       </DashboardShell>
