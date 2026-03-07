@@ -27,7 +27,7 @@ import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list
 import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
 import { GourmetCockpit, type GourmetCockpitProps } from '@/components/recipe/gourmet-cockpit';
-import { generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan, generateAndSaveFullRecipe } from '@/actions/week-planner-ai';
+import { generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan, generateAndSaveFullRecipe, generateMasterShoppingList } from '@/actions/week-planner-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Erweiterter Rezept-Typ (CookIQ Tier 1: Makros, SmartCart-Trennung). Kompatibel mit RecipeDetailView. */
@@ -172,6 +172,7 @@ export default function RecipePage() {
   const [weekDraft, setWeekDraft] = useState<any[]>([]);
   const [activeWeekPlan, setActiveWeekPlan] = useState<any[] | null>(null);
   const [loadingRecipeId, setLoadingRecipeId] = useState<string | null>(null);
+  const [isGeneratingSmartCart, setIsGeneratingSmartCart] = useState(false);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const [rollingMealId, setRollingMealId] = useState<string | null>(null);
   const router = useRouter();
@@ -1299,10 +1300,28 @@ export default function RecipePage() {
                 <div className="shrink-0 pt-4 mt-2 bg-white">
                   <button
                     type="button"
-                    onClick={() => console.log('Starte Master SmartCart...')}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl py-4 font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    onClick={async () => {
+                      setIsGeneratingSmartCart(true);
+                      const res = await generateMasterShoppingList(weekDraft);
+                      setIsGeneratingSmartCart(false);
+                      if (res?.success) {
+                        console.log('Generierte Wochenliste:', res.list);
+                        alert('Erfolg! Die Zutaten wurden generiert und in deine SmartCart verschoben (Siehe Console)!');
+                      } else {
+                        alert('Fehler beim Erstellen der Einkaufsliste.');
+                      }
+                    }}
+                    disabled={isGeneratingSmartCart}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl py-4 font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:scale-100"
                   >
-                    🛒 Zutaten für die Woche einkaufen
+                    {isGeneratingSmartCart ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Analysiere {weekDraft.reduce((acc, day) => acc + day.meals.length, 0)} Gerichte...
+                      </>
+                    ) : (
+                      <>🛒 Zutaten für die Woche einkaufen</>
+                    )}
                   </button>
                 </div>
               </div>

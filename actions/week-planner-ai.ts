@@ -324,3 +324,41 @@ export async function saveWeeklyPlan(
     return { success: false, error: 'Konnte Plan nicht speichern.' };
   }
 }
+
+/**
+ * Master-Einkaufsliste aus den Rezept-Titeln der Woche (ohne volle Rezepte zu laden).
+ * Später: KI-Aufruf für aggregierte, kategorisierte Zutatenliste.
+ */
+export async function generateMasterShoppingList(
+  weekPlan: WeekDraftDay[]
+): Promise<{ success: true; list: string[] } | { success: false }> {
+  try {
+    const mealTitles = weekPlan.flatMap((day) => day.meals.map((m: WeekDraftMeal) => m.title));
+
+    // Später: KI-Aufruf (Vercel AI / OpenAI) für aggregierte Liste aus Titeln
+    // const systemPrompt = `Du bist ein intelligenter Einkaufs-Assistent. Der User möchte folgende Gerichte diese Woche kochen: ${mealTitles.join(', ')}.
+    // Erstelle eine aggregierte, realistische Einkaufsliste für ALLE diese Gerichte zusammen.
+    // Fasse gleiche Zutaten zusammen (z.B. wenn 3 Gerichte Zwiebeln brauchen, schreibe "1 Netz Zwiebeln" oder "5 Zwiebeln").
+    // Kategorisiere sie (Gemüse, Fleisch, Milchprodukte, etc.).`;
+    // const { object } = await generateObject({ ... schema: z.object({ items: z.array(z.string()) }) });
+    // return { success: true, list: object.items };
+
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+
+    return {
+      success: true,
+      list: [
+        '1kg Hähnchenbrust',
+        '500g Rinderhack',
+        '2 Netze Zwiebeln',
+        'Knoblauch',
+        'Zucchini (3 Stück)',
+        'Kirschtomaten',
+        'Vollkorn-Spaghetti',
+      ],
+    };
+  } catch (error) {
+    console.error('Fehler bei der Master-Liste:', error);
+    return { success: false };
+  }
+}
