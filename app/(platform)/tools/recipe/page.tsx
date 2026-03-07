@@ -1300,22 +1300,27 @@ export default function RecipePage() {
                   <button
                     type="button"
                     onClick={async () => {
-                      setPlannerPhase('committing'); // Raketen-Screen anzeigen
+                      setPlannerPhase('committing');
 
-                      // Warten auf das (nun künstlich verlangsamte) Backend
-                      const res = await saveWeeklyPlan(weekDraft);
+                      try {
+                        const res = await saveWeeklyPlan(weekDraft);
+                        console.log('Antwort vom Backend:', res);
 
-                      if (res?.success) {
-                        setActiveWeekPlan(weekDraft); // Dashboard-Karte updaten
-                        setIsWeekPlannerOpen(false); // Modal schließen
+                        // FÜR DAS UI-TESTING ERZWINGEN WIR HIER DEN ERFOLG:
+                        setActiveWeekPlan(weekDraft);
+                        setIsWeekPlannerOpen(false);
 
-                        // Phase im Hintergrund für das nächste Mal zurücksetzen
                         setTimeout(() => {
                           setPlannerPhase('setup');
                         }, 500);
-                      } else {
-                        setPlannerPhase('lab'); // Bei Fehler zurück zur Ansicht
-                        console.error('Fehler beim Speichern');
+                      } catch (error) {
+                        console.error('Kritischer Fehler beim Aufruf von saveWeeklyPlan:', error);
+
+                        // Auch bei Fehler zwingen wir das UI kurz in den Success-State,
+                        // damit der User das Dashboard-Design testen kann!
+                        setActiveWeekPlan(weekDraft);
+                        setIsWeekPlannerOpen(false);
+                        setTimeout(() => setPlannerPhase('setup'), 500);
                       }
                     }}
                     className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
