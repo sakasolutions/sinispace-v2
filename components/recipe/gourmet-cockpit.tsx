@@ -148,7 +148,13 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                   <div>
                     <h3 className="font-bold text-white text-xl mb-1 tracking-tight">Deine aktuelle Woche</h3>
                     <p className="text-green-50 font-medium text-sm">
-                      {activeWeekPlan.reduce((acc: number, day: { meals?: unknown[] }) => acc + (day.meals?.length ?? 0), 0)} Gerichte geplant • Klick zum Öffnen
+                      {(
+                        (activeWeekPlan as Array<{ meals?: unknown[] }>).reduce(
+                          (acc, day) => acc + (day.meals?.length ?? 0),
+                          0
+                        )
+                      )}{' '}
+                      Gerichte geplant • Klick zum Öffnen
                     </p>
                   </div>
                 </div>
