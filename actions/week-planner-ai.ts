@@ -4,6 +4,7 @@ import { addDays, format, startOfDay, startOfWeek } from 'date-fns';
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { saveWeeklyPlan as saveWeeklyPlanToCalendar } from '@/actions/calendar-actions';
+import { saveResult } from '@/actions/workspace-actions';
 
 export type WeekDraftMeal = {
   type: 'breakfast' | 'lunch' | 'dinner';
@@ -191,6 +192,90 @@ Regeln:
 }
 
 /**
+ * JIT: Generiert aus Titel/Kalorien/Zeit das volle Rezept per KI und speichert es in der Sammlung (Result).
+ */
+export async function generateAndSaveFullRecipe(
+  title: string,
+  calories: string,
+  time: string
+): Promise<
+  | { success: true; recipe: Record<string, unknown>; resultId?: string }
+  | { success: false; error?: string }
+> {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) {
+    return { success: false, error: 'Premium-Feature. Bitte upgrade deinen Account.' };
+  }
+
+  try {
+    const jsonFormat = `{
+  "recipeName": "Name des Gerichts",
+  "stats": { "time": "20 Min", "calories": 450, "protein": 0, "carbs": 0, "fat": 0, "difficulty": "Einfach" },
+  "ingredients": [ "Menge Einheit Zutat" ],
+  "shoppingList": [ "Menge Einheit Zutat" ],
+  "instructions": [ "Schritt 1", "Schritt 2" ],
+  "chefTip": "Profi-Tipp",
+  "categoryIcon": "pasta",
+  "imageSearchQuery": "Food query"
+}`;
+
+    const response = await createChatCompletion(
+      {
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `Du bist ein 5-Sterne-Koch. Erstelle ein vollständiges Rezept nur aus dem Gerichtsnamen. Antworte NUR mit validem JSON: ${jsonFormat}. categoryIcon: einer von pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast. ingredients: nur Basics (Salz, Pfeffer, Öl, Wasser). shoppingList: alle übrigen Zutaten.`,
+          },
+          {
+            role: 'user',
+            content: `Gericht: "${title}". Ungefähr ${calories || '—'}, Zubereitung ${time || '—'}. Erstelle das komplette Rezept mit Zutaten und Zubereitungsschritten.`,
+          },
+        ],
+        response_format: { type: 'json_object' as const },
+        temperature: 0.7,
+      },
+      'recipe',
+      'CookIQ Wochenplan JIT'
+    );
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      return { success: false, error: 'Keine Antwort von der KI.' };
+    }
+
+    let recipe: Record<string, unknown>;
+    try {
+      recipe = JSON.parse(content) as Record<string, unknown>;
+    } catch {
+      return { success: false, error: 'Ungültiges Rezept-Format.' };
+    }
+
+    if (!recipe.recipeName || !Array.isArray(recipe.ingredients) || !Array.isArray(recipe.instructions)) {
+      return { success: false, error: 'Rezept unvollständig.' };
+    }
+
+    const saved = await saveResult(
+      'recipe',
+      'CookIQ',
+      JSON.stringify(recipe),
+      undefined,
+      String(recipe.recipeName),
+      JSON.stringify({ source: 'week-planner-jit', calories, time })
+    );
+
+    if (!saved?.success || !saved.result) {
+      return { success: false, error: saved?.error ?? 'Speichern fehlgeschlagen.' };
+    }
+
+    return { success: true, recipe, resultId: saved.result.id };
+  } catch (error) {
+    console.error('Fehler bei JIT-Generierung:', error);
+    return { success: false, error: 'Konnte Rezept nicht generieren.' };
+  }
+}
+
+/**
  * Speichert den finalen Wochenplan-Entwurf: schreibt in den Kalender (CalendarEvent)
  * und nutzt die kommende Woche (Start: nächster Montag).
  */
@@ -207,9 +292,10 @@ export async function saveWeeklyPlan(
   }
 
   try {
-    // Künstlicher Delay für UX-Testing (später entfernen, wenn echte DB-Logik ausreichend Laufzeit hat)
-    await new Promise((resolve) => setTimeout(resolve, 2500));
+    // 1. Plan in der CookIQ-Datenbank speichern (optional, z. B. WeeklyPlan-Tabelle)
+    // await db.weeklyPlan.create({ data: { userId, weekStart: nextMonday, planData: JSON.stringify(weekDraft) } });
 
+    // 2. Kalender-Sync: Events für die kommende Woche anlegen (CalendarEvent)
     const today = startOfDay(new Date());
     const thisMonday = startOfWeek(today, { weekStartsOn: 1 });
     const nextMonday = thisMonday > today ? thisMonday : addDays(thisMonday, 7);
@@ -228,9 +314,13 @@ export async function saveWeeklyPlan(
     if (res.success === false) {
       return { success: false, error: res.error };
     }
+
+    // Künstlicher Delay für Frontend-Testing der Raketen-Animation (später entfernen)
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     return { success: true };
   } catch (error) {
-    console.error('Fehler beim Speichern des Wochenplans:', error);
+    console.error('Fehler beim Speichern & Kalender-Sync:', error);
     return { success: false, error: 'Konnte Plan nicht speichern.' };
   }
 }

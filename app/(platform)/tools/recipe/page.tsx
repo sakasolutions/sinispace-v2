@@ -27,7 +27,7 @@ import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list
 import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
 import { GourmetCockpit, type GourmetCockpitProps } from '@/components/recipe/gourmet-cockpit';
-import { generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan } from '@/actions/week-planner-ai';
+import { generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan, generateAndSaveFullRecipe } from '@/actions/week-planner-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Erweiterter Rezept-Typ (CookIQ Tier 1: Makros, SmartCart-Trennung). Kompatibel mit RecipeDetailView. */
@@ -551,16 +551,20 @@ export default function RecipePage() {
     const recipeId = `${day}-${meal.title}`;
     setLoadingRecipeId(recipeId);
 
-    // Hier kommt später der echte AI-Aufruf hin:
-    // const fullRecipe = await generateFullRecipeFromTitle(meal.title, meal.calories);
-
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const res = await generateAndSaveFullRecipe(
+      meal.title,
+      meal.calories ?? '',
+      meal.time ?? ''
+    );
 
     setLoadingRecipeId(null);
 
-    // Hier öffnen wir das Rezept! Falls es einen State wie selectedRecipe und isRecipeModalOpen gibt, setze ihn hier.
-    console.log('Rezept generiert und bereit zum Öffnen:', meal.title);
-    alert(`Rezept "${meal.title}" wurde geladen und würde sich jetzt in der Detailansicht öffnen!`);
+    if (res?.success) {
+      // Hier später: Rezept-Modal/Detail-View öffnen, z. B. setSelectedRecipe(res.recipe); setIsRecipeViewOpen(true);
+      alert(`Magie! "${meal.title}" wurde generiert, in deine Sammlung gespeichert und ist bereit zum Kochen!`);
+    } else {
+      alert('Fehler beim Laden des Rezepts.');
+    }
   };
 
   return (
