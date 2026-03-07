@@ -168,10 +168,9 @@ export default function RecipePage() {
   });
   const [isPlanningWeek, setIsPlanningWeek] = useState(false);
   const [selectedWeekFilters, setSelectedWeekFilters] = useState<string[]>([]);
-  const [plannerPhase, setPlannerPhase] = useState<'setup' | 'loading' | 'lab'>('setup');
+  const [plannerPhase, setPlannerPhase] = useState<'setup' | 'loading' | 'lab' | 'committing'>('setup');
   const [weekDraft, setWeekDraft] = useState<any[]>([]);
   const [activeWeekPlan, setActiveWeekPlan] = useState<any[] | null>(null);
-  const [isCommitting, setIsCommitting] = useState(false);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const [rollingMealId, setRollingMealId] = useState<string | null>(null);
   const router = useRouter();
@@ -1184,6 +1183,23 @@ export default function RecipePage() {
               </div>
             )}
 
+            {/* --- PHASE 4: COMMITTING (Speichern) --- */}
+            {plannerPhase === 'committing' && (
+              <div className="flex flex-col items-center justify-center py-16 text-center animate-in fade-in zoom-in-95 duration-300">
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 bg-orange-400 blur-2xl opacity-20 rounded-full animate-pulse" aria-hidden />
+                  <Rocket className="w-20 h-20 text-orange-500 animate-bounce relative z-10" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3 tracking-tight">Raketenstart...</h3>
+                <p className="text-sm text-gray-500 mb-8 px-6 max-w-xs mx-auto leading-relaxed">
+                  Dein Wochenplan wird gespeichert und die Termine werden in deinen Kalender eingetragen.
+                </p>
+                <div className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full w-1/2 bg-gradient-to-r from-orange-400 to-pink-500 rounded-full animate-pulse" aria-hidden />
+                </div>
+              </div>
+            )}
+
             {/* --- PHASE 3: DAS LABOR (Entwurf) --- */}
             {plannerPhase === 'lab' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-[80vh]">
@@ -1284,24 +1300,20 @@ export default function RecipePage() {
                   <button
                     type="button"
                     onClick={async () => {
-                      setIsCommitting(true);
+                      setPlannerPhase('committing');
                       const res = await saveWeeklyPlan(weekDraft);
-                      setIsCommitting(false);
                       if (res?.success) {
                         setActiveWeekPlan(weekDraft);
                         setIsWeekPlannerOpen(false);
-                        setPlannerPhase('setup');
+                        setTimeout(() => setPlannerPhase('setup'), 500);
+                      } else {
+                        setPlannerPhase('lab');
                       }
                     }}
-                    disabled={isCommitting}
-                    className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                   >
-                    {isCommitting ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <Rocket className="w-5 h-5 text-orange-400" />
-                    )}
-                    {isCommitting ? 'Speichere Plan & synchronisiere Kalender...' : 'Plan finalisieren & speichern'}
+                    <Rocket className="w-5 h-5 text-orange-400" />
+                    Plan finalisieren & speichern
                   </button>
                 </div>
               </div>
