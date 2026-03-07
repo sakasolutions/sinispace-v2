@@ -171,6 +171,7 @@ export default function RecipePage() {
   const [plannerPhase, setPlannerPhase] = useState<'setup' | 'loading' | 'lab' | 'committing' | 'active-view'>('setup');
   const [weekDraft, setWeekDraft] = useState<any[]>([]);
   const [activeWeekPlan, setActiveWeekPlan] = useState<any[] | null>(null);
+  const [loadingRecipeId, setLoadingRecipeId] = useState<string | null>(null);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const [rollingMealId, setRollingMealId] = useState<string | null>(null);
   const router = useRouter();
@@ -544,6 +545,22 @@ export default function RecipePage() {
 
       return newDraft;
     });
+  };
+
+  const handleOpenRecipe = async (day: string, meal: { title: string; type?: string; time?: string; calories?: string }) => {
+    const recipeId = `${day}-${meal.title}`;
+    setLoadingRecipeId(recipeId);
+
+    // Hier kommt später der echte AI-Aufruf hin:
+    // const fullRecipe = await generateFullRecipeFromTitle(meal.title, meal.calories);
+
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    setLoadingRecipeId(null);
+
+    // Hier öffnen wir das Rezept! Falls es einen State wie selectedRecipe und isRecipeModalOpen gibt, setze ihn hier.
+    console.log('Rezept generiert und bereit zum Öffnen:', meal.title);
+    alert(`Rezept "${meal.title}" wurde geladen und würde sich jetzt in der Detailansicht öffnen!`);
   };
 
   return (
@@ -1256,8 +1273,17 @@ export default function RecipePage() {
                               </div>
                             </div>
 
-                            <button type="button" className="shrink-0 ml-2 p-2.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all text-sm font-semibold flex items-center gap-1">
-                              Rezept <span className="text-lg">›</span>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRecipe(dayPlan.day, meal)}
+                              disabled={loadingRecipeId === `${dayPlan.day}-${meal.title}`}
+                              className="shrink-0 ml-2 p-2.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all text-sm font-bold flex items-center gap-1.5 disabled:opacity-50 w-[90px] justify-center"
+                            >
+                              {loadingRecipeId === `${dayPlan.day}-${meal.title}` ? (
+                                <div className="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+                              ) : (
+                                <>Rezept <span className="text-lg leading-none">›</span></>
+                              )}
                             </button>
                           </div>
                         ))}
