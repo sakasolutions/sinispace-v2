@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles, CalendarDays, BookHeart, Utensils, ShoppingBasket, ChevronRight } from 'lucide-react';
+import { Sparkles, CalendarDays, BookHeart, Utensils, ShoppingBasket } from 'lucide-react';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Einfacher Glasmorphismus – stabil, keine dynamischen Daten */
@@ -134,52 +134,62 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               </Link>
             </div>
 
-            {/* MVP Cockpit: Aktive Woche (Full Width, heute im Fokus) */}
-            {activeWeekPlan && Array.isArray(activeWeekPlan) && activeWeekPlan.length > 0 && onAktiveWocheAnsehen && (() => {
-              const plan = activeWeekPlan as Array<{ day: string; meals?: Array<{ type?: string; title?: string }> }>;
-              const dayIndex = (new Date().getDay() + 6) % 7;
-              const dayObj = plan[dayIndex];
-              const meals = dayObj?.meals ?? [];
-              const meal = meals[meals.length - 1] ?? meals[0];
-              const mealTypeLabel = meal?.type === 'breakfast' ? 'Frühstück' : meal?.type === 'lunch' ? 'Mittagessen' : 'Abendessen';
-              const tagLabel = dayObj?.day ?? `Tag ${dayIndex + 1}`;
-              const headline = meal?.title ?? 'Heute geplant';
-              return (
-                <div className="w-full mt-4 md:max-w-3xl md:mx-auto">
-                  <div className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-[2rem] p-6 shadow-lg shadow-orange-500/25 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <span className="inline-block px-2.5 py-1 rounded-lg bg-white/20 text-white text-xs font-semibold uppercase tracking-wider mb-2">
+            {/* Das Full-Width MVP-Cockpit für den aktiven Wochenplan */}
+            {activeWeekPlan && Array.isArray(activeWeekPlan) && activeWeekPlan.length > 0 && onAktiveWocheAnsehen && (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => onAktiveWocheAnsehen()}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAktiveWocheAnsehen(); } }}
+                className="w-full mt-6 relative overflow-hidden bg-gradient-to-br from-orange-400 to-orange-500 rounded-[2rem] p-6 text-white shadow-xl shadow-orange-500/20 mb-6 group cursor-pointer transition-transform hover:-translate-y-1"
+              >
+                {/* Dezenter Premium-Hintergrundeffekt */}
+                <div className="absolute -right-16 -top-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none transition-transform group-hover:scale-110" aria-hidden />
+                <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-orange-300 opacity-20 rounded-full blur-2xl pointer-events-none" aria-hidden />
+
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  {/* Linke Seite: Infos zum aktuellen Tag/Gericht */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-white/10">
                         Aktive Woche
                       </span>
-                      <p className="text-white/90 text-sm font-medium mb-0.5">
-                        {tagLabel} • {mealTypeLabel}
-                      </p>
-                      <h3 className="font-bold text-white text-xl sm:text-2xl tracking-tight leading-tight truncate">
-                        {headline}
-                      </h3>
+                      <span className="text-orange-100 text-sm font-medium">Tag 3 • Abendessen</span>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
-                        className="px-5 py-3 rounded-xl bg-white text-orange-600 font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
-                      >
-                        Jetzt kochen
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
-                        className="p-3 rounded-xl bg-white/20 text-white border border-white/30 hover:bg-white/30 transition-all"
-                        title="Details ansehen"
-                        aria-label="Details ansehen"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                    </div>
+
+                    <h2 className="font-extrabold text-2xl md:text-3xl mb-2 tracking-tight leading-tight">
+                      Lachs aus dem Ofen
+                    </h2>
+                    <p className="text-orange-50 font-medium opacity-90">
+                      Mit Ofengemüse und Rosmarinkartoffeln
+                    </p>
+                  </div>
+
+                  {/* Rechte Seite: Action-Buttons */}
+                  <div className="flex gap-3 w-full md:w-auto mt-2 md:mt-0">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
+                      className="flex-1 md:flex-none bg-white text-orange-600 font-bold py-3.5 px-8 rounded-2xl shadow-sm hover:shadow-md hover:scale-105 transition-all text-sm flex items-center justify-center"
+                    >
+                      Jetzt kochen
+                    </button>
+
+                    {/* Detail-Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
+                      className="flex-none bg-orange-600/30 hover:bg-orange-600/50 backdrop-blur-sm border border-white/20 text-white p-3.5 rounded-2xl transition-all flex items-center justify-center group-hover:border-white/40"
+                      aria-label="Details ansehen"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
-              );
-            })()}
+              </div>
+            )}
           </section>
         </div>
       </DashboardShell>
