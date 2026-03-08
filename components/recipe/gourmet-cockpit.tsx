@@ -77,10 +77,8 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
             <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
               <button
                 type="button"
-                onClick={() => {
-                  onWochePlanen?.();
-                }}
-                className="group relative overflow-hidden bg-white/60 backdrop-blur-xl border border-white/40 shadow-sm hover:shadow-md transition-all rounded-[2rem] p-6 text-left aspect-square flex flex-col items-start justify-end"
+                onClick={() => onWochePlanen?.()}
+                className="group relative overflow-hidden bg-white border border-white/40 shadow-sm hover:shadow-md transition-all rounded-[2rem] p-6 text-left flex flex-col justify-start"
               >
                 <div className="relative z-10">
                   <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30 mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3">
