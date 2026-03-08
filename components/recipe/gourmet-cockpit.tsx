@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles, CalendarDays, BookHeart, Utensils, ShoppingBasket } from 'lucide-react';
+import { Sparkles, CalendarDays, BookHeart, Utensils, ShoppingBasket, ChevronRight } from 'lucide-react';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Einfacher Glasmorphismus – stabil, keine dynamischen Daten */
@@ -78,14 +78,17 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               <button
                 type="button"
                 onClick={() => onWochePlanen?.()}
-                className="group relative overflow-hidden bg-white border border-white/40 shadow-sm hover:shadow-md transition-all rounded-[2rem] p-6 text-left flex flex-col justify-start"
+                className={cardClass}
+                style={CARD_STYLE}
               >
-                <div className="relative z-10">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30 mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3">
-                    <CalendarDays className="w-6 h-6 text-white" />
+                <div className="flex w-full justify-between items-start gap-2">
+                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-400 to-orange-500 shadow-lg shadow-orange-500/30">
+                    <CalendarDays className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
                   </div>
-                  <h3 className="font-bold text-gray-800 text-lg mb-1 tracking-tight leading-tight">Woche planen</h3>
-                  <p className="text-gray-500 font-medium text-sm">Dein Essensplan</p>
+                </div>
+                <div className="w-full text-left">
+                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Woche planen</h3>
+                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Dein Essensplan</p>
                 </div>
               </button>
 
@@ -131,36 +134,52 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               </Link>
             </div>
 
-            {/* MVP Cockpit: Aktiver Wochenplan (Full Width) */}
-            {activeWeekPlan && Array.isArray(activeWeekPlan) && activeWeekPlan.length > 0 && onAktiveWocheAnsehen && (
-              <button
-                type="button"
-                onClick={onAktiveWocheAnsehen}
-                className="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-[2rem] p-6 text-left shadow-lg shadow-green-500/20 hover:shadow-xl hover:scale-[1.01] transition-all group relative overflow-hidden flex items-center justify-between md:max-w-3xl md:mx-auto"
-              >
-                <div className="absolute right-0 top-0 bottom-0 w-64 bg-gradient-to-l from-white/20 to-transparent skew-x-12 translate-x-10 group-hover:translate-x-20 transition-transform duration-700" aria-hidden />
-                <div className="relative z-10 flex items-center gap-4">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
-                    <CalendarDays className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-xl mb-1 tracking-tight">Deine aktuelle Woche</h3>
-                    <p className="text-green-50 font-medium text-sm">
-                      {(
-                        (activeWeekPlan as Array<{ meals?: unknown[] }>).reduce(
-                          (acc, day) => acc + (day.meals?.length ?? 0),
-                          0
-                        )
-                      )}{' '}
-                      Gerichte geplant • Klick zum Öffnen
-                    </p>
+            {/* MVP Cockpit: Aktive Woche (Full Width, heute im Fokus) */}
+            {activeWeekPlan && Array.isArray(activeWeekPlan) && activeWeekPlan.length > 0 && onAktiveWocheAnsehen && (() => {
+              const plan = activeWeekPlan as Array<{ day: string; meals?: Array<{ type?: string; title?: string }> }>;
+              const dayIndex = (new Date().getDay() + 6) % 7;
+              const dayObj = plan[dayIndex];
+              const meals = dayObj?.meals ?? [];
+              const meal = meals[meals.length - 1] ?? meals[0];
+              const mealTypeLabel = meal?.type === 'breakfast' ? 'Frühstück' : meal?.type === 'lunch' ? 'Mittagessen' : 'Abendessen';
+              const tagLabel = dayObj?.day ?? `Tag ${dayIndex + 1}`;
+              const headline = meal?.title ?? 'Heute geplant';
+              return (
+                <div className="w-full mt-4 md:max-w-3xl md:mx-auto">
+                  <div className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-[2rem] p-6 shadow-lg shadow-orange-500/25 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <span className="inline-block px-2.5 py-1 rounded-lg bg-white/20 text-white text-xs font-semibold uppercase tracking-wider mb-2">
+                        Aktive Woche
+                      </span>
+                      <p className="text-white/90 text-sm font-medium mb-0.5">
+                        {tagLabel} • {mealTypeLabel}
+                      </p>
+                      <h3 className="font-bold text-white text-xl sm:text-2xl tracking-tight leading-tight truncate">
+                        {headline}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
+                        className="px-5 py-3 rounded-xl bg-white text-orange-600 font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
+                      >
+                        Jetzt kochen
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
+                        className="p-3 rounded-xl bg-white/20 text-white border border-white/30 hover:bg-white/30 transition-all"
+                        title="Details ansehen"
+                        aria-label="Details ansehen"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="relative z-10 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 text-white font-bold text-sm border border-white/30 group-hover:bg-white group-hover:text-green-600 transition-colors">
-                  Ansehen ›
-                </div>
-              </button>
-            )}
+              );
+            })()}
           </section>
         </div>
       </DashboardShell>
