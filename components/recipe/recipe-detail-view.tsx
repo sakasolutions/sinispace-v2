@@ -231,9 +231,32 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   }
 
   return (
-    <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out px-4 md:px-6 pb-28">
-      {/* Hero Card – kein eigenes -mt (Shell hat bereits -mt-20 + pt-9), Oberkante wie Dashboard-Karten */}
-      <div className="relative z-20 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
+    <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out pb-28">
+      {/* Mobil: bildschirmfüllender Bild-Header (randlos, zieht in den Shell-Overlap) */}
+      <div className="md:hidden w-screen max-w-[100vw] relative left-1/2 -translate-x-1/2 -mt-8 sm:-mt-10 mb-5 overflow-hidden">
+        {recipe.imageUrl ? (
+          <img
+            src={recipe.imageUrl}
+            alt=""
+            className="w-full h-64 min-h-[16rem] sm:min-h-[18rem] sm:h-72 object-cover block"
+          />
+        ) : (
+          <div className="w-full h-64 sm:h-72 min-h-[16rem] sm:min-h-[18rem] bg-gradient-to-br from-orange-100 via-amber-50 to-rose-50 flex items-center justify-center">
+            <UtensilsCrossed className="w-16 h-16 text-orange-200" strokeWidth={1.5} aria-hidden />
+          </div>
+        )}
+      </div>
+
+      <div className="px-4 md:px-6">
+        {/* Desktop: großer Rezept-Header */}
+        {recipe.imageUrl ? (
+          <div className="hidden md:block w-full max-w-5xl mx-auto mb-6 rounded-[2rem] overflow-hidden h-72 shadow-2xl border border-white/30">
+            <img src={recipe.imageUrl} alt="" className="w-full h-full object-cover" />
+          </div>
+        ) : null}
+
+        {/* Hero Card – Meta & Aktionen (kein doppeltes Titelbild, wenn Hero oben) */}
+        <div className="relative z-20 mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
         {/* Nur Wochenplan: In Sammlung speichern (Zurück nur in der Shell oben) */}
         {fromWeekPlan && onSaveToCollection && (
           <div className="flex justify-end mb-4">
@@ -253,16 +276,14 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             {/* Mobile: Zeile 1 = Thumbnail + Datum/Meta, Zeile 2 = Titel */}
             <div className="flex flex-col md:hidden">
               <div className="flex items-start gap-3">
-                <div className="w-16 h-16 shrink-0 rounded-2xl overflow-hidden shadow-sm border border-white/50 bg-gray-100">
-                  {recipe.imageUrl ? (
-                    <img src={recipe.imageUrl} alt="" className="w-full h-full object-cover" />
-                  ) : (
+                {!recipe.imageUrl ? (
+                  <div className="w-16 h-16 shrink-0 rounded-2xl overflow-hidden shadow-sm border border-white/50 bg-gray-100">
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       <UtensilsCrossed className="w-8 h-8" strokeWidth={1.5} />
                     </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
+                  </div>
+                ) : null}
+                <div className={cn('min-w-0 flex-1', recipe.imageUrl && 'w-full')}>
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">
                     Generiert am {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </p>
@@ -294,16 +315,14 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             </div>
             {/* Desktop: Thumbnail + Text-Block nebeneinander */}
             <div className="hidden md:flex flex-row items-start gap-5">
-              <div className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden shadow-sm border border-white/50 bg-gray-100">
-                {recipe.imageUrl ? (
-                  <img src={recipe.imageUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
+              {!recipe.imageUrl ? (
+                <div className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden shadow-sm border border-white/50 bg-gray-100">
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
                     <UtensilsCrossed className="w-12 h-12" strokeWidth={1.5} />
                   </div>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
+                </div>
+              ) : null}
+              <div className={cn('min-w-0 flex-1', recipe.imageUrl && 'w-full')}>
                 <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
                   Generiert am {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </p>
@@ -398,9 +417,10 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
           </div>
         </div>
       </div>
+      </div>
 
       {/* Content: Zutaten (sticky) | Zubereitung – Editorial Layout */}
-      <div className="max-w-5xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
+      <div className="max-w-5xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-12 gap-12 items-start px-4 md:px-6">
         {/* Linke Spalte: Zutaten (sticky auf Desktop) – getrennt: Vorhanden / Fehlt noch */}
         <div className="md:col-span-4 md:sticky md:top-24">
           <div className="grid grid-cols-2 gap-2 mb-4">
@@ -504,7 +524,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
       {/* Profi-Tipp – Border-Card */}
       {recipe.chefTip && (
-        <div className="max-w-5xl mx-auto mt-10 border-l-4 border-orange-500 bg-orange-50/30 p-6 rounded-r-xl flex gap-4">
+        <div className="max-w-5xl mx-auto mt-10 px-4 md:px-6 border-l-4 border-orange-500 bg-orange-50/30 p-6 rounded-r-xl flex gap-4">
           <Lightbulb className="w-6 h-6 text-orange-500 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-bold text-gray-800 mb-1">Profi-Tipp</p>

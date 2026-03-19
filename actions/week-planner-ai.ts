@@ -9,6 +9,7 @@ import { saveResult } from '@/actions/workspace-actions';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import { appendToList, defaultList } from '@/lib/shopping-lists-storage';
 import { auth } from '@/auth';
+import { fetchUnsplashImageForRecipe } from '@/lib/unsplash-recipe-image';
 
 export type WeekDraftMeal = {
   type: 'breakfast' | 'lunch' | 'dinner';
@@ -220,8 +221,12 @@ export async function generateAndSaveFullRecipe(
   "instructions": [ "Schritt 1", "Schritt 2" ],
   "chefTip": "Profi-Tipp",
   "categoryIcon": "pasta",
-  "imageSearchQuery": "Food query"
+  "imageSearchQuery": "Stuffed bell peppers quinoa bowl"
 }`;
+
+    const imageSearchRule = `
+- imageSearchQuery (String): Kurzer ENGLISCHER Unsplash-Suchbegriff (3–6 Wörter). Übersetze den deutschen Gerichtstitel ins Englische (z. B. "Gefüllte Paprika" → "stuffed bell peppers"). Beschreibe das Gericht, nicht isolierte Zutaten. Keine Phrasen wie "food photography" anhängen.
+`;
 
     const response = await createChatCompletion(
       {
@@ -229,7 +234,8 @@ export async function generateAndSaveFullRecipe(
         messages: [
           {
             role: 'system',
-            content: `Du bist ein 5-Sterne-Koch. Erstelle ein vollständiges Rezept nur aus dem Gerichtsnamen. Antworte NUR mit validem JSON: ${jsonFormat}. categoryIcon: einer von pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast. ingredients: nur Basics (Salz, Pfeffer, Öl, Wasser). shoppingList: alle übrigen Zutaten.`,
+            content: `Du bist ein 5-Sterne-Koch. Erstelle ein vollständiges Rezept nur aus dem Gerichtsnamen. Antworte NUR mit validem JSON: ${jsonFormat}. categoryIcon: einer von pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast. ingredients: nur Basics (Salz, Pfeffer, Öl, Wasser). shoppingList: alle übrigen Zutaten.
+${imageSearchRule}`,
           },
           {
             role: 'user',
@@ -257,6 +263,15 @@ export async function generateAndSaveFullRecipe(
 
     if (!recipe.recipeName || !Array.isArray(recipe.ingredients) || !Array.isArray(recipe.instructions)) {
       return { success: false, error: 'Rezept unvollständig.' };
+    }
+
+    const q = String(
+      (recipe.imageSearchQuery as string) || (recipe.recipeName as string) || ''
+    ).trim();
+    const { imageUrl, imageCredit } = await fetchUnsplashImageForRecipe(q);
+    if (imageUrl) {
+      recipe.imageUrl = imageUrl;
+      recipe.imageCredit = imageCredit;
     }
 
     const saved = await saveResult(

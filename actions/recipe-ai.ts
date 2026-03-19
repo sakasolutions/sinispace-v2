@@ -4,6 +4,7 @@ import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
 import { createHelperChat } from '@/actions/chat-actions';
 import { saveResult } from '@/actions/workspace-actions';
+import { fetchUnsplashImageForRecipe, enhanceUnsplashSearchQuery } from '@/lib/unsplash-recipe-image';
 
 // --- HILFS-NACHRICHT FÜR FREE USER ---
 const UPSELL_MESSAGE = `### 🔒 Premium Feature
@@ -66,12 +67,13 @@ export async function generateRecipe(prevState: any, formData: FormData) {
 }`;
 
   const imageSearchRule = `
-- imageSearchQuery (String): Ein präziser ENGLISCHER Suchbegriff für Food-Fotografie.
+- imageSearchQuery (String): Kurzer, präziser ENGLISCHER Suchbegriff für Unsplash (Food-Fotografie).
+  Übersetze deutsche Gerichtsnamen ins Englische (z. B. "Gefüllte Paprika mit Quinoa" → "Stuffed bell peppers quinoa").
   ABSOLUTE REGELN FÜR DIE BILDSUCHE:
-  1. Fokus auf die ART des Gerichts (Kebab, Pasta, Sandwich, Curry, Bowl), NICHT auf das Fleisch!
-  2. Bei "Hähnchen Döner" oder ähnlichem nutze ZWINGEND "Doner Kebab", "Shawarma" oder "Kebab Food" (NIEMALS nur "Chicken"!).
-  3. Bei Nudelgerichten (z.B. Rigatoni Alfredo) mache es generisch: "Creamy Pasta" oder "Pasta Dish".
-  4. Vermeide Tiernamen als alleiniges Suchwort. Hänge im Zweifel immer "Food", "Dish" oder "Meal" an. (Maximal 2-3 Wörter).
+  1. Nur Englisch. Keine deutschen Wörter im String.
+  2. Fokus auf die ART des Gerichts (stuffed peppers, pasta bowl, curry, sandwich), nicht auf isolierte Zutaten.
+  3. Bei "Hähnchen Döner" o. Ä. nutze z. B. "Doner kebab", "shawarma plate" – nicht nur "chicken".
+  4. 3–6 Wörter: Gericht + Kontext (z. B. "Stuffed bell peppers food" oder "Creamy pasta bowl"). KEINE Suffixe wie "food photography" anhängen – die fügt das Backend automatisch hinzu.
 `;
 
   const categoryIconRules = `
@@ -187,42 +189,17 @@ ${ingredientsRules}
       return { error: 'Ungültiges Rezept-Format. Bitte versuche es erneut.' };
     }
 
-    // Unsplash: Foto laden (optional, Flow darf nicht abstürzen)
+    // Unsplash: Foto laden (optional; Query wird mit Food-Fotografie-Suffix verstärkt)
     const searchQuery = (recipe.imageSearchQuery || recipe.recipeName || '').toString().trim();
-    const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
-    console.log('🔍 AI Search Term:', recipe.imageSearchQuery ?? '(fallback)', '→ final query:', searchQuery || '(leer)');
-    console.log('🔑 Unsplash Key present:', !!unsplashKey);
-    if (unsplashKey && searchQuery) {
-      try {
-        const q = encodeURIComponent(searchQuery);
-        const res = await fetch(
-          `https://api.unsplash.com/search/photos?query=${q}&per_page=1&orientation=landscape&client_id=${unsplashKey}`,
-          { cache: 'no-store' }
-        );
-        console.log('📡 Unsplash Status:', res.status, res.statusText);
-        if (res.ok) {
-          const data = await res.json();
-          const first = data?.results?.[0];
-          if (first?.urls?.regular) {
-            recipe.imageUrl = first.urls.regular;
-            recipe.imageCredit = first.user?.name ?? null;
-          } else {
-            recipe.imageUrl = null;
-            recipe.imageCredit = null;
-          }
-        } else {
-          recipe.imageUrl = null;
-          recipe.imageCredit = null;
-        }
-      } catch (err) {
-        console.error('❌ Unsplash Fetch Error:', err);
-        recipe.imageUrl = null;
-        recipe.imageCredit = null;
-      }
-    } else {
-      recipe.imageUrl = null;
-      recipe.imageCredit = null;
-    }
+    console.log(
+      '🔍 AI Search Term:',
+      recipe.imageSearchQuery ?? '(fallback)',
+      '→ enhanced:',
+      searchQuery ? enhanceUnsplashSearchQuery(searchQuery) : '(leer)'
+    );
+    const { imageUrl, imageCredit } = await fetchUnsplashImageForRecipe(searchQuery);
+    recipe.imageUrl = imageUrl;
+    recipe.imageCredit = imageCredit;
 
     // Formatiere Rezept für Chat (schön lesbar, nicht als JSON)
     const formattedRecipe = `# ${recipe.recipeName}
