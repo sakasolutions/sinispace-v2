@@ -13,9 +13,9 @@ const CARD_STYLE: React.CSSProperties = {
   backdropFilter: 'blur(8px)',
 };
 
-/** Unsplash-Fallback, wenn kein Rezept-Bild (hochwertiges Food-Motiv). */
-const ACTIVE_WEEK_FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1400&q=80';
+/** Hintergrund, wenn kein Mahlzeiten-Bild (töniges Gradient, harmoniert mit CookIQ). */
+const ACTIVE_WEEK_FALLBACK_BG_CLASS =
+  'bg-gradient-to-br from-emerald-900 via-teal-950 to-slate-950';
 
 /** Spotlight für die Full-Width-Karte: heutiges oder nächstes Gericht. */
 export type TodayMealSpotlight = {
@@ -46,10 +46,10 @@ const cardClass =
 
 export function GourmetCockpit(props: GourmetCockpitProps) {
   const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null, todayMealSpotlight = null, onAktiveWocheAnsehen } = props;
-  const activeWeekHeroUrl =
-    todayMealSpotlight?.imageUrl && todayMealSpotlight.imageUrl.trim().length > 0
-      ? todayMealSpotlight.imageUrl.trim()
-      : ACTIVE_WEEK_FALLBACK_IMAGE;
+  const activeMealImageUrl =
+    todayMealSpotlight?.imageUrl && String(todayMealSpotlight.imageUrl).trim().length > 0
+      ? String(todayMealSpotlight.imageUrl).trim()
+      : null;
 
   return (
     <div className="min-h-screen w-full relative overflow-x-visible bg-white">
@@ -166,14 +166,22 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAktiveWocheAnsehen(); } }}
                 className="w-full mt-6 relative overflow-hidden rounded-[2rem] min-h-[200px] md:min-h-[228px] text-white shadow-xl shadow-black/25 mb-6 group cursor-pointer transition-transform hover:-translate-y-1"
               >
-                {/* Hintergrundbild */}
+                {/* Mahlzeiten-Bild (heute/nächstes Gericht) oder dezenter Farb-Fallback */}
+                {activeMealImageUrl ? (
+                  <img
+                    src={activeMealImageUrl}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-700 ease-out pointer-events-none select-none"
+                    aria-hidden
+                  />
+                ) : (
+                  <div className={`absolute inset-0 ${ACTIVE_WEEK_FALLBACK_BG_CLASS}`} aria-hidden />
+                )}
+                {/* Lesbarkeit: dunkler Verlauf von unten für weißen Text */}
                 <div
-                  className="absolute inset-0 bg-cover bg-center scale-105 group-hover:scale-110 transition-transform duration-700 ease-out"
-                  style={{ backgroundImage: `url(${activeWeekHeroUrl})` }}
+                  className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent pointer-events-none"
                   aria-hidden
                 />
-                {/* Lesbarkeit: Verlauf von unten */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" aria-hidden />
 
                 <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 p-6 min-h-[200px] md:min-h-[228px]">
                   {/* Linke Seite: Infos zum aktuellen Tag/Gericht */}

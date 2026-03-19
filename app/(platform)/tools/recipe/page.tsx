@@ -1334,23 +1334,34 @@ export default function RecipePage() {
                       </div>
 
                       <div className="space-y-3 pl-2 border-l-2 border-gray-100 ml-2">
-                        {dayPlan.meals.map((meal: { type: string; title: string; time?: string; calories?: string }, mIdx: number) => (
+                        {dayPlan.meals.map((meal: { type: string; title: string; time?: string; calories?: string; imageUrl?: string | null }, mIdx: number) => (
                           <div key={mIdx} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between border border-gray-100 group relative overflow-hidden">
                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-emerald-500" aria-hidden />
 
-                            <div className="pl-3">
-                              <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest block mb-1.5">
-                                {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
-                              </span>
-                              <p className="font-bold text-gray-800 text-base leading-tight mb-2 pr-4">{meal.title}</p>
+                            <div className="pl-3 flex items-start gap-3 min-w-0 flex-1">
+                              <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-gray-100">
+                                {meal.imageUrl && String(meal.imageUrl).trim() ? (
+                                  <img src={meal.imageUrl.trim()} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-300" aria-hidden>
+                                    <UtensilsCrossed className="w-7 h-7" strokeWidth={1.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest block mb-1.5">
+                                  {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
+                                </span>
+                                <p className="font-bold text-gray-800 text-base leading-tight mb-2 pr-4">{meal.title}</p>
 
-                              <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5" /> {meal.time}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Flame className="w-3.5 h-3.5 text-orange-400" /> {meal.calories}
-                                </span>
+                                <div className="flex items-center gap-3 text-xs text-gray-500 font-medium flex-wrap">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3.5 h-3.5 shrink-0" /> {meal.time}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" /> {meal.calories}
+                                  </span>
+                                </div>
                               </div>
                             </div>
 
@@ -1463,24 +1474,35 @@ export default function RecipePage() {
 
                       {/* Mahlzeiten */}
                       <div className="space-y-3 pl-2 border-l-2 border-orange-100/50 ml-2">
-                        {dayPlan.meals.map((meal: { type: string; title: string; calories: string; time: string }, mIdx: number) => (
+                        {dayPlan.meals.map((meal: { type: string; title: string; calories: string; time: string; imageUrl?: string | null }, mIdx: number) => (
                           <div key={mIdx} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between border border-gray-100 group relative overflow-hidden">
                             {/* Dezenter Farb-Akzent am linken Rand */}
                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-orange-300 to-orange-500" aria-hidden />
 
-                            <div className="pl-3">
-                              <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest block mb-1.5">
-                                {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
-                              </span>
-                              <p className="font-bold text-gray-800 text-base leading-tight mb-2 pr-4">{meal.title}</p>
+                            <div className="pl-3 flex items-start gap-3 min-w-0 flex-1">
+                              <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-gray-100">
+                                {meal.imageUrl && String(meal.imageUrl).trim() ? (
+                                  <img src={meal.imageUrl.trim()} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-300" aria-hidden>
+                                    <UtensilsCrossed className="w-7 h-7" strokeWidth={1.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest block mb-1.5">
+                                  {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
+                                </span>
+                                <p className="font-bold text-gray-800 text-base leading-tight mb-2 pr-4">{meal.title}</p>
 
-                              <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5" /> {meal.time}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Flame className="w-3.5 h-3.5 text-orange-400" /> {meal.calories}
-                                </span>
+                                <div className="flex items-center gap-3 text-xs text-gray-500 font-medium flex-wrap">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3.5 h-3.5 shrink-0" /> {meal.time}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" /> {meal.calories}
+                                  </span>
+                                </div>
                               </div>
                             </div>
 

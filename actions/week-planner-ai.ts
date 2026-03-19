@@ -16,12 +16,91 @@ export type WeekDraftMeal = {
   title: string;
   time: string;
   calories: string;
+  /** Unsplash (nach engl. Suchphrase) */
+  imageUrl?: string | null;
 };
 
 export type WeekDraftDay = {
   day: string;
   meals: WeekDraftMeal[];
 };
+
+/**
+ * Gerichtstitel → kurze englische Unsplash-Suchphrasen (ein API-Call für viele Titel).
+ */
+async function mealTitlesToEnglishQueries(titles: string[]): Promise<string[]> {
+  const trimmed = titles.map((t) => (typeof t === 'string' ? t.trim() : ''));
+  if (trimmed.length === 0) return [];
+  try {
+    const res = await createChatCompletion(
+      {
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'The user sends JSON {"titles":["..."]}. Reply with ONLY JSON: {"q":["..."]} — same array length and order as "titles". Each string is a concise ENGLISH food photo search phrase (3–6 words) for Unsplash for that dish. Translate German/other languages to English. No suffixes like "food photography".',
+          },
+          { role: 'user', content: JSON.stringify({ titles: trimmed }) },
+        ],
+        response_format: { type: 'json_object' as const },
+        temperature: 0.2,
+      },
+      'recipe',
+      'CookIQ Week Planner Unsplash i18n'
+    );
+    const text = res.choices[0]?.message?.content;
+    if (!text) return trimmed;
+    const parsed = JSON.parse(text) as { q?: unknown };
+    const q = parsed?.q;
+    if (!Array.isArray(q) || q.length !== trimmed.length) return trimmed;
+    return q.map((s, i) => {
+      const phrase = typeof s === 'string' ? s.trim() : '';
+      return phrase || trimmed[i] || 'healthy meal';
+    });
+  } catch {
+    return trimmed;
+  }
+}
+
+/** Lädt pro Mahlzeit ein Unsplash-Bild (Suchbegriff idealerweise Englisch). */
+async function enrichDraftMealsWithUnsplash(draft: WeekDraftDay[]): Promise<WeekDraftDay[]> {
+  const flat: { dayIdx: number; mealIdx: number }[] = [];
+  const titles: string[] = [];
+  draft.forEach((day, dayIdx) => {
+    day.meals.forEach((meal, mealIdx) => {
+      flat.push({ dayIdx, mealIdx });
+      titles.push(meal.title?.trim() || 'meal');
+    });
+  });
+  if (flat.length === 0) return draft;
+
+  const queries = await mealTitlesToEnglishQueries(titles);
+
+  const out: WeekDraftDay[] = draft.map((day) => ({
+    day: day.day,
+    meals: day.meals.map((m) => ({ ...m })),
+  }));
+
+  for (let i = 0; i < flat.length; i++) {
+    const { dayIdx, mealIdx } = flat[i];
+    const query = queries[i] ?? titles[i];
+    const { imageUrl } = await fetchUnsplashImageForRecipe(query);
+    out[dayIdx].meals[mealIdx] = {
+      ...out[dayIdx].meals[mealIdx],
+      imageUrl: imageUrl ?? null,
+    };
+  }
+
+  return out;
+}
+
+async function enrichSingleMealWithUnsplash(meal: WeekDraftMeal): Promise<WeekDraftMeal> {
+  const title = meal.title?.trim() || 'meal';
+  const [english] = await mealTitlesToEnglishQueries([title]);
+  const { imageUrl } = await fetchUnsplashImageForRecipe(english ?? title);
+  return { ...meal, imageUrl: imageUrl ?? null };
+}
 
 export async function generateWeekDraft(
   meals: { breakfast: boolean; lunch: boolean; dinner: boolean },
@@ -115,7 +194,8 @@ Format: ${jsonSchema}`;
         : [],
     }));
 
-    return { success: true, draft };
+    const draftWithImages = await enrichDraftMealsWithUnsplash(draft);
+    return { success: true, draft: draftWithImages };
   } catch (error) {
     console.error('Fehler beim Generieren des Wochenplans:', error);
     return { success: false, error: 'Konnte Plan nicht generieren.' };
@@ -182,12 +262,14 @@ Regeln:
       return { success: false, error: 'Ungültiges Format.' };
     }
 
-    const meal: WeekDraftMeal = {
+    let meal: WeekDraftMeal = {
       type: typeNorm,
       title: String(m.title ?? ''),
       time: typeof m.time === 'string' ? m.time : String(m.time ?? ''),
       calories: typeof m.calories === 'string' ? m.calories : String(m.calories ?? ''),
     };
+
+    meal = await enrichSingleMealWithUnsplash(meal);
 
     return { success: true, meal };
   } catch (error) {

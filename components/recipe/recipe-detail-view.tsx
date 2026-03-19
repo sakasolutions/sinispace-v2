@@ -140,6 +140,11 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   const cookingTime = parseTime(recipe.stats?.time || '');
 
+  const heroImageUrl =
+    recipe.imageUrl && String(recipe.imageUrl).trim().length > 0
+      ? String(recipe.imageUrl).trim()
+      : null;
+
   // Kochmodus: Immersive Focus – Card ohne Extra-Overlap, Progress-Bar für Fortschritt
   if (cookingMode) {
     const totalSteps = recipe.instructions.length;
@@ -232,28 +237,48 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   return (
     <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out pb-28">
-      {/* Mobil: bildschirmfüllender Bild-Header (randlos, zieht in den Shell-Overlap) */}
+      {/* Mobil: großer Rezept-Header (Bild oder Platzhalter) + unterer Verlauf für Lesbarkeit bei Überlagerung */}
       <div className="md:hidden w-screen max-w-[100vw] relative left-1/2 -translate-x-1/2 -mt-8 sm:-mt-10 mb-5 overflow-hidden">
-        {recipe.imageUrl ? (
-          <img
-            src={recipe.imageUrl}
-            alt=""
-            className="w-full h-64 min-h-[16rem] sm:min-h-[18rem] sm:h-72 object-cover block"
+        <div className="relative w-full h-64 min-h-[16rem] overflow-hidden">
+          {heroImageUrl ? (
+            <img
+              src={heroImageUrl}
+              alt={recipe.recipeName}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div
+              className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-rose-50 flex items-center justify-center"
+              aria-hidden
+            >
+              <UtensilsCrossed className="w-20 h-20 text-orange-200/90" strokeWidth={1.5} />
+            </div>
+          )}
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 via-black/25 to-transparent"
+            aria-hidden
           />
-        ) : (
-          <div className="w-full h-64 sm:h-72 min-h-[16rem] sm:min-h-[18rem] bg-gradient-to-br from-orange-100 via-amber-50 to-rose-50 flex items-center justify-center">
-            <UtensilsCrossed className="w-16 h-16 text-orange-200" strokeWidth={1.5} aria-hidden />
-          </div>
-        )}
+        </div>
       </div>
 
       <div className="px-4 md:px-6">
-        {/* Desktop: großer Rezept-Header */}
-        {recipe.imageUrl ? (
-          <div className="hidden md:block w-full max-w-5xl mx-auto mb-6 rounded-[2rem] overflow-hidden h-72 shadow-2xl border border-white/30">
-            <img src={recipe.imageUrl} alt="" className="w-full h-full object-cover" />
-          </div>
-        ) : null}
+        {/* Desktop: großer Rezept-Header – immer sichtbar (Bild oder Messer/Gabel-Platzhalter) */}
+        <div className="hidden md:block relative w-full max-w-5xl mx-auto mb-6 rounded-[2rem] overflow-hidden h-64 shadow-2xl border border-white/30">
+          {heroImageUrl ? (
+            <img src={heroImageUrl} alt={recipe.recipeName} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div
+              className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-rose-50 flex items-center justify-center"
+              aria-hidden
+            >
+              <UtensilsCrossed className="w-28 h-28 text-orange-200/90" strokeWidth={1.5} />
+            </div>
+          )}
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/70 via-black/25 to-transparent"
+            aria-hidden
+          />
+        </div>
 
         {/* Hero Card – Meta & Aktionen (kein doppeltes Titelbild, wenn Hero oben) */}
         <div className="relative z-20 mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
@@ -276,14 +301,14 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             {/* Mobile: Zeile 1 = Thumbnail + Datum/Meta, Zeile 2 = Titel */}
             <div className="flex flex-col md:hidden">
               <div className="flex items-start gap-3">
-                {!recipe.imageUrl ? (
+                {!heroImageUrl ? (
                   <div className="w-16 h-16 shrink-0 rounded-2xl overflow-hidden shadow-sm border border-white/50 bg-gray-100">
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       <UtensilsCrossed className="w-8 h-8" strokeWidth={1.5} />
                     </div>
                   </div>
                 ) : null}
-                <div className={cn('min-w-0 flex-1', recipe.imageUrl && 'w-full')}>
+                <div className={cn('min-w-0 flex-1', heroImageUrl && 'w-full')}>
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">
                     Generiert am {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </p>
@@ -315,14 +340,14 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             </div>
             {/* Desktop: Thumbnail + Text-Block nebeneinander */}
             <div className="hidden md:flex flex-row items-start gap-5">
-              {!recipe.imageUrl ? (
+              {!heroImageUrl ? (
                 <div className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden shadow-sm border border-white/50 bg-gray-100">
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
                     <UtensilsCrossed className="w-12 h-12" strokeWidth={1.5} />
                   </div>
                 </div>
               ) : null}
-              <div className={cn('min-w-0 flex-1', recipe.imageUrl && 'w-full')}>
+              <div className={cn('min-w-0 flex-1', heroImageUrl && 'w-full')}>
                 <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
                   Generiert am {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </p>
