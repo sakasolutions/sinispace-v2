@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache';
 import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { addDays, format, isBefore, setYear, startOfDay, startOfWeek } from 'date-fns';
-import { getNextWeekRange } from '@/lib/week-plan-dates';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -507,8 +506,9 @@ export type GetCurrentWeekMealsResult = {
 };
 
 /**
- * Liest CalendarEvent mit eventType === 'meal' für exakt denselben Zeitraum,
- * in dem saveWeeklyPlan speichert: die kommende Woche (nächster Montag bis Sonntag).
+ * Liest meal-Events für aktuelle + nächste Kalenderwoche (Mo–So × 2).
+ * Gruppiert nach der Woche, in der Daten liegen: bevorzugt „nächste Woche“ (wie beim Speichern),
+ * sonst „diese Woche“ – deckt TZ-/Randfälle und ältere Daten im Fenster ab.
  */
 export async function getCurrentWeekMeals(): Promise<GetCurrentWeekMealsResult> {
   const session = await auth();
@@ -517,7 +517,13 @@ export async function getCurrentWeekMeals(): Promise<GetCurrentWeekMealsResult> 
   }
 
   try {
-    const { weekStart, queryFrom, queryTo } = getNextWeekRange();
+    const today = startOfDay(new Date());
+    const thisMonday = startOfWeek(today, { weekStartsOn: 1 });
+    const nextMonday = addDays(thisMonday, 7);
+    const nextSunday = addDays(nextMonday, 6);
+    const queryFrom = format(thisMonday, 'yyyy-MM-dd');
+    const queryTo = format(nextSunday, 'yyyy-MM-dd');
+    const nextMondayStr = format(nextMonday, 'yyyy-MM-dd');
 
     const events = await prisma.calendarEvent.findMany({
       where: {
@@ -533,7 +539,9 @@ export async function getCurrentWeekMeals(): Promise<GetCurrentWeekMealsResult> 
       return { plan: [], queryFrom, queryTo };
     }
 
-    const plan = groupEventsIntoWeekPlan(events, weekStart);
+    const preferNextWeek = events.some((e) => e.date >= nextMondayStr);
+    const weekAnchor = preferNextWeek ? nextMonday : thisMonday;
+    const plan = groupEventsIntoWeekPlan(events, weekAnchor);
     const hasAnyMeals = plan.some((d) => d.meals.length > 0);
     const result = hasAnyMeals ? plan : [];
     return { plan: result, queryFrom, queryTo };

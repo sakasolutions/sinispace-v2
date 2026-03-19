@@ -308,6 +308,10 @@ export async function saveWeeklyPlan(
       }));
     });
 
+    if (planData.length === 0) {
+      return { success: false, error: 'Keine Mahlzeiten im Plan – nichts zum Speichern.' };
+    }
+
     const res = await saveWeeklyPlanToCalendar(planData);
     if (res.success === false) {
       return { success: false, error: res.error };

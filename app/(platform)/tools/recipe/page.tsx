@@ -208,7 +208,7 @@ export default function RecipePage() {
       console.log('[CookIQ] Gruppierter Plan:', plan);
       const hasEvents = Array.isArray(plan) && plan.length > 0 && plan.some((d) => d.meals?.length > 0);
       if (!hasEvents) return;
-      setActiveWeekPlan((prev) => (prev != null && prev.length > 0 ? prev : plan));
+      setActiveWeekPlan(plan);
     });
   }, []);
 
@@ -1525,16 +1525,26 @@ export default function RecipePage() {
                         console.log('Antwort vom Backend:', res);
                         if (res?.success && 'savedFrom' in res) {
                           console.log('Gespeichertes Datum:', res.savedFrom, '–', res.savedTo);
+                          const restored = await getCurrentWeekMeals();
+                          console.log('[CookIQ] Nach Speichern aus DB geladen:', restored.plan);
+                          const ok =
+                            Array.isArray(restored.plan) &&
+                            restored.plan.some((d) => d.meals?.length > 0);
+                          setActiveWeekPlan(ok ? restored.plan : weekDraft);
+                          setIsWeekPlannerOpen(false);
+                          setPlannerPhase('setup');
+                        } else {
+                          setPlannerPhase('lab');
+                          alert(
+                            typeof res === 'object' && res && 'error' in res && res.error
+                              ? String(res.error)
+                              : 'Wochenplan konnte nicht gespeichert werden.'
+                          );
                         }
-
-                        setActiveWeekPlan(weekDraft);
-                        setIsWeekPlannerOpen(false);
-                        setPlannerPhase('setup');
                       } catch (error) {
                         console.error('Kritischer Fehler beim Aufruf von saveWeeklyPlan:', error);
-                        setActiveWeekPlan(weekDraft);
-                        setIsWeekPlannerOpen(false);
-                        setPlannerPhase('setup');
+                        setPlannerPhase('lab');
+                        alert('Wochenplan konnte nicht gespeichert werden.');
                       }
                     }}
                     className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
