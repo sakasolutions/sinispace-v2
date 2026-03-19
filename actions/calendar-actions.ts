@@ -405,11 +405,55 @@ export type WeeklyPlanEntry = {
  * Wochenplan als Kalender-Events speichern (Sync: Wochenplaner + Kalender nutzen dieselben Daten).
  * Erstellt für jeden Eintrag ein CalendarEvent in der DB (Kategorie Essen).
  */
+function normalizeWeeklyPlanRow(
+  userId: string,
+  entry: WeeklyPlanEntry
+): Prisma.CalendarEventCreateManyInput {
+  const defaultTimes: Record<string, string> = {
+    breakfast: '08:00',
+    lunch: '12:00',
+    dinner: '19:00',
+  };
+  const mt = entry.mealType;
+  const mealType: 'breakfast' | 'lunch' | 'dinner' =
+    mt === 'breakfast' || mt === 'lunch' || mt === 'dinner' ? mt : 'dinner';
+  const time = defaultTimes[mealType] ?? '12:00';
+  const title =
+    typeof entry.title === 'string' && entry.title.trim().length > 0 ? entry.title.trim() : 'Gericht';
+  const rid = entry.resultId;
+  const resultId =
+    typeof rid === 'string' && rid.length > 0 ? rid : null;
+  const pid = entry.recipeId;
+  const recipeId = typeof pid === 'string' && pid.length > 0 ? pid : null;
+
+  return {
+    userId,
+    date: entry.date,
+    time,
+    eventType: 'meal',
+    title,
+    recipeId,
+    mealType,
+    resultId,
+    isMeal: true,
+  };
+}
+
 export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
   const session = await auth();
   if (!session?.user?.id) return { success: false as const, error: 'Nicht angemeldet' };
 
   if (!planData?.length) return { success: true as const };
+
+  const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+  for (const p of planData) {
+    if (!p.date || !dateRe.test(p.date)) {
+      return {
+        success: false as const,
+        error: `Ungültiges Datum im Plan: ${String(p.date)}`,
+      };
+    }
+  }
 
   try {
     const userId = session.user.id;
@@ -425,31 +469,26 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
       },
     });
 
-    const defaultTimes: Record<string, string> = {
-      breakfast: '08:00',
-      lunch: '12:00',
-      dinner: '19:00',
-    };
-
-    const rows: Prisma.CalendarEventCreateManyInput[] = planData.map((entry) => ({
-      userId,
-      date: entry.date,
-      time: entry.mealType ? defaultTimes[entry.mealType] ?? '12:00' : '12:00',
-      eventType: 'meal',
-      title: entry.title,
-      recipeId: entry.recipeId ?? null,
-      mealType: entry.mealType ?? 'dinner',
-      resultId: entry.resultId ?? null,
-      isMeal: true,
-    }));
+    const rows: Prisma.CalendarEventCreateManyInput[] = planData.map((entry) =>
+      normalizeWeeklyPlanRow(userId, entry)
+    );
     await prisma.calendarEvent.createMany({ data: rows });
 
-    revalidatePath('/calendar');
-    revalidatePath('/tools/recipe');
+    try {
+      revalidatePath('/calendar');
+      revalidatePath('/tools/recipe');
+    } catch (revalErr) {
+      console.error('[CALENDAR] saveWeeklyPlan revalidatePath (nicht kritisch):', revalErr);
+    }
+
     return { success: true as const };
   } catch (error) {
     console.error('[CALENDAR] saveWeeklyPlan:', error);
-    return { success: false as const, error: 'Fehler beim Speichern des Wochenplans' };
+    const detail = error instanceof Error ? error.message : String(error);
+    return {
+      success: false as const,
+      error: `Fehler beim Speichern des Wochenplans: ${detail}`,
+    };
   }
 }
 
