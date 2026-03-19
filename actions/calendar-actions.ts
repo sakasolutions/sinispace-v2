@@ -407,7 +407,8 @@ export type WeeklyPlanEntry = {
  */
 function normalizeWeeklyPlanRow(
   userId: string,
-  entry: WeeklyPlanEntry
+  entry: WeeklyPlanEntry,
+  stamp: Date
 ): Prisma.CalendarEventCreateManyInput {
   const defaultTimes: Record<string, string> = {
     breakfast: '08:00',
@@ -435,6 +436,9 @@ function normalizeWeeklyPlanRow(
     recipeId,
     mealType,
     resultId,
+    // createMany setzt @default/@updatedAt oft nicht zuverlässig – explizit für NOT NULL in Prod
+    createdAt: stamp,
+    updatedAt: stamp,
   };
 }
 
@@ -468,8 +472,9 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
       },
     });
 
+    const stamp = new Date();
     const rows: Prisma.CalendarEventCreateManyInput[] = planData.map((entry) =>
-      normalizeWeeklyPlanRow(userId, entry)
+      normalizeWeeklyPlanRow(userId, entry, stamp)
     );
     await prisma.calendarEvent.createMany({ data: rows });
 

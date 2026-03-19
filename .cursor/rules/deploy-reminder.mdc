@@ -1,26 +1,39 @@
 ---
-description: Auf Anfrage Git- und Server-Befehle 1:1 ausgeben (nur diesen Block, keine anderen Varianten)
-alwaysApply: false
-globs: 
+description: Am Ende relevanter Bearbeitungen immer Deploy-Befehle ausgeben; auf Anfrage nur diesen Block
+alwaysApply: true
+globs:
 ---
 
-# Deploy-Befehle (nur ausgeben, wenn User danach fragt)
+# Deploy-Befehle
 
-Wenn der User nach Git-/Deploy- oder "die Befehle" fragt: **Nur diesen Block ausgeben**, sonst nichts dazu. Keine anderen Befehle vorschlagen, nicht ausführen (außer User bittet explizit darum).
+## Für den Assistenten
+
+Nach **Bearbeitungen, die fürs Live-System relevant sind** (z. B. `actions/`, `app/`, `components/`, `prisma/`, `lib/`, Server Actions, Schema): **Am Ende der Antwort immer** den Block **„Server (Produktion)“** ausgeben (copy-paste-fähig). Optional davor **„Lokal“**, wenn Commits nötig sind. Commit-Message vom User anpassen lassen.
+
+Fragt der User explizit nur nach „den Befehlen“: **Nur** die Blöcke ausgeben, ohne andere Varianten.
+
+---
+
+## Lokal (Commit & Push)
 
 ```bash
+cd "/Users/sinansakacilar/Documents/Saka Solutions/App Projekte/sinispacev2"
 git add -A
-git commit -m "Fix: Navbar-Höhe reduziert, Chat-Input über Navbar, Content-Padding für Navbar+Input"
+git commit -m "kurze Beschreibung der Änderung"
 git push origin main
+```
 
+---
 
+## Server (Produktion)
+
+```bash
 cd /var/www/sinispace-v2
 git pull origin main
 npm install
+npx prisma migrate deploy
 npx prisma generate
 rm -rf .next
 npm run build
 pm2 restart sinispace
 ```
-
-Commit-Message bei Bedarf vom User anpassen lassen.
