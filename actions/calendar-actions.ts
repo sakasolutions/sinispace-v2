@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { addDays, format, isBefore, setYear, startOfDay, startOfWeek } from 'date-fns';
+import { getNextWeekRange } from '@/lib/week-plan-dates';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -497,19 +498,6 @@ function groupEventsIntoWeekPlan(
     plan.push({ day: WEEKDAY_NAMES[i], date: dateStr, meals });
   }
   return plan;
-}
-
-/** Wie beim Speichern: „nächster Montag“ (Woche ab Mo, danach Mo–So). */
-export function getNextWeekRange() {
-  const today = startOfDay(new Date());
-  const thisMonday = startOfWeek(today, { weekStartsOn: 1 });
-  const nextMonday = thisMonday > today ? thisMonday : addDays(thisMonday, 7);
-  const nextSunday = addDays(nextMonday, 6);
-  return {
-    weekStart: nextMonday,
-    queryFrom: format(nextMonday, 'yyyy-MM-dd'),
-    queryTo: format(nextSunday, 'yyyy-MM-dd'),
-  };
 }
 
 export type GetCurrentWeekMealsResult = {

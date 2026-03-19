@@ -3,7 +3,8 @@
 import { addDays, format } from 'date-fns';
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
-import { saveWeeklyPlan as saveWeeklyPlanToCalendar, getNextWeekRange } from '@/actions/calendar-actions';
+import { saveWeeklyPlan as saveWeeklyPlanToCalendar } from '@/actions/calendar-actions';
+import { getNextWeekRange } from '@/lib/week-plan-dates';
 import { saveResult } from '@/actions/workspace-actions';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import { appendToList, defaultList } from '@/lib/shopping-lists-storage';
