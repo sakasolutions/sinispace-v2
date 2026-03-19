@@ -435,7 +435,8 @@ function normalizeWeeklyPlanRow(
     recipeId,
     mealType,
     resultId,
-    isMeal: true,
+    // isMeal bewusst weglassen: ältere Deployments haben die Spalte oft noch nicht;
+    // Prisma-Schema behält das Feld für zukünftige Migrationen.
   };
 }
 
