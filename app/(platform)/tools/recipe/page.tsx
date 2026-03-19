@@ -225,19 +225,41 @@ export default function RecipePage() {
 
     for (let offset = 0; offset < 2; offset++) {
       const idx = (dayIndex + offset) % 7;
-      const dayObj = plan[idx] as { day?: string; meals?: Array<{ type?: string; title?: string; time?: string; calories?: string }> } | undefined;
+      const dayObj = plan[idx] as {
+        day?: string;
+        meals?: Array<{
+          type?: string;
+          title?: string;
+          time?: string;
+          calories?: string;
+          imageUrl?: string | null;
+        }>;
+      } | undefined;
       const meals = dayObj?.meals ?? [];
       if (meals.length === 0) continue;
       let meal = meals.find((m) => mealTypeOrder[0] === m.type) ?? meals.find((m) => mealTypeOrder[1] === m.type) ?? meals.find((m) => mealTypeOrder[2] === m.type) ?? meals[0];
       const dayLabel = dayObj?.day ?? dayNames[idx];
       const mealTypeLabel = mealLabels[meal.type as string] ?? 'Gericht';
-      const subtext = [meal.calories, meal.time].filter(Boolean).join(' • ') || '—';
+      const isPlaceholder = (s: string | undefined) => !s || s.trim() === '' || s.trim() === '—' || s.trim() === '-';
+      const timeRaw = meal.time?.trim();
+      const calRaw = meal.calories?.trim();
+      const displayTime = !isPlaceholder(timeRaw) ? timeRaw! : null;
+      let displayCalories: string | null = null;
+      if (!isPlaceholder(calRaw)) {
+        const c = calRaw!;
+        displayCalories = /\d/.test(c) && !/kcal/i.test(c) ? `${c} kcal`.replace(/\s+/g, ' ') : c;
+      }
+      const imageUrl =
+        typeof meal.imageUrl === 'string' && meal.imageUrl.trim().length > 0 ? meal.imageUrl.trim() : null;
       return {
         dayLabel,
         mealTypeLabel,
         title: meal.title?.trim() || 'Gericht',
-        subtext,
+        subtext: [displayCalories, displayTime].filter(Boolean).join(' • ') || '',
         isTomorrow: offset === 1,
+        imageUrl,
+        displayTime,
+        displayCalories,
       };
     }
     return null;

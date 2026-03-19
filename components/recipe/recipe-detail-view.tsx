@@ -145,7 +145,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
     const totalSteps = recipe.instructions.length;
     const progressPercent = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
     return (
-      <div className="px-4 md:px-6 pb-16 max-w-4xl mx-auto">
+      <div className="px-4 md:px-6 pb-28 max-w-4xl mx-auto">
         <div className="relative z-20 rounded-[40px] overflow-hidden shadow-2xl" style={RECIPE_GLASS_STYLE}>
           <div className="h-1.5 w-full bg-gray-100" aria-hidden>
             <div
@@ -231,15 +231,12 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
   }
 
   return (
-    <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out px-4 md:px-6 pb-16">
+    <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out px-4 md:px-6 pb-28">
       {/* Hero Card – kein eigenes -mt (Shell hat bereits -mt-20 + pt-9), Oberkante wie Dashboard-Karten */}
       <div className="relative z-20 mx-4 md:mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
-        {/* Zurück + ggf. In Sammlung speichern */}
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <button onClick={onBack} className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
-            ← {fromWeekPlan ? 'Wochenplaner' : 'Meine Rezepte'}
-          </button>
-          {fromWeekPlan && onSaveToCollection && (
+        {/* Nur Wochenplan: In Sammlung speichern (Zurück nur in der Shell oben) */}
+        {fromWeekPlan && onSaveToCollection && (
+          <div className="flex justify-end mb-4">
             <button
               onClick={onSaveToCollection}
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-medium shadow-lg shadow-orange-500/25 flex items-center gap-2"
@@ -247,8 +244,8 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
               <ChefHat className="w-4 h-4" />
               In Meine Rezepte speichern
             </button>
-          )}
-        </div>
+          </div>
+        )}
         {/* Hero: Mobile Vertical Stack / Desktop Split mit Bottom Align */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           {/* Linke Seite: Content & Vibe */}
@@ -406,25 +403,25 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
       <div className="max-w-5xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
         {/* Linke Spalte: Zutaten (sticky auf Desktop) – getrennt: Vorhanden / Fehlt noch */}
         <div className="md:col-span-4 md:sticky md:top-24">
-          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+          <div className="grid grid-cols-2 gap-2 mb-4">
             <button
               type="button"
               onClick={() => {
                 setAddToListIngredients(adjustedShoppingList.length > 0 ? adjustedShoppingList : adjustedIngredients);
                 setIsAddToListOpen(true);
               }}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold hover:bg-rose-100 transition-colors border-0 shadow-none"
             >
-              <ShoppingBasket className="w-4 h-4" />
-              Einkaufen
+              <ShoppingBasket className="w-4 h-4 shrink-0" />
+              <span className="leading-tight text-center">Einkaufen</span>
             </button>
             <button
               type="button"
               onClick={() => setIsCalendarModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl font-medium text-sm transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl bg-purple-50 text-purple-600 text-sm font-semibold hover:bg-purple-100 transition-colors border-0 shadow-none"
             >
-              <CalendarDays className="w-4 h-4" />
-              Im Kalender planen
+              <CalendarDays className="w-4 h-4 shrink-0" />
+              <span className="leading-tight text-center text-xs sm:text-sm">Im Kalender planen</span>
             </button>
           </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles, CalendarDays, BookHeart, Utensils, ShoppingBasket } from 'lucide-react';
+import { Sparkles, CalendarDays, BookHeart, ShoppingBasket, Clock, Flame } from 'lucide-react';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Einfacher Glasmorphismus – stabil, keine dynamischen Daten */
@@ -13,6 +13,10 @@ const CARD_STYLE: React.CSSProperties = {
   backdropFilter: 'blur(8px)',
 };
 
+/** Unsplash-Fallback, wenn kein Rezept-Bild (hochwertiges Food-Motiv). */
+const ACTIVE_WEEK_FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1400&q=80';
+
 /** Spotlight für die Full-Width-Karte: heutiges oder nächstes Gericht. */
 export type TodayMealSpotlight = {
   dayLabel: string;
@@ -20,6 +24,9 @@ export type TodayMealSpotlight = {
   title: string;
   subtext: string;
   isTomorrow?: boolean;
+  imageUrl?: string | null;
+  displayTime?: string | null;
+  displayCalories?: string | null;
 };
 
 export type GourmetCockpitProps = {
@@ -39,6 +46,11 @@ const cardClass =
 
 export function GourmetCockpit(props: GourmetCockpitProps) {
   const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null, todayMealSpotlight = null, onAktiveWocheAnsehen } = props;
+  const activeWeekHeroUrl =
+    todayMealSpotlight?.imageUrl && todayMealSpotlight.imageUrl.trim().length > 0
+      ? todayMealSpotlight.imageUrl.trim()
+      : ACTIVE_WEEK_FALLBACK_IMAGE;
+
   return (
     <div className="min-h-screen w-full relative overflow-x-visible bg-white">
       <DashboardShell
@@ -152,43 +164,65 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                 tabIndex={0}
                 onClick={() => onAktiveWocheAnsehen()}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAktiveWocheAnsehen(); } }}
-                className="w-full mt-6 relative overflow-hidden bg-gradient-to-br from-orange-400 to-orange-500 rounded-[2rem] p-6 text-white shadow-xl shadow-orange-500/20 mb-6 group cursor-pointer transition-transform hover:-translate-y-1"
+                className="w-full mt-6 relative overflow-hidden rounded-[2rem] min-h-[200px] md:min-h-[228px] text-white shadow-xl shadow-black/25 mb-6 group cursor-pointer transition-transform hover:-translate-y-1"
               >
-                {/* Dezenter Premium-Hintergrundeffekt */}
-                <div className="absolute -right-16 -top-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none transition-transform group-hover:scale-110" aria-hidden />
-                <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-orange-300 opacity-20 rounded-full blur-2xl pointer-events-none" aria-hidden />
+                {/* Hintergrundbild */}
+                <div
+                  className="absolute inset-0 bg-cover bg-center scale-105 group-hover:scale-110 transition-transform duration-700 ease-out"
+                  style={{ backgroundImage: `url(${activeWeekHeroUrl})` }}
+                  aria-hidden
+                />
+                {/* Lesbarkeit: Verlauf von unten */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" aria-hidden />
 
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 p-6 min-h-[200px] md:min-h-[228px]">
                   {/* Linke Seite: Infos zum aktuellen Tag/Gericht */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-3 flex-wrap">
-                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-white/10">
+                  <div className="flex-1 min-w-0 flex flex-col justify-end">
+                    <div className="flex items-center gap-2 mb-3 flex-wrap">
+                      <span className="bg-white/25 backdrop-blur-md px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest border border-white/20 text-white">
                         Aktive Woche
                       </span>
                       {todayMealSpotlight ? (
-                        <span className="text-orange-100 text-sm font-medium">
-                          {todayMealSpotlight.isTomorrow ? 'Morgen' : todayMealSpotlight.dayLabel} • {todayMealSpotlight.mealTypeLabel}
+                        <span className="text-white/90 text-xs sm:text-sm font-medium drop-shadow-sm">
+                          {todayMealSpotlight.isTomorrow ? 'Morgen' : todayMealSpotlight.dayLabel} · {todayMealSpotlight.mealTypeLabel}
                         </span>
                       ) : (
-                        <span className="text-orange-100 text-sm font-medium">Diese Woche geplant</span>
+                        <span className="text-white/90 text-xs sm:text-sm font-medium">Diese Woche geplant</span>
                       )}
                     </div>
 
                     {todayMealSpotlight ? (
                       <>
-                        <h2 className="font-extrabold text-2xl md:text-3xl mb-2 tracking-tight leading-tight truncate">
+                        <h2 className="font-extrabold text-2xl md:text-3xl mb-3 tracking-tight leading-snug text-white drop-shadow-md line-clamp-2">
                           {todayMealSpotlight.title}
                         </h2>
-                        <p className="text-orange-50 font-medium opacity-90 line-clamp-2">
-                          {todayMealSpotlight.subtext}
-                        </p>
+                        {(todayMealSpotlight.displayTime || todayMealSpotlight.displayCalories) ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            {todayMealSpotlight.displayTime ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/35 backdrop-blur-md border border-white/15 text-xs font-semibold text-white">
+                                <Clock className="w-3.5 h-3.5 shrink-0 opacity-90" aria-hidden />
+                                {todayMealSpotlight.displayTime}
+                              </span>
+                            ) : null}
+                            {todayMealSpotlight.displayCalories ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/35 backdrop-blur-md border border-white/15 text-xs font-semibold text-white">
+                                <Flame className="w-3.5 h-3.5 shrink-0 text-amber-300" aria-hidden />
+                                {todayMealSpotlight.displayCalories}
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : todayMealSpotlight.subtext ? (
+                          <p className="text-white/85 text-sm font-medium line-clamp-2 drop-shadow-sm">
+                            {todayMealSpotlight.subtext}
+                          </p>
+                        ) : null}
                       </>
                     ) : (
                       <>
-                        <h2 className="font-extrabold text-2xl md:text-3xl mb-2 tracking-tight leading-tight">
+                        <h2 className="font-extrabold text-2xl md:text-3xl mb-2 tracking-tight leading-tight text-white drop-shadow-md">
                           Heute steht nichts auf dem Plan
                         </h2>
-                        <p className="text-orange-50 font-medium opacity-90">
+                        <p className="text-white/85 text-sm font-medium">
                           Klicke hier, um deine Woche zu sehen oder einen neuen Plan zu erstellen.
                         </p>
                       </>
@@ -196,20 +230,19 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                   </div>
 
                   {/* Rechte Seite: Action-Buttons */}
-                  <div className="flex gap-3 w-full md:w-auto mt-2 md:mt-0">
+                  <div className="flex gap-3 w-full md:w-auto shrink-0 md:pb-0">
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
-                      className="flex-1 md:flex-none bg-white text-orange-600 font-bold py-3.5 px-8 rounded-2xl shadow-sm hover:shadow-md hover:scale-105 transition-all text-sm flex items-center justify-center"
+                      className="flex-1 md:flex-none bg-white text-orange-600 font-bold py-3.5 px-8 rounded-2xl shadow-lg shadow-black/20 hover:shadow-xl hover:scale-[1.02] transition-all text-sm flex items-center justify-center"
                     >
                       Jetzt kochen
                     </button>
 
-                    {/* Detail-Button */}
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
-                      className="flex-none bg-orange-600/30 hover:bg-orange-600/50 backdrop-blur-sm border border-white/20 text-white p-3.5 rounded-2xl transition-all flex items-center justify-center group-hover:border-white/40"
+                      className="flex-none bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white p-3.5 rounded-2xl transition-all flex items-center justify-center"
                       aria-label="Details ansehen"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
