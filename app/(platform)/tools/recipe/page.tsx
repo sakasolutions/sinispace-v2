@@ -1399,27 +1399,29 @@ export default function RecipePage() {
                         </h4>
                       </div>
 
-                      <div className="space-y-3 pl-2 border-l-2 border-gray-100 ml-2">
+                      <div className="space-y-3 pl-2 border-l border-emerald-100/70 ml-2">
                         {dayPlan.meals.map((meal: { type: string; title: string; time?: string; calories?: string; imageUrl?: string | null }, mIdx: number) => (
-                          <div key={mIdx} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between border border-gray-100 group relative overflow-hidden">
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-emerald-500" aria-hidden />
+                          <div
+                            key={mIdx}
+                            className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 group relative overflow-hidden flex flex-col"
+                          >
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-200/90 via-teal-200/70 to-emerald-100/80" aria-hidden />
 
-                            <div className="pl-3 flex items-start gap-3 min-w-0 flex-1">
-                              <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-gray-100">
+                            {/* Zeile 1: Bild + Infos (Titel volle Breite, max. 2 Zeilen) */}
+                            <div className="pl-3 pr-3 pt-3.5 pb-3 flex gap-3 min-w-0">
+                              <div className="w-20 h-20 shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100/80 shadow-sm">
                                 {meal.imageUrl && String(meal.imageUrl).trim() ? (
                                   <img src={meal.imageUrl.trim()} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-gray-300" aria-hidden>
-                                    <UtensilsCrossed className="w-7 h-7" strokeWidth={1.5} />
+                                    <UtensilsCrossed className="w-8 h-8" strokeWidth={1.5} />
                                   </div>
                                 )}
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest block mb-1.5">
+                              <div className="min-w-0 flex-1 flex flex-col gap-1">
+                                <span className="text-[10px] font-bold text-green-600/90 uppercase tracking-widest">
                                   {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
                                 </span>
-                                <p className="font-bold text-gray-800 text-base leading-tight mb-2 pr-4">{meal.title}</p>
-
                                 <div className="flex items-center gap-3 text-xs text-gray-500 font-medium flex-wrap">
                                   <span className="flex items-center gap-1">
                                     <Clock className="w-3.5 h-3.5 shrink-0" /> {meal.time}
@@ -1428,10 +1430,14 @@ export default function RecipePage() {
                                     <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" /> {meal.calories}
                                   </span>
                                 </div>
+                                <p className="font-bold text-gray-800 text-[15px] sm:text-base leading-snug line-clamp-2 pr-0.5">
+                                  {meal.title}
+                                </p>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            {/* Zeile 2: Action-Leiste */}
+                            <div className="border-t border-gray-100/90 px-3 py-2.5 flex items-center justify-between gap-3 bg-gray-50/40">
                               <button
                                 type="button"
                                 onClick={async (e) => {
@@ -1449,11 +1455,11 @@ export default function RecipePage() {
                                   savingRecipeId === `${dayPlan.day}-${meal.title}` ||
                                   savedRecipeIds.includes(`${dayPlan.day}-${meal.title}`)
                                 }
-                                className={`p-2.5 rounded-xl transition-all flex items-center justify-center ${
+                                className={`min-h-[40px] min-w-[40px] rounded-xl transition-all flex items-center justify-center ${
                                   savedRecipeIds.includes(`${dayPlan.day}-${meal.title}`)
-                                    ? 'text-pink-500 bg-pink-50'
-                                    : 'text-gray-400 hover:text-pink-500 hover:bg-pink-50'
-                                }`}
+                                    ? 'text-pink-500 bg-pink-50/90'
+                                    : 'text-gray-500 hover:text-pink-500 hover:bg-pink-50/80'
+                                } disabled:opacity-60`}
                                 title="In Sammlung speichern"
                               >
                                 {savingRecipeId === `${dayPlan.day}-${meal.title}` ? (
@@ -1471,10 +1477,10 @@ export default function RecipePage() {
                                 type="button"
                                 onClick={() => handleOpenRecipe(dayPlan.day, meal)}
                                 disabled={loadingRecipeId === `${dayPlan.day}-${meal.title}`}
-                                className="p-2.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all text-sm font-bold flex items-center gap-1.5 disabled:opacity-50 w-[85px] justify-center"
+                                className="min-h-[40px] px-4 rounded-xl text-sm font-bold flex items-center gap-1.5 justify-center text-emerald-700 bg-white/80 border border-emerald-100/80 hover:bg-emerald-50/90 hover:border-emerald-200 transition-all disabled:opacity-50 shadow-sm"
                               >
                                 {loadingRecipeId === `${dayPlan.day}-${meal.title}` ? (
-                                  <div className="w-4 h-4 border-2 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+                                  <div className="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-600 rounded-full animate-spin" />
                                 ) : (
                                   <>Rezept <span className="text-lg leading-none">›</span></>
                                 )}
@@ -1539,28 +1545,29 @@ export default function RecipePage() {
                       </div>
 
                       {/* Mahlzeiten */}
-                      <div className="space-y-3 pl-2 border-l-2 border-orange-100/50 ml-2">
+                      <div className="space-y-3 pl-2 border-l border-orange-100/60 ml-2">
                         {dayPlan.meals.map((meal: { type: string; title: string; calories: string; time: string; imageUrl?: string | null }, mIdx: number) => (
-                          <div key={mIdx} className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between border border-gray-100 group relative overflow-hidden">
-                            {/* Dezenter Farb-Akzent am linken Rand */}
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-orange-300 to-orange-500" aria-hidden />
+                          <div
+                            key={mIdx}
+                            className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 group relative overflow-hidden flex flex-col"
+                          >
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-200/90 via-orange-200/75 to-amber-100/70" aria-hidden />
 
-                            <div className="pl-3 flex items-start gap-3 min-w-0 flex-1">
-                              <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-gray-100">
+                            {/* Zeile 1: Bild + Infos */}
+                            <div className="pl-3 pr-3 pt-3.5 pb-3 flex gap-3 min-w-0">
+                              <div className="w-20 h-20 shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100/80 shadow-sm">
                                 {meal.imageUrl && String(meal.imageUrl).trim() ? (
                                   <img src={meal.imageUrl.trim()} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-gray-300" aria-hidden>
-                                    <UtensilsCrossed className="w-7 h-7" strokeWidth={1.5} />
+                                    <UtensilsCrossed className="w-8 h-8" strokeWidth={1.5} />
                                   </div>
                                 )}
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest block mb-1.5">
+                              <div className="min-w-0 flex-1 flex flex-col gap-1">
+                                <span className="text-[10px] font-bold text-orange-500/95 uppercase tracking-widest">
                                   {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
                                 </span>
-                                <p className="font-bold text-gray-800 text-base leading-tight mb-2 pr-4">{meal.title}</p>
-
                                 <div className="flex items-center gap-3 text-xs text-gray-500 font-medium flex-wrap">
                                   <span className="flex items-center gap-1">
                                     <Clock className="w-3.5 h-3.5 shrink-0" /> {meal.time}
@@ -1569,23 +1576,26 @@ export default function RecipePage() {
                                     <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" /> {meal.calories}
                                   </span>
                                 </div>
+                                <p className="font-bold text-gray-800 text-[15px] sm:text-base leading-snug line-clamp-2 pr-0.5">
+                                  {meal.title}
+                                </p>
                               </div>
                             </div>
 
-                            {/* Actions Container */}
-                            <div className="flex items-center shrink-0 ml-2 gap-1">
-                              {/* SWAP / MOVE Button (mit nativem Select Overlay) */}
-                              <div className="relative group/swap">
+                            {/* Zeile 2: Verschieben + Neu würfeln */}
+                            <div className="border-t border-gray-100/90 px-2 py-2 flex items-center justify-between gap-2 bg-gray-50/40">
+                              <div className="relative group/swap flex-1 min-w-0 flex justify-start">
                                 <button
                                   type="button"
-                                  className="p-3 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 pointer-events-none sm:pointer-events-auto"
+                                  className="w-full max-w-[160px] min-h-[40px] px-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl transition-all text-xs font-semibold flex items-center justify-center gap-1.5 border border-transparent hover:border-blue-100"
                                   title="Auf anderen Tag verschieben"
                                   tabIndex={-1}
                                 >
-                                  <ArrowRightLeft className="w-5 h-5" />
+                                  <ArrowRightLeft className="w-4 h-4 shrink-0" />
+                                  <span className="truncate">Verschieben</span>
                                 </button>
                                 <select
-                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                  className="absolute inset-0 w-full max-w-[160px] opacity-0 cursor-pointer z-10"
                                   value=""
                                   onChange={(e) => {
                                     const targetIdx = parseInt(e.target.value, 10);
@@ -1594,7 +1604,9 @@ export default function RecipePage() {
                                   }}
                                   aria-label="Gericht auf anderen Tag verschieben"
                                 >
-                                  <option value="" disabled>Verschieben nach...</option>
+                                  <option value="" disabled>
+                                    Verschieben nach…
+                                  </option>
                                   {weekDraft.map((d, dIdx) => (
                                     <option key={dIdx} value={dIdx} disabled={dIdx === idx}>
                                       {d.day}
@@ -1602,18 +1614,17 @@ export default function RecipePage() {
                                   ))}
                                 </select>
                               </div>
-
-                              {/* RE-ROLL Button */}
                               <button
                                 type="button"
                                 onClick={() => handleReRollMeal(idx, mIdx, dayPlan.day, meal.type, meal.title)}
                                 disabled={rollingMealId === `${dayPlan.day}-${meal.type}`}
-                                className="p-3 text-gray-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-100 disabled:text-orange-500"
+                                className="min-h-[40px] px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 justify-center text-orange-600 bg-white/80 border border-orange-100/80 hover:bg-orange-50/90 transition-all disabled:opacity-70 shrink-0"
                                 title="Gericht neu generieren"
                               >
                                 <RefreshCw
-                                  className={`w-5 h-5 ${rollingMealId === `${dayPlan.day}-${meal.type}` ? 'animate-spin text-orange-500' : ''}`}
+                                  className={`w-4 h-4 shrink-0 ${rollingMealId === `${dayPlan.day}-${meal.type}` ? 'animate-spin text-orange-500' : ''}`}
                                 />
+                                Neu
                               </button>
                             </div>
                           </div>

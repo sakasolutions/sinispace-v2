@@ -242,7 +242,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
-                      className="flex-1 md:flex-none bg-white text-orange-600 font-bold py-3.5 px-8 rounded-2xl shadow-lg shadow-black/20 hover:shadow-xl hover:scale-[1.02] transition-all text-sm flex items-center justify-center"
+                      className="flex-1 md:flex-none bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold py-3.5 px-8 rounded-2xl shadow-lg shadow-black/15 hover:bg-white/30 hover:border-white/45 hover:scale-[1.02] transition-all text-sm flex items-center justify-center"
                     >
                       Jetzt kochen
                     </button>
