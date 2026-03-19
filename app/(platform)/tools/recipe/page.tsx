@@ -199,18 +199,26 @@ export default function RecipePage() {
     { id: 'Veggie', label: 'Veggie' },
   ];
 
-  // Aktiven Wochenplan aus Kalender wiederherstellen (nach Reload)
+  /** Kalender → activeWeekPlan (inkl. imageUrl). Läuft beim ersten Render und wenn sich showCockpit ändert (z. B. zurück zur Übersicht → frische Daten). */
   useEffect(() => {
+    let cancelled = false;
     console.log('[CookIQ] Fetch gestartet: getCurrentWeekMeals');
     getCurrentWeekMeals().then((result) => {
+      if (cancelled) return;
       const { plan, queryFrom, queryTo } = result;
       console.log('Gesuchtes Datum:', queryFrom || '(kein Zeitraum)', queryTo ? `– ${queryTo}` : '');
       console.log('[CookIQ] Gruppierter Plan:', plan);
       const hasEvents = Array.isArray(plan) && plan.length > 0 && plan.some((d) => d.meals?.length > 0);
-      if (!hasEvents) return;
+      if (!hasEvents) {
+        setActiveWeekPlan(null);
+        return;
+      }
       setActiveWeekPlan(plan);
     });
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [showCockpit]);
 
   // Heutiges oder nächstes Gericht für die Full-Width-Karte "Aktive Woche"
   const todayMealSpotlight = useMemo(() => {
@@ -222,6 +230,28 @@ export default function RecipePage() {
       hour < 8 ? ['breakfast', 'lunch', 'dinner'] : hour < 12 ? ['lunch', 'dinner', 'breakfast'] : ['dinner', 'lunch', 'breakfast'];
     const dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
     const mealLabels: Record<string, string> = { breakfast: 'Frühstück', lunch: 'Mittagessen', dinner: 'Abendessen' };
+
+    const pickMealForSpotlight = (
+      meals: Array<{
+        type?: string;
+        title?: string;
+        time?: string;
+        calories?: string;
+        imageUrl?: string | null;
+      }>
+    ) => {
+      const byOrder =
+        meals.find((m) => mealTypeOrder[0] === m.type) ??
+        meals.find((m) => mealTypeOrder[1] === m.type) ??
+        meals.find((m) => mealTypeOrder[2] === m.type) ??
+        meals[0];
+      const hasImg = (m: (typeof meals)[0]) =>
+        typeof m?.imageUrl === 'string' && m.imageUrl.trim().length > 0;
+      if (byOrder && hasImg(byOrder)) return byOrder;
+      const anyWithImage = meals.find((m) => hasImg(m));
+      if (anyWithImage) return anyWithImage;
+      return byOrder;
+    };
 
     for (let offset = 0; offset < 2; offset++) {
       const idx = (dayIndex + offset) % 7;
@@ -237,7 +267,8 @@ export default function RecipePage() {
       } | undefined;
       const meals = dayObj?.meals ?? [];
       if (meals.length === 0) continue;
-      let meal = meals.find((m) => mealTypeOrder[0] === m.type) ?? meals.find((m) => mealTypeOrder[1] === m.type) ?? meals.find((m) => mealTypeOrder[2] === m.type) ?? meals[0];
+      const meal = pickMealForSpotlight(meals);
+      if (!meal) continue;
       const dayLabel = dayObj?.day ?? dayNames[idx];
       const mealTypeLabel = mealLabels[meal.type as string] ?? 'Gericht';
       const isPlaceholder = (s: string | undefined) => !s || s.trim() === '' || s.trim() === '—' || s.trim() === '-';
@@ -264,6 +295,12 @@ export default function RecipePage() {
     }
     return null;
   }, [activeWeekPlan]);
+
+  /** Rezept-Detail: dynamisches Header-Bild in der DashboardShell (kein zweites Bild in RecipeDetailView). */
+  const recipeDetailHeroUrl = useMemo(() => {
+    const u = selectedRecipe?.recipe?.imageUrl;
+    return typeof u === 'string' && u.trim().length > 0 ? u.trim() : null;
+  }, [selectedRecipe]);
 
   // ?tab=my-recipes: Direkt zum Tab (z. B. von GourmetCockpit-Links)
   useEffect(() => {
@@ -677,15 +714,33 @@ export default function RecipePage() {
           <DashboardShell
             headerVariant="default"
             headerBackground={
-              <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
-              </div>
+              activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl ? (
+                <div className="relative w-full h-full bg-gray-900">
+                  <img
+                    src={recipeDetailHeroUrl}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div
+                    className="absolute inset-0 z-[1] bg-gradient-to-b from-black/80 via-black/55 to-black/70"
+                    aria-hidden
+                  />
+                </div>
+              ) : (
+                <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
+                  <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
+                </div>
+              )
             }
             title={
               <>
                 <button
                   type="button"
                   onClick={() => {
+                    if (selectedRecipe) {
+                      setSelectedRecipe(null);
+                      return;
+                    }
                     setShowCockpit(true);
                     setActiveTab('create');
                     setWizardStep(1);
@@ -693,17 +748,27 @@ export default function RecipePage() {
                   className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
                 >
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                  Zurück zur Übersicht
+                  {selectedRecipe ? 'Zurück zur Sammlung' : 'Zurück zur Übersicht'}
                 </button>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1 mt-0" style={{ letterSpacing: '-0.3px' }}>
-                  {activeTab === 'my-recipes' ? 'Meine Sammlung' : 'Rezept Generator'}
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1 mt-0 drop-shadow-md" style={{ letterSpacing: '-0.3px' }}>
+                  {selectedRecipe
+                    ? selectedRecipe.recipe.recipeName
+                    : activeTab === 'my-recipes'
+                      ? 'Meine Sammlung'
+                      : 'Rezept Generator'}
                 </h1>
               </>
             }
             subtitle={
               <>
-                <p className="text-white/90 text-lg md:text-xl">
-                  {activeTab === 'my-recipes' ? 'Deine kulinarischen Schätze.' : 'Dein Smart-Chef für den Kühlschrank.'}
+                <p className="text-white/90 text-lg md:text-xl drop-shadow-sm">
+                  {selectedRecipe
+                    ? selectedRecipe.recipe.stats?.time
+                      ? `${selectedRecipe.recipe.stats.time} · ${selectedRecipe.recipe.stats.calories ?? ''}`
+                      : 'Rezeptdetails'
+                    : activeTab === 'my-recipes'
+                      ? 'Deine kulinarischen Schätze.'
+                      : 'Dein Smart-Chef für den Kühlschrank.'}
                 </p>
                 {activeTab === 'create' && (
                   <>
@@ -958,6 +1023,7 @@ export default function RecipePage() {
             resultId={selectedRecipe.resultId}
             createdAt={selectedRecipe.createdAt}
             onBack={() => setSelectedRecipe(null)}
+            embedHeroInParent
           />
         ) : (
           /* Meine Sammlung: Command Center (schwebende Karte) + Grid */

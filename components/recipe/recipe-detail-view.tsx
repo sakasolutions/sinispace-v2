@@ -25,13 +25,15 @@ export type RecipeDetailRecipe = {
   imageCredit?: string | null;
 };
 
-interface RecipeDetailViewProps {
+export interface RecipeDetailViewProps {
   recipe: RecipeDetailRecipe;
   resultId: string;
   createdAt: Date;
   onBack: () => void;
   fromWeekPlan?: boolean; // Kommt aus Wochenplan?
   onSaveToCollection?: () => void;
+  /** Wenn true: kein eigenes Hero-Bild (wird von DashboardShell / page.tsx geliefert). */
+  embedHeroInParent?: boolean;
 }
 
 /** Glass-Elemente: einheitliche Handschrift wie Dashboard/Gourmet (mobil + Desktop) */
@@ -43,7 +45,15 @@ const RECIPE_GLASS_STYLE: React.CSSProperties = {
   backdropFilter: 'blur(12px)',
 };
 
-export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeekPlan = false, onSaveToCollection }: RecipeDetailViewProps) {
+export function RecipeDetailView({
+  recipe,
+  resultId,
+  createdAt,
+  onBack,
+  fromWeekPlan = false,
+  onSaveToCollection,
+  embedHeroInParent = false,
+}: RecipeDetailViewProps) {
   // Original-Servings aus Recipe (normalerweise 2)
   const originalServings = 2;
   const [servings, setServings] = useState(originalServings);
@@ -237,10 +247,10 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   return (
     <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out pb-28">
-      {/* Mobil: Rezeptbild als eigene „schwebende“ Karte unter dem Shell-Header (nicht randlos am Header) */}
-      <div className="md:hidden px-4 mt-6 mb-6">
-        <div className="mx-auto w-full max-w-5xl rounded-3xl bg-white/95 shadow-xl shadow-gray-900/10 border border-gray-100 ring-1 ring-black/[0.06] overflow-hidden">
-          <div className="relative w-full h-64 min-h-[16rem] overflow-hidden">
+      {/* Eigenes Hero nur ohne embedHeroInParent (z. B. Week-Planner): randlos, ein Bild, Gradient für Lesbarkeit */}
+      {!embedHeroInParent && (
+        <div className="w-screen max-w-[100vw] relative left-1/2 -translate-x-1/2 -mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 overflow-hidden">
+          <div className="relative min-h-[min(42vh,20rem)] h-[min(42vh,20rem)] sm:min-h-[18rem] sm:h-72 w-full bg-gray-900">
             {heroImageUrl ? (
               <img
                 src={heroImageUrl}
@@ -249,44 +259,34 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
               />
             ) : (
               <div
-                className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-rose-50 flex items-center justify-center"
+                className="absolute inset-0 bg-gradient-to-br from-orange-200/90 via-amber-100 to-rose-100 flex items-center justify-center"
                 aria-hidden
               >
-                <UtensilsCrossed className="w-20 h-20 text-orange-200/90" strokeWidth={1.5} />
+                <UtensilsCrossed className="w-24 h-24 text-orange-300/80" strokeWidth={1.5} />
               </div>
             )}
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 via-black/25 to-transparent"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-black/75"
               aria-hidden
             />
+            {fromWeekPlan && (
+              <div className="absolute top-4 left-4 right-4 z-10 flex justify-start">
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="inline-flex items-center gap-2 rounded-full bg-black/40 hover:bg-black/55 backdrop-blur-md text-white px-4 py-2 text-sm font-semibold border border-white/20 shadow-lg"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Zurück
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       <div className="px-4 md:px-6">
-        {/* Desktop: Rezeptbild als eigene Karte mit Abstand und Tiefe (wie Referenz „floating card“) */}
-        <div className="hidden md:block relative w-full max-w-5xl mx-auto mt-6 mb-8 h-64 rounded-3xl overflow-hidden bg-white/95 shadow-xl shadow-gray-900/10 border border-gray-100 ring-1 ring-black/[0.06]">
-          {heroImageUrl ? (
-            <img
-              src={heroImageUrl}
-              alt={recipe.recipeName}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          ) : (
-            <div
-              className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-rose-50 flex items-center justify-center"
-              aria-hidden
-            >
-              <UtensilsCrossed className="w-28 h-28 text-orange-200/90" strokeWidth={1.5} />
-            </div>
-          )}
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/70 via-black/25 to-transparent"
-            aria-hidden
-          />
-        </div>
-
-        {/* Hero Card – Meta & Aktionen (kein doppeltes Titelbild, wenn Hero oben) */}
+        {/* Hero Card – Meta & Aktionen */}
         <div className="relative z-20 mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
         {/* Nur Wochenplan: In Sammlung speichern (Zurück nur in der Shell oben) */}
         {fromWeekPlan && onSaveToCollection && (
@@ -307,14 +307,14 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             {/* Mobile: Zeile 1 = Thumbnail + Datum/Meta, Zeile 2 = Titel */}
             <div className="flex flex-col md:hidden">
               <div className="flex items-start gap-3">
-                {!heroImageUrl ? (
+                {!embedHeroInParent && !heroImageUrl ? (
                   <div className="w-16 h-16 shrink-0 rounded-2xl overflow-hidden shadow-sm border border-white/50 bg-gray-100">
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       <UtensilsCrossed className="w-8 h-8" strokeWidth={1.5} />
                     </div>
                   </div>
                 ) : null}
-                <div className={cn('min-w-0 flex-1', heroImageUrl ? 'w-full' : undefined)}>
+                <div className={cn('min-w-0 flex-1', (heroImageUrl || embedHeroInParent) ? 'w-full' : undefined)}>
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">
                     Generiert am {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </p>
@@ -346,14 +346,14 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
             </div>
             {/* Desktop: Thumbnail + Text-Block nebeneinander */}
             <div className="hidden md:flex flex-row items-start gap-5">
-              {!heroImageUrl ? (
+              {!embedHeroInParent && !heroImageUrl ? (
                 <div className="w-24 h-24 shrink-0 rounded-2xl overflow-hidden shadow-sm border border-white/50 bg-gray-100">
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
                     <UtensilsCrossed className="w-12 h-12" strokeWidth={1.5} />
                   </div>
                 </div>
               ) : null}
-              <div className={cn('min-w-0 flex-1', heroImageUrl ? 'w-full' : undefined)}>
+              <div className={cn('min-w-0 flex-1', (heroImageUrl || embedHeroInParent) ? 'w-full' : undefined)}>
                 <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
                   Generiert am {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </p>
