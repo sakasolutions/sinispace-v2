@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
-import { addDays, format, isBefore, setYear, startOfDay } from 'date-fns';
+import { addDays, format, isBefore, setYear, startOfDay, startOfWeek } from 'date-fns';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -450,5 +450,72 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
   } catch (error) {
     console.error('[CALENDAR] saveWeeklyPlan:', error);
     return { success: false as const, error: 'Fehler beim Speichern des Wochenplans' };
+  }
+}
+
+/** Ein Meal im wiederhergestellten Wochenplan (Format wie WeekDraftMeal). */
+export type RestoredWeekMeal = {
+  type: 'breakfast' | 'lunch' | 'dinner';
+  title: string;
+  time: string;
+  calories: string;
+};
+
+/** Ein Tag im wiederhergestellten Wochenplan (Format wie WeekDraftDay). */
+export type RestoredWeekDay = {
+  day: string;
+  meals: RestoredWeekMeal[];
+};
+
+const WEEKDAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'] as const;
+
+/**
+ * Liest alle CalendarEvent-Einträge der aktuellen Woche (Mo–So), eventType === 'meal',
+ * und gibt sie im CookIQ-activeWeekPlan-Format zurück (für Wiederherstellung nach Reload).
+ */
+export async function getCurrentWeekMeals(): Promise<RestoredWeekDay[]> {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
+  try {
+    const today = startOfDay(new Date());
+    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+    const weekEnd = addDays(weekStart, 6);
+    const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+    const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
+
+    const events = await prisma.calendarEvent.findMany({
+      where: {
+        userId: session.user.id,
+        eventType: 'meal',
+        date: { gte: weekStartStr, lte: weekEndStr },
+      },
+      orderBy: [{ date: 'asc' }, { time: 'asc' }],
+      select: { date: true, time: true, title: true, mealType: true },
+    });
+
+    if (events.length === 0) return [];
+
+    const plan: RestoredWeekDay[] = [];
+    for (let i = 0; i < 7; i++) {
+      const dateStr = format(addDays(weekStart, i), 'yyyy-MM-dd');
+      const dayEvents = events.filter((e) => e.date === dateStr);
+      const meals: RestoredWeekMeal[] = dayEvents.map((e) => {
+        const mealType =
+          e.mealType === 'breakfast' || e.mealType === 'lunch' || e.mealType === 'dinner' ? e.mealType : 'dinner';
+        return {
+          type: mealType,
+          title: e.title?.trim() || 'Gericht',
+          time: e.time || '—',
+          calories: '—',
+        };
+      });
+      plan.push({ day: WEEKDAY_NAMES[i], meals });
+    }
+
+    return plan;
+  } catch (error) {
+    console.error('[CALENDAR] getCurrentWeekMeals:', error);
+    return [];
   }
 }

@@ -28,6 +28,7 @@ import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/r
 import { RecipeCard } from '@/components/recipe/recipe-card';
 import { GourmetCockpit, type GourmetCockpitProps } from '@/components/recipe/gourmet-cockpit';
 import { generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan, generateAndSaveFullRecipe, generateMasterShoppingList } from '@/actions/week-planner-ai';
+import { getCurrentWeekMeals } from '@/actions/calendar-actions';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 /** Erweiterter Rezept-Typ (CookIQ Tier 1: Makros, SmartCart-Trennung). Kompatibel mit RecipeDetailView. */
@@ -197,6 +198,45 @@ export default function RecipePage() {
     { id: 'Salat', label: 'Salat' },
     { id: 'Veggie', label: 'Veggie' },
   ];
+
+  // Aktiven Wochenplan aus Kalender wiederherstellen (nach Reload)
+  useEffect(() => {
+    getCurrentWeekMeals().then((plan) => {
+      if (plan.length === 0) return;
+      setActiveWeekPlan((prev) => (prev != null && prev.length > 0 ? prev : plan));
+    });
+  }, []);
+
+  // Heutiges oder nächstes Gericht für die Full-Width-Karte "Aktive Woche"
+  const todayMealSpotlight = useMemo(() => {
+    const plan = activeWeekPlan;
+    if (!plan || !Array.isArray(plan) || plan.length === 0) return null;
+    const dayIndex = (new Date().getDay() + 6) % 7;
+    const hour = new Date().getHours();
+    const mealTypeOrder: Array<'breakfast' | 'lunch' | 'dinner'> =
+      hour < 8 ? ['breakfast', 'lunch', 'dinner'] : hour < 12 ? ['lunch', 'dinner', 'breakfast'] : ['dinner', 'lunch', 'breakfast'];
+    const dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+    const mealLabels: Record<string, string> = { breakfast: 'Frühstück', lunch: 'Mittagessen', dinner: 'Abendessen' };
+
+    for (let offset = 0; offset < 2; offset++) {
+      const idx = (dayIndex + offset) % 7;
+      const dayObj = plan[idx] as { day?: string; meals?: Array<{ type?: string; title?: string; time?: string; calories?: string }> } | undefined;
+      const meals = dayObj?.meals ?? [];
+      if (meals.length === 0) continue;
+      let meal = meals.find((m) => mealTypeOrder[0] === m.type) ?? meals.find((m) => mealTypeOrder[1] === m.type) ?? meals.find((m) => mealTypeOrder[2] === m.type) ?? meals[0];
+      const dayLabel = dayObj?.day ?? dayNames[idx];
+      const mealTypeLabel = mealLabels[meal.type as string] ?? 'Gericht';
+      const subtext = [meal.calories, meal.time].filter(Boolean).join(' • ') || '—';
+      return {
+        dayLabel,
+        mealTypeLabel,
+        title: meal.title?.trim() || 'Gericht',
+        subtext,
+        isTomorrow: offset === 1,
+      };
+    }
+    return null;
+  }, [activeWeekPlan]);
 
   // ?tab=my-recipes: Direkt zum Tab (z. B. von GourmetCockpit-Links)
   useEffect(() => {
@@ -562,9 +602,16 @@ export default function RecipePage() {
 
     setLoadingRecipeId(null);
 
-    if (res?.success) {
-      // Hier später: Rezept-Modal/Detail-View öffnen, z. B. setSelectedRecipe(res.recipe); setIsRecipeViewOpen(true);
-      alert(`Magie! "${meal.title}" wurde generiert, in deine Sammlung gespeichert und ist bereit zum Kochen!`);
+    if (res?.success && res.recipe && res.resultId) {
+      const recipe = res.recipe as Recipe;
+      setSelectedRecipe({
+        recipe,
+        resultId: res.resultId,
+        createdAt: new Date(),
+      });
+      setShowCockpit(false);
+      setActiveTab('my-recipes');
+      setIsWeekPlannerOpen(false);
     } else {
       alert('Fehler beim Laden des Rezepts.');
     }
@@ -576,26 +623,25 @@ export default function RecipePage() {
       {showCockpit ? (
         <div data-header-full-bleed className="min-h-screen w-full relative overflow-x-visible">
           <GourmetCockpit
-            {...({
-              onVorschlagGenerieren: () => {
-                setShowCockpit(false);
-                setActiveTab('create');
-                setIngredients('');
-              },
-              onMagicWunsch: () => setIsMagicModalOpen(true),
-              activeWeekPlan,
-              onWochePlanen: () => {
-                setPlannerPhase('setup');
+            onVorschlagGenerieren={() => {
+              setShowCockpit(false);
+              setActiveTab('create');
+              setIngredients('');
+            }}
+            onMagicWunsch={() => setIsMagicModalOpen(true)}
+            activeWeekPlan={activeWeekPlan}
+            todayMealSpotlight={todayMealSpotlight}
+            onWochePlanen={() => {
+              setPlannerPhase('setup');
+              setIsWeekPlannerOpen(true);
+            }}
+            onAktiveWocheAnsehen={() => {
+              if (activeWeekPlan?.length) {
+                setWeekDraft(activeWeekPlan);
+                setPlannerPhase('active-view');
                 setIsWeekPlannerOpen(true);
-              },
-              onAktiveWocheAnsehen: () => {
-                if (activeWeekPlan?.length) {
-                  setWeekDraft(activeWeekPlan);
-                  setPlannerPhase('active-view');
-                  setIsWeekPlannerOpen(true);
-                }
-              },
-            } satisfies GourmetCockpitProps)}
+              }
+            }}
           />
         </div>
       ) : (
@@ -1473,21 +1519,14 @@ export default function RecipePage() {
                         const res = await saveWeeklyPlan(weekDraft);
                         console.log('Antwort vom Backend:', res);
 
-                        // FÜR DAS UI-TESTING ERZWINGEN WIR HIER DEN ERFOLG:
                         setActiveWeekPlan(weekDraft);
                         setIsWeekPlannerOpen(false);
-
-                        setTimeout(() => {
-                          setPlannerPhase('setup');
-                        }, 500);
+                        setPlannerPhase('setup');
                       } catch (error) {
                         console.error('Kritischer Fehler beim Aufruf von saveWeeklyPlan:', error);
-
-                        // Auch bei Fehler zwingen wir das UI kurz in den Success-State,
-                        // damit der User das Dashboard-Design testen kann!
                         setActiveWeekPlan(weekDraft);
                         setIsWeekPlannerOpen(false);
-                        setTimeout(() => setPlannerPhase('setup'), 500);
+                        setPlannerPhase('setup');
                       }
                     }}
                     className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"

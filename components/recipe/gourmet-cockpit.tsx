@@ -13,12 +13,23 @@ const CARD_STYLE: React.CSSProperties = {
   backdropFilter: 'blur(8px)',
 };
 
+/** Spotlight für die Full-Width-Karte: heutiges oder nächstes Gericht. */
+export type TodayMealSpotlight = {
+  dayLabel: string;
+  mealTypeLabel: string;
+  title: string;
+  subtext: string;
+  isTomorrow?: boolean;
+};
+
 export type GourmetCockpitProps = {
   onVorschlagGenerieren: () => void;
   onMagicWunsch?: () => void;
   onWochePlanen?: () => void;
   /** Für die Full-Width-Karte "Deine aktuelle Woche" (nur sichtbar wenn gesetzt). */
   activeWeekPlan?: unknown[] | null;
+  /** Heutiges oder nächstes Gericht für Headline/Subtext (aus activeWeekPlan ermittelt). */
+  todayMealSpotlight?: TodayMealSpotlight | null;
   /** Klick auf die aktive-Woche-Karte: öffnet active-view. */
   onAktiveWocheAnsehen?: () => void;
 };
@@ -27,7 +38,7 @@ const cardClass =
   'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full';
 
 export function GourmetCockpit(props: GourmetCockpitProps) {
-  const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null, onAktiveWocheAnsehen } = props;
+  const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null, todayMealSpotlight = null, onAktiveWocheAnsehen } = props;
   return (
     <div className="min-h-screen w-full relative overflow-x-visible bg-white">
       <DashboardShell
@@ -149,20 +160,39 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
 
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   {/* Linke Seite: Infos zum aktuellen Tag/Gericht */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-3 flex-wrap">
                       <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-white/10">
                         Aktive Woche
                       </span>
-                      <span className="text-orange-100 text-sm font-medium">Tag 3 • Abendessen</span>
+                      {todayMealSpotlight ? (
+                        <span className="text-orange-100 text-sm font-medium">
+                          {todayMealSpotlight.isTomorrow ? 'Morgen' : todayMealSpotlight.dayLabel} • {todayMealSpotlight.mealTypeLabel}
+                        </span>
+                      ) : (
+                        <span className="text-orange-100 text-sm font-medium">Diese Woche geplant</span>
+                      )}
                     </div>
 
-                    <h2 className="font-extrabold text-2xl md:text-3xl mb-2 tracking-tight leading-tight">
-                      Lachs aus dem Ofen
-                    </h2>
-                    <p className="text-orange-50 font-medium opacity-90">
-                      Mit Ofengemüse und Rosmarinkartoffeln
-                    </p>
+                    {todayMealSpotlight ? (
+                      <>
+                        <h2 className="font-extrabold text-2xl md:text-3xl mb-2 tracking-tight leading-tight truncate">
+                          {todayMealSpotlight.title}
+                        </h2>
+                        <p className="text-orange-50 font-medium opacity-90 line-clamp-2">
+                          {todayMealSpotlight.subtext}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h2 className="font-extrabold text-2xl md:text-3xl mb-2 tracking-tight leading-tight">
+                          Heute steht nichts auf dem Plan
+                        </h2>
+                        <p className="text-orange-50 font-medium opacity-90">
+                          Klicke hier, um deine Woche zu sehen oder einen neuen Plan zu erstellen.
+                        </p>
+                      </>
+                    )}
                   </div>
 
                   {/* Rechte Seite: Action-Buttons */}

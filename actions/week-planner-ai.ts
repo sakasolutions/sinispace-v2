@@ -318,9 +318,6 @@ export async function saveWeeklyPlan(
       return { success: false, error: res.error };
     }
 
-    // Künstlicher Delay für Frontend-Testing der Raketen-Animation (später entfernen)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     return { success: true };
   } catch (error) {
     console.error('Fehler beim Speichern & Kalender-Sync:', error);
