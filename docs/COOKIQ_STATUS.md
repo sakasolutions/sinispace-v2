@@ -96,7 +96,7 @@ Alle vier nutzen **Glass-Design** (`cardClass` + `CARD_STYLE` in `gourmet-cockpi
 | **generateWeekDraft** | week-planner-ai.ts | KI (gpt-4o-mini) erzeugt 7-Tage-Plan (Titel, Zeit, Kalorien pro Mahlzeit). Premium-Check. |
 | **regenerateSingleMealDraft** | week-planner-ai.ts | Ersetzt ein Gericht im Entwurf (Re-Roll). |
 | **saveWeeklyPlan** | week-planner-ai.ts | Berechnet nächsten Montag, baut `planData`, ruft **saveWeeklyPlanToCalendar** auf; 2 s Delay. |
-| **saveWeeklyPlan** | calendar-actions.ts | Löscht Meal-Events im Datumsbereich, erstellt neue `CalendarEvent` (eventType: 'meal', title, date, time, mealType, resultId optional). |
+| **saveWeeklyPlan** | calendar-actions.ts | Löscht Meal-Events im Datumsbereich, erstellt neue `CalendarEvent` (eventType: 'meal', title, date, time, mealType, resultId optional, **imageUrl** optional). |
 | **generateAndSaveFullRecipe** | week-planner-ai.ts | Aus Titel/Kalorien/Zeit: KI erzeugt volles Rezept (recipeName, stats, ingredients, shoppingList, instructions, chefTip, categoryIcon), **saveResult** (toolId 'recipe', toolName 'CookIQ'). Gibt `{ success, recipe, resultId }` zurück. |
 | **generateMasterShoppingList** | week-planner-ai.ts | KI erzeugt aus allen Gerichtstiteln + Kalorien eine aggregierte Einkaufsliste (items[]), speichert in **UserShoppingLists** via getShoppingLists/appendToList/saveShoppingLists. |
 | **generateRecipe** | recipe-ai.ts | Klassischer Rezept-Generator (Zutaten/Wunsch, Kategorie, Filter), speichert Result, optional Helper-Chat, Unsplash-Bild. |
@@ -111,7 +111,7 @@ Alle vier nutzen **Glass-Design** (`cardClass` + `CARD_STYLE` in `gourmet-cockpi
 | **Aktiver Wochenplan (nach Finalisieren)** | Client (`activeWeekPlan`) + **Kalender** | Kalender: `CalendarEvent` (DB). `activeWeekPlan` wird **nicht** in DB (z. B. WeeklyPlan) geschrieben; Kommentar in saveWeeklyPlan: „optional“. Nach Reload ist die Cockpit-Karte „Aktive Woche“ leer. |
 | **Rezepte (Sammlung)** | **Result** (Workspace), User zugeordnet | toolId 'recipe', toolName 'CookIQ'. Über getWorkspaceResults/getResultById abrufbar. |
 | **Einkaufsliste (SmartCart)** | **UserShoppingLists** (listsJson) | Pro User eine Zeile; JSON-Array von Listen mit Items. |
-| **Kalender-Mahlzeiten** | **CalendarEvent** (eventType 'meal') | date, time, title, mealType, recipeId/resultId (optional). |
+| **Kalender-Mahlzeiten** | **CalendarEvent** (eventType 'meal') | date, time, title, mealType, recipeId/resultId (optional), **imageUrl** (optional, Vorschau/Unsplash). |
 
 ---
 

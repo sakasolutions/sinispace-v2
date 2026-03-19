@@ -26,23 +26,23 @@ model User {
   isAdmin Boolean @default(false)
 
   // Relationen
-  accounts            Account[]
-  sessions            Session[]
-  chats               Chat[]
-  documents           Document[]
-  passwordResetTokens PasswordResetToken[]
-  userActivities      UserActivity[]
-  featureUsages       FeatureUsage[]
-  feedbacks           Feedback[]
-  tokenUsages         TokenUsage[]
-  workspaces          Workspace[]
-  results             Result[]
-  mealPreferences         MealPreferences?
-  weeklyPlans             WeeklyPlan[]
-  userShoppingLists       UserShoppingLists?
+  accounts                  Account[]
+  sessions                  Session[]
+  chats                     Chat[]
+  documents                 Document[]
+  passwordResetTokens       PasswordResetToken[]
+  userActivities            UserActivity[]
+  featureUsages             FeatureUsage[]
+  feedbacks                 Feedback[]
+  tokenUsages               TokenUsage[]
+  workspaces                Workspace[]
+  results                   Result[]
+  mealPreferences           MealPreferences?
+  weeklyPlans               WeeklyPlan[]
+  userShoppingLists         UserShoppingLists?
   shoppingListFrequentItems ShoppingListFrequentItem[]
-  userCalendar            UserCalendar?
-  calendarEvents          CalendarEvent[]
+  userCalendar              UserCalendar?
+  calendarEvents            CalendarEvent[]
 }
 
 model Account {
@@ -76,7 +76,7 @@ model Session {
 model Chat {
   id          String   @id @default(cuid())
   userId      String
-  workspaceId String?  // Optional: Workspace-Zuordnung
+  workspaceId String? // Optional: Workspace-Zuordnung
   title       String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -153,10 +153,10 @@ model LoginAttempt {
 model UserActivity {
   id        String   @id @default(cuid())
   userId    String
-  action    String   // z.B. 'page_view', 'feature_used', 'tool_opened'
-  page      String?  // Welche Seite/Route
-  feature   String?  // Welches Feature/Tool
-  metadata  String?  // JSON-String für zusätzliche Daten
+  action    String // z.B. 'page_view', 'feature_used', 'tool_opened'
+  page      String? // Welche Seite/Route
+  feature   String? // Welches Feature/Tool
+  metadata  String? // JSON-String für zusätzliche Daten
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
@@ -173,11 +173,11 @@ model UserActivity {
 model FeatureUsage {
   id        String   @id @default(cuid())
   userId    String
-  feature   String   // Tool-Name oder Feature-Name
-  category  String?  // Kategorie (z.B. 'Büro & Organisation')
-  duration  Int?     // Nutzungsdauer in Sekunden (optional)
+  feature   String // Tool-Name oder Feature-Name
+  category  String? // Kategorie (z.B. 'Büro & Organisation')
+  duration  Int? // Nutzungsdauer in Sekunden (optional)
   success   Boolean  @default(true) // War die Nutzung erfolgreich?
-  metadata  String?  // JSON-String für zusätzliche Daten
+  metadata  String? // JSON-String für zusätzliche Daten
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -192,11 +192,11 @@ model FeatureUsage {
 model Feedback {
   id        String   @id @default(cuid())
   userId    String
-  toolId    String   // z.B. 'email', 'excel', 'legal'
-  toolName  String   // z.B. 'E-Mail Verfasser', 'Excel-Coach'
-  resultId  String?  // Optional: ID des generierten Ergebnisses
-  type      String   // 'positive' oder 'negative'
-  metadata  String?  // JSON-String für zusätzliche Daten (z.B. Kommentar)
+  toolId    String // z.B. 'email', 'excel', 'legal'
+  toolName  String // z.B. 'E-Mail Verfasser', 'Excel-Coach'
+  resultId  String? // Optional: ID des generierten Ergebnisses
+  type      String // 'positive' oder 'negative'
+  metadata  String? // JSON-String für zusätzliche Daten (z.B. Kommentar)
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -211,13 +211,13 @@ model Feedback {
 model TokenUsage {
   id               String   @id @default(cuid())
   userId           String
-  toolId           String   // z.B. 'email', 'excel', 'chat'
-  toolName         String   // z.B. 'E-Mail Verfasser', 'Excel-Coach'
-  model            String   // z.B. 'gpt-4o-mini', 'gpt-4o'
-  promptTokens     Int      // Input-Tokens
-  completionTokens Int      // Output-Tokens
-  totalTokens      Int      // Gesamt-Tokens
-  estimatedCost    Float    // Geschätzte Kosten in USD
+  toolId           String // z.B. 'email', 'excel', 'chat'
+  toolName         String // z.B. 'E-Mail Verfasser', 'Excel-Coach'
+  model            String // z.B. 'gpt-4o-mini', 'gpt-4o'
+  promptTokens     Int // Input-Tokens
+  completionTokens Int // Output-Tokens
+  totalTokens      Int // Gesamt-Tokens
+  estimatedCost    Float // Geschätzte Kosten in USD
   createdAt        DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -232,8 +232,8 @@ model Workspace {
   id         String   @id @default(cuid())
   userId     String
   name       String
-  icon       String?  // Icon-Name (z.B. 'Briefcase', 'Plane')
-  color      String?  // Farbe (z.B. 'blue', 'green')
+  icon       String? // Icon-Name (z.B. 'Briefcase', 'Plane')
+  color      String? // Farbe (z.B. 'blue', 'green')
   isArchived Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -252,18 +252,18 @@ model Workspace {
 model Result {
   id          String   @id @default(cuid())
   userId      String
-  workspaceId String?  // Optional: Workspace-Zuordnung
-  toolId      String   // z.B. 'email', 'recipe', 'fitness'
-  toolName    String   // z.B. 'E-Mail Verfasser', 'Gourmet-Planer'
-  title       String?  // Optional: Titel des Ergebnisses
-  content     String   // JSON oder Text des Ergebnisses
-  metadata    String?  // JSON-String für zusätzliche Daten
+  workspaceId String? // Optional: Workspace-Zuordnung
+  toolId      String // z.B. 'email', 'recipe', 'fitness'
+  toolName    String // z.B. 'E-Mail Verfasser', 'Gourmet-Planer'
+  title       String? // Optional: Titel des Ergebnisses
+  content     String // JSON oder Text des Ergebnisses
+  metadata    String? // JSON-String für zusätzliche Daten
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relationen
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace      Workspace?      @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
   calendarEvents CalendarEvent[]
 
   @@index([userId, createdAt])
@@ -276,14 +276,15 @@ model Result {
 model CalendarEvent {
   id        String   @id @default(cuid())
   userId    String
-  date      String   // YYYY-MM-DD
-  time      String   // HH:mm
-  eventType String   // 'meal' | später custom types
+  date      String // YYYY-MM-DD
+  time      String // HH:mm
+  eventType String // 'meal' | später custom types
   title     String?
-  recipeId  String?  // Legacy/optional
-  resultId  String?  // Verknüpfung zum Rezept (Result)
-  mealType  String?  // 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  recipeId  String? // Legacy/optional
+  resultId  String? // Verknüpfung zum Rezept (Result)
+  mealType  String? // 'breakfast' | 'lunch' | 'dinner' | 'snack'
   servings  Int?
+  imageUrl  String? // Unsplash / Vorschaubild (CookIQ Wochenplan)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -297,19 +298,19 @@ model CalendarEvent {
 
 // Meal Preferences: User-Präferenzen für Wochenplaner (Premium)
 model MealPreferences {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  dietType        String?  // z.B. 'vegetarisch', 'vegan', 'low-carb', 'high-protein', 'keine'
-  allergies       String?  // JSON-Array: ['Nüsse', 'Gluten', 'Laktose']
-  householdSize   Int      @default(2) // Anzahl Personen
-  budgetRange     String?  // 'low' (30€), 'medium' (50€), 'high' (80€)
-  mealTypes       String?  // JSON-Array: ['abendessen', 'lunch', 'frühstück']
-  mealPrep        Boolean  @default(false) // Meal-Prep gewünscht?
-  cookingLevel    String?  // 'anfänger' (15 Min), 'fortgeschritten' (30 Min), 'profi' (60+ Min)
-  preferredCuisines String? // JSON-Array: ['mediterran', 'asiatisch', 'deutsch']
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  dietType            String? // z.B. 'vegetarisch', 'vegan', 'low-carb', 'high-protein', 'keine'
+  allergies           String? // JSON-Array: ['Nüsse', 'Gluten', 'Laktose']
+  householdSize       Int      @default(2) // Anzahl Personen
+  budgetRange         String? // 'low' (30€), 'medium' (50€), 'high' (80€)
+  mealTypes           String? // JSON-Array: ['abendessen', 'lunch', 'frühstück']
+  mealPrep            Boolean  @default(false) // Meal-Prep gewünscht?
+  cookingLevel        String? // 'anfänger' (15 Min), 'fortgeschritten' (30 Min), 'profi' (60+ Min)
+  preferredCuisines   String? // JSON-Array: ['mediterran', 'asiatisch', 'deutsch']
   dislikedIngredients String? // JSON-Array: ['Pilze', 'Oliven']
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -318,17 +319,17 @@ model MealPreferences {
 
 // Weekly Plan: Gespeicherte Wochenpläne mit Feedback
 model WeeklyPlan {
-  id              String   @id @default(cuid())
-  userId          String
-  workspaceId     String?
-  weekStart       DateTime // Montag der Woche
-  weekEnd         DateTime // Sonntag der Woche
-  planData        String   // JSON: { '2025-01-27': { recipeId, resultId, feedback: 'positive'|'negative'|null } }
-  budgetEstimate  Float?   // Geschätzte Kosten für die Woche
-  totalFeedback   Int      @default(0) // Anzahl positiver Feedbacks
-  autoPlanned     Boolean  @default(false) // Wurde automatisch geplant?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  userId         String
+  workspaceId    String?
+  weekStart      DateTime // Montag der Woche
+  weekEnd        DateTime // Sonntag der Woche
+  planData       String // JSON: { '2025-01-27': { recipeId, resultId, feedback: 'positive'|'negative'|null } }
+  budgetEstimate Float? // Geschätzte Kosten für die Woche
+  totalFeedback  Int      @default(0) // Anzahl positiver Feedbacks
+  autoPlanned    Boolean  @default(false) // Wurde automatisch geplant?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
@@ -343,7 +344,7 @@ model WeeklyPlan {
 model UserShoppingLists {
   id        String   @id @default(cuid())
   userId    String   @unique
-  listsJson String   // JSON: ShoppingList[] (id, name, items)
+  listsJson String // JSON: ShoppingList[] (id, name, items)
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -367,7 +368,7 @@ model UserCalendar {
 model ShoppingListFrequentItem {
   id         String   @id @default(cuid())
   userId     String
-  itemLabel  String   // normalisierter Anzeigename (z.B. "Milch", "Eier")
+  itemLabel  String // normalisierter Anzeigename (z.B. "Milch", "Eier")
   usageCount Int      @default(1)
   lastUsedAt DateTime @updatedAt
 

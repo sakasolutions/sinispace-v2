@@ -402,6 +402,10 @@ export async function saveWeeklyPlan(
         date: dateStr,
         title: meal.title || 'Gericht',
         mealType: meal.type,
+        imageUrl:
+          meal.imageUrl && String(meal.imageUrl).trim().length > 0
+            ? String(meal.imageUrl).trim()
+            : null,
       }));
     });
 

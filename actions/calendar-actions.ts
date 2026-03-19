@@ -399,6 +399,7 @@ export type WeeklyPlanEntry = {
   resultId?: string | null; // Optional für Draft-Pläne (nur Titel im Kalender)
   title: string;
   mealType?: 'breakfast' | 'lunch' | 'dinner';
+  imageUrl?: string | null;
 };
 
 /**
@@ -426,6 +427,9 @@ function normalizeWeeklyPlanRow(
     typeof rid === 'string' && rid.length > 0 ? rid : null;
   const pid = entry.recipeId;
   const recipeId = typeof pid === 'string' && pid.length > 0 ? pid : null;
+  const img = entry.imageUrl;
+  const imageUrl =
+    typeof img === 'string' && img.trim().length > 0 ? img.trim() : null;
 
   return {
     userId,
@@ -436,6 +440,7 @@ function normalizeWeeklyPlanRow(
     recipeId,
     mealType,
     resultId,
+    imageUrl,
     // createMany setzt @default/@updatedAt oft nicht zuverlässig – explizit für NOT NULL in Prod
     createdAt: stamp,
     updatedAt: stamp,
@@ -502,6 +507,7 @@ export type RestoredWeekMeal = {
   title: string;
   time: string;
   calories: string;
+  imageUrl?: string | null;
 };
 
 /** Ein Tag im wiederhergestellten Wochenplan (Format wie WeekDraftDay). */
@@ -519,7 +525,13 @@ const WEEKDAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'
  * Bevorzugt die Woche, in der tatsächlich Events liegen (Speicherung erfolgt auf „nächste Woche“).
  */
 function groupEventsIntoWeekPlan(
-  events: { date: string; time: string | null; title: string | null; mealType: string | null }[],
+  events: {
+    date: string;
+    time: string | null;
+    title: string | null;
+    mealType: string | null;
+    imageUrl: string | null;
+  }[],
   weekStart: Date
 ): RestoredWeekDay[] {
   const plan: RestoredWeekDay[] = [];
@@ -530,11 +542,13 @@ function groupEventsIntoWeekPlan(
     const meals: RestoredWeekMeal[] = dayEvents.map((e) => {
       const mealType =
         e.mealType === 'breakfast' || e.mealType === 'lunch' || e.mealType === 'dinner' ? e.mealType : 'dinner';
+      const url = (e.imageUrl ?? '').trim();
       return {
         type: mealType,
         title: (e.title ?? '').trim() || 'Gericht',
         time: e.time ?? '—',
         calories: '—',
+        imageUrl: url.length > 0 ? url : null,
       };
     });
     plan.push({ day: WEEKDAY_NAMES[i], date: dateStr, meals });
@@ -575,7 +589,7 @@ export async function getCurrentWeekMeals(): Promise<GetCurrentWeekMealsResult> 
         date: { gte: queryFrom, lte: queryTo },
       },
       orderBy: [{ date: 'asc' }, { time: 'asc' }],
-      select: { date: true, time: true, title: true, mealType: true },
+      select: { date: true, time: true, title: true, mealType: true, imageUrl: true },
     });
 
     if (events.length === 0) {

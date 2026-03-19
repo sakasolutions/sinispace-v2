@@ -237,35 +237,41 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
 
   return (
     <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out pb-28">
-      {/* Mobil: großer Rezept-Header (Bild oder Platzhalter) + unterer Verlauf für Lesbarkeit bei Überlagerung */}
-      <div className="md:hidden w-screen max-w-[100vw] relative left-1/2 -translate-x-1/2 -mt-8 sm:-mt-10 mb-5 overflow-hidden">
-        <div className="relative w-full h-64 min-h-[16rem] overflow-hidden">
-          {heroImageUrl ? (
-            <img
-              src={heroImageUrl}
-              alt={recipe.recipeName}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : (
+      {/* Mobil: Rezeptbild als eigene „schwebende“ Karte unter dem Shell-Header (nicht randlos am Header) */}
+      <div className="md:hidden px-4 mt-6 mb-6">
+        <div className="mx-auto w-full max-w-5xl rounded-3xl bg-white/95 shadow-xl shadow-gray-900/10 border border-gray-100 ring-1 ring-black/[0.06] overflow-hidden">
+          <div className="relative w-full h-64 min-h-[16rem] overflow-hidden">
+            {heroImageUrl ? (
+              <img
+                src={heroImageUrl}
+                alt={recipe.recipeName}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <div
+                className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-rose-50 flex items-center justify-center"
+                aria-hidden
+              >
+                <UtensilsCrossed className="w-20 h-20 text-orange-200/90" strokeWidth={1.5} />
+              </div>
+            )}
             <div
-              className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-rose-50 flex items-center justify-center"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 via-black/25 to-transparent"
               aria-hidden
-            >
-              <UtensilsCrossed className="w-20 h-20 text-orange-200/90" strokeWidth={1.5} />
-            </div>
-          )}
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 via-black/25 to-transparent"
-            aria-hidden
-          />
+            />
+          </div>
         </div>
       </div>
 
       <div className="px-4 md:px-6">
-        {/* Desktop: großer Rezept-Header – immer sichtbar (Bild oder Messer/Gabel-Platzhalter) */}
-        <div className="hidden md:block relative w-full max-w-5xl mx-auto mb-6 rounded-[2rem] overflow-hidden h-64 shadow-2xl border border-white/30">
+        {/* Desktop: Rezeptbild als eigene Karte mit Abstand und Tiefe (wie Referenz „floating card“) */}
+        <div className="hidden md:block relative w-full max-w-5xl mx-auto mt-6 mb-8 h-64 rounded-3xl overflow-hidden bg-white/95 shadow-xl shadow-gray-900/10 border border-gray-100 ring-1 ring-black/[0.06]">
           {heroImageUrl ? (
-            <img src={heroImageUrl} alt={recipe.recipeName} className="absolute inset-0 w-full h-full object-cover" />
+            <img
+              src={heroImageUrl}
+              alt={recipe.recipeName}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
           ) : (
             <div
               className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-rose-50 flex items-center justify-center"
