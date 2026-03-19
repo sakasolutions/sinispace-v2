@@ -464,54 +464,72 @@ export type RestoredWeekMeal = {
 /** Ein Tag im wiederhergestellten Wochenplan (Format wie WeekDraftDay). */
 export type RestoredWeekDay = {
   day: string;
+  date: string;
   meals: RestoredWeekMeal[];
 };
 
 const WEEKDAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'] as const;
 
 /**
- * Liest alle CalendarEvent-Einträge der aktuellen Woche (Mo–So), eventType === 'meal',
- * und gibt sie im CookIQ-activeWeekPlan-Format zurück (für Wiederherstellung nach Reload).
+ * Liest alle CalendarEvent-Einträge mit eventType === 'meal' für aktuelle und nächste Woche,
+ * gruppiert sie nach Datum und mappt sie in das Format WeekDraftDay[] (activeWeekPlan).
+ * Bevorzugt die Woche, in der tatsächlich Events liegen (Speicherung erfolgt auf „nächste Woche“).
  */
+function groupEventsIntoWeekPlan(
+  events: { date: string; time: string | null; title: string | null; mealType: string | null }[],
+  weekStart: Date
+): RestoredWeekDay[] {
+  const plan: RestoredWeekDay[] = [];
+  for (let i = 0; i < 7; i++) {
+    const date = addDays(weekStart, i);
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dayEvents = events.filter((e) => e.date === dateStr);
+    const meals: RestoredWeekMeal[] = dayEvents.map((e) => {
+      const mealType =
+        e.mealType === 'breakfast' || e.mealType === 'lunch' || e.mealType === 'dinner' ? e.mealType : 'dinner';
+      return {
+        type: mealType,
+        title: (e.title ?? '').trim() || 'Gericht',
+        time: e.time ?? '—',
+        calories: '—',
+      };
+    });
+    plan.push({ day: WEEKDAY_NAMES[i], date: dateStr, meals });
+  }
+  return plan;
+}
+
 export async function getCurrentWeekMeals(): Promise<RestoredWeekDay[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
 
   try {
     const today = startOfDay(new Date());
-    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-    const weekEnd = addDays(weekStart, 6);
-    const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-    const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
+    const thisWeekStart = startOfWeek(today, { weekStartsOn: 1 });
+    const nextWeekStart = addDays(thisWeekStart, 7);
+    const nextWeekEnd = addDays(nextWeekStart, 6);
+    const thisWeekStartStr = format(thisWeekStart, 'yyyy-MM-dd');
+    const nextWeekEndStr = format(nextWeekEnd, 'yyyy-MM-dd');
 
     const events = await prisma.calendarEvent.findMany({
       where: {
         userId: session.user.id,
         eventType: 'meal',
-        date: { gte: weekStartStr, lte: weekEndStr },
+        date: { gte: thisWeekStartStr, lte: nextWeekEndStr },
       },
       orderBy: [{ date: 'asc' }, { time: 'asc' }],
       select: { date: true, time: true, title: true, mealType: true },
     });
 
+    console.log('[CALENDAR] getCurrentWeekMeals: DB Events:', events.length, events.length ? events : '(leer)');
     if (events.length === 0) return [];
 
-    const plan: RestoredWeekDay[] = [];
-    for (let i = 0; i < 7; i++) {
-      const dateStr = format(addDays(weekStart, i), 'yyyy-MM-dd');
-      const dayEvents = events.filter((e) => e.date === dateStr);
-      const meals: RestoredWeekMeal[] = dayEvents.map((e) => {
-        const mealType =
-          e.mealType === 'breakfast' || e.mealType === 'lunch' || e.mealType === 'dinner' ? e.mealType : 'dinner';
-        return {
-          type: mealType,
-          title: e.title?.trim() || 'Gericht',
-          time: e.time || '—',
-          calories: '—',
-        };
-      });
-      plan.push({ day: WEEKDAY_NAMES[i], meals });
-    }
+    const hasEventsInNextWeek = events.some((e) => e.date >= format(nextWeekStart, 'yyyy-MM-dd'));
+    const weekStart = hasEventsInNextWeek ? nextWeekStart : thisWeekStart;
+    const plan = groupEventsIntoWeekPlan(events, weekStart);
+
+    const hasAnyMeals = plan.some((d) => d.meals.length > 0);
+    if (!hasAnyMeals) return [];
 
     return plan;
   } catch (error) {
