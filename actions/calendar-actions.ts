@@ -499,41 +499,58 @@ function groupEventsIntoWeekPlan(
   return plan;
 }
 
-export async function getCurrentWeekMeals(): Promise<RestoredWeekDay[]> {
+/** Wie beim Speichern: „nächster Montag“ (Woche ab Mo, danach Mo–So). */
+export function getNextWeekRange() {
+  const today = startOfDay(new Date());
+  const thisMonday = startOfWeek(today, { weekStartsOn: 1 });
+  const nextMonday = thisMonday > today ? thisMonday : addDays(thisMonday, 7);
+  const nextSunday = addDays(nextMonday, 6);
+  return {
+    weekStart: nextMonday,
+    queryFrom: format(nextMonday, 'yyyy-MM-dd'),
+    queryTo: format(nextSunday, 'yyyy-MM-dd'),
+  };
+}
+
+export type GetCurrentWeekMealsResult = {
+  plan: RestoredWeekDay[];
+  queryFrom: string;
+  queryTo: string;
+};
+
+/**
+ * Liest CalendarEvent mit eventType === 'meal' für exakt denselben Zeitraum,
+ * in dem saveWeeklyPlan speichert: die kommende Woche (nächster Montag bis Sonntag).
+ */
+export async function getCurrentWeekMeals(): Promise<GetCurrentWeekMealsResult> {
   const session = await auth();
-  if (!session?.user?.id) return [];
+  if (!session?.user?.id) {
+    return { plan: [], queryFrom: '', queryTo: '' };
+  }
 
   try {
-    const today = startOfDay(new Date());
-    const thisWeekStart = startOfWeek(today, { weekStartsOn: 1 });
-    const nextWeekStart = addDays(thisWeekStart, 7);
-    const nextWeekEnd = addDays(nextWeekStart, 6);
-    const thisWeekStartStr = format(thisWeekStart, 'yyyy-MM-dd');
-    const nextWeekEndStr = format(nextWeekEnd, 'yyyy-MM-dd');
+    const { weekStart, queryFrom, queryTo } = getNextWeekRange();
 
     const events = await prisma.calendarEvent.findMany({
       where: {
         userId: session.user.id,
         eventType: 'meal',
-        date: { gte: thisWeekStartStr, lte: nextWeekEndStr },
+        date: { gte: queryFrom, lte: queryTo },
       },
       orderBy: [{ date: 'asc' }, { time: 'asc' }],
       select: { date: true, time: true, title: true, mealType: true },
     });
 
-    console.log('[CALENDAR] getCurrentWeekMeals: DB Events:', events.length, events.length ? events : '(leer)');
-    if (events.length === 0) return [];
+    if (events.length === 0) {
+      return { plan: [], queryFrom, queryTo };
+    }
 
-    const hasEventsInNextWeek = events.some((e) => e.date >= format(nextWeekStart, 'yyyy-MM-dd'));
-    const weekStart = hasEventsInNextWeek ? nextWeekStart : thisWeekStart;
     const plan = groupEventsIntoWeekPlan(events, weekStart);
-
     const hasAnyMeals = plan.some((d) => d.meals.length > 0);
-    if (!hasAnyMeals) return [];
-
-    return plan;
+    const result = hasAnyMeals ? plan : [];
+    return { plan: result, queryFrom, queryTo };
   } catch (error) {
     console.error('[CALENDAR] getCurrentWeekMeals:', error);
-    return [];
+    return { plan: [], queryFrom: '', queryTo: '' };
   }
 }

@@ -202,7 +202,9 @@ export default function RecipePage() {
   // Aktiven Wochenplan aus Kalender wiederherstellen (nach Reload)
   useEffect(() => {
     console.log('[CookIQ] Fetch gestartet: getCurrentWeekMeals');
-    getCurrentWeekMeals().then((plan) => {
+    getCurrentWeekMeals().then((result) => {
+      const { plan, queryFrom, queryTo } = result;
+      console.log('Gesuchtes Datum:', queryFrom || '(kein Zeitraum)', queryTo ? `– ${queryTo}` : '');
       console.log('[CookIQ] Gruppierter Plan:', plan);
       const hasEvents = Array.isArray(plan) && plan.length > 0 && plan.some((d) => d.meals?.length > 0);
       if (!hasEvents) return;
@@ -1521,6 +1523,9 @@ export default function RecipePage() {
                       try {
                         const res = await saveWeeklyPlan(weekDraft);
                         console.log('Antwort vom Backend:', res);
+                        if (res?.success && 'savedFrom' in res) {
+                          console.log('Gespeichertes Datum:', res.savedFrom, '–', res.savedTo);
+                        }
 
                         setActiveWeekPlan(weekDraft);
                         setIsWeekPlannerOpen(false);

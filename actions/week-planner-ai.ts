@@ -1,9 +1,9 @@
 'use server';
 
-import { addDays, format, startOfDay, startOfWeek } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
-import { saveWeeklyPlan as saveWeeklyPlanToCalendar } from '@/actions/calendar-actions';
+import { saveWeeklyPlan as saveWeeklyPlanToCalendar, getNextWeekRange } from '@/actions/calendar-actions';
 import { saveResult } from '@/actions/workspace-actions';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import { appendToList, defaultList } from '@/lib/shopping-lists-storage';
@@ -284,7 +284,7 @@ export async function generateAndSaveFullRecipe(
  */
 export async function saveWeeklyPlan(
   weekDraft: WeekDraftDay[]
-): Promise<{ success: true } | { success: false; error?: string }> {
+): Promise<{ success: true; savedFrom: string; savedTo: string } | { success: false; error?: string }> {
   const isAllowed = await isUserPremium();
   if (!isAllowed) {
     return { success: false, error: 'Premium-Feature. Bitte upgrade deinen Account.' };
@@ -295,16 +295,10 @@ export async function saveWeeklyPlan(
   }
 
   try {
-    // 1. Plan in der CookIQ-Datenbank speichern (optional, z. B. WeeklyPlan-Tabelle)
-    // await db.weeklyPlan.create({ data: { userId, weekStart: nextMonday, planData: JSON.stringify(weekDraft) } });
-
-    // 2. Kalender-Sync: Events für die kommende Woche anlegen (CalendarEvent)
-    const today = startOfDay(new Date());
-    const thisMonday = startOfWeek(today, { weekStartsOn: 1 });
-    const nextMonday = thisMonday > today ? thisMonday : addDays(thisMonday, 7);
+    const { weekStart, queryFrom: savedFrom, queryTo: savedTo } = getNextWeekRange();
 
     const planData = weekDraft.flatMap((dayObj, dayIndex) => {
-      const date = addDays(nextMonday, dayIndex);
+      const date = addDays(weekStart, dayIndex);
       const dateStr = format(date, 'yyyy-MM-dd');
       return (dayObj.meals ?? []).map((meal) => ({
         date: dateStr,
@@ -318,7 +312,7 @@ export async function saveWeeklyPlan(
       return { success: false, error: res.error };
     }
 
-    return { success: true };
+    return { success: true, savedFrom, savedTo };
   } catch (error) {
     console.error('Fehler beim Speichern & Kalender-Sync:', error);
     return { success: false, error: 'Konnte Plan nicht speichern.' };
