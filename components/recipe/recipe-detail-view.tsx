@@ -308,7 +308,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
                     </div>
                   </div>
                 ) : null}
-                <div className={cn('min-w-0 flex-1', heroImageUrl && 'w-full')}>
+                <div className={cn('min-w-0 flex-1', heroImageUrl ? 'w-full' : undefined)}>
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">
                     Generiert am {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </p>
@@ -347,7 +347,7 @@ export function RecipeDetailView({ recipe, resultId, createdAt, onBack, fromWeek
                   </div>
                 </div>
               ) : null}
-              <div className={cn('min-w-0 flex-1', heroImageUrl && 'w-full')}>
+              <div className={cn('min-w-0 flex-1', heroImageUrl ? 'w-full' : undefined)}>
                 <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
                   Generiert am {new Date(createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </p>
