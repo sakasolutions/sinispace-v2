@@ -283,7 +283,6 @@ model CalendarEvent {
   recipeId  String?  // Legacy/optional
   resultId  String?  // Verknüpfung zum Rezept (Result)
   mealType  String?  // 'breakfast' | 'lunch' | 'dinner' | 'snack'
-  isMeal    Boolean? @default(false)
   servings  Int?
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
