@@ -3,13 +3,6 @@
 import { generateTranslateWithChat } from '@/actions/ai-actions';
 import { useActionState } from 'react';
 import { useState, useEffect, useRef } from 'react';
-import { Merriweather } from 'next/font/google';
-
-const merriweather = Merriweather({
-  weight: ['400', '700'],
-  subsets: ['latin'],
-  variable: '--font-merriweather',
-});
 import {
   Copy,
   Loader2,
@@ -581,7 +574,7 @@ export default function TranslatePage() {
                         ))}
                       </div>
                     ) : (
-                      <div className={cn(merriweather.className, 'text-gray-900 text-[1.05rem] leading-relaxed')}>
+                      <div className={cn('font-merriweather text-gray-900 text-[1.05rem] leading-relaxed')}>
                         {(selectedAlternative !== null && parsed.alternatives[selectedAlternative]
                           ? parsed.alternatives[selectedAlternative]
                           : parsed.content_text)

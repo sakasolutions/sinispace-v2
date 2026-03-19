@@ -38,6 +38,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ['var(--font-plus-jakarta-sans)', ...defaultTheme.fontFamily.sans],
+        merriweather: ['Merriweather', 'Georgia', 'Times New Roman', 'serif'],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

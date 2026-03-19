@@ -1,19 +1,5 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-plus-jakarta-sans',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: 'Sinispace',
@@ -60,7 +46,7 @@ export default function RootLayout({
       WebkitTouchCallout: 'none',
       scrollBehavior: 'smooth',
     } as React.CSSProperties}>
-      <body className={`${inter.variable} bg-white ${plusJakartaSans.variable} ${plusJakartaSans.className} text-gray-900 antialiased tracking-tight relative`} style={{ 
+      <body className="font-sans bg-white text-gray-900 antialiased tracking-tight relative" style={{ 
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
         WebkitOverflowScrolling: 'touch',

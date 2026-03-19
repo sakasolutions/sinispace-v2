@@ -1,6 +1,20 @@
+/* Bundled fonts (offline-fähig – kein Build-Zugriff auf fonts.googleapis.com nötig) */
+@import '@fontsource-variable/plus-jakarta-sans/wght.css';
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource/merriweather/400.css';
+@import '@fontsource/merriweather/700.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --font-plus-jakarta-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-inter: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-merriweather: 'Merriweather', Georgia, 'Times New Roman', serif;
+  }
+}
 
 /* ============================================
    BACKUP: ORIGINAL STYLES (vor Design-Upgrade)
