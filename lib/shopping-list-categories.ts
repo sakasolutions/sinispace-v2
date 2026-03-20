@@ -17,6 +17,80 @@ export const SHOPPING_CATEGORIES = [
 export type ShoppingCategory = (typeof SHOPPING_CATEGORIES)[number];
 
 /**
+ * Mappt KI-/User-Strings auf eine gültige SmartCart-Kategorie (`SHOPPING_CATEGORIES`).
+ * Unbekannt → sonstiges.
+ */
+export function normalizeSmartCartCategory(raw: string | undefined | null): ShoppingCategory {
+  if (raw == null) return 'sonstiges';
+  const t = raw.trim().toLowerCase();
+  if (!t) return 'sonstiges';
+
+  const slug = t
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
+
+  if ((SHOPPING_CATEGORIES as readonly string[]).includes(t)) {
+    return t as ShoppingCategory;
+  }
+  if ((SHOPPING_CATEGORIES as readonly string[]).includes(slug)) {
+    return slug as ShoppingCategory;
+  }
+
+  const alias: Record<string, ShoppingCategory> = {
+    gemuese: 'obst_gemuese',
+    obst: 'obst_gemuese',
+    obstgemuese: 'obst_gemuese',
+    vegetable: 'obst_gemuese',
+    vegetables: 'obst_gemuese',
+    milch: 'kuhlregal',
+    milchprodukte: 'kuhlregal',
+    molkerei: 'kuhlregal',
+    kase: 'kuhlregal',
+    kaese: 'kuhlregal',
+    dairy: 'kuhlregal',
+    kuhl: 'kuhlregal',
+    kuhlregal: 'kuhlregal',
+    meat: 'fleisch',
+    fish: 'fleisch',
+    fisch: 'fleisch',
+    fleischfisch: 'fleisch',
+    wurst: 'fleisch',
+    bread: 'brot',
+    backwaren: 'brot',
+    backware: 'brot',
+    trocken: 'haushalt',
+    trockenprodukte: 'haushalt',
+    nudeln: 'haushalt',
+    reis: 'haushalt',
+    gewuerze: 'haushalt',
+    konserven: 'haushalt',
+    vorrat: 'haushalt',
+    drinks: 'getraenke',
+    drink: 'getraenke',
+    getraenk: 'getraenke',
+    party: 'getraenke',
+    frozen: 'tiefkuhl',
+    tk: 'tiefkuhl',
+    tiefkuehl: 'tiefkuhl',
+    tiefkhl: 'tiefkuhl',
+    misc: 'sonstiges',
+    other: 'sonstiges',
+    diverses: 'sonstiges',
+    sonstig: 'sonstiges',
+    sonstiges: 'sonstiges',
+  };
+
+  const fromAlias = alias[t] ?? alias[slug];
+  if (fromAlias) return fromAlias;
+
+  return 'sonstiges';
+}
+
+/**
  * Supermarkt-Route: fixe Reihenfolge wie typischer Laufweg im Laden.
  * Obst & Gemüse immer ganz oben (gesunder Start), TK ganz am Ende (Schmelzgefahr).
  * Unbekannte Kategorien landen vor 'sonstiges'.

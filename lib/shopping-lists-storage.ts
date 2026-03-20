@@ -3,7 +3,17 @@
  * Used by /tools/shopping-list and AddToShoppingListModal (Gourmet-Planer).
  */
 
+import { normalizeSmartCartCategory } from '@/lib/shopping-list-categories';
+
 export const SHOPPING_LISTS_STORAGE_KEY = 'sinispace-shopping-lists';
+
+/** Eintrag für Pantry → SmartCart (Text + Kategorie + optionale Mengenfelder). */
+export type StructuredShoppingAppendItem = {
+  text: string;
+  category?: string | null;
+  quantity?: number | null;
+  unit?: string | null;
+};
 
 export type ShoppingItem = {
   id: string;
@@ -71,4 +81,55 @@ export function appendToList(
     i === idx ? { ...l, items: [...l.items, ...newItems] } : l
   );
   return { lists: next, listName, appendedCount: trimmed.length };
+}
+
+/**
+ * Wie appendToList, aber mit Kategorie (SmartCart-Schlüssel) und optional quantity/unit pro Item.
+ */
+export function appendStructuredItemsToList(
+  lists: ShoppingList[],
+  listId: string,
+  items: StructuredShoppingAppendItem[],
+  newListName?: string
+): { lists: ShoppingList[]; listName: string; appendedCount: number } {
+  const valid = items
+    .map((i) => ({
+      ...i,
+      text: typeof i.text === 'string' ? i.text.trim() : '',
+    }))
+    .filter((i) => i.text.length > 0);
+  if (valid.length === 0) return { lists, listName: '', appendedCount: 0 };
+
+  const buildShoppingItems = (): ShoppingItem[] =>
+    valid.map((i) => ({
+      id: generateId(),
+      text: i.text,
+      checked: false,
+      category: normalizeSmartCartCategory(i.category ?? undefined),
+      quantity: i.quantity ?? null,
+      unit: i.unit != null && String(i.unit).trim() ? String(i.unit).trim() : null,
+    }));
+
+  let next = [...lists];
+  let listName: string;
+
+  if (listId === '__new__') {
+    const name = (newListName?.trim() || 'Neue Liste').slice(0, 80);
+    const created: ShoppingList = {
+      id: generateId(),
+      name,
+      items: buildShoppingItems(),
+    };
+    next = [...next, created];
+    listName = name;
+    return { lists: next, listName, appendedCount: valid.length };
+  }
+
+  const idx = next.findIndex((l) => l.id === listId);
+  if (idx < 0) return { lists, listName: '', appendedCount: 0 };
+
+  listName = next[idx].name;
+  const newItems = buildShoppingItems();
+  next = next.map((l, i) => (i === idx ? { ...l, items: [...l.items, ...newItems] } : l));
+  return { lists: next, listName, appendedCount: valid.length };
 }

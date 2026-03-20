@@ -10,6 +10,7 @@ import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-act
 import { appendToList, defaultList } from '@/lib/shopping-lists-storage';
 import { auth } from '@/auth';
 import { fetchUnsplashImageForRecipe } from '@/lib/unsplash-recipe-image';
+import { normalizeSmartCartCategory, SHOPPING_CATEGORIES } from '@/lib/shopping-list-categories';
 import { z } from 'zod';
 
 export type WeekDraftMeal = {
@@ -32,7 +33,11 @@ const ENGLISH_UNSPLASH_RULE = 'NUR das Feld imageSearchQuery bzw. Unsplash-Suchp
 const SmartShoppingIngredientSchema = z.object({
   item: z.string().min(1),
   amount: z.string().min(1),
-  category: z.string().min(1),
+  /** SmartCart-Schlüssel (snake_case); Rohstring von der KI → normalisiert. */
+  category: z
+    .string()
+    .min(1)
+    .transform((s) => normalizeSmartCartCategory(s)),
 });
 
 const SmartShoppingOutputSchema = z.object({
@@ -467,6 +472,8 @@ export async function generateSmartShoppingList(
     return { success: false, error: 'Bitte mindestens einen Gerichtstitel übergeben.' };
   }
 
+  const allowedCategories = [...SHOPPING_CATEGORIES].join(', ');
+
   const systemPrompt = `You are a smart grocery planner.
 The user will provide an array of meal titles for the upcoming week.
 
@@ -474,14 +481,18 @@ Generate a consolidated grocery list needed to cook all these meals.
 Combine amounts if ingredients overlap.
 
 CRITICAL: Ignore absolute basics (salt, pepper, tap water, basic frying oil).
-Categorize items logically (e.g., "Gemüse", "Fleisch", "Milchprodukte", "Trockenprodukte").
 
-IMPORTANT: ALL user-facing text, including item names, amounts and categories, MUST be generated EXCLUSIVELY in the German language.
+LANGUAGE:
+- "item" and "amount" MUST be in German (e.g. item "Hähnchenbrust", amount "500 g" or "2 Stk").
+- "category" MUST NOT be German text. It MUST be EXACTLY one of these snake_case keys (copy verbatim, no other strings):
+  ${allowedCategories}
+
+You MUST categorize every ingredient using ONLY one of the exact category strings above. Do not invent new categories. If unsure, pick the closest valid key (e.g. dry pasta → haushalt, yogurt → kuhlregal, frozen peas → tiefkuhl).
 
 Return ONLY valid JSON with exactly this shape:
 {
   "ingredients": [
-    { "item": "Zutat auf Deutsch", "amount": "Menge auf Deutsch", "category": "Kategorie auf Deutsch" }
+    { "item": "…", "amount": "…", "category": "obst_gemuese" }
   ]
 }`;
 
@@ -521,9 +532,9 @@ Return ONLY valid JSON with exactly this shape:
       .map((ing) => ({
         item: ing.item.trim(),
         amount: ing.amount.trim(),
-        category: ing.category.trim(),
+        category: normalizeSmartCartCategory(ing.category),
       }))
-      .filter((ing) => ing.item.length > 0 && ing.amount.length > 0 && ing.category.length > 0);
+      .filter((ing) => ing.item.length > 0 && ing.amount.length > 0);
 
     if (ingredients.length === 0) {
       return { success: false, error: 'Keine verwertbaren Zutaten in der KI-Antwort.' };

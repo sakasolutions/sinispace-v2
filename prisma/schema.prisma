@@ -344,7 +344,7 @@ model WeeklyPlan {
 model UserShoppingLists {
   id        String   @id @default(cuid())
   userId    String   @unique
-  listsJson String // JSON: ShoppingList[] (id, name, items)
+  listsJson String // JSON: ShoppingList[] — items: { id, text, checked, category?, quantity?, unit? }; category = SmartCart-Schlüssel (obst_gemuese|kuhlregal|fleisch|brot|haushalt|getraenke|tiefkuhl|sonstiges), siehe lib/shopping-list-categories.ts
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

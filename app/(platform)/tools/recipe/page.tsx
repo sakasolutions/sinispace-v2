@@ -36,7 +36,9 @@ import {
 } from '@/actions/week-planner-ai';
 import { getCurrentWeekMeals } from '@/actions/calendar-actions';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
-import { appendToList, defaultList, type ShoppingList } from '@/lib/shopping-lists-storage';
+import { appendStructuredItemsToList, defaultList, type ShoppingList } from '@/lib/shopping-lists-storage';
+import { parseIngredient, formatIngredientDisplay } from '@/lib/format-ingredient';
+import { getCategoryLabel, normalizeSmartCartCategory, sortCategoriesBySupermarktRoute } from '@/lib/shopping-list-categories';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
 const PANTRY_NEW_LIST_VALUE = '__new__';
@@ -297,12 +299,13 @@ export default function RecipePage() {
   const groupedPantryByCategory = useMemo(() => {
     const m = new Map<string, { row: (typeof groceryList)[number]; index: number }[]>();
     groceryList.forEach((row, index) => {
-      const cat = row.category?.trim() || 'Sonstiges';
+      const cat = normalizeSmartCartCategory(row.category);
       const arr = m.get(cat) ?? [];
       arr.push({ row, index });
       m.set(cat, arr);
     });
-    return Array.from(m.entries());
+    const keys = sortCategoriesBySupermarktRoute([...m.keys()]);
+    return keys.map((k) => [k, m.get(k)!] as const);
   }, [groceryList]);
 
   const pantryCheckedCount = useMemo(() => groceryList.filter((g) => g.checked).length, [groceryList]);
@@ -1815,7 +1818,13 @@ export default function RecipePage() {
                       const res = await generateSmartShoppingList(titles);
                       setIsGeneratingGroceries(false);
                       if (res.success) {
-                        setGroceryList(res.ingredients.map((i) => ({ ...i, checked: true })));
+                        setGroceryList(
+                          res.ingredients.map((i) => ({
+                            ...i,
+                            category: normalizeSmartCartCategory(i.category),
+                            checked: true,
+                          }))
+                        );
                       } else {
                         setIsPantryModalOpen(false);
                         setAddToListToast({ message: res.error || 'Einkaufsliste konnte nicht erstellt werden.' });
@@ -2061,7 +2070,7 @@ export default function RecipePage() {
                     {groupedPantryByCategory.map(([category, entries]) => (
                       <div key={category}>
                         <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 px-0.5">
-                          {category}
+                          {getCategoryLabel(category)}
                         </h3>
                         <ul className="space-y-2">
                           {entries.map(({ row, index }) => (
@@ -2141,10 +2150,17 @@ export default function RecipePage() {
                   onClick={async () => {
                     const checked = groceryList.filter((g) => g.checked);
                     if (checked.length === 0) return;
-                    const lines = checked.map((g) => {
+                    const structured = checked.map((g) => {
                       const a = g.amount.trim();
                       const n = g.item.trim();
-                      return a ? `${a} ${n}`.replace(/\s+/g, ' ').trim() : n;
+                      const line = a ? `${a} ${n}`.replace(/\s+/g, ' ').trim() : n;
+                      const parsed = parseIngredient(line);
+                      return {
+                        text: formatIngredientDisplay(line),
+                        category: normalizeSmartCartCategory(g.category),
+                        quantity: parsed.amount,
+                        unit: parsed.unit ? parsed.unit.trim() || null : null,
+                      };
                     });
                     setIsSavingPantryToSmartCart(true);
                     try {
@@ -2152,10 +2168,10 @@ export default function RecipePage() {
                         pantrySelectedListId === PANTRY_NEW_LIST_VALUE
                           ? PANTRY_NEW_LIST_VALUE
                           : pantrySelectedListId;
-                      const { lists: next, listName, appendedCount } = appendToList(
+                      const { lists: next, listName, appendedCount } = appendStructuredItemsToList(
                         pantrySmartCartLists,
                         listId,
-                        lines,
+                        structured,
                         pantrySelectedListId === PANTRY_NEW_LIST_VALUE
                           ? pantryNewListName.trim() || undefined
                           : undefined
