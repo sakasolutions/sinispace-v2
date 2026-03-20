@@ -31,6 +31,68 @@ import { generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan, generateA
 import { getCurrentWeekMeals } from '@/actions/calendar-actions';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
+/** API-/State-Wert für schnelle Küche (Schritt 1), wird in effectiveWeekPlannerFilters gemerged */
+const WEEK_PLANNER_TIME_FILTER = '⏱️ Unter 30 Min';
+
+type WeekPlannerChipGroup = 'green' | 'blue' | 'orange' | 'neutral';
+
+type WeekPlannerFilterChip = {
+  value: string;
+  emoji: string;
+  label: string;
+  group: WeekPlannerChipGroup;
+};
+
+const WEEK_PLANNER_DIET_CHIPS: WeekPlannerFilterChip[] = [
+  { value: '🥬 Vegetarisch', emoji: '🥬', label: 'Vegetarisch', group: 'green' },
+  { value: '🌱 Vegan', emoji: '🌱', label: 'Vegan', group: 'green' },
+  { value: '🐟 Pescetarisch', emoji: '🐟', label: 'Pescetarisch', group: 'blue' },
+  { value: '💪 High Protein', emoji: '💪', label: 'High Protein', group: 'orange' },
+  { value: '🥦 Low Carb', emoji: '🥦', label: 'Low Carb', group: 'orange' },
+  { value: '🚫 Glutenfrei', emoji: '🚫', label: 'Glutenfrei', group: 'neutral' },
+];
+
+const WEEK_PLANNER_VIBE_CHIPS: WeekPlannerFilterChip[] = [
+  { value: '👨‍👩‍👧 Familienfreundlich', emoji: '👨‍👩‍👧', label: 'Familienfreundlich', group: 'neutral' },
+  { value: '💰 Günstig', emoji: '💰', label: 'Günstig', group: 'neutral' },
+];
+
+function weekPlannerFilterChipClassNames(group: WeekPlannerChipGroup, selected: boolean): string {
+  const base =
+    'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200';
+  switch (group) {
+    case 'green':
+      return cn(
+        base,
+        selected
+          ? 'bg-green-100 text-green-900 border-2 border-green-400 shadow-sm'
+          : 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100/70 hover:border-green-300'
+      );
+    case 'blue':
+      return cn(
+        base,
+        selected
+          ? 'bg-blue-100 text-blue-900 border-2 border-blue-400 shadow-sm'
+          : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100/70 hover:border-blue-300'
+      );
+    case 'orange':
+      return cn(
+        base,
+        selected
+          ? 'bg-orange-100 text-orange-900 border-2 border-orange-400 shadow-sm'
+          : 'bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100/70 hover:border-orange-300'
+      );
+    case 'neutral':
+    default:
+      return cn(
+        base,
+        selected
+          ? 'bg-slate-200 text-slate-900 border-2 border-slate-400 shadow-sm'
+          : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+      );
+  }
+}
+
 /** Erweiterter Rezept-Typ (CookIQ Tier 1: Makros, SmartCart-Trennung). Kompatibel mit RecipeDetailView. */
 type Recipe = RecipeDetailRecipe & {
   /** Von der KI gesetzt: pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast */
@@ -178,16 +240,20 @@ export default function RecipePage() {
   const [isGeneratingSmartCart, setIsGeneratingSmartCart] = useState(false);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const [rollingMealId, setRollingMealId] = useState<string | null>(null);
+  /** 3-Schritte-Assistent nur in Phase „setup“ des Wochenplan-Modals (nicht mit Rezept-Wizard `wizardStep` verwechseln). */
+  const [weekPlannerSetupStep, setWeekPlannerSetupStep] = useState<1 | 2 | 3>(1);
+  /** Schritt 1: Zeitpräferenz → wird mit `⏱️ Unter 30 Min` in die API-Filter gemerged. */
+  const [weekTimePreference, setWeekTimePreference] = useState<'quick' | 'normal'>('normal');
   const router = useRouter();
 
-  const quickFilters = [
-    '💪 High Protein',
-    '🥦 Low Carb',
-    '🌱 Vegetarisch',
-    '⏱️ Unter 30 Min',
-    '👨‍👩‍👧 Familienfreundlich',
-    '💰 Günstig',
-  ];
+  /** Alle Filter inkl. Zeit aus Schritt 1 – für generateWeekDraft / regenerateSingleMealDraft */
+  const effectiveWeekPlannerFilters = useMemo(() => {
+    const base = selectedWeekFilters.filter((f) => f !== WEEK_PLANNER_TIME_FILTER);
+    if (weekTimePreference === 'quick') {
+      return [...base, WEEK_PLANNER_TIME_FILTER];
+    }
+    return base;
+  }, [selectedWeekFilters, weekTimePreference]);
 
   /** Filter-Chips für Sammlung: Alle, Hauptgericht, Frühstück, Dessert, Salat, Veggie */
   const COLLECTION_CATEGORIES = [
@@ -219,6 +285,12 @@ export default function RecipePage() {
       cancelled = true;
     };
   }, [showCockpit]);
+
+  /** Wochenplan-Modal geöffnet → Assistent immer bei Schritt 1 starten */
+  useEffect(() => {
+    if (!isWeekPlannerOpen) return;
+    setWeekPlannerSetupStep(1);
+  }, [isWeekPlannerOpen]);
 
   // Heutiges oder nächstes Gericht für die Full-Width-Karte "Aktive Woche"
   const todayMealSpotlight = useMemo(() => {
@@ -606,7 +678,7 @@ export default function RecipePage() {
       const res = await regenerateSingleMealDraft(
         day,
         mealType,
-        selectedWeekFilters,
+        effectiveWeekPlannerFilters,
         customWeekPrompt || '',
         oldTitle
       );
@@ -1236,6 +1308,7 @@ export default function RecipePage() {
                 type="button"
                 onClick={() => {
                   setIsWeekPlannerOpen(false);
+                  setWeekPlannerSetupStep(1);
                   setTimeout(() => setPlannerPhase('setup'), 300);
                 }}
                 className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors p-1"
@@ -1245,94 +1318,199 @@ export default function RecipePage() {
               </button>
             )}
 
-            {/* --- PHASE 1: SETUP --- */}
+            {/* --- PHASE 1: SETUP (3-Schritte-Assistent) --- */}
             {plannerPhase === 'setup' && (
-              <div className="animate-in fade-in duration-300">
-                <h3 id="week-planner-modal-title" className="text-2xl font-bold mb-2 text-gray-800">Woche planen</h3>
-                <p className="text-sm text-gray-500 mb-1">Was soll dein Smart-Chef für dich vorbereiten?</p>
-                <p className="text-xs text-gray-400 mb-6">Plan startet immer am kommenden Montag (Mo–So).</p>
+              <div className="animate-in fade-in duration-300 flex flex-col min-h-0">
+                <div className="mb-4">
+                  <h3 id="week-planner-modal-title" className="text-2xl font-bold mb-1 text-gray-800">
+                    Woche planen
+                  </h3>
+                  <p className="text-xs font-semibold text-orange-600 uppercase tracking-wider">
+                    Schritt {weekPlannerSetupStep} von 3
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {weekPlannerSetupStep === 1 && 'Basis: Mahlzeiten & Zeitaufwand'}
+                    {weekPlannerSetupStep === 2 && 'Ernährung & Fokus'}
+                    {weekPlannerSetupStep === 3 && 'Stimmung & persönliche Wünsche'}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">Plan startet am kommenden Montag (Mo–So).</p>
+                </div>
 
-                {/* Mahlzeiten-Auswahl */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Welche Mahlzeiten?</label>
-                  <div className="flex gap-2">
-                    {[
-                      { id: 'breakfast', label: 'Frühstück', icon: '🥐' },
-                      { id: 'lunch', label: 'Mittag', icon: '🥗' },
-                      { id: 'dinner', label: 'Abends', icon: '🍽️' },
-                    ].map((meal) => (
-                      <button
-                        key={meal.id}
-                        type="button"
-                        onClick={() => setWeekMeals((prev) => ({ ...prev, [meal.id]: !prev[meal.id as keyof typeof prev] }))}
-                        className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl text-sm font-medium transition-all ${
-                          weekMeals[meal.id as keyof typeof weekMeals]
-                            ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 shadow-sm transform scale-105'
-                            : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
-                        }`}
-                      >
-                        <span className="text-xl" aria-hidden>{meal.icon}</span>
-                        {meal.label}
-                      </button>
-                    ))}
+                {/* Schritt 1: Mahlzeiten + Zeitaufwand */}
+                {weekPlannerSetupStep === 1 && (
+                  <div className="space-y-6 mb-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">Welche Mahlzeiten?</label>
+                      <div className="flex gap-2">
+                        {[
+                          { id: 'breakfast', label: 'Frühstück', icon: '🥐' },
+                          { id: 'lunch', label: 'Mittag', icon: '🥗' },
+                          { id: 'dinner', label: 'Abends', icon: '🍽️' },
+                        ].map((meal) => (
+                          <button
+                            key={meal.id}
+                            type="button"
+                            onClick={() => setWeekMeals((prev) => ({ ...prev, [meal.id]: !prev[meal.id as keyof typeof prev] }))}
+                            className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl text-sm font-medium transition-all ${
+                              weekMeals[meal.id as keyof typeof weekMeals]
+                                ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 shadow-sm transform scale-105'
+                                : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
+                            }`}
+                          >
+                            <span className="text-xl" aria-hidden>
+                              {meal.icon}
+                            </span>
+                            {meal.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">Zeitaufwand</label>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setWeekTimePreference('quick')}
+                          className={cn(
+                            'flex-1 rounded-2xl border-2 py-3 px-4 text-left text-sm font-semibold transition-all',
+                            weekTimePreference === 'quick'
+                              ? 'border-orange-400 bg-orange-50 text-orange-800'
+                              : 'border-transparent bg-gray-50 text-gray-600 hover:bg-gray-100'
+                          )}
+                        >
+                          Schnelle Küche (&lt;30 Min)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setWeekTimePreference('normal')}
+                          className={cn(
+                            'flex-1 rounded-2xl border-2 py-3 px-4 text-left text-sm font-semibold transition-all',
+                            weekTimePreference === 'normal'
+                              ? 'border-orange-400 bg-orange-50 text-orange-800'
+                              : 'border-transparent bg-gray-50 text-gray-600 hover:bg-gray-100'
+                          )}
+                        >
+                          Normal
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Schnell-Filter (Smart Chips) */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Ernährung & Fokus</label>
-                  <div className="flex flex-wrap gap-2">
-                    {quickFilters.map((filter) => (
-                      <button
-                        key={filter}
-                        type="button"
-                        onClick={() => setSelectedWeekFilters((prev) =>
-                          prev.includes(filter) ? prev.filter((f) => f !== filter) : [...prev, filter]
-                        )}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
-                          selectedWeekFilters.includes(filter)
-                            ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 scale-105'
-                            : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
-                        }`}
-                      >
-                        {filter}
-                      </button>
-                    ))}
+                {/* Schritt 2: Ernährung */}
+                {weekPlannerSetupStep === 2 && (
+                  <div className="mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">Ernährung &amp; Fokus</label>
+                    <div className="flex flex-wrap gap-2.5">
+                      {WEEK_PLANNER_DIET_CHIPS.map((chip) => {
+                        const isSelected = selectedWeekFilters.includes(chip.value);
+                        return (
+                          <button
+                            key={chip.value}
+                            type="button"
+                            onClick={() =>
+                              setSelectedWeekFilters((prev) =>
+                                prev.includes(chip.value) ? prev.filter((f) => f !== chip.value) : [...prev, chip.value]
+                              )
+                            }
+                            className={weekPlannerFilterChipClassNames(chip.group, isSelected)}
+                          >
+                            <span className="text-base leading-none shrink-0" aria-hidden>
+                              {chip.emoji}
+                            </span>
+                            <span>{chip.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Weitere Wünsche (Optional) */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Weitere Wünsche? (Optional)</label>
-                  <textarea
-                    value={customWeekPrompt}
-                    onChange={(e) => setCustomWeekPrompt(e.target.value)}
-                    placeholder="z.B. Mittwoch etwas mit Kürbis, am Wochenende etwas Aufwendigeres..."
-                    className="w-full border-2 border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium resize-none h-28"
-                    rows={4}
-                  />
-                </div>
+                {/* Schritt 3: Vibe + Freitext */}
+                {weekPlannerSetupStep === 3 && (
+                  <div className="space-y-6 mb-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">Stimmung</label>
+                      <div className="flex flex-wrap gap-2.5">
+                        {WEEK_PLANNER_VIBE_CHIPS.map((chip) => {
+                          const isSelected = selectedWeekFilters.includes(chip.value);
+                          return (
+                            <button
+                              key={chip.value}
+                              type="button"
+                              onClick={() =>
+                                setSelectedWeekFilters((prev) =>
+                                  prev.includes(chip.value) ? prev.filter((f) => f !== chip.value) : [...prev, chip.value]
+                                )
+                              }
+                              className={weekPlannerFilterChipClassNames(chip.group, isSelected)}
+                            >
+                              <span className="text-base leading-none shrink-0" aria-hidden>
+                                {chip.emoji}
+                              </span>
+                              <span>{chip.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">Weitere Wünsche? (Optional)</label>
+                      <textarea
+                        value={customWeekPrompt}
+                        onChange={(e) => setCustomWeekPrompt(e.target.value)}
+                        placeholder="z.B. Mittwoch etwas mit Kürbis, am Wochenende etwas Aufwendigeres..."
+                        className="w-full border-2 border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium resize-none h-28"
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                )}
 
-                {/* Action Button */}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setPlannerPhase('loading');
-                    const res = await generateWeekDraft(weekMeals, selectedWeekFilters, customWeekPrompt || '');
-                    if (res?.success && res.draft) {
-                      setWeekDraft(res.draft);
-                      setPlannerPhase('lab');
-                    } else {
-                      const errMsg = res && !res.success ? res.error : 'Plan konnte nicht erstellt werden.';
-                      setAddToListToast({ message: errMsg });
-                      setPlannerPhase('setup');
-                    }
-                  }}
-                  disabled={!weekMeals.breakfast && !weekMeals.lunch && !weekMeals.dinner}
-                  className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-xl py-4 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:hover:scale-100"
-                >
-                  ✨ Wochenplan zaubern
-                </button>
+                {/* Navigation */}
+                <div className="mt-auto pt-4 flex flex-col gap-3 border-t border-gray-100">
+                  {weekPlannerSetupStep > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setWeekPlannerSetupStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3) : s))}
+                      className="w-full py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition-colors"
+                    >
+                      Zurück
+                    </button>
+                  )}
+                  {weekPlannerSetupStep < 3 && (
+                    <button
+                      type="button"
+                      onClick={() => setWeekPlannerSetupStep((s) => (s < 3 ? ((s + 1) as 1 | 2 | 3) : s))}
+                      disabled={weekPlannerSetupStep === 1 && !weekMeals.breakfast && !weekMeals.lunch && !weekMeals.dinner}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl py-3.5 px-5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-amber-600 transition-all disabled:opacity-45 disabled:pointer-events-none disabled:shadow-none"
+                    >
+                      Weiter
+                      <ChevronRight className="w-5 h-5 shrink-0" />
+                    </button>
+                  )}
+                  {weekPlannerSetupStep === 3 && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setPlannerPhase('loading');
+                        const res = await generateWeekDraft(weekMeals, effectiveWeekPlannerFilters, customWeekPrompt || '');
+                        if (res?.success && res.draft) {
+                          setWeekDraft(res.draft);
+                          setPlannerPhase('lab');
+                        } else {
+                          const errMsg = res && !res.success ? res.error : 'Plan konnte nicht erstellt werden.';
+                          setAddToListToast({ message: errMsg });
+                          setPlannerPhase('setup');
+                        }
+                      }}
+                      disabled={!weekMeals.breakfast && !weekMeals.lunch && !weekMeals.dinner}
+                      className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-xl py-4 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none disabled:hover:scale-100"
+                    >
+                      ✨ Wochenplan zaubern
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -1368,10 +1546,11 @@ export default function RecipePage() {
             {/* --- PHASE 5: AKTIVE WOCHE (Lese-Ansicht) --- */}
             {plannerPhase === 'active-view' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-[85vh]">
-                <div className="shrink-0 mb-6 pt-2 px-2 flex justify-between items-start">
-                  <div>
+                {/* pr-14/16: Platz fürs absolute Schließen-Icon (oben rechts), gap: Abstand Titel ↔ Löschen */}
+                <div className="shrink-0 mb-6 pt-2 pl-2 pr-14 sm:pr-16 flex justify-between items-center gap-4 sm:gap-6 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <h3 className="text-2xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
-                      <CalendarDays className="w-6 h-6 text-green-500" />
+                      <CalendarDays className="w-6 h-6 text-green-500 shrink-0" />
                       Deine Woche
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">Hier ist dein aktueller Speiseplan.</p>
@@ -1384,7 +1563,7 @@ export default function RecipePage() {
                         setIsWeekPlannerOpen(false);
                       }
                     }}
-                    className="text-xs font-semibold text-red-400 hover:text-red-600 bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                    className="shrink-0 text-xs font-semibold text-red-400 hover:text-red-600 bg-red-50 px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
                   >
                     Plan löschen
                   </button>
