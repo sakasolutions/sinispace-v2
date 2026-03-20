@@ -1573,7 +1573,7 @@ export default function RecipePage() {
                   <div className="flex justify-between items-start w-full gap-2 min-w-0">
                     <div className="min-w-0 flex-1 pr-1">
                       <div className="flex items-center gap-2 min-w-0">
-                        <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 shrink-0" />
+                        <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 shrink-0" />
                         <h3
                           id="week-planner-modal-title"
                           className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight leading-tight shrink-0"
@@ -1615,8 +1615,8 @@ export default function RecipePage() {
                 <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-thin space-y-8 pb-6 px-6 pt-4 bg-gray-50/50 rounded-b-3xl">
                   {weekDraft.map((dayPlan, idx) => (
                     <div key={idx} className="relative">
-                      <div className="flex items-center gap-2 mb-4 sticky top-0 bg-white/90 backdrop-blur-sm py-2 z-10">
-                        <h4 className="font-bold text-lg text-gray-800 border-b-2 border-green-500 pb-0.5">
+                      <div className="mt-6 mb-3">
+                        <h4 className="text-xl font-bold text-gray-900">
                           {dayPlan.day}
                         </h4>
                       </div>
@@ -1625,7 +1625,7 @@ export default function RecipePage() {
                         {dayPlan.meals.map((meal: { type: string; title: string; time?: string; calories?: string; imageUrl?: string | null }, mIdx: number) => (
                           <div
                             key={mIdx}
-                            className="flex flex-col bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_12px_34px_rgb(0,0,0,0.08)] transition-shadow border border-gray-100/70 overflow-hidden"
+                            className="flex flex-col bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_12px_34px_rgb(0,0,0,0.08)] transition-shadow border border-black/5 overflow-hidden"
                           >
                             <div className="relative w-full h-48 bg-gray-50">
                               {meal.imageUrl && String(meal.imageUrl).trim() ? (
@@ -1685,10 +1685,10 @@ export default function RecipePage() {
                                   savingRecipeId === `${dayPlan.day}-${meal.title}` ||
                                   savedRecipeIds.includes(`${dayPlan.day}-${meal.title}`)
                                 }
-                                className={`h-10 w-10 rounded-xl transition-all flex items-center justify-center ${
+                                className={`h-10 w-10 rounded-xl transition-colors flex items-center justify-center ${
                                   savedRecipeIds.includes(`${dayPlan.day}-${meal.title}`)
-                                    ? 'text-pink-500 bg-pink-50/90'
-                                    : 'text-gray-500 hover:text-pink-500 hover:bg-pink-50/80'
+                                    ? 'text-rose-500 bg-rose-50/80'
+                                    : 'text-gray-400 hover:text-rose-500'
                                 } disabled:opacity-60`}
                                 title="In Sammlung speichern"
                               >
@@ -1707,10 +1707,10 @@ export default function RecipePage() {
                                 type="button"
                                 onClick={() => handleOpenRecipe(dayPlan.day, meal)}
                                 disabled={loadingRecipeId === `${dayPlan.day}-${meal.title}`}
-                                className="h-10 px-4 rounded-xl text-sm font-bold flex items-center gap-1.5 justify-center text-emerald-700 bg-white border border-emerald-100 hover:bg-emerald-50/90 hover:border-emerald-200 transition-all disabled:opacity-50 shadow-sm"
+                                className="h-10 px-4 rounded-xl text-sm font-bold flex items-center gap-1.5 justify-center text-orange-600 bg-white border border-orange-100 hover:bg-orange-50 hover:border-orange-200 transition-all disabled:opacity-50 shadow-sm"
                               >
                                 {loadingRecipeId === `${dayPlan.day}-${meal.title}` ? (
-                                  <div className="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-600 rounded-full animate-spin" />
+                                  <div className="w-4 h-4 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin" />
                                 ) : (
                                   <>Rezept <span className="text-lg leading-none">›</span></>
                                 )}
@@ -1738,7 +1738,7 @@ export default function RecipePage() {
                       }
                     }}
                     disabled={isGeneratingSmartCart}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl py-4 font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:scale-100"
+                    className="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-2xl py-4 font-bold shadow-md shadow-rose-500/20 hover:shadow-lg hover:shadow-rose-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:scale-100"
                   >
                     {isGeneratingSmartCart ? (
                       <>
