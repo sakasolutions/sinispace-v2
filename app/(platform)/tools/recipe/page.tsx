@@ -93,6 +93,22 @@ function weekPlannerFilterChipClassNames(group: WeekPlannerChipGroup, selected: 
   }
 }
 
+/**
+ * Kalorien-Zeile nur bei echten Werten – versteckt leere Strings, "-", Unicode-Striche und Text-Platzhalter wie "🔥 -".
+ */
+function shouldShowMealCalories(calories: string | number | null | undefined): boolean {
+  if (calories == null) return false;
+  const raw = String(calories).trim();
+  if (raw === '') return false;
+  const core = raw
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, '-')
+    .replace(/\uFE0F/g, '')
+    .replace(/🔥/g, '')
+    .replace(/-/g, '')
+    .replace(/\s/g, '');
+  return core.length > 0;
+}
+
 /** Erweiterter Rezept-Typ (CookIQ Tier 1: Makros, SmartCart-Trennung). Kompatibel mit RecipeDetailView. */
 type Recipe = RecipeDetailRecipe & {
   /** Von der KI gesetzt: pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast */
@@ -1301,9 +1317,16 @@ export default function RecipePage() {
       {/* Wochenplaner Setup-Modal (Tier 1 Phase 1) – per Portal für korrekte Darstellung auf Mobile */}
       {isWeekPlannerOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="week-planner-modal-title">
-          <div className="relative z-[101] w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
-            {/* Close Button (nur im Setup & Lab anzeigen) */}
-            {plannerPhase !== 'loading' && (
+          <div
+            className={cn(
+              'relative z-[101] w-full max-w-md bg-white rounded-3xl shadow-2xl max-h-[90vh]',
+              plannerPhase === 'active-view'
+                ? 'flex flex-col min-h-0 overflow-hidden p-0'
+                : 'overflow-y-auto p-6'
+            )}
+          >
+            {/* Close: absolut nur wenn nicht active-view (dort sitzt X im Sticky-Header) */}
+            {plannerPhase !== 'loading' && plannerPhase !== 'active-view' && (
               <button
                 type="button"
                 onClick={() => {
@@ -1311,7 +1334,7 @@ export default function RecipePage() {
                   setWeekPlannerSetupStep(1);
                   setTimeout(() => setPlannerPhase('setup'), 300);
                 }}
-                className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100"
                 aria-label="Schließen"
               >
                 ✕
@@ -1545,35 +1568,51 @@ export default function RecipePage() {
 
             {/* --- PHASE 5: AKTIVE WOCHE (Lese-Ansicht) --- */}
             {plannerPhase === 'active-view' && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-[85vh]">
-                {/* pr-14/16: Platz fürs absolute Schließen-Icon (oben rechts) */}
-                <div className="shrink-0 mb-6 pt-2 pl-2 pr-14 sm:pr-16 w-full">
-                  <div className="flex justify-between items-start gap-4 sm:gap-6 w-full min-w-0">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 whitespace-nowrap min-w-0">
-                        <CalendarDays className="w-6 h-6 text-green-500 shrink-0" />
-                        <h3 className="text-2xl font-bold text-gray-800 tracking-tight whitespace-nowrap">
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col flex-1 min-h-0">
+                <div className="sticky top-0 z-20 shrink-0 bg-white border-b border-gray-100 pt-2 pb-4 px-6">
+                  <div className="flex justify-between items-start w-full gap-2 min-w-0">
+                    <div className="min-w-0 flex-1 pr-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 shrink-0" />
+                        <h3
+                          id="week-planner-modal-title"
+                          className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight leading-tight shrink-0"
+                        >
                           Deine Woche
                         </h3>
                       </div>
                       <p className="text-sm text-gray-500 mt-1">Hier ist dein aktueller Speiseplan.</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (confirm('Möchtest du diesen Wochenplan wirklich verwerfen?')) {
-                          setActiveWeekPlan(null);
+                    <div className="flex items-center gap-3 shrink-0 self-start">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm('Möchtest du diesen Wochenplan wirklich verwerfen?')) {
+                            setActiveWeekPlan(null);
+                            setIsWeekPlannerOpen(false);
+                          }
+                        }}
+                        className="text-sm font-medium text-rose-500 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition whitespace-nowrap"
+                      >
+                        Plan löschen
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
                           setIsWeekPlannerOpen(false);
-                        }
-                      }}
-                      className="shrink-0 text-sm font-medium text-rose-500 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition whitespace-nowrap"
-                    >
-                      Plan löschen
-                    </button>
+                          setWeekPlannerSetupStep(1);
+                          setTimeout(() => setPlannerPhase('setup'), 300);
+                        }}
+                        className="text-gray-500 hover:text-gray-800 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 -mr-2"
+                        aria-label="Schließen"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin space-y-8 pb-8 bg-gray-50/50 rounded-2xl p-4 sm:p-5">
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-thin space-y-8 pb-6 px-6 pt-4 bg-gray-50/50 rounded-b-3xl">
                   {weekDraft.map((dayPlan, idx) => (
                     <div key={idx} className="relative">
                       <div className="flex items-center gap-2 mb-4 sticky top-0 bg-white/90 backdrop-blur-sm py-2 z-10">
@@ -1602,16 +1641,27 @@ export default function RecipePage() {
                             </div>
 
                             <div className="p-4 flex flex-col gap-2 min-w-0">
-                              <div className="flex items-center gap-3 text-sm text-gray-500 font-medium flex-wrap">
-                                <span className="flex items-center gap-1.5">
-                                  <Clock className="w-4 h-4 shrink-0" /> {meal.time}
-                                </span>
-                                {meal.calories && meal.calories.trim() && meal.calories.trim() !== '-' ? (
-                                  <span className="flex items-center gap-1.5">
-                                    <Flame className="w-4 h-4 text-orange-400 shrink-0" /> {meal.calories}
-                                  </span>
-                                ) : null}
-                              </div>
+                              {(() => {
+                                const timeOk = meal.time != null && String(meal.time).trim() !== '';
+                                const calOk = shouldShowMealCalories(meal.calories);
+                                if (!timeOk && !calOk) return null;
+                                return (
+                                  <div className="flex items-center gap-3 text-sm text-gray-500 font-medium flex-wrap">
+                                    {timeOk ? (
+                                      <span className="inline-flex items-center gap-1.5">
+                                        <Clock className="w-4 h-4 shrink-0" />
+                                        {String(meal.time).trim()}
+                                      </span>
+                                    ) : null}
+                                    {calOk ? (
+                                      <span className="inline-flex items-center gap-1.5">
+                                        <Flame className="w-4 h-4 text-orange-400 shrink-0" aria-hidden />
+                                        {String(meal.calories).trim()}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                );
+                              })()}
                               <p className="text-lg font-semibold text-gray-900 line-clamp-2 leading-tight">
                                 {meal.title}
                               </p>
@@ -1673,7 +1723,7 @@ export default function RecipePage() {
                   ))}
                 </div>
 
-                <div className="shrink-0 pt-4 mt-2 bg-white">
+                <div className="shrink-0 z-20 bg-white border-t border-gray-100 px-6 pt-4 pb-6">
                   <button
                     type="button"
                     onClick={async () => {
@@ -1748,14 +1798,27 @@ export default function RecipePage() {
                                 <span className="text-[10px] font-bold text-orange-500/95 uppercase tracking-widest">
                                   {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
                                 </span>
-                                <div className="flex items-center gap-3 text-xs text-gray-500 font-medium flex-wrap">
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="w-3.5 h-3.5 shrink-0" /> {meal.time}
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" /> {meal.calories}
-                                  </span>
-                                </div>
+                                {(() => {
+                                  const timeOk = meal.time != null && String(meal.time).trim() !== '';
+                                  const calOk = shouldShowMealCalories(meal.calories);
+                                  if (!timeOk && !calOk) return null;
+                                  return (
+                                    <div className="flex items-center gap-3 text-xs text-gray-500 font-medium flex-wrap">
+                                      {timeOk ? (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Clock className="w-3.5 h-3.5 shrink-0" />
+                                          {String(meal.time).trim()}
+                                        </span>
+                                      ) : null}
+                                      {calOk ? (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" aria-hidden />
+                                          {String(meal.calories).trim()}
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                  );
+                                })()}
                                 <p className="font-bold text-gray-800 text-[15px] sm:text-base leading-snug line-clamp-2 pr-0.5">
                                   {meal.title}
                                 </p>
