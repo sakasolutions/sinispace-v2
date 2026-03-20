@@ -35,7 +35,11 @@ import {
   generateSmartShoppingList,
 } from '@/actions/week-planner-ai';
 import { getCurrentWeekMeals } from '@/actions/calendar-actions';
+import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
+import { appendToList, defaultList, type ShoppingList } from '@/lib/shopping-lists-storage';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
+
+const PANTRY_NEW_LIST_VALUE = '__new__';
 
 /** API-/State-Wert für schnelle Küche (Schritt 1), wird in effectiveWeekPlannerFilters gemerged */
 const WEEK_PLANNER_TIME_FILTER = '⏱️ Unter 30 Min';
@@ -265,6 +269,18 @@ export default function RecipePage() {
   const [groceryList, setGroceryList] = useState<
     { item: string; amount: string; category: string; checked: boolean }[]
   >([]);
+  const [pantrySmartCartLists, setPantrySmartCartLists] = useState<ShoppingList[]>([]);
+  const [pantrySelectedListId, setPantrySelectedListId] = useState<string>('');
+  const [pantryNewListName, setPantryNewListName] = useState('');
+  const [isPantryListsLoading, setIsPantryListsLoading] = useState(false);
+  const [isSavingPantryToSmartCart, setIsSavingPantryToSmartCart] = useState(false);
+  const [customWeekPrompt, setCustomWeekPrompt] = useState('');
+  const [rollingMealId, setRollingMealId] = useState<string | null>(null);
+  /** 3-Schritte-Assistent nur in Phase „setup“ des Wochenplan-Modals (nicht mit Rezept-Wizard `wizardStep` verwechseln). */
+  const [weekPlannerSetupStep, setWeekPlannerSetupStep] = useState<1 | 2 | 3>(1);
+  /** Schritt 1: Zeitpräferenz → wird mit `⏱️ Unter 30 Min` in die API-Filter gemerged. */
+  const [weekTimePreference, setWeekTimePreference] = useState<'quick' | 'normal'>('normal');
+  const router = useRouter();
 
   const collectMealTitlesForPantry = useCallback(() => {
     const plan = weekDraft?.length ? weekDraft : activeWeekPlan ?? [];
@@ -291,13 +307,35 @@ export default function RecipePage() {
 
   const pantryCheckedCount = useMemo(() => groceryList.filter((g) => g.checked).length, [groceryList]);
 
-  const [customWeekPrompt, setCustomWeekPrompt] = useState('');
-  const [rollingMealId, setRollingMealId] = useState<string | null>(null);
-  /** 3-Schritte-Assistent nur in Phase „setup“ des Wochenplan-Modals (nicht mit Rezept-Wizard `wizardStep` verwechseln). */
-  const [weekPlannerSetupStep, setWeekPlannerSetupStep] = useState<1 | 2 | 3>(1);
-  /** Schritt 1: Zeitpräferenz → wird mit `⏱️ Unter 30 Min` in die API-Filter gemerged. */
-  const [weekTimePreference, setWeekTimePreference] = useState<'quick' | 'normal'>('normal');
-  const router = useRouter();
+  /** SmartCart-Listen laden, sobald das Pantry-Modal geöffnet wird (für Ziel-Dropdown). */
+  useEffect(() => {
+    if (!isPantryModalOpen) return;
+    let cancelled = false;
+    setIsPantryListsLoading(true);
+    getShoppingLists()
+      .then((loaded) => {
+        if (cancelled) return;
+        const next = loaded.length > 0 ? loaded : [defaultList()];
+        setPantrySmartCartLists(next);
+        setPantrySelectedListId((prev) =>
+          prev && next.some((l) => l.id === prev) ? prev : next[0].id
+        );
+        setPantryNewListName('');
+      })
+      .catch(() => {
+        if (!cancelled) {
+          const def = defaultList();
+          setPantrySmartCartLists([def]);
+          setPantrySelectedListId(def.id);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsPantryListsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isPantryModalOpen]);
 
   /** Alle Filter inkl. Zeit aus Schritt 1 – für generateWeekDraft / regenerateSingleMealDraft */
   const effectiveWeekPlannerFilters = useMemo(() => {
@@ -1970,7 +2008,7 @@ export default function RecipePage() {
             aria-modal="true"
             aria-labelledby="pantry-modal-title"
             onClick={() => {
-              if (!isGeneratingGroceries) {
+              if (!isGeneratingGroceries && !isSavingPantryToSmartCart) {
                 setIsPantryModalOpen(false);
                 setGroceryList([]);
               }
@@ -1988,6 +2026,7 @@ export default function RecipePage() {
                   type="button"
                   disabled={isGeneratingGroceries}
                   onClick={() => {
+                    if (isSavingPantryToSmartCart) return;
                     setIsPantryModalOpen(false);
                     setGroceryList([]);
                   }}
@@ -2052,19 +2091,103 @@ export default function RecipePage() {
                 )}
               </div>
 
-              <div className="shrink-0 border-t border-gray-100 bg-white px-5 pt-4 pb-5 sm:pb-6">
+              <div className="shrink-0 border-t border-gray-100 bg-white px-5 pt-4 pb-5 sm:pb-6 space-y-4">
+                {!isGeneratingGroceries && groceryList.length > 0 ? (
+                  <div className="space-y-2">
+                    <label htmlFor="pantry-list-select" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      In welche Liste speichern?
+                    </label>
+                    {isPantryListsLoading ? (
+                      <div className="h-11 rounded-xl bg-gray-100 animate-pulse" aria-hidden />
+                    ) : (
+                      <>
+                        <select
+                          id="pantry-list-select"
+                          value={pantrySelectedListId}
+                          onChange={(e) => setPantrySelectedListId(e.target.value)}
+                          disabled={isSavingPantryToSmartCart}
+                          className="w-full rounded-xl border border-gray-200 bg-gray-50/80 px-3 py-2.5 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-300 disabled:opacity-50"
+                        >
+                          {pantrySmartCartLists.map((l) => (
+                            <option key={l.id} value={l.id}>
+                              {l.name}
+                            </option>
+                          ))}
+                          <option value={PANTRY_NEW_LIST_VALUE}>+ Neue Liste erstellen…</option>
+                        </select>
+                        {pantrySelectedListId === PANTRY_NEW_LIST_VALUE ? (
+                          <input
+                            type="text"
+                            value={pantryNewListName}
+                            onChange={(e) => setPantryNewListName(e.target.value)}
+                            placeholder="Name der neuen Liste (optional)"
+                            disabled={isSavingPantryToSmartCart}
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-300 disabled:opacity-50"
+                          />
+                        ) : null}
+                      </>
+                    )}
+                  </div>
+                ) : null}
+
                 <button
                   type="button"
-                  disabled={isGeneratingGroceries || pantryCheckedCount === 0}
-                  onClick={() => {
-                    const selected = groceryList.filter((g) => g.checked);
-                    console.log('SmartCart Pantry — in SmartCart legen:', selected);
-                    setIsPantryModalOpen(false);
-                    setGroceryList([]);
+                  disabled={
+                    isGeneratingGroceries ||
+                    pantryCheckedCount === 0 ||
+                    isPantryListsLoading ||
+                    isSavingPantryToSmartCart
+                  }
+                  onClick={async () => {
+                    const checked = groceryList.filter((g) => g.checked);
+                    if (checked.length === 0) return;
+                    const lines = checked.map((g) => {
+                      const a = g.amount.trim();
+                      const n = g.item.trim();
+                      return a ? `${a} ${n}`.replace(/\s+/g, ' ').trim() : n;
+                    });
+                    setIsSavingPantryToSmartCart(true);
+                    try {
+                      const listId =
+                        pantrySelectedListId === PANTRY_NEW_LIST_VALUE
+                          ? PANTRY_NEW_LIST_VALUE
+                          : pantrySelectedListId;
+                      const { lists: next, listName, appendedCount } = appendToList(
+                        pantrySmartCartLists,
+                        listId,
+                        lines,
+                        pantrySelectedListId === PANTRY_NEW_LIST_VALUE
+                          ? pantryNewListName.trim() || undefined
+                          : undefined
+                      );
+                      const res = await saveShoppingLists(next);
+                      if (!res.success) {
+                        setAddToListToast({
+                          message: res.error || 'SmartCart konnte nicht gespeichert werden.',
+                        });
+                        return;
+                      }
+                      setPantrySmartCartLists(next);
+                      setAddToListToast({
+                        message: `${appendedCount} Zutat${appendedCount === 1 ? '' : 'en'} in „${listName || 'Liste'}“ gelegt.`,
+                      });
+                      setIsPantryModalOpen(false);
+                      setGroceryList([]);
+                      router.push('/tools/shopping-list');
+                    } finally {
+                      setIsSavingPantryToSmartCart(false);
+                    }
                   }}
-                  className="w-full bg-rose-500 hover:bg-rose-600 disabled:opacity-50 disabled:pointer-events-none text-white rounded-2xl py-3.5 sm:py-4 font-bold shadow-md shadow-rose-500/20 transition-all"
+                  className="w-full bg-rose-500 hover:bg-rose-600 disabled:opacity-50 disabled:pointer-events-none text-white rounded-2xl py-3.5 sm:py-4 font-bold shadow-md shadow-rose-500/20 transition-all inline-flex items-center justify-center gap-2"
                 >
-                  {pantryCheckedCount} Zutaten in SmartCart legen
+                  {isSavingPantryToSmartCart ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin shrink-0" aria-hidden />
+                      Speichern…
+                    </>
+                  ) : (
+                    <>{pantryCheckedCount} Zutaten in SmartCart legen</>
+                  )}
                 </button>
               </div>
             </div>

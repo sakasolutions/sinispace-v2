@@ -62,7 +62,7 @@ Alle vier nutzen **Glass-Design** (`cardClass` + `CARD_STYLE` in `gourmet-cockpi
 | `loading` | KI generiert Entwurf (Spinner, „Dein Speiseplan entsteht…“). |
 | `lab` | Entwurf sichtbar: 7 Tage, pro Tag Mahlzeiten mit Titel/Zeit/Kalorien. Aktionen: Re-Roll (ein Gericht neu), Swap (Verschieben auf anderen Tag). Button „Plan finalisieren & speichern“. |
 | `committing` | Speicher-Lade-Phase: Raketen-Animation, „Raketenstart…“, dann Backend-Call. |
-| `active-view` | Lese-Ansicht des **gespeicherten** Plans: nur Anzeige + „Rezept ›“ (JIT) + „In Sammlung speichern“ (Heart) + „Zutaten für die Woche einkaufen“ (Master-SmartCart). Kein Re-Roll/Swap. |
+| `active-view` | Lese-Ansicht des **gespeicherten** Plans: nur Anzeige + „Rezept ›“ (JIT) + „In Sammlung speichern“ (Heart) + „Zutaten für die Woche einkaufen“ (**Pantry-Check-Modal** → `generateSmartShoppingList`, dann Auswahl Ziel-Liste + `appendToList` / `saveShoppingLists`). Kein Re-Roll/Swap. |
 
 ### 3.2 Flow A: Neuen Plan erstellen und finalisieren
 
@@ -81,7 +81,7 @@ Alle vier nutzen **Glass-Design** (`cardClass` + `CARD_STYLE` in `gourmet-cockpi
 2. Im Modal: Liste aller Tage/Gerichte (read-only). Pro Gericht:
    - **Heart-Button:** „In Sammlung speichern“ → **`generateAndSaveFullRecipe(meal.title, meal.calories, meal.time)`** → KI erzeugt volles Rezept, **`saveResult`** (Workspace/Result), dann `setSavedRecipeIds` (optisch ausgefülltes Herz). Kein Öffnen der Detailansicht danach (nur Alert).
    - **„Rezept ›“:** **`handleOpenRecipe(day, meal)`** → gleiche Action `generateAndSaveFullRecipe` → Alert „in Sammlung gespeichert“. Detailansicht wird **nicht** geöffnet (Kommentar im Code für später).
-3. **„Zutaten für die Woche einkaufen“** → **`generateMasterShoppingList(weekDraft)`** → KI erzeugt aggregierte Einkaufsliste aus Titeln, **`getShoppingLists`** / **`appendToList`** / **`saveShoppingLists`** (UserShoppingLists). Dann `setIsWeekPlannerOpen(false)`, **`router.push('/tools/shopping-list')`**.
+3. **„Zutaten für die Woche einkaufen“** → Pantry-Modal: **`generateSmartShoppingList(mealTitles)`** (strukturierte Zutaten), User kann abhaken was daheim ist, **Ziel-Liste wählen** (oder neue Liste), dann **`appendToList`** + **`saveShoppingLists`** nur für angehakte Zeilen → Toast + **`router.push('/tools/shopping-list')`**.
 
 ### 3.4 Flow C: Plan verwerfen
 
@@ -98,7 +98,8 @@ Alle vier nutzen **Glass-Design** (`cardClass` + `CARD_STYLE` in `gourmet-cockpi
 | **saveWeeklyPlan** | week-planner-ai.ts | Berechnet nächsten Montag, baut `planData`, ruft **saveWeeklyPlanToCalendar** auf; 2 s Delay. |
 | **saveWeeklyPlan** | calendar-actions.ts | Löscht Meal-Events im Datumsbereich, erstellt neue `CalendarEvent` (eventType: 'meal', title, date, time, mealType, resultId optional, **imageUrl** optional). |
 | **generateAndSaveFullRecipe** | week-planner-ai.ts | Aus Titel/Kalorien/Zeit: KI erzeugt volles Rezept (recipeName, stats, ingredients, shoppingList, instructions, chefTip, categoryIcon), **saveResult** (toolId 'recipe', toolName 'CookIQ'). Gibt `{ success, recipe, resultId }` zurück. |
-| **generateMasterShoppingList** | week-planner-ai.ts | KI erzeugt aus allen Gerichtstiteln + Kalorien eine aggregierte Einkaufsliste (items[]), speichert in **UserShoppingLists** via getShoppingLists/appendToList/saveShoppingLists. |
+| **generateSmartShoppingList** | week-planner-ai.ts | KI erzeugt aus Gerichtstiteln eine strukturierte Liste `{ item, amount, category }[]` (Pantry-Check; kein direktes DB-Schreiben). |
+| **generateMasterShoppingList** | week-planner-ai.ts | (Legacy) KI + direktes Anhängen an SmartCart ohne Review-Modal; für andere Aufrufer ggf. noch vorhanden. |
 | **generateRecipe** | recipe-ai.ts | Klassischer Rezept-Generator (Zutaten/Wunsch, Kategorie, Filter), speichert Result, optional Helper-Chat, Unsplash-Bild. |
 
 ---
@@ -132,7 +133,7 @@ Alle vier nutzen **Glass-Design** (`cardClass` + `CARD_STYLE` in `gourmet-cockpi
 |-------|--------|
 | **app/(platform)/tools/recipe/page.tsx** | Hauptseite: showCockpit, activeTab, Wochenplaner-Modal, plannerPhase, weekDraft, activeWeekPlan, handleOpenRecipe, handleSwapMeal, handleReRollMeal, Integration GourmetCockpit. |
 | **components/recipe/gourmet-cockpit.tsx** | Cockpit-UI: 2×2-Grid, Full-Width „Aktive Woche“, Props: onWochePlanen, onAktiveWocheAnsehen, activeWeekPlan, onVorschlagGenerieren, onMagicWunsch. |
-| **actions/week-planner-ai.ts** | generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan, generateAndSaveFullRecipe, generateMasterShoppingList. Typen: WeekDraftDay, WeekDraftMeal. |
+| **actions/week-planner-ai.ts** | generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan, generateAndSaveFullRecipe, generateSmartShoppingList, generateMasterShoppingList (Legacy). Typen: WeekDraftDay, WeekDraftMeal. |
 | **actions/calendar-actions.ts** | saveWeeklyPlan(planData: WeeklyPlanEntry[]) → CalendarEvent createMany/deleteMany. |
 | **actions/shopping-list-actions.ts** | getShoppingLists, saveShoppingLists (UserShoppingLists). |
 | **actions/workspace-actions.ts** | saveResult (für Rezepte/JIT), getWorkspaceResults, getResultById. |
@@ -145,7 +146,7 @@ Alle vier nutzen **Glass-Design** (`cardClass` + `CARD_STYLE` in `gourmet-cockpi
 
 - Cockpit mit 4 Karten + optionale 5. Karte (wenn `activeWeekPlan` gesetzt).
 - Wochenplaner: Setup → Loading → Labor (Re-Roll, Swap) → Finalisieren → Committing → Kalender-Sync, `activeWeekPlan` im State.
-- Active-View: Anzeige Plan, „In Sammlung speichern“ (Heart), „Rezept ›“ (JIT in Sammlung), „Zutaten für die Woche einkaufen“ (Master-SmartCart + Redirect zu /tools/shopping-list).
+- Active-View: Anzeige Plan, „In Sammlung speichern“ (Heart), „Rezept ›“ (JIT in Sammlung), „Zutaten für die Woche einkaufen“ (Pantry-Check + SmartCart-Speichern + Redirect zu /tools/shopping-list).
 - Rezept-Generator (Create-Tab) und Sammlung (My-Recipes, RecipeDetailView, Kalender-Planung pro Rezept) unverändert im Einsatz.
 - Kalender: Meal-Events aus saveWeeklyPlan; einzelne Rezepte aus Detail-View via scheduleSingleRecipe.
 
