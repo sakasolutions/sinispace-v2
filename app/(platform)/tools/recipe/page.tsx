@@ -3,7 +3,7 @@
 import React from 'react';
 import { generateRecipe } from '@/actions/recipe-ai';
 import { useActionState } from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Copy, MessageSquare, Loader2, Clock, ChefHat, CheckCircle2, Check, Users, Minus, Plus, Share2, ShoppingCart, Edit, Trash2, ListPlus, LayoutDashboard, Sparkles, Refrigerator, ArrowLeft, ChevronRight, Utensils, UtensilsCrossed, Salad, Coffee, Cake, Droplets, Wine, LeafyGreen, Sprout, WheatOff, Flame, Timer, Fish, Beef, Star, Milk, Dumbbell, TrendingDown, Leaf, Moon, Search, MoreVertical, Wheat, Sandwich, Soup, Croissant, Carrot, Egg, Pizza, Drumstick, CalendarDays, RefreshCw, Rocket, ArrowRightLeft, Heart } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -27,7 +27,13 @@ import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list
 import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
 import { GourmetCockpit, type GourmetCockpitProps } from '@/components/recipe/gourmet-cockpit';
-import { generateWeekDraft, regenerateSingleMealDraft, saveWeeklyPlan, generateAndSaveFullRecipe, generateMasterShoppingList } from '@/actions/week-planner-ai';
+import {
+  generateWeekDraft,
+  regenerateSingleMealDraft,
+  saveWeeklyPlan,
+  generateAndSaveFullRecipe,
+  generateSmartShoppingList,
+} from '@/actions/week-planner-ai';
 import { getCurrentWeekMeals } from '@/actions/calendar-actions';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
@@ -253,7 +259,38 @@ export default function RecipePage() {
   const [loadingRecipeId, setLoadingRecipeId] = useState<string | null>(null);
   const [savingRecipeId, setSavingRecipeId] = useState<string | null>(null);
   const [savedRecipeIds, setSavedRecipeIds] = useState<string[]>([]);
-  const [isGeneratingSmartCart, setIsGeneratingSmartCart] = useState(false);
+  /** SmartCart Pantry Check: Review-Modal vor dem Anlegen der Liste */
+  const [isPantryModalOpen, setIsPantryModalOpen] = useState(false);
+  const [isGeneratingGroceries, setIsGeneratingGroceries] = useState(false);
+  const [groceryList, setGroceryList] = useState<
+    { item: string; amount: string; category: string; checked: boolean }[]
+  >([]);
+
+  const collectMealTitlesForPantry = useCallback(() => {
+    const plan = weekDraft?.length ? weekDraft : activeWeekPlan ?? [];
+    if (!Array.isArray(plan)) return [];
+    return plan.flatMap((day: { meals?: { title?: string }[] }) =>
+      Array.isArray(day?.meals)
+        ? day.meals
+            .map((m) => (typeof m?.title === 'string' ? m.title.trim() : ''))
+            .filter((t) => t.length > 0)
+        : []
+    );
+  }, [weekDraft, activeWeekPlan]);
+
+  const groupedPantryByCategory = useMemo(() => {
+    const m = new Map<string, { row: (typeof groceryList)[number]; index: number }[]>();
+    groceryList.forEach((row, index) => {
+      const cat = row.category?.trim() || 'Sonstiges';
+      const arr = m.get(cat) ?? [];
+      arr.push({ row, index });
+      m.set(cat, arr);
+    });
+    return Array.from(m.entries());
+  }, [groceryList]);
+
+  const pantryCheckedCount = useMemo(() => groceryList.filter((g) => g.checked).length, [groceryList]);
+
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const [rollingMealId, setRollingMealId] = useState<string | null>(null);
   /** 3-Schritte-Assistent nur in Phase „setup“ des Wochenplan-Modals (nicht mit Rezept-Wizard `wizardStep` verwechseln). */
@@ -1727,27 +1764,28 @@ export default function RecipePage() {
                   <button
                     type="button"
                     onClick={async () => {
-                      setIsGeneratingSmartCart(true);
-                      const res = await generateMasterShoppingList(weekDraft);
-                      setIsGeneratingSmartCart(false);
-                      if (res?.success) {
-                        setIsWeekPlannerOpen(false);
-                        router.push('/tools/shopping-list');
+                      setIsPantryModalOpen(true);
+                      setIsGeneratingGroceries(true);
+                      setGroceryList([]);
+                      const titles = collectMealTitlesForPantry();
+                      if (titles.length === 0) {
+                        setIsGeneratingGroceries(false);
+                        setIsPantryModalOpen(false);
+                        setAddToListToast({ message: 'Keine Gerichte im Plan – nichts zu einkaufen.' });
+                        return;
+                      }
+                      const res = await generateSmartShoppingList(titles);
+                      setIsGeneratingGroceries(false);
+                      if (res.success) {
+                        setGroceryList(res.ingredients.map((i) => ({ ...i, checked: true })));
                       } else {
-                        alert('Fehler beim Erstellen der Einkaufsliste.');
+                        setIsPantryModalOpen(false);
+                        setAddToListToast({ message: res.error || 'Einkaufsliste konnte nicht erstellt werden.' });
                       }
                     }}
-                    disabled={isGeneratingSmartCart}
-                    className="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-2xl py-4 font-bold shadow-md shadow-rose-500/20 hover:shadow-lg hover:shadow-rose-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:scale-100"
+                    className="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-2xl py-4 font-bold shadow-md shadow-rose-500/20 hover:shadow-lg hover:shadow-rose-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                   >
-                    {isGeneratingSmartCart ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Analysiere {weekDraft.reduce((acc, day) => acc + day.meals.length, 0)} Gerichte...
-                      </>
-                    ) : (
-                      <>🛒 Zutaten für die Woche einkaufen</>
-                    )}
+                    🛒 Zutaten für die Woche einkaufen
                   </button>
                 </div>
               </div>
@@ -1923,6 +1961,116 @@ export default function RecipePage() {
         </div>,
         document.body
       )}
+
+      {isPantryModalOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4 sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pantry-modal-title"
+            onClick={() => {
+              if (!isGeneratingGroceries) {
+                setIsPantryModalOpen(false);
+                setGroceryList([]);
+              }
+            }}
+          >
+            <div
+              className="relative w-full max-w-md max-h-[88vh] flex flex-col bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100/80 animate-in fade-in zoom-in-95 duration-200 sm:max-h-[85vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="shrink-0 flex items-center justify-between gap-3 px-5 pt-5 pb-3 border-b border-gray-100">
+                <h2 id="pantry-modal-title" className="text-xl font-bold text-gray-900 tracking-tight">
+                  Zutaten-Check
+                </h2>
+                <button
+                  type="button"
+                  disabled={isGeneratingGroceries}
+                  onClick={() => {
+                    setIsPantryModalOpen(false);
+                    setGroceryList([]);
+                  }}
+                  className="p-2 min-h-[44px] min-w-[44px] rounded-xl text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors disabled:opacity-40"
+                  aria-label="Schließen"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+                {isGeneratingGroceries ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-rose-400/20 blur-2xl rounded-full animate-pulse" aria-hidden />
+                      <Loader2 className="w-12 h-12 text-rose-500 animate-spin relative z-10" aria-hidden />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800">KI berechnet benötigte Zutaten…</p>
+                    <p className="text-xs text-gray-500 mt-2 max-w-xs leading-relaxed">
+                      Deine Wochengerichte werden analysiert und zu einer klugen Einkaufsliste zusammengefasst.
+                    </p>
+                    <div className="w-full mt-8 space-y-3" aria-hidden>
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="h-12 rounded-xl bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 animate-pulse" />
+                      ))}
+                    </div>
+                  </div>
+                ) : groceryList.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-12">Keine Zutaten geladen.</p>
+                ) : (
+                  <div className="space-y-8 pb-2">
+                    {groupedPantryByCategory.map(([category, entries]) => (
+                      <div key={category}>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 px-0.5">
+                          {category}
+                        </h3>
+                        <ul className="space-y-2">
+                          {entries.map(({ row, index }) => (
+                            <li key={`${category}-${index}`}>
+                              <label className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3 cursor-pointer hover:bg-gray-50 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose-500/30">
+                                <input
+                                  type="checkbox"
+                                  checked={row.checked}
+                                  onChange={() =>
+                                    setGroceryList((prev) =>
+                                      prev.map((g, i) => (i === index ? { ...g, checked: !g.checked } : g))
+                                    )
+                                  }
+                                  className="mt-0.5 h-5 w-5 shrink-0 rounded-md border-gray-300 text-rose-600 focus:ring-rose-500 focus:ring-offset-0 accent-rose-600"
+                                />
+                                <span className="min-w-0 flex-1">
+                                  <span className="block text-sm font-semibold text-gray-900">{row.item}</span>
+                                  <span className="block text-xs text-gray-500 mt-0.5">{row.amount}</span>
+                                </span>
+                              </label>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="shrink-0 border-t border-gray-100 bg-white px-5 pt-4 pb-5 sm:pb-6">
+                <button
+                  type="button"
+                  disabled={isGeneratingGroceries || pantryCheckedCount === 0}
+                  onClick={() => {
+                    const selected = groceryList.filter((g) => g.checked);
+                    console.log('SmartCart Pantry — in SmartCart legen:', selected);
+                    setIsPantryModalOpen(false);
+                    setGroceryList([]);
+                  }}
+                  className="w-full bg-rose-500 hover:bg-rose-600 disabled:opacity-50 disabled:pointer-events-none text-white rounded-2xl py-3.5 sm:py-4 font-bold shadow-md shadow-rose-500/20 transition-all"
+                >
+                  {pantryCheckedCount} Zutaten in SmartCart legen
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 }
