@@ -14,6 +14,9 @@ Upgrade deinen Account, um unbegrenzten Zugriff auf alle KI-Tools zu erhalten.
 
 [👉 **Hier klicken zum Freischalten**](/settings)`;
 
+const GERMAN_UI_LANGUAGE_RULE = 'IMPORTANT: ALL user-facing text, including recipe titles, descriptions, meal types, ingredients, instructions and tips, MUST be generated EXCLUSIVELY in the German language.';
+const UNSPLASH_ENGLISH_ONLY_RULE = 'Only imageSearchQuery may be in English for Unsplash internal search. All other fields must stay German.';
+
 // --- REZEPT-GENERATOR ---
 export async function generateRecipe(prevState: any, formData: FormData) {
   // 1. Premium-Check
@@ -49,7 +52,7 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   }
 
   const jsonFormat = `{
-  "recipeName": "Kreativer Name des Gerichts",
+  "recipeName": "Name des Gerichts auf DEUTSCH",
   "stats": { 
     "time": "20 Min", 
     "calories": 450, 
@@ -63,18 +66,17 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   "instructions": ["Schritt 1", "Schritt 2"],
   "chefTip": "Situativer Profi-Tipp",
   "categoryIcon": "pasta",
-  "imageSearchQuery": "Chicken Curry"
+  "imageSearchQuery": "English search term for Unsplash (3-6 words)"
 }`;
 
   const imageSearchRule = `
-- imageSearchQuery (String): Kurzer, präziser ENGLISCHER Suchbegriff für Unsplash (Food-Fotografie).
+- imageSearchQuery (String): Kurzer, präziser ENGLISCHER Suchbegriff NUR für interne Unsplash-Bildsuche (Food-Fotografie).
   Übersetze deutsche Gerichtsnamen ins Englische (z. B. "Gefüllte Paprika mit Quinoa" → "Stuffed bell peppers quinoa").
   ABSOLUTE REGELN FÜR DIE BILDSUCHE:
   1. Nur Englisch. Keine deutschen Wörter im String.
   2. Fokus auf die ART des Gerichts (stuffed peppers, pasta bowl, curry, sandwich), nicht auf isolierte Zutaten.
   3. Bei "Hähnchen Döner" o. Ä. nutze z. B. "Doner kebab", "shawarma plate" – nicht nur "chicken".
-  4. 3–6 Wörter: Gericht + Kontext (z. B. "Stuffed bell peppers food" oder "Creamy pasta bowl"). KEINE Suffixe wie "food photography" anhängen – die fügt das Backend automatisch hinzu.
-`;
+  4. 3–6 Wörter: Gericht + Kontext (z. B. "Stuffed bell peppers food" oder "Creamy pasta bowl"). KEINE Suffixe wie "food photography" anhängen – die fügt das Backend automatisch hinzu.\n- WICHTIG: Alle anderen Felder (recipeName, ingredients, shoppingList, instructions, chefTip, stats.difficulty) müssen vollständig auf DEUTSCH sein.\n`;
 
   const categoryIconRules = `
 - categoryIcon (String, genau einer der folgenden Werte): Wähle das EINZIGE Icon, das das Gericht am besten repräsentiert.
@@ -94,7 +96,7 @@ export async function generateRecipe(prevState: any, formData: FormData) {
   let userPrompt: string;
 
   if (magicPrompt) {
-    systemPrompt = `Du bist ein 5-Sterne-Koch. Der User hat einen freien Wunsch geäußert (Magic Input).
+    systemPrompt = `Du bist ein 5-Sterne-Koch. Der User hat einen freien Wunsch geäußert (Magic Input).\n${GERMAN_UI_LANGUAGE_RULE}\n${UNSPLASH_ENGLISH_ONLY_RULE}
 Erstelle exakt dafür ein passendes, kreatives Rezept. Das Gericht soll den Wunsch treffend umsetzen.
 
 Du berechnest exakt für ${servings} ${servings === 1 ? 'Person' : 'Personen'}. Präzise Mengenangaben.
@@ -113,7 +115,7 @@ ${categoryIconRules}
 ${ingredientsRules}`;
     userPrompt = `Wunsch des Users: "${magicPrompt}". Erstelle exakt dafür ein passendes, kreatives Rezept. Trenne die Zutaten strikt in 'ingredients' (nur absolute Basics wie Salz, Öl) und 'shoppingList' (alle echten Zutaten für dieses Gericht).`;
   } else if (isInspiration) {
-    systemPrompt = `Du bist ein 5-Sterne-Koch. Der User will eine ÜBERRASCHUNG: Er hat keine Zutaten angegeben (Inspirations-Modus).
+    systemPrompt = `Du bist ein 5-Sterne-Koch. Der User will eine ÜBERRASCHUNG: Er hat keine Zutaten angegeben (Inspirations-Modus).\n${GERMAN_UI_LANGUAGE_RULE}\n${UNSPLASH_ENGLISH_ONLY_RULE}
 Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'.${filterText ? ` Berücksichtige: ${filters.join(', ')}.` : ''}
 Wähle selbst passende, gut erhältliche Zutaten. Das Gericht soll überraschen und begeistern.
 
@@ -135,7 +137,7 @@ ${ingredientsRules}
 - Rezept MUSS zur Kategorie '${mealType}' passen.${categoryInstruction}`;
     userPrompt = `Inspirations-Modus: Überrasch mich!\nKategorie: ${mealType}\nPersonen: ${servings}${filterText}\n\nErstelle ein überraschendes, kreatives Rezept.`;
   } else {
-    systemPrompt = `Du bist ein 5-Sterne-Koch. Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'. Nutze primär diese Zutaten: ${ingredients}.${filterText ? ` Berücksichtige: ${filters.join(', ')}.` : ''}
+    systemPrompt = `Du bist ein 5-Sterne-Koch. Erstelle ein kreatives, leckeres Rezept für die Kategorie: '${mealType}'. Nutze primär diese Zutaten: ${ingredients}.${filterText ? ` Berücksichtige: ${filters.join(', ')}.` : ''}\n${GERMAN_UI_LANGUAGE_RULE}\n${UNSPLASH_ENGLISH_ONLY_RULE}
 
 Modus: ${shoppingMode}
 - "strict": Nutze NUR die genannten Zutaten + Standard-Basics (Öl, Salz, Pfeffer, Wasser). Keine neuen Hauptzutaten.

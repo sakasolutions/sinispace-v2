@@ -7,6 +7,9 @@ import { createChatCompletion } from '@/lib/openai-wrapper';
 import { getMealPreferences } from './meal-planning-actions';
 import { saveResult } from './workspace-actions';
 
+const GERMAN_UI_LANGUAGE_RULE =
+  'WICHTIG: ALLE nutzerseitigen Texte (inkl. recipeName, cuisine, reason, Zutaten, Schritte, Tipps und sonstige Beschreibungen) MÜSSEN AUSSCHLIESSLICH auf DEUTSCH erzeugt werden.';
+
 // Generiere 7 neue Rezepte für eine Woche basierend auf Präferenzen
 export async function generateWeekRecipes(workspaceId?: string) {
   const session = await auth();
@@ -119,6 +122,7 @@ export async function generateWeekRecipes(workspaceId?: string) {
     const daysForMealPrep = ['monday', 'wednesday', 'friday', 'sunday'];
 
     const systemPrompt = `Du bist ein professioneller Meal-Planning-Experte und Muttersprachler Deutsch.
+${GERMAN_UI_LANGUAGE_RULE}
 
 ERNÄHRUNGS-ZIEL: ${dietText}
 KOCH-RHYTHMUS: ${rhythmText}
@@ -138,13 +142,13 @@ Antworte NUR mit einem gültigen JSON-Objekt:
   "recipes": [
     {
       "day": "monday",
-      "recipeName": "Name des Gerichts",
+      "recipeName": "Name des Gerichts auf DEUTSCH",
       "stats": { "time": "z.B. 25 Min", "calories": "z.B. 450 kcal", "difficulty": "Einfach/Mittel/Schwer" },
       "ingredients": ["..."],
       "shoppingList": ["..."],
       "instructions": ["Schritt 1", "Schritt 2"],
       "chefTip": "Kurzer Profi-Tipp",
-      "cuisine": "Italienisch",
+      "cuisine": "Küche auf DEUTSCH (z.B. Italienisch)",
       "proteinType": "vegetarisch"
     }
     ${isMealPrep ? '... (3 weitere Rezepte für wednesday, friday, sunday)' : '... (weitere 6 Rezepte für tuesday bis sunday)'}
@@ -316,6 +320,7 @@ export async function generateAlternativeRecipes(
 
   try {
     const systemPrompt = `Du bist ein professioneller Koch. Erstelle 3 ALTERNATIVE Rezepte für ${day}, die ähnlich gut sind wie das aktuelle Rezept, aber anders.
+${GERMAN_UI_LANGUAGE_RULE}
 
 Aktuelles Rezept: ${currentRecipe.recipeName}
 Küche: ${currentRecipe.cuisine || 'Verschieden'}
@@ -331,7 +336,7 @@ Antworte NUR mit JSON:
 {
   "alternatives": [
     {
-      "recipeName": "Name",
+      "recipeName": "Name auf DEUTSCH",
       "stats": { "time": "25 Min", "calories": "450 kcal", "difficulty": "Einfach" },
       "ingredients": [...],
       "shoppingList": [...],
@@ -339,7 +344,7 @@ Antworte NUR mit JSON:
       "chefTip": "...",
       "cuisine": "Italienisch",
       "proteinType": "vegetarisch",
-      "reason": "Warum diese Alternative gut ist"
+      "reason": "Warum diese Alternative gut ist (auf DEUTSCH)"
     },
     ... (2 weitere)
   ]

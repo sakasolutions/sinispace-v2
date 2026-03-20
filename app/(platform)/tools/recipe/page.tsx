@@ -1569,10 +1569,10 @@ export default function RecipePage() {
             {/* --- PHASE 5: AKTIVE WOCHE (Lese-Ansicht) --- */}
             {plannerPhase === 'active-view' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col flex-1 min-h-0">
-                <div className="sticky top-0 z-20 shrink-0 bg-white border-b border-gray-100 pt-2 pb-4 px-6">
+                <div className="sticky top-0 z-20 shrink-0 bg-white border-b border-gray-100 pt-6 pb-5 px-6">
                   <div className="flex justify-between items-start w-full gap-2 min-w-0">
                     <div className="min-w-0 flex-1 pr-1">
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
                         <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 shrink-0" />
                         <h3
                           id="week-planner-modal-title"
@@ -1581,7 +1581,7 @@ export default function RecipePage() {
                           Deine Woche
                         </h3>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">Hier ist dein aktueller Speiseplan.</p>
+                      <p className="text-sm text-gray-500 mt-2 leading-relaxed">Hier ist dein aktueller Speiseplan.</p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0 self-start">
                       <button
@@ -1612,10 +1612,10 @@ export default function RecipePage() {
                   </div>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-thin space-y-8 pb-6 px-6 pt-4 bg-gray-50/50 rounded-b-3xl">
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-thin space-y-8 pb-24 px-6 pt-4 bg-gray-50/50 rounded-b-3xl">
                   {weekDraft.map((dayPlan, idx) => (
                     <div key={idx} className="relative">
-                      <div className="mt-6 mb-3">
+                      <div className="mt-8 mb-4">
                         <h4 className="text-xl font-bold text-gray-900">
                           {dayPlan.day}
                         </h4>

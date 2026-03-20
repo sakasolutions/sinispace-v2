@@ -25,6 +25,9 @@ export type WeekDraftDay = {
   meals: WeekDraftMeal[];
 };
 
+const GERMAN_UI_LANGUAGE_RULE = 'WICHTIG: ALLE nutzerseitigen Texte (inkl. Gerichtstitel, Beschreibungen, Mahlzeitentypen, Zutaten, Schritte und Tipps) MÜSSEN AUSSCHLIESSLICH auf DEUTSCH erzeugt werden.';
+const ENGLISH_UNSPLASH_RULE = 'NUR das Feld imageSearchQuery bzw. Unsplash-Suchphrasen dürfen auf ENGLISCH sein.';
+
 /**
  * Gerichtstitel → kurze englische Unsplash-Suchphrasen (ein API-Call für viele Titel).
  */
@@ -127,7 +130,7 @@ export async function generateWeekDraft(
 
     const jsonSchema = `{
   "plan": [
-    { "day": "Montag", "meals": [ { "type": "breakfast", "title": "Gerichtename", "time": "20 Min", "calories": "450 kcal" } ] },
+    { "day": "Montag", "meals": [ { "type": "breakfast", "title": "Name des Gerichts auf DEUTSCH", "time": "20 Min", "calories": "450 kcal" } ] },
     { "day": "Dienstag", "meals": [ ... ] },
     ... für alle 7 Tage (Montag bis Sonntag)
   ]
@@ -140,6 +143,7 @@ ${filterText}
 ${customText}
 
 Regeln:
+0. ${GERMAN_UI_LANGUAGE_RULE} ${ENGLISH_UNSPLASH_RULE}
 1. JEDES Gericht muss zu 100% einzigartig sein. Keine Wiederholungen innerhalb der Woche!
 2. Die Werte für 'calories' und 'time' müssen realistisch sein und zu den Filtern passen (z.B. wenig Kalorien bei Low Carb, kurze Zeit bei "Unter 30 Min").
 3. Antworte NUR mit einem gültigen JSON-Objekt mit genau einem Schlüssel "plan", der ein Array aus 7 Tagen ist. Jeder Tag hat "day" (z.B. "Montag") und "meals" (Array von Objekten mit type, title, time, calories).
@@ -227,6 +231,7 @@ ${filterText}
 ${customText}
 
 Regeln:
+0. ${GERMAN_UI_LANGUAGE_RULE} ${ENGLISH_UNSPLASH_RULE}
 1. Generiere nur EIN Gericht.
 2. Die Werte für 'calories' und 'time' müssen realistisch sein.
 3. Antworte NUR mit einem JSON-Objekt mit genau einem Schlüssel "meal": { "type": "${typeNorm}", "title": "...", "time": "...", "calories": "..." }`;
@@ -296,18 +301,19 @@ export async function generateAndSaveFullRecipe(
 
   try {
     const jsonFormat = `{
-  "recipeName": "Name des Gerichts",
+  "recipeName": "Name des Gerichts auf DEUTSCH",
   "stats": { "time": "20 Min", "calories": 450, "protein": 0, "carbs": 0, "fat": 0, "difficulty": "Einfach" },
   "ingredients": [ "Menge Einheit Zutat" ],
   "shoppingList": [ "Menge Einheit Zutat" ],
   "instructions": [ "Schritt 1", "Schritt 2" ],
   "chefTip": "Profi-Tipp",
   "categoryIcon": "pasta",
-  "imageSearchQuery": "Stuffed bell peppers quinoa bowl"
+  "imageSearchQuery": "English search term for Unsplash (3-6 words)"
 }`;
 
     const imageSearchRule = `
-- imageSearchQuery (String): Kurzer ENGLISCHER Unsplash-Suchbegriff (3–6 Wörter). Übersetze den deutschen Gerichtstitel ins Englische (z. B. "Gefüllte Paprika" → "stuffed bell peppers"). Beschreibe das Gericht, nicht isolierte Zutaten. Keine Phrasen wie "food photography" anhängen.
+- imageSearchQuery (String): Kurzer ENGLISCHER Unsplash-Suchbegriff (3–6 Wörter) NUR für interne Bildsuche. Übersetze den deutschen Gerichtstitel ins Englische (z. B. "Gefüllte Paprika" → "stuffed bell peppers"). Beschreibe das Gericht, nicht isolierte Zutaten. Keine Phrasen wie "food photography" anhängen.
+- WICHTIG: recipeName, stats.difficulty, ingredients, shoppingList, instructions und chefTip bleiben vollständig auf DEUTSCH.
 `;
 
     const response = await createChatCompletion(
@@ -316,7 +322,7 @@ export async function generateAndSaveFullRecipe(
         messages: [
           {
             role: 'system',
-            content: `Du bist ein 5-Sterne-Koch. Erstelle ein vollständiges Rezept nur aus dem Gerichtsnamen. Antworte NUR mit validem JSON: ${jsonFormat}. categoryIcon: einer von pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast. ingredients: nur Basics (Salz, Pfeffer, Öl, Wasser). shoppingList: alle übrigen Zutaten.
+            content: `Du bist ein 5-Sterne-Koch. Erstelle ein vollständiges Rezept nur aus dem Gerichtsnamen. ${GERMAN_UI_LANGUAGE_RULE} ${ENGLISH_UNSPLASH_RULE} Antworte NUR mit validem JSON: ${jsonFormat}. categoryIcon: einer von pasta, pizza, burger, soup, salad, vegetable, meat, chicken, fish, egg, dessert, breakfast. ingredients: nur Basics (Salz, Pfeffer, Öl, Wasser). shoppingList: alle übrigen Zutaten.
 ${imageSearchRule}`,
           },
           {
