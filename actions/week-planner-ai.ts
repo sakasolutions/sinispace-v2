@@ -10,6 +10,7 @@ import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-act
 import { appendToList, defaultList } from '@/lib/shopping-lists-storage';
 import { auth } from '@/auth';
 import { fetchUnsplashImageForRecipe } from '@/lib/unsplash-recipe-image';
+import { z } from 'zod';
 
 export type WeekDraftMeal = {
   type: 'breakfast' | 'lunch' | 'dinner';
@@ -27,6 +28,18 @@ export type WeekDraftDay = {
 
 const GERMAN_UI_LANGUAGE_RULE = 'WICHTIG: ALLE nutzerseitigen Texte (inkl. Gerichtstitel, Beschreibungen, Mahlzeitentypen, Zutaten, Schritte und Tipps) MÜSSEN AUSSCHLIESSLICH auf DEUTSCH erzeugt werden.';
 const ENGLISH_UNSPLASH_RULE = 'NUR das Feld imageSearchQuery bzw. Unsplash-Suchphrasen dürfen auf ENGLISCH sein.';
+
+const SmartShoppingIngredientSchema = z.object({
+  item: z.string().min(1),
+  amount: z.string().min(1),
+  category: z.string().min(1),
+});
+
+const SmartShoppingOutputSchema = z.object({
+  ingredients: z.array(SmartShoppingIngredientSchema),
+});
+
+export type SmartShoppingIngredient = z.infer<typeof SmartShoppingIngredientSchema>;
 
 /**
  * Gerichtstitel → kurze englische Unsplash-Suchphrasen (ein API-Call für viele Titel).
@@ -428,6 +441,98 @@ export async function saveWeeklyPlan(
   } catch (error) {
     console.error('Fehler beim Speichern & Kalender-Sync:', error);
     return { success: false, error: 'Konnte Plan nicht speichern.' };
+  }
+}
+
+/**
+ * SmartCart Pantry Check:
+ * Konsolidiert Zutaten über mehrere Gerichte hinweg als strukturierte Einkaufsliste.
+ */
+export async function generateSmartShoppingList(
+  mealTitles: string[]
+): Promise<{ success: true; ingredients: SmartShoppingIngredient[] } | { success: false; error: string }> {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) {
+    return { success: false, error: 'Premium-Feature. Bitte upgrade deinen Account.' };
+  }
+
+  const normalizedTitles = Array.isArray(mealTitles)
+    ? mealTitles
+        .map((t) => (typeof t === 'string' ? t.trim() : ''))
+        .filter((t) => t.length > 0)
+        .slice(0, 60)
+    : [];
+
+  if (normalizedTitles.length === 0) {
+    return { success: false, error: 'Bitte mindestens einen Gerichtstitel übergeben.' };
+  }
+
+  const systemPrompt = `You are a smart grocery planner.
+The user will provide an array of meal titles for the upcoming week.
+
+Generate a consolidated grocery list needed to cook all these meals.
+Combine amounts if ingredients overlap.
+
+CRITICAL: Ignore absolute basics (salt, pepper, tap water, basic frying oil).
+Categorize items logically (e.g., "Gemüse", "Fleisch", "Milchprodukte", "Trockenprodukte").
+
+IMPORTANT: ALL user-facing text, including item names, amounts and categories, MUST be generated EXCLUSIVELY in the German language.
+
+Return ONLY valid JSON with exactly this shape:
+{
+  "ingredients": [
+    { "item": "Zutat auf Deutsch", "amount": "Menge auf Deutsch", "category": "Kategorie auf Deutsch" }
+  ]
+}`;
+
+  try {
+    const response = await createChatCompletion(
+      {
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: JSON.stringify({ mealTitles: normalizedTitles }) },
+        ],
+        response_format: { type: 'json_object' as const },
+        temperature: 0.2,
+      },
+      'recipe',
+      'CookIQ SmartCart Pantry Check'
+    );
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      return { success: false, error: 'Keine Antwort von der KI erhalten.' };
+    }
+
+    let raw: unknown;
+    try {
+      raw = JSON.parse(content);
+    } catch {
+      return { success: false, error: 'Ungültiges JSON von der KI.' };
+    }
+
+    const parsed = SmartShoppingOutputSchema.safeParse(raw);
+    if (!parsed.success) {
+      return { success: false, error: 'KI-Antwort hat ein ungültiges Format.' };
+    }
+
+    const ingredients = parsed.data.ingredients
+      .map((ing) => ({
+        item: ing.item.trim(),
+        amount: ing.amount.trim(),
+        category: ing.category.trim(),
+      }))
+      .filter((ing) => ing.item.length > 0 && ing.amount.length > 0 && ing.category.length > 0);
+
+    if (ingredients.length === 0) {
+      return { success: false, error: 'Keine verwertbaren Zutaten in der KI-Antwort.' };
+    }
+
+    return { success: true, ingredients };
+  } catch (error) {
+    console.error('Fehler bei generateSmartShoppingList:', error);
+    return { success: false, error: 'Konnte SmartCart-Liste nicht generieren.' };
   }
 }
 
