@@ -32,7 +32,6 @@ import {
   FileImage,
   ChevronDown,
   ChevronRight,
-  Calendar,
   CheckCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -162,10 +161,8 @@ const ACCORDION_ICON: Record<string, { bg: string; text: string }> = {
 };
 const ACCORDION_ICON_FALLBACK = { bg: 'bg-gray-100', text: 'text-gray-600' };
 
-/** Live-Badges für Top-4 – einheitlich dezent (oben rechts in der Karte) */
+/** Live-Badges für Top-4 (CookIQ + SmartCart kommen aus DB-Props) */
 const TOOL_LIVE_BADGE: Record<string, { label: string }> = {
-  recipe: { label: 'Heute: Pasta' },
-  'shopping-list': { label: '4 offen' },
   fitness: { label: '3 geplant' },
   travel: { label: '2 Trips' },
   calendar: { label: '2 Termine' },
@@ -173,6 +170,21 @@ const TOOL_LIVE_BADGE: Record<string, { label: string }> = {
   pdf: { label: 'Bereit' },
   legal: { label: 'Offen' },
 };
+
+function resolveToolLiveBadge(
+  toolId: string,
+  opts: { todaysMealTitle: string | null; openCartItemsCount: number }
+): string | null {
+  if (toolId === 'recipe') {
+    if (opts.todaysMealTitle) return `Heute: ${opts.todaysMealTitle}`;
+    return 'Planung offen';
+  }
+  if (toolId === 'shopping-list') {
+    if (opts.openCartItemsCount === 0) return 'Alles erledigt';
+    return `${opts.openCartItemsCount} offen`;
+  }
+  return TOOL_LIVE_BADGE[toolId]?.label ?? null;
+}
 
 const COLOR_FALLBACK: Record<string, string> = {
   orange: 'text-orange-500',
@@ -636,7 +648,17 @@ const toolColors: Record<string, {
   },
 };
 
-export default function DashboardClient() {
+export type DashboardClientProps = {
+  /** Aus CalendarEvent (meal) für heutiges Datum (Europe/Berlin) */
+  todaysMealTitle: string | null;
+  /** SmartCart: Items mit checked === false über alle Listen */
+  openCartItemsCount: number;
+};
+
+export default function DashboardClient({
+  todaysMealTitle,
+  openCartItemsCount,
+}: DashboardClientProps) {
   const [pullDistance, setPullDistance] = useState(0);
   const [usageStats, setUsageStats] = useState<Record<string, { count7d: number; count30d: number; isTrending: boolean }>>({});
   const [openAccordions, setOpenAccordions] = useState<Set<string>>(new Set());
@@ -831,17 +853,31 @@ export default function DashboardClient() {
         }
         headerExtra={
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
-              <Calendar className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-              2 Termine
+            <span
+              className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 shrink-0 bg-white/10 border border-white/20 text-white/80 min-w-0 max-w-full"
+              title={
+                todaysMealTitle
+                  ? `Heute: ${todaysMealTitle}`
+                  : 'Noch keine Mahlzeit für heute geplant'
+              }
+            >
+              <ChefHat className="w-3 h-3 opacity-90 shrink-0" aria-hidden />
+              <span className="uppercase tracking-wide truncate max-w-[140px]">
+                {todaysMealTitle ? <>Heute: {todaysMealTitle}</> : <>Planung offen</>}
+              </span>
             </span>
-            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
-              <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-              4 Offen
-            </span>
-            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80">
-              <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
-              Alles erledigt
+            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80 uppercase tracking-wide">
+              {openCartItemsCount === 0 ? (
+                <>
+                  <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                  Alles erledigt
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                  {openCartItemsCount} offen
+                </>
+              )}
             </span>
           </div>
         }
@@ -855,7 +891,10 @@ export default function DashboardClient() {
                 {sortedTools.slice(0, 4).map((tool) => {
                   const Icon = tool.icon;
                   const subtitle = TOOL_SUBTITLES[tool.id];
-                  const liveBadge = TOOL_LIVE_BADGE[tool.id];
+                  const liveBadgeLabel = resolveToolLiveBadge(tool.id, {
+                    todaysMealTitle,
+                    openCartItemsCount,
+                  });
                   const card = (
                     <div
                       key={tool.id}
@@ -874,11 +913,15 @@ export default function DashboardClient() {
                       }}
                     >
                       {/* Status-Badge: dezent oben rechts (einheitliches Micro-Design) */}
-                      {(liveBadge || (!tool.available && tool.status === 'soon')) && (
-                        <div className="absolute top-4 right-4 flex flex-col items-end gap-0.5">
-                          {liveBadge && (
-                            <span className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm shrink-0" style={{ letterSpacing: '0.6px' }}>
-                              {liveBadge.label}
+                      {(liveBadgeLabel || (!tool.available && tool.status === 'soon')) && (
+                        <div className="absolute top-4 right-4 flex flex-col items-end gap-0.5 max-w-[calc(100%-2rem)]">
+                          {liveBadgeLabel && (
+                            <span
+                              className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm shrink-0 max-w-[100px] truncate text-right"
+                              style={{ letterSpacing: '0.6px' }}
+                              title={liveBadgeLabel}
+                            >
+                              {liveBadgeLabel}
                             </span>
                           )}
                           {!tool.available && tool.status === 'soon' && (

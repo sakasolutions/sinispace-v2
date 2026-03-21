@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { getDashboardSnapshot } from '@/lib/dashboard-snapshot';
 import DashboardClient from './dashboard-client';
 
 export default async function DashboardPage() {
@@ -9,5 +10,12 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  return <DashboardClient />;
+  const snapshot = await getDashboardSnapshot(session.user.id);
+
+  return (
+    <DashboardClient
+      todaysMealTitle={snapshot.todaysMealTitle}
+      openCartItemsCount={snapshot.openCartItemsCount}
+    />
+  );
 }
