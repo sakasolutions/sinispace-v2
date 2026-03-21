@@ -31,6 +31,7 @@ import {
   generateWeekDraft,
   regenerateSingleMealDraft,
   saveWeeklyPlan,
+  activateWeeklyPlan,
   generateAndSaveFullRecipe,
   generateSmartShoppingList,
 } from '@/actions/week-planner-ai';
@@ -276,6 +277,7 @@ export default function RecipePage() {
   const [pantryNewListName, setPantryNewListName] = useState('');
   const [isPantryListsLoading, setIsPantryListsLoading] = useState(false);
   const [isSavingPantryToSmartCart, setIsSavingPantryToSmartCart] = useState(false);
+  const [isActivatingWeeklyPlan, setIsActivatingWeeklyPlan] = useState(false);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const [rollingMealId, setRollingMealId] = useState<string | null>(null);
   /** 3-Schritte-Assistent nur in Phase „setup“ des Wochenplan-Modals (nicht mit Rezept-Wizard `wizardStep` verwechseln). */
@@ -309,6 +311,15 @@ export default function RecipePage() {
   }, [groceryList]);
 
   const pantryCheckedCount = useMemo(() => groceryList.filter((g) => g.checked).length, [groceryList]);
+
+  const planForCalendarActivation = useMemo(() => {
+    const plan = weekDraft?.length ? weekDraft : activeWeekPlan ?? [];
+    if (!Array.isArray(plan) || plan.length === 0) return null;
+    const hasMeals = plan.some(
+      (d: { meals?: unknown[] }) => Array.isArray(d?.meals) && d.meals.length > 0
+    );
+    return hasMeals ? plan : null;
+  }, [weekDraft, activeWeekPlan]);
 
   /** SmartCart-Listen laden, sobald das Pantry-Modal geöffnet wird (für Ziel-Dropdown). */
   useEffect(() => {
@@ -2017,7 +2028,7 @@ export default function RecipePage() {
             aria-modal="true"
             aria-labelledby="pantry-modal-title"
             onClick={() => {
-              if (!isGeneratingGroceries && !isSavingPantryToSmartCart) {
+              if (!isGeneratingGroceries && !isSavingPantryToSmartCart && !isActivatingWeeklyPlan) {
                 setIsPantryModalOpen(false);
                 setGroceryList([]);
               }
@@ -2033,9 +2044,9 @@ export default function RecipePage() {
                 </h2>
                 <button
                   type="button"
-                  disabled={isGeneratingGroceries}
+                  disabled={isGeneratingGroceries || isActivatingWeeklyPlan}
                   onClick={() => {
-                    if (isSavingPantryToSmartCart) return;
+                    if (isSavingPantryToSmartCart || isActivatingWeeklyPlan) return;
                     setIsPantryModalOpen(false);
                     setGroceryList([]);
                   }}
@@ -2101,6 +2112,53 @@ export default function RecipePage() {
               </div>
 
               <div className="shrink-0 border-t border-gray-100 bg-white px-5 pt-4 pb-5 sm:pb-6 space-y-4">
+                {!isGeneratingGroceries && planForCalendarActivation ? (
+                  <button
+                    type="button"
+                    disabled={isActivatingWeeklyPlan || isSavingPantryToSmartCart}
+                    onClick={async () => {
+                      if (!planForCalendarActivation) return;
+                      setIsActivatingWeeklyPlan(true);
+                      try {
+                        const res = await activateWeeklyPlan(JSON.stringify(planForCalendarActivation));
+                        if (res.success) {
+                          setAddToListToast({ message: 'Plan für nächste Woche ist aktiv!' });
+                          setIsPantryModalOpen(false);
+                          setGroceryList([]);
+                          const restored = await getCurrentWeekMeals();
+                          const ok =
+                            Array.isArray(restored.plan) &&
+                            restored.plan.some((d) => d.meals?.length > 0);
+                          setActiveWeekPlan(ok ? restored.plan : planForCalendarActivation);
+                          setWeekDraft([]);
+                        } else {
+                          setAddToListToast({
+                            message: res.error || 'Kalender konnte nicht aktualisiert werden.',
+                          });
+                        }
+                      } catch (e) {
+                        console.error('[CookIQ] activateWeeklyPlan:', e);
+                        setAddToListToast({ message: 'Kalender konnte nicht aktualisiert werden.' });
+                      } finally {
+                        setIsActivatingWeeklyPlan(false);
+                      }
+                    }}
+                    className="w-full rounded-2xl py-4 font-bold shadow-lg shadow-emerald-900/15 transition-all inline-flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:pointer-events-none bg-gradient-to-r from-emerald-700 via-teal-600 to-cyan-700 text-white hover:brightness-105 hover:shadow-xl hover:shadow-emerald-900/20 active:scale-[0.99] ring-1 ring-white/20"
+                  >
+                    {isActivatingWeeklyPlan ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin shrink-0" aria-hidden />
+                        Wird eingetragen…
+                      </>
+                    ) : (
+                      <>
+                        <CalendarDays className="w-5 h-5 shrink-0 opacity-95" aria-hidden />
+                        Wochenplan aktivieren
+                      </>
+                    )}
+                  </button>
+                ) : null}
+
                 {!isGeneratingGroceries && groceryList.length > 0 ? (
                   <div className="space-y-2">
                     <label htmlFor="pantry-list-select" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -2145,7 +2203,8 @@ export default function RecipePage() {
                     isGeneratingGroceries ||
                     pantryCheckedCount === 0 ||
                     isPantryListsLoading ||
-                    isSavingPantryToSmartCart
+                    isSavingPantryToSmartCart ||
+                    isActivatingWeeklyPlan
                   }
                   onClick={async () => {
                     const checked = groceryList.filter((g) => g.checked);

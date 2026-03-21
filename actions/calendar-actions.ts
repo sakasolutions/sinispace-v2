@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { addDays, format, isBefore, setYear, startOfDay, startOfWeek } from 'date-fns';
+import { getNextMonday } from '@/lib/week-plan-dates';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -400,6 +401,8 @@ export type WeeklyPlanEntry = {
   title: string;
   mealType?: 'breakfast' | 'lunch' | 'dinner';
   imageUrl?: string | null;
+  /** Wenn gesetzt und im Format HH:mm → ersetzt Default-Uhrzeit für mealType */
+  time?: string | null;
 };
 
 /**
@@ -419,7 +422,14 @@ function normalizeWeeklyPlanRow(
   const mt = entry.mealType;
   const mealType: 'breakfast' | 'lunch' | 'dinner' =
     mt === 'breakfast' || mt === 'lunch' || mt === 'dinner' ? mt : 'dinner';
-  const time = defaultTimes[mealType] ?? '12:00';
+  let time = defaultTimes[mealType] ?? '12:00';
+  const rawT = typeof entry.time === 'string' ? entry.time.trim() : '';
+  if (rawT) {
+    const hm = rawT.match(/^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/);
+    if (hm) {
+      time = `${hm[1].padStart(2, '0')}:${hm[2]}`;
+    }
+  }
   const title =
     typeof entry.title === 'string' && entry.title.trim().length > 0 ? entry.title.trim() : 'Gericht';
   const rid = entry.resultId;
@@ -499,6 +509,105 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
       error: `Fehler beim Speichern des Wochenplans: ${detail}`,
     };
   }
+}
+
+/** Roher Entwurfstag (JSON von Client / zukünftige Draft-ID-Auflösung). */
+export type ActivateWeeklyPlanDayInput = {
+  day?: string;
+  meals?: Array<{
+    type?: string;
+    title?: string;
+    time?: string;
+    calories?: string;
+    imageUrl?: string | null;
+    resultId?: string | null;
+  }>;
+};
+
+function mealTitleWithCaloriesForCalendar(title: string, calories?: string | null): string {
+  const t = typeof title === 'string' && title.trim().length > 0 ? title.trim() : 'Gericht';
+  const raw = typeof calories === 'string' ? calories.trim() : '';
+  if (!raw || /^[–—\-/\s]+$/u.test(raw)) return t;
+  const c = raw.toLowerCase().includes('kcal') ? raw : `${raw} kcal`;
+  return `${t} · ${c}`;
+}
+
+function mapDraftMealTypeToCalendar(t: string | undefined): 'breakfast' | 'lunch' | 'dinner' {
+  if (t === 'breakfast' || t === 'lunch' || t === 'dinner') return t;
+  const s = (t || '').toLowerCase();
+  if (s.includes('früh') || s.includes('breakfast')) return 'breakfast';
+  if (s.includes('mittag') || s.includes('lunch')) return 'lunch';
+  return 'dinner';
+}
+
+/**
+ * Übernimmt einen serialisierten 7-Tage-Wochenplan (JSON-Array) in CalendarEvent ab **getNextMonday()**.
+ * `draftId`: Derzeit `JSON.stringify(WeekDraftDay[])` – Platzhalter für spätere echte Draft-IDs aus der DB.
+ */
+export async function activateWeeklyPlan(
+  draftId: string
+): Promise<
+  { success: true; from: string; to: string } | { success: false; error: string }
+> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Nicht angemeldet' };
+  }
+
+  let days: ActivateWeeklyPlanDayInput[];
+  try {
+    const parsed = JSON.parse(draftId) as unknown;
+    if (!Array.isArray(parsed)) {
+      return { success: false, error: 'Ungültiger Wochenplan (kein Array).' };
+    }
+    days = parsed as ActivateWeeklyPlanDayInput[];
+  } catch {
+    return { success: false, error: 'Ungültiger Wochenplan (JSON).' };
+  }
+
+  const startMonday = getNextMonday();
+  const planData: WeeklyPlanEntry[] = [];
+
+  for (let i = 0; i < Math.min(days.length, 7); i++) {
+    const dayObj = days[i];
+    const dateStr = format(addDays(startMonday, i), 'yyyy-MM-dd');
+    const meals = Array.isArray(dayObj?.meals) ? dayObj.meals : [];
+    for (const meal of meals) {
+      const title = mealTitleWithCaloriesForCalendar(
+        typeof meal?.title === 'string' ? meal.title : '',
+        meal?.calories
+      );
+      const img = meal?.imageUrl;
+      const imageUrl =
+        typeof img === 'string' && img.trim().length > 0 ? img.trim() : null;
+      const rid = meal?.resultId;
+      const resultId = typeof rid === 'string' && rid.length > 0 ? rid : null;
+      planData.push({
+        date: dateStr,
+        title,
+        mealType: mapDraftMealTypeToCalendar(meal?.type),
+        time: typeof meal?.time === 'string' ? meal.time : null,
+        imageUrl,
+        resultId,
+      });
+    }
+  }
+
+  if (planData.length === 0) {
+    return { success: false, error: 'Keine Mahlzeiten im Plan – nichts zu aktivieren.' };
+  }
+
+  const res = await saveWeeklyPlan(planData);
+  if (!res.success) {
+    return { success: false, error: res.error || 'Kalender konnte nicht aktualisiert werden.' };
+  }
+
+  const sunday = addDays(startMonday, 6);
+  return {
+    success: true,
+    from: format(startMonday, 'yyyy-MM-dd'),
+    to: format(sunday, 'yyyy-MM-dd'),
+  };
 }
 
 /** Ein Meal im wiederhergestellten Wochenplan (Format wie WeekDraftMeal). */

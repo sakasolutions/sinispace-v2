@@ -3,7 +3,10 @@
 import { addDays, format } from 'date-fns';
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
-import { saveWeeklyPlan as saveWeeklyPlanToCalendar } from '@/actions/calendar-actions';
+import {
+  saveWeeklyPlan as saveWeeklyPlanToCalendar,
+  activateWeeklyPlan as activateWeeklyPlanToCalendar,
+} from '@/actions/calendar-actions';
 import { getNextWeekRange } from '@/lib/week-plan-dates';
 import { saveResult } from '@/actions/workspace-actions';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
@@ -422,15 +425,24 @@ export async function saveWeeklyPlan(
     const planData = weekDraft.flatMap((dayObj, dayIndex) => {
       const date = addDays(weekStart, dayIndex);
       const dateStr = format(date, 'yyyy-MM-dd');
-      return (dayObj.meals ?? []).map((meal) => ({
-        date: dateStr,
-        title: meal.title || 'Gericht',
-        mealType: meal.type,
-        imageUrl:
-          meal.imageUrl && String(meal.imageUrl).trim().length > 0
-            ? String(meal.imageUrl).trim()
-            : null,
-      }));
+      return (dayObj.meals ?? []).map((meal) => {
+        const t = meal.title || 'Gericht';
+        const raw = (meal.calories || '').trim();
+        const title =
+          !raw || /^[–—\-/\s]+$/u.test(raw)
+            ? t
+            : `${t} · ${raw.toLowerCase().includes('kcal') ? raw : `${raw} kcal`}`;
+        return {
+          date: dateStr,
+          title,
+          mealType: meal.type,
+          time: meal.time,
+          imageUrl:
+            meal.imageUrl && String(meal.imageUrl).trim().length > 0
+              ? String(meal.imageUrl).trim()
+              : null,
+        };
+      });
     });
 
     if (planData.length === 0) {
@@ -447,6 +459,22 @@ export async function saveWeeklyPlan(
     console.error('Fehler beim Speichern & Kalender-Sync:', error);
     return { success: false, error: 'Konnte Plan nicht speichern.' };
   }
+}
+
+/**
+ * Wochenplan-Entwurf als Kalender-Events ab **nächstem Plan-Montag** (siehe getNextMonday).
+ * `draftId`: `JSON.stringify(WeekDraftDay[])` – kompatibel mit zukünftiger echter Draft-ID.
+ */
+export async function activateWeeklyPlan(
+  draftId: string
+): Promise<
+  { success: true; from: string; to: string } | { success: false; error: string }
+> {
+  const isAllowed = await isUserPremium();
+  if (!isAllowed) {
+    return { success: false, error: 'Premium-Feature. Bitte upgrade deinen Account.' };
+  }
+  return activateWeeklyPlanToCalendar(draftId);
 }
 
 /**
