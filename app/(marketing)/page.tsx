@@ -7,21 +7,19 @@ import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 
 // --- CONFIG & DATA ---
 
-const toolsColumn1 = [
-  { icon: "IN", label: "LinkedIn Viral", color: "text-blue-600 bg-blue-50" },
-  { icon: "SEO", label: "SEO Analyse", color: "text-green-600 bg-green-50" },
-  { icon: "JS", label: "Code Fixer", color: "text-yellow-600 bg-yellow-50" },
-  { icon: "BLOG", label: "Blog Artikel", color: "text-purple-600 bg-purple-50" },
-  { icon: "ADS", label: "Ad Copy", color: "text-pink-600 bg-pink-50" },
+/** Kleine Tags unter CookIQ-Karte */
+const cookiqChips = [
+  { icon: "🍳", label: "Wochenplan" },
+  { icon: "✨", label: "KI-Rezepte" },
+  { icon: "🥗", label: "Vorlieben" },
+  { icon: "📅", label: "Kalender" },
 ];
 
-const toolsColumn2 = [
-  { icon: "XL", label: "Excel Formel", color: "text-emerald-600 bg-emerald-50" },
-  { icon: "§", label: "Rechtstext", color: "text-zinc-600 bg-zinc-100" },
-  { icon: "TR", label: "Übersetzer", color: "text-indigo-600 bg-indigo-50" },
-  { icon: "SUM", label: "Summary", color: "text-cyan-600 bg-cyan-50" },
-  { icon: "BIO", label: "Bio Gen", color: "text-rose-600 bg-rose-50" },
-];
+/** SmartCart-Highlights */
+const smartcartBullets = ["Eine Liste, alle Märkte", "Vorrats-Check vor dem Einkauf", "Kategorien wie im Supermarkt"];
+
+/** Kalender-Highlights */
+const calendarBullets = ["Essen & Termine an einem Ort", "Plan aktivieren → nächste Woche", "Weniger Koordination im Alltag"];
 
 const faqData = [
   { 
@@ -30,7 +28,7 @@ const faqData = [
   },
   { 
     q: "Nutzt ihr meine Eingaben zum KI-Training?", 
-    a: "Nein. Deine Daten gehören dir. Wir nutzen deine Eingaben und Ergebnisse explizit NICHT, um unsere KI-Modelle zu trainieren. Deine Geschäftsgeheimnisse bleiben sicher." 
+    a: "Nein. Deine Daten gehören dir. Wir nutzen deine Eingaben und Ergebnisse explizit NICHT, um unsere KI-Modelle zu trainieren – weder für CookIQ noch für andere Funktionen." 
   },
   { 
     q: "Sind die Ergebnisse urheberrechtlich geschützt?", 
@@ -47,15 +45,12 @@ const faqData = [
 ];
 
 const testimonialData = [
-  { text: "Ich habe keine Ahnung von 'Prompts'. Hier klicke ich auf 'E-Mail' und es passt. Genial.", author: "Sandra K.", role: "Immobilienmaklerin" },
-  { text: "Die Kombination aus festen Tools und dem freien Chat ist genau das, was mir gefehlt hat.", author: "Timo B.", role: "Agentur Inhaber" },
-  { text: "Super fair, dass man sich erst anmelden und umschauen kann. Das Premium-Upgrade war ein No-Brainer.", author: "Jonas L.", role: "Freelancer" }
+  { text: "Endlich keine Diskussion mehr am Sonntagabend: Wochenplan steht, Einkaufsliste ist sortiert. CookIQ spart uns jeden Streit.", author: "Michael R.", role: "Familienvater" },
+  { text: "SmartCart mit Vorrats-Check ist der Gamechanger – wir kaufen nichts doppelt und vergessen nichts mehr.", author: "Lea & Tom S.", role: "Berufstätiges Paar" },
+  { text: "Kalender und Essensplan an einem Ort. Premium hat sich gelohnt, weniger Mental Load nach der Arbeit.", author: "Julia K.", role: "Zwei Kinder, Vollzeit" },
 ];
 
 // --- ANIMATION CONFIG ---
-// CSS-basierte Animationen für bessere Performance (kein JS-Bundle nötig)
-const fadeUpCSS = "animate-[fadeUp_0.6s_ease-out_forwards] opacity-0";
-
 const fadeUp = (delay = 0, reducedMotion = false) => ({
   initial: reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
@@ -84,15 +79,7 @@ const CloseIcon = () => <svg className="w-6 h-6" fill="none" stroke="currentColo
 
 // --- HEADER COMPONENT ---
 function Header() {
-  const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   // Navigation Items
   const navItems = [
@@ -104,12 +91,12 @@ function Header() {
 
   return (
     <header 
-      className="fixed top-0 left-0 right-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200"
+      className="fixed top-0 left-0 right-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-white/40"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Logo - Links */}
         <Link href="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setIsMenuOpen(false)}>
-          <div className="relative h-8 w-8 sm:h-9 sm:w-9 overflow-hidden rounded-xl shadow-lg shadow-orange-500/10 border border-white/10 bg-white hover:scale-105 transition-transform duration-300 shrink-0">
+          <div className="relative h-8 w-8 sm:h-9 sm:w-9 overflow-hidden rounded-xl shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] border border-white/60 bg-white/90 hover:scale-105 transition-transform duration-300 shrink-0">
             <Image 
               src="/assets/logos/logo.webp" 
               alt="Sinispace Logo" 
@@ -119,7 +106,7 @@ function Header() {
               sizes="36px"
             />
           </div>
-          <span className="hidden sm:inline text-gray-900 font-semibold text-lg">Sinispace</span>
+          <span className="hidden sm:inline text-slate-900 font-semibold text-lg tracking-tight">SiniSpace</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -128,7 +115,7 @@ function Header() {
             <Link 
               key={item.name} 
               href={item.href} 
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
             >
               {item.name}
             </Link>
@@ -137,8 +124,8 @@ function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="/login" prefetch={true} className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Login</Link>
-          <Link href="/register" className="px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-bold hover:from-orange-600 hover:to-pink-600 transition-all shadow-md">
+          <Link href="/login" prefetch={true} className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Login</Link>
+          <Link href="/register" className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition-all shadow-[0_8px_24px_-4px_rgba(15,23,42,0.35)]">
             Kostenlos starten
           </Link>
         </div>
@@ -148,13 +135,13 @@ function Header() {
           <Link 
             href="/login"
             prefetch={true}
-            className="text-sm font-medium px-4 py-2 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
+            className="text-sm font-medium px-4 py-2 rounded-xl border border-gray-200/80 text-slate-700 hover:bg-white/80 transition-colors shrink-0"
           >
             Anmelden
           </Link>
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)} 
-            className="text-gray-700 p-2 hover:bg-gray-50 rounded-lg transition-colors"
+            className="text-slate-700 p-2 hover:bg-white/60 rounded-lg transition-colors"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -169,7 +156,7 @@ function Header() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-white/95 backdrop-blur-xl border-b border-gray-200 overflow-hidden"
+            className="md:hidden bg-white/90 backdrop-blur-xl border-b border-white/40 overflow-hidden"
           >
             <div className="p-6 space-y-4">
               {navItems.map((item) => (
@@ -177,16 +164,16 @@ function Header() {
                   key={item.name} 
                   href={item.href} 
                   onClick={() => setIsMenuOpen(false)} 
-                  className="block text-gray-700 font-medium text-lg hover:text-gray-900 transition-colors"
+                  className="block text-slate-700 font-medium text-lg hover:text-slate-900 transition-colors"
                 >
                   {item.name}
                 </Link>
               ))}
-              <div className="h-px bg-gray-200 my-4" />
+              <div className="h-px bg-gray-200/60 my-4" />
               <Link 
                 href="/register" 
                 onClick={() => setIsMenuOpen(false)} 
-                className="block w-full text-center py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-bold hover:from-orange-600 hover:to-pink-600 transition-colors"
+                className="block w-full text-center py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-[0_8px_24px_-4px_rgba(15,23,42,0.3)]"
               >
                 Kostenlos starten
               </Link>
@@ -218,67 +205,64 @@ export default function LandingPage() {
   }), [prefersReducedMotion, mounted]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-orange-500/30 selection:text-orange-100">
+    <div className="min-h-screen text-slate-900 font-sans selection:bg-rose-200/60 selection:text-slate-900">
       <Header />
       
       <main>
         {/* --- HERO SECTION --- */}
-        <section className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white min-h-[95vh] flex flex-col justify-center">
-          {/* Background nutzt das Grid-Pattern aus layout.tsx (bereits vorhanden) */}
+        <section className="relative pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-[95vh] flex flex-col justify-center">
           
           <div className="absolute inset-0 pointer-events-none">
             <motion.div 
-              animate={mounted && !prefersReducedMotion ? { scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3], x: [0, 50, 0] } : {}} 
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-0 left-1/4 -translate-x-1/2 h-[500px] w-[500px] rounded-full bg-orange-500/20 blur-[120px]" 
+              animate={mounted && !prefersReducedMotion ? { scale: [1, 1.15, 1], opacity: [0.12, 0.22, 0.12], x: [0, 40, 0] } : {}} 
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-0 left-1/4 -translate-x-1/2 h-[480px] w-[480px] rounded-full bg-orange-400/25 blur-[100px]" 
             />
             <motion.div 
-              animate={mounted && !prefersReducedMotion ? { scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2], x: [0, -50, 0] } : {}} 
-              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-0 right-1/4 h-[600px] w-[600px] rounded-full bg-purple-500/10 blur-[120px]" 
+              animate={mounted && !prefersReducedMotion ? { scale: [1, 1.12, 1], opacity: [0.1, 0.18, 0.1], x: [0, -40, 0] } : {}} 
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="absolute bottom-0 right-1/4 h-[520px] w-[520px] rounded-full bg-rose-300/20 blur-[100px]" 
             />
           </div>
 
           <div className="container mx-auto px-4 text-center relative z-10">
-            <motion.div {...fadeConfigs.badge} className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 backdrop-blur-md px-4 py-1.5 text-sm font-medium text-gray-700">
+            <motion.div {...fadeConfigs.badge} className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/55 backdrop-blur-md px-4 py-1.5 text-sm font-medium text-slate-700 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
               </span>
-              Prompt Engineering war gestern.
+              Dein Alltag. Perfekt organisiert.
             </motion.div>
 
             <motion.h1 
               {...fadeConfigs.title} 
-              className="mx-auto max-w-5xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-gray-900 leading-[1.1]"
+              className="mx-auto max-w-4xl text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.08]"
               style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
             >
-              Ergebnisse auf <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-emerald-400 text-transparent bg-clip-text pb-2 inline-block">
-                Knopfdruck.
-              </span>
+              Schluss mit der Frage:
+              <br />
+              <span className="text-slate-900">Was essen wir heute?</span>
             </motion.h1>
 
-            <motion.p {...fadeConfigs.sub} className="mx-auto mt-8 max-w-2xl text-lg text-gray-600 md:text-xl leading-relaxed">
-              Keine Lust auf komplexe Prompts? Sinispace liefert dir fertige KI-Helfer. 
-              Klick drauf, fertig. <span className="text-gray-900 font-bold">Und wenn du doch mal frei chatten willst?</span> Haben wir auch.
+            <motion.p {...fadeConfigs.sub} className="mx-auto mt-8 max-w-2xl text-lg text-slate-600 md:text-xl leading-relaxed">
+              SiniSpace ist die intelligente Lösung für gestresste Paare und Eltern. Automatische Wochenpläne, smarte Einkaufslisten und weniger Mental Load.
             </motion.p>
 
             <motion.div {...fadeConfigs.btn} className="mt-12 flex flex-col items-center justify-center gap-4 md:flex-row max-w-xl mx-auto">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
                 <Link 
                   href="/register" 
-                  className="flex items-center justify-center w-full h-12 rounded-xl bg-white text-black font-bold text-base md:text-lg hover:bg-zinc-200 transition-all shadow-[0_0_20px_-5px_rgba(255,255,255,0.5)]"
+                  className="flex items-center justify-center w-full h-12 rounded-xl bg-slate-900 text-white font-bold text-base md:text-lg hover:bg-slate-800 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] px-8"
                 >
-                  Kostenlos registrieren
+                  Kostenlos starten
                 </Link>
               </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
                 <Link 
                   href="#features" 
-                  className="flex items-center justify-center w-full md:w-auto h-12 px-8 text-gray-600 text-sm mt-0 md:mt-0 hover:text-gray-900 transition-colors"
+                  className="flex items-center justify-center w-full md:w-auto h-12 px-8 text-slate-600 text-sm font-semibold mt-0 md:mt-0 hover:text-slate-900 transition-colors"
                 >
-                  So funktioniert's
+                  So funktioniert&apos;s
                 </Link>
               </motion.div>
             </motion.div>
@@ -294,35 +278,35 @@ export default function LandingPage() {
                <motion.div 
                  animate={mounted && !prefersReducedMotion ? { y: [0, -10, 0] } : {}}
                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                 className="relative rounded-2xl border border-gray-200 bg-white p-2 shadow-lg overflow-hidden"
+                 className="relative rounded-3xl border border-white/50 bg-white/50 backdrop-blur-md p-2 shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden"
                  style={{
                    maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
                    WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
                  } as React.CSSProperties}
                >
-                  <div className="rounded-xl bg-white border border-gray-200 overflow-hidden">
-                     <div className="h-12 border-b border-gray-200 bg-gray-50 flex items-center px-4 gap-2">
-                        <div className="h-3 w-3 rounded-full bg-red-500/20"></div>
-                        <div className="h-3 w-3 rounded-full bg-yellow-500/20"></div>
-                        <div className="h-3 w-3 rounded-full bg-green-500/20"></div>
-                        <div className="ml-4 h-6 w-1/3 bg-gray-200 rounded-full"></div>
+                  <div className="rounded-2xl bg-white/90 border border-gray-100 overflow-hidden shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)]">
+                     <div className="h-12 border-b border-gray-100 bg-rose-50/40 flex items-center px-4 gap-2">
+                        <div className="h-3 w-3 rounded-full bg-rose-300/50"></div>
+                        <div className="h-3 w-3 rounded-full bg-orange-200/60"></div>
+                        <div className="h-3 w-3 rounded-full bg-emerald-200/50"></div>
+                        <div className="ml-4 h-6 w-1/3 bg-gray-100 rounded-full"></div>
                      </div>
                      <div className="p-6 md:p-10 min-h-[300px] flex flex-col justify-end space-y-6">
                         <div className="flex gap-4">
-                           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shrink-0">AI</div>
-                           <div className="bg-gray-100 border border-gray-200 p-4 rounded-2xl rounded-tl-none text-gray-700 text-sm max-w-[85%] leading-relaxed shadow-sm">
-                              Hier ist dein fertiger LinkedIn Post zum Thema "SaaS Growth". Soll ich noch passende Hashtags hinzufügen?
+                           <div className="h-10 w-10 rounded-[14px] bg-orange-500 flex items-center justify-center text-white text-[10px] font-bold shadow-md shrink-0">IQ</div>
+                           <div className="bg-slate-50 border border-gray-100 p-4 rounded-2xl rounded-tl-none text-slate-700 text-sm max-w-[85%] leading-relaxed">
+                              Dein Wochenplan steht: Mo–So mit Abendessen-Ideen, Kalorien grob und passenden Bildern. Soll ich die Einkaufsliste für SmartCart vorbereiten?
                            </div>
                         </div>
                         <div className="flex gap-4 flex-row-reverse">
-                           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs border border-gray-300 shrink-0">DU</div>
-                           <div className="bg-orange-50 border border-orange-200 p-4 rounded-2xl rounded-tr-none text-orange-700 text-sm max-w-[85%] leading-relaxed">
-                              Ja, bitte generiere 5 relevante Hashtags.
+                           <div className="h-10 w-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-slate-500 text-xs shrink-0">Ihr</div>
+                           <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl rounded-tr-none text-rose-900 text-sm max-w-[85%] leading-relaxed">
+                              Ja – und bitte Vorrats-Check, was wir schon zu Hause haben.
                            </div>
                         </div>
-                        <div className="h-14 w-full bg-gray-50 rounded-xl border border-gray-200 flex items-center px-4 gap-4 shadow-inner">
-                           <div className="h-2 w-full bg-gray-200 rounded"></div>
-                           <div className="h-10 w-10 bg-orange-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-600/20 shrink-0">
+                        <div className="h-14 w-full bg-slate-50/80 rounded-xl border border-gray-100 flex items-center px-4 gap-4">
+                           <div className="h-2 w-full bg-gray-100 rounded-full"></div>
+                           <div className="h-10 w-10 bg-rose-500 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                            </div>
                         </div>
@@ -331,22 +315,22 @@ export default function LandingPage() {
                </motion.div>
             </motion.div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-rose-50/80 via-transparent to-transparent pointer-events-none z-10"></div>
         </section>
 
         {/* --- MARQUEE --- */}
-        <section className="bg-gray-50 border-y border-gray-200 py-10 relative overflow-hidden z-20">
-           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-gray-50 to-transparent z-10"></div>
-           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-gray-50 to-transparent z-10"></div>
+        <section className="bg-white/40 backdrop-blur-sm border-y border-white/50 py-10 relative overflow-hidden z-20">
+           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-rose-50/90 to-transparent z-10"></div>
+           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-rose-50/90 to-transparent z-10"></div>
            <motion.div 
              className="flex gap-8" 
              animate={mounted && !prefersReducedMotion ? getMarqueeAnimation(false) : {}}
            >
              {[...Array(2)].map((_, i) => (
                <div key={i} className="flex gap-8 whitespace-nowrap">
-                 {["LinkedIn Viral", "SEO Analyse", "Code Review", "Rechtstexte", "Blog Post", "Instagram Caption", "Meeting Protokoll", "Excel Formeln", "Sales E-Mail", "Zusammenfassung"].map((text) => (
-                   <div key={text} className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-gray-700 font-medium text-sm hover:border-orange-500 hover:text-orange-500 transition-colors cursor-default shadow-sm">
-                     <span className="text-orange-500">⚡️</span> {text}
+                 {["CookIQ Wochenplan", "SmartCart Listen", "Vorrats-Check", "Kalender & Essen", "KI-Rezepte", "Familien-Portionen", "Einkauf nach Gang", "Weniger Food Waste", "Premium Wochenplan", "Aktiv in den Kalender"].map((text) => (
+                   <div key={`${i}-${text}`} className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-gray-100 bg-white/80 backdrop-blur-md text-slate-700 font-medium text-sm hover:border-rose-200 hover:text-rose-600 transition-colors cursor-default shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)]">
+                     <span className="text-orange-500">✦</span> {text}
                    </div>
                  ))}
                </div>
@@ -354,139 +338,123 @@ export default function LandingPage() {
            </motion.div>
         </section>
 
-        {/* --- FEATURES (Premium Glass Bubble) --- */}
-        <section id="features" className="py-20 bg-white text-gray-900 relative overflow-hidden">
-          {/* Hintergrund-Glows */}
+        {/* --- FEATURES (Tier-1 Glass) --- */}
+        <section id="features" className="py-20 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[120px] -z-10"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] -z-10"></div>
+            <div className="absolute top-1/4 left-1/4 w-[420px] h-[420px] bg-orange-400/8 rounded-full blur-[100px] -z-10"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-[420px] h-[420px] bg-rose-300/10 rounded-full blur-[100px] -z-10"></div>
           </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <motion.div className="mb-12 md:text-center max-w-3xl mx-auto" {...fadeUp(0.1)}>
-              <h2 className="text-4xl font-extrabold tracking-tight sm:text-6xl mb-6 text-gray-900">
-                Kein Studium nötig.
+              <h2 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl mb-6 text-slate-900">
+                Essen, Einkauf, Kalender – zusammen gedacht.
               </h2>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Wir nehmen dir die technische Last ab. Du drückst den Knopf, die KI macht die Arbeit.
+              <p className="text-xl text-slate-600 leading-relaxed">
+                CookIQ plant, SmartCart organisiert, der Kalender hält alle Termine und Mahlzeiten im Blick. Weniger Chaos im Familienalltag.
               </p>
             </motion.div>
 
-            {/* 3-Karten Grid - Premium Glass Bubble */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              {/* KARTE 1: Hunderte fertige Helfer */}
-              <motion.div 
-                whileHover={{ scale: 1.02 }} 
-                className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between hover:shadow-xl"
+              {/* CookIQ */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="rounded-3xl border border-white/50 bg-white/55 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.07)] transition-all p-6 md:p-8 flex flex-col justify-between"
               >
-                <div className="relative z-10">
-                  <div className="h-12 w-12 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mb-4">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
-                      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-                    </svg>
+                <div>
+                  <div className="h-12 w-12 rounded-[14px] bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mb-4 shadow-md shadow-orange-500/25 text-white text-lg font-bold">
+                    🍳
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
-                    Hunderte <br/>
-                    <span className="text-gray-600">fertige Helfer.</span>
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Wähle dein Ziel, gib Stichpunkte ein, fertig. Professionelle Ergebnisse ohne Lernkurve.
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 leading-tight">CookIQ</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                    KI-Wochenplan und Rezept-Generator: Vorlieben, Zeit und Ernährung einstellen – fertige Ideen für die ganze Woche.
                   </p>
-                  
-                  {/* Stichwortartige Helfer-Beispiele */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {toolsColumn1.slice(0, 4).map((tool, i) => (
-                      <span 
-                        key={i} 
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-xs font-medium text-gray-700"
+                    {cookiqChips.map((c, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/80 border border-gray-100 text-xs font-medium text-slate-700"
                       >
-                        <span className="text-[10px] font-bold text-orange-400">{tool.icon}</span>
-                        {tool.label}
+                        <span aria-hidden>{c.icon}</span>
+                        {c.label}
                       </span>
                     ))}
-                   </div>
+                  </div>
                 </div>
-                <div className="relative z-10 mt-auto">
-                  <Link href="/register" className="inline-flex items-center gap-2 text-sm font-bold text-orange-400 hover:text-orange-300 transition-all">
-                    Alle Tools ansehen <span>&rarr;</span>
-                  </Link>
-                </div>
+                <Link
+                  href="/tools/recipe"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors mt-4"
+                >
+                  Zu CookIQ <span aria-hidden>&rarr;</span>
+                </Link>
               </motion.div>
 
-              {/* KARTE 2: Freier Chat */}
-              <motion.div 
-                whileHover={{ scale: 1.02 }} 
-                className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between hover:shadow-xl"
+              {/* SmartCart */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="rounded-3xl border border-white/50 bg-white/55 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.07)] transition-all p-6 md:p-8 flex flex-col justify-between"
               >
-                <div className="relative z-10">
-                  <div className="h-12 w-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center mb-4">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
+                <div>
+                  <div className="h-12 w-12 rounded-[14px] bg-rose-500 flex items-center justify-center mb-4 shadow-md shadow-rose-500/25 text-white text-lg">
+                    🛒
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Freier Chat.</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Manchmal willst du die Kontrolle. Nutze unsere ChatGPT-Anbindung (Fair Use) für deine eigenen Ideen.
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">SmartCart</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                    Intelligente Einkaufsliste mit Vorrats-Check: aus dem Wochenplan direkt in sortierte Listen – wie du im Markt läufst.
                   </p>
-                  
-                  {/* Mehrwert: Features */}
                   <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                      <span>Code, Tabellen & Struktur</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-400">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                      <span>Chat-Verlauf gespeichert</span>
-                    </div>
+                    {smartcartBullets.map((line) => (
+                      <div key={line} className="flex items-center gap-2 text-xs text-slate-600">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rose-500 shrink-0">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>{line}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="relative z-10 mt-auto">
-                  <Link href="/chat" className="inline-flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300 transition-all">
-                    Jetzt chatten <span>&rarr;</span>
-                  </Link>
-                </div>
+                <Link
+                  href="/tools/shopping-list"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-rose-600 hover:text-rose-700 transition-colors mt-4"
+                >
+                  Zu SmartCart <span aria-hidden>&rarr;</span>
+                </Link>
               </motion.div>
 
-              {/* KARTE 3: Kostenlos anmelden (CTA) */}
-              <motion.div 
-                whileHover={{ scale: 1.02 }} 
-                className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden relative transition-transform p-6 md:p-8 flex flex-col justify-between hover:shadow-xl"
+              {/* Kalender + CTA */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="rounded-3xl border border-white/50 bg-white/55 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.07)] transition-all p-6 md:p-8 flex flex-col justify-between"
               >
-                <div className="relative z-10">
-                  <div className="h-12 w-12 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mb-4">
-                    <span className="text-2xl">🔓</span>
+                <div>
+                  <div className="h-12 w-12 rounded-[14px] bg-slate-800 flex items-center justify-center mb-4 shadow-md text-white text-lg">
+                    📆
                   </div>
-                   <h3 className="text-2xl font-bold text-gray-900 mb-3">Kostenlos anmelden.</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Erstell deinen Account unverbindlich. Schau dich im Dashboard um. Premium brauchst du erst für die Power-Features.
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Kalender</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                    Nahtlose Termin- und Essensplanung: Wochenplan aktivieren, Mahlzeiten landen automatisch an den richtigen Tagen.
                   </p>
-                  
-                  {/* Mehrwert: Was du bekommst */}
                   <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-xs text-gray-700">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                      <span>Kostenloses Basiskonto</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-700">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                      <span>Alle Features testen</span>
-                    </div>
+                    {calendarBullets.map((line) => (
+                      <div key={line} className="flex items-center gap-2 text-xs text-slate-600">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-700 shrink-0">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>{line}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="relative z-10 mt-auto">
-                  <Link 
-                    href="/register" 
-                    className="inline-flex items-center justify-center w-full px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-sm hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/30"
+                <div className="space-y-3 mt-auto">
+                  <Link
+                    href="/calendar"
+                    className="inline-flex items-center gap-2 text-sm font-bold text-slate-800 hover:text-slate-950 transition-colors"
+                  >
+                    Zum Kalender <span aria-hidden>&rarr;</span>
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center w-full px-6 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition-all shadow-[0_8px_24px_-4px_rgba(15,23,42,0.3)]"
                   >
                     Kostenlos starten
                   </Link>
@@ -497,11 +465,10 @@ export default function LandingPage() {
         </section>
 
         {/* --- TRUST & SAFETY --- */}
-        <section className="py-20 bg-white text-gray-900 relative overflow-hidden">
-          {/* Hintergrund-Glows */}
+        <section className="py-20 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-green-500/10 rounded-full blur-[100px] -z-10"></div>
-            <div className="absolute bottom-1/2 right-1/4 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] -z-10"></div>
+            <div className="absolute top-1/2 left-1/4 w-[360px] h-[360px] bg-emerald-400/8 rounded-full blur-[90px] -z-10"></div>
+            <div className="absolute bottom-1/2 right-1/4 w-[360px] h-[360px] bg-slate-300/10 rounded-full blur-[90px] -z-10"></div>
           </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
@@ -511,12 +478,12 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
-                className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden relative p-8 md:p-12"
+                className="rounded-3xl border border-white/50 bg-white/60 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.05)] overflow-hidden relative p-8 md:p-12"
               >
                 <div className="flex items-start gap-6">
                   {/* Icon */}
-                  <div className="h-14 w-14 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center shrink-0">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400">
+                  <div className="h-14 w-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-600">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                       <path d="M9 12l2 2 4-4"/>
                     </svg>
@@ -524,50 +491,50 @@ export default function LandingPage() {
                   
                   {/* Content */}
                   <div className="flex-1">
-                    <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 tracking-tight">
-                      Sicher & Verantwortungsvoll
+                    <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4 tracking-tight">
+                      Sicher & verantwortungsvoll
                     </h3>
-                    <p className="text-base text-gray-700 leading-relaxed mb-6">
-                      Wir nutzen <span className="font-bold text-gray-900">GPT-4o</span> von OpenAI mit integrierten Safety-Features. 
-                      Sensible Themen werden automatisch gefiltert – für deine Sicherheit und die unserer Community.
+                    <p className="text-base text-slate-600 leading-relaxed mb-6">
+                      Wir nutzen <span className="font-semibold text-slate-900">GPT-4o</span> von OpenAI mit integrierten Safety-Features. 
+                      Sensible Themen werden automatisch gefiltert – für dich und deine Familie.
                     </p>
                     
                     {/* Features Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-start gap-3">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400 shrink-0 mt-0.5">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500 shrink-0 mt-0.5">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 mb-1">Automatisches Content-Filtering</p>
-                          <p className="text-xs text-gray-600">OpenAI blockiert problematische Inhalte automatisch</p>
+                          <p className="text-sm font-medium text-slate-900 mb-1">Automatisches Content-Filtering</p>
+                          <p className="text-xs text-slate-600">OpenAI blockiert problematische Inhalte automatisch</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400 shrink-0 mt-0.5">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500 shrink-0 mt-0.5">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                         <div>
-                          <p className="text-sm font-medium text-white mb-1">Moderation-API aktiv</p>
-                          <p className="text-xs text-zinc-400">Eingaben und Ausgaben werden geprüft</p>
+                          <p className="text-sm font-medium text-slate-900 mb-1">Moderation aktiv</p>
+                          <p className="text-xs text-slate-600">Eingaben und Ausgaben werden geprüft</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400 shrink-0 mt-0.5">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500 shrink-0 mt-0.5">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                         <div>
-                          <p className="text-sm font-medium text-white mb-1">DSGVO-konform</p>
-                          <p className="text-xs text-zinc-400">Deine Daten bleiben sicher und geschützt</p>
+                          <p className="text-sm font-medium text-slate-900 mb-1">DSGVO-konform</p>
+                          <p className="text-xs text-slate-600">Deine Daten bleiben in Europa geschützt</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-400 shrink-0 mt-0.5">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-500 shrink-0 mt-0.5">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                         <div>
-                          <p className="text-sm font-medium text-white mb-1">Kein Training mit deinen Daten</p>
-                          <p className="text-xs text-zinc-400">Deine Inhalte werden nicht zum KI-Training genutzt</p>
+                          <p className="text-sm font-medium text-slate-900 mb-1">Kein Training mit deinen Daten</p>
+                          <p className="text-xs text-slate-600">Deine Pläne und Listen werden nicht zum KI-Training genutzt</p>
                         </div>
                       </div>
                     </div>
@@ -579,19 +546,19 @@ export default function LandingPage() {
         </section>
 
         {/* --- TESTIMONIALS --- */}
-        <section id="testimonials" className="py-24 bg-zinc-50 border-t border-zinc-200">
+        <section id="testimonials" className="py-24 border-t border-white/50 bg-white/30 backdrop-blur-sm">
            <div className="container mx-auto px-4 md:px-6">
              <div className="text-center mb-16">
-                <h2 className="text-3xl font-bold text-zinc-900">Von Profis genutzt.</h2>
+                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Aus dem echten Familienalltag.</h2>
              </div>
              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                {testimonialData.map((item, i) => (
-                 <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} whileHover={{ scale: 1.02 }} className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-sm border border-zinc-200/60">
-                   <div className="flex gap-1 mb-4 text-orange-400">{[1,2,3,4,5].map(s => <svg key={s} width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>)}</div>
-                   <p className="text-zinc-700 font-medium italic mb-6 leading-relaxed">"{item.text}"</p>
-                   <div className="mt-auto pt-6 border-t border-zinc-100">
-                     <p className="text-sm font-bold text-zinc-900">{item.author}</p>
-                     <p className="text-xs text-zinc-400 uppercase tracking-wide">{item.role}</p>
+                 <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} whileHover={{ scale: 1.02 }} className="flex flex-col justify-between rounded-3xl bg-white/70 backdrop-blur-md p-8 shadow-[0_8px_30px_rgb(0,0,0,0.05)] border border-gray-100/80">
+                   <div className="flex gap-1 mb-4 text-rose-400">{[1,2,3,4,5].map(s => <svg key={s} width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>)}</div>
+                   <p className="text-slate-700 font-medium italic mb-6 leading-relaxed">&ldquo;{item.text}&rdquo;</p>
+                   <div className="mt-auto pt-6 border-t border-gray-100">
+                     <p className="text-sm font-bold text-slate-900">{item.author}</p>
+                     <p className="text-xs text-slate-500 uppercase tracking-wide">{item.role}</p>
                    </div>
                  </motion.div>
                ))}
@@ -600,30 +567,30 @@ export default function LandingPage() {
         </section>
 
         {/* --- PRICING TEASER --- */}
-        <section className="py-24 bg-white border-t border-zinc-100 relative overflow-hidden">
+        <section className="py-24 border-t border-white/50 relative overflow-hidden">
           <div className="container mx-auto px-4 text-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="max-w-4xl mx-auto rounded-[2.5rem] bg-gradient-to-r from-orange-500 to-pink-500 px-6 py-20 text-white shadow-2xl relative overflow-hidden group">
-               <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[300px] w-[500px] bg-white/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-white/20 transition-colors duration-700"></div>
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="max-w-4xl mx-auto rounded-3xl bg-slate-900 px-6 py-16 md:py-20 text-white shadow-[0_24px_60px_-12px_rgba(15,23,42,0.45)] relative overflow-hidden border border-white/10">
+               <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[280px] w-[480px] bg-white/5 blur-[80px] rounded-full pointer-events-none"></div>
                <div className="relative z-10">
-                 <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Ein Zugang. Keine monatlichen Kosten.</h2>
-                 <p className="text-lg text-white/90 max-w-2xl mx-auto mb-10 leading-relaxed">Wir glauben nicht an komplizierte Abo-Modelle oder versteckte Gebühren. Hol dir den Jahrespass für Sinispace und nutze die Power von zwei Top-KIs ohne Limits.</p>
-                 <Link href="/pricing" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-gray-900 font-bold text-lg hover:bg-gray-100 hover:scale-105 transition-all shadow-lg">Preismodell ansehen <span>&rarr;</span></Link>
-                 <p className="mt-6 text-xs text-white/80 uppercase tracking-widest font-medium">Fair Use Policy • 14 Tage Geld-zurück</p>
+                 <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Ein Zugang. Faire Konditionen.</h2>
+                 <p className="text-lg text-white/85 max-w-2xl mx-auto mb-10 leading-relaxed">Kein Monats-Stress: Jahreszugang für SiniSpace – CookIQ, SmartCart und alle KI-Helfer im Blick. Details und Fair-Use siehst du auf der Preisseite.</p>
+                 <Link href="/pricing" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-slate-900 font-bold text-lg hover:bg-rose-50 transition-all shadow-lg">Preismodell ansehen <span aria-hidden>&rarr;</span></Link>
+                 <p className="mt-6 text-xs text-white/70 uppercase tracking-widest font-medium">Fair Use • 14 Tage Geld-zurück</p>
                </div>
             </motion.div>
           </div>
         </section>
 
         {/* --- FAQ --- */}
-        <section id="faq" className="py-32 bg-white">
+        <section id="faq" className="py-32">
           <div className="container mx-auto px-4 md:px-6 max-w-3xl">
-            <h2 className="text-3xl font-extrabold text-zinc-900 mb-12 text-center">Kurz erklärt.</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center tracking-tight">Kurz erklärt.</h2>
             <div className="space-y-4">
               {faqData.map((faq, i) => (
                   <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
-                    <details className="group rounded-2xl border border-zinc-200 bg-white open:border-zinc-300 open:shadow-md transition-all duration-300 overflow-hidden">
-                      <summary className="flex cursor-pointer items-center justify-between p-6 font-bold text-zinc-900 list-none hover:bg-zinc-50 transition-colors">{faq.q}<span className="transition-transform duration-300 group-open:rotate-180 text-zinc-400">▼</span></summary>
-                      <div className="px-6 pb-6 text-zinc-600 leading-relaxed border-t border-zinc-100 pt-4 text-sm bg-zinc-50/30">{faq.a}</div>
+                    <details className="group rounded-2xl border border-gray-100 bg-white/70 backdrop-blur-md open:border-gray-200 open:shadow-[0_8px_30px_rgb(0,0,0,0.05)] transition-all duration-300 overflow-hidden">
+                      <summary className="flex cursor-pointer items-center justify-between p-6 font-bold text-slate-900 list-none hover:bg-white/90 transition-colors">{faq.q}<span className="transition-transform duration-300 group-open:rotate-180 text-slate-400">▼</span></summary>
+                      <div className="px-6 pb-6 text-slate-600 leading-relaxed border-t border-gray-100 pt-4 text-sm bg-rose-50/20">{faq.a}</div>
                     </details>
                   </motion.div>
               ))}
@@ -632,28 +599,28 @@ export default function LandingPage() {
         </section>
 
         {/* --- FINAL CTA --- */}
-        <section className="relative py-40 bg-gradient-to-r from-orange-500 to-pink-500 overflow-hidden text-center">
-           <div className="absolute inset-0 opacity-10"><div className="absolute inset-0 bg-[radial-gradient(#ffffff33_1px,transparent_1px)] [background-size:16px_16px]"></div></div>
+        <section className="relative py-28 md:py-36 bg-slate-900 overflow-hidden text-center border-t border-white/10">
+           <div className="absolute inset-0 opacity-[0.07]"><div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"></div></div>
            <div className="container mx-auto px-4 relative z-10">
-             <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-6xl font-extrabold text-white mb-8 tracking-tighter">Bereit für das Upgrade?</motion.h2>
-             <p className="mx-auto max-w-[600px] text-white/90 text-xl mb-12">Erstelle jetzt deinen Account. Kostenlos. <br className="hidden sm:block"/>Starte in wenigen Sekunden.</p>
-             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
-               <Link href="/register" className="inline-flex h-16 items-center justify-center rounded-full bg-white px-12 text-lg font-bold text-gray-900 shadow-lg hover:bg-gray-100 transition-colors">Account erstellen & loslegen</Link>
+             <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 tracking-tight">Weniger Stress. Besser essen.</motion.h2>
+             <p className="mx-auto max-w-[560px] text-white/85 text-lg md:text-xl mb-12 leading-relaxed">Kostenlos registrieren, CookIQ & SmartCart entdecken. <br className="hidden sm:block" />Premium, wenn du den Wochenplan voll nutzen willst.</p>
+             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="inline-block">
+               <Link href="/register" className="inline-flex h-14 md:h-16 items-center justify-center rounded-xl bg-white px-10 md:px-12 text-base md:text-lg font-bold text-slate-900 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.35)] hover:bg-rose-50 transition-colors">Kostenlos starten</Link>
              </motion.div>
-             <p className="mt-8 text-sm text-white/80">Keine Kreditkarte für die Registrierung nötig.</p>
+             <p className="mt-8 text-sm text-white/65">Keine Kreditkarte für die Registrierung nötig.</p>
            </div>
         </section>
 
       </main>
 
       {/* --- FOOTER --- */}
-      <footer className="border-t border-zinc-100 bg-white py-12">
+      <footer className="border-t border-white/50 bg-white/50 backdrop-blur-md py-12">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-6 px-4">
           <div className="flex items-center gap-2">
              <div className="relative h-10 w-40">
                <Image 
                  src="/assets/logos/logo-full.webp" 
-                 alt="Sinispace Logo Full" 
+                 alt="SiniSpace Logo" 
                  fill 
                  className="object-contain object-left"
                  loading="lazy"
@@ -661,10 +628,10 @@ export default function LandingPage() {
                />
              </div>
           </div>
-          <p className="text-sm text-zinc-500 text-center md:text-left">&copy; {new Date().getFullYear()} Sinispace. Made in Germany.</p>
+          <p className="text-sm text-slate-500 text-center md:text-left">&copy; {new Date().getFullYear()} SiniSpace. Made in Germany.</p>
           <div className="flex gap-8">
-            <Link href="#" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">Impressum</Link>
-            <Link href="#" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">Datenschutz</Link>
+            <Link href="#" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Impressum</Link>
+            <Link href="#" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Datenschutz</Link>
           </div>
         </div>
       </footer>

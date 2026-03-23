@@ -50,24 +50,23 @@ export default function LoginPage() {
   }
 
   return (
-    // CONTAINER: Light Theme (Dashboard Design)
-    <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-white">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-12 overflow-hidden bg-gradient-to-b from-rose-50 via-white to-white">
       
-      {/* Hero Background (Grid & Glows) - Lazy-loaded für bessere Performance */}
+      {/* Hero Background (Grid & Glows) - Lazy-loaded; aktuell oft no-op wenn Flag aus */}
       <HeroBackground showGlows={true} />
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="relative w-full max-w-sm z-10"
+        className="relative w-full max-w-md z-10"
       >
         {/* LOGO (Home Link) */}
         <div className="mb-8 flex justify-center">
-           <Link href="/" className="relative h-12 w-12 overflow-hidden rounded-2xl shadow-md border border-gray-200 bg-white hover:scale-105 transition-transform duration-300">
+           <Link href="/" className="relative h-12 w-12 overflow-hidden rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/60 bg-white/90 hover:scale-105 transition-transform duration-300">
              <Image 
                src="/assets/logos/logo.webp" 
-               alt="Sinispace Logo" 
+               alt="SiniSpace Logo" 
                fill 
                className="object-contain p-1.5" 
                priority 
@@ -75,24 +74,23 @@ export default function LoginPage() {
            </Link>
         </div>
 
-        {/* CARD - Dashboard Style */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
+        <div className="rounded-3xl border border-gray-100/90 bg-white p-8 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
           
           <div className="space-y-2 text-center mb-8">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Willkommen zurück</h1>
-            <p className="text-sm text-gray-600">
-              Melde dich an, um fortzufahren.
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Willkommen zurück</h1>
+            <p className="text-sm text-slate-600">
+              Melde dich an – CookIQ, SmartCart und dein Kalender warten.
             </p>
           </div>
           
           {/* FORM */}
           <form action={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-gray-700 ml-1" htmlFor="email">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-700 ml-1" htmlFor="email">
                 E-Mail
               </label>
               <input
-                className="flex h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all disabled:opacity-50"
+                className="flex h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all disabled:opacity-50"
                 id="email"
                 name="email"
                 placeholder="name@beispiel.de"
@@ -103,15 +101,15 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-700" htmlFor="password">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-700" htmlFor="password">
                   Passwort
                 </label>
-                <Link href="/forgot-password" className="text-xs text-gray-600 hover:text-orange-500 transition-colors">
+                <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-rose-600 transition-colors">
                   Passwort vergessen?
                 </Link>
               </div>
               <input
-                className="flex h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all disabled:opacity-50"
+                className="flex h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all disabled:opacity-50"
                 id="password"
                 name="password"
                 type="password"
@@ -128,7 +126,7 @@ export default function LoginPage() {
             )}
             
             <button
-              className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm transition-all hover:from-orange-600 hover:to-pink-600 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait shadow-md"
+              className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-xl bg-slate-900 text-white font-bold text-sm transition-all hover:bg-slate-800 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait shadow-[0_8px_24px_-4px_rgba(15,23,42,0.35)]"
               type="submit"
               disabled={status === 'loading'}
             >
@@ -143,9 +141,9 @@ export default function LoginPage() {
             </button>
           </form>
           
-          <div className="mt-8 text-center text-sm text-gray-600">
+          <div className="mt-8 text-center text-sm text-slate-600">
             Neu hier?{' '}
-            <Link href="/register" className="text-gray-900 hover:text-orange-500 font-medium transition-colors underline underline-offset-4 decoration-gray-300 hover:decoration-orange-500">
+            <Link href="/register" className="text-slate-900 hover:text-rose-600 font-medium transition-colors underline underline-offset-4 decoration-slate-200 hover:decoration-rose-400">
               Konto erstellen
             </Link>
           </div>
