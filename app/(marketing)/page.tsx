@@ -231,7 +231,7 @@ export default function LandingPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
               </span>
-              Dein Alltag. Perfekt organisiert.
+              KI-Helfer für deinen Alltag.
             </motion.div>
 
             <motion.h1 
@@ -239,13 +239,13 @@ export default function LandingPage() {
               className="mx-auto max-w-4xl text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-[1.08]"
               style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
             >
-              Schluss mit der Frage:
+              Mehr Zeit für dich.
               <br />
-              <span className="text-slate-900">Was essen wir heute?</span>
+              <span className="text-slate-900">Weniger Chaos im Alltag.</span>
             </motion.h1>
 
             <motion.p {...fadeConfigs.sub} className="mx-auto mt-8 max-w-2xl text-lg text-slate-600 md:text-xl leading-relaxed">
-              SiniSpace ist die intelligente Lösung für gestresste Paare und Eltern. Automatische Wochenpläne, smarte Einkaufslisten und weniger Mental Load.
+              SiniSpace nimmt dir das Denken ab. Ob automatische Wochenpläne, smarte Einkaufslisten oder Terminplanung – nutze vorgefertigte KI-Tools mit einem Klick. Ganz ohne komplexes Prompting.
             </motion.p>
 
             <motion.div {...fadeConfigs.btn} className="mt-12 flex flex-col items-center justify-center gap-4 md:flex-row max-w-xl mx-auto">
@@ -295,13 +295,13 @@ export default function LandingPage() {
                         <div className="flex gap-4">
                            <div className="h-10 w-10 rounded-[14px] bg-orange-500 flex items-center justify-center text-white text-[10px] font-bold shadow-md shrink-0">IQ</div>
                            <div className="bg-slate-50 border border-gray-100 p-4 rounded-2xl rounded-tl-none text-slate-700 text-sm max-w-[85%] leading-relaxed">
-                              Dein Wochenplan steht: Mo–So mit Abendessen-Ideen, Kalorien grob und passenden Bildern. Soll ich die Einkaufsliste für SmartCart vorbereiten?
+                              Wie kann ich dir heute Zeit sparen? Wochenplan erstellen, Vorräte checken oder Termine sortieren?
                            </div>
                         </div>
                         <div className="flex gap-4 flex-row-reverse">
-                           <div className="h-10 w-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-slate-500 text-xs shrink-0">Ihr</div>
+                           <div className="h-10 w-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-slate-500 text-xs shrink-0">Du</div>
                            <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl rounded-tr-none text-rose-900 text-sm max-w-[85%] leading-relaxed">
-                              Ja – und bitte Vorrats-Check, was wir schon zu Hause haben.
+                              Wochenplan für 5 Tage mit passender Einkaufsliste bitte.
                            </div>
                         </div>
                         <div className="h-14 w-full bg-slate-50/80 rounded-xl border border-gray-100 flex items-center px-4 gap-4">
@@ -348,10 +348,10 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <motion.div className="mb-12 md:text-center max-w-3xl mx-auto" {...fadeUp(0.1)}>
               <h2 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl mb-6 text-slate-900">
-                Essen, Einkauf, Kalender – zusammen gedacht.
+                Fertige Lösungen auf Knopfdruck.
               </h2>
               <p className="text-xl text-slate-600 leading-relaxed">
-                CookIQ plant, SmartCart organisiert, der Kalender hält alle Termine und Mahlzeiten im Blick. Weniger Chaos im Familienalltag.
+                Warum stundenlang mit Prompts kämpfen? SiniSpace bietet dir ein stetig wachsendes Arsenal an smarten Helfern für dein tägliches Leben.
               </p>
             </motion.div>
 
@@ -549,7 +549,7 @@ export default function LandingPage() {
         <section id="testimonials" className="py-24 border-t border-white/50 bg-white/30 backdrop-blur-sm">
            <div className="container mx-auto px-4 md:px-6">
              <div className="text-center mb-16">
-                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Aus dem echten Familienalltag.</h2>
+                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Gebaut für echte Zeitsparer.</h2>
              </div>
              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                {testimonialData.map((item, i) => (
