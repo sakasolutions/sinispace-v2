@@ -4,15 +4,6 @@ import Link from 'next/link';
 import { Sparkles, CalendarDays, BookHeart, ShoppingBasket, Clock, Flame } from 'lucide-react';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
-/** Einfacher Glasmorphismus – stabil, keine dynamischen Daten */
-const CARD_STYLE: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.16)',
-  border: '1px solid rgba(255,255,255,0.22)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
-  WebkitBackdropFilter: 'blur(8px)',
-  backdropFilter: 'blur(8px)',
-};
-
 /** Hintergrund, wenn kein Mahlzeiten-Bild (töniges Gradient, harmoniert mit CookIQ). */
 const ACTIVE_WEEK_FALLBACK_BG_CLASS =
   'bg-gradient-to-br from-emerald-900 via-teal-950 to-slate-950';
@@ -41,8 +32,9 @@ export type GourmetCockpitProps = {
   onAktiveWocheAnsehen?: () => void;
 };
 
-const cardClass =
-  'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300 p-5 cursor-pointer active:scale-[0.98] text-left block w-full';
+/** Tier-1 Schnellzugriff: festes Weiß, kein Hero-Blur; nur Tailwind auf diesen vier Karten. */
+const quickCardClass =
+  'group relative flex h-full min-h-[148px] w-full flex-col items-start gap-4 rounded-[24px] border border-slate-100/90 bg-white p-5 text-left shadow-tier1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] md:min-h-[152px] md:p-6';
 
 export function GourmetCockpit(props: GourmetCockpitProps) {
   const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null, todayMealSpotlight = null, onAktiveWocheAnsehen } = props;
@@ -52,7 +44,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
       : null;
 
   return (
-    <div className="min-h-screen w-full relative overflow-x-visible bg-white">
+    <div className="relative min-h-screen w-full overflow-x-visible bg-slate-50">
       <DashboardShell
         headerVariant="withCTA"
         headerBackground={
@@ -97,62 +89,52 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
         <div className="space-y-6 md:space-y-8">
           <section aria-labelledby="gourmet-quick-heading">
             <h2 id="gourmet-quick-heading" className="sr-only">Schnellzugriff</h2>
-            <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
+            <div className="mt-6 grid grid-cols-2 gap-4 md:mx-auto md:mt-8 md:max-w-3xl md:gap-5">
               <button
                 type="button"
                 onClick={() => onWochePlanen?.()}
-                className={cardClass}
-                style={CARD_STYLE}
+                className={`${quickCardClass} cursor-pointer`}
               >
-                <div className="flex w-full justify-between items-start gap-2">
-                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-400 to-orange-500 shadow-lg shadow-orange-500/30">
-                    <CalendarDays className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
-                  </div>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
+                  <CalendarDays className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />
                 </div>
-                <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Woche planen</h3>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Dein Essensplan</p>
+                <div className="w-full min-w-0 text-left">
+                  <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-slate-900">Woche planen</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">Dein Essensplan</p>
                 </div>
               </button>
 
-              <Link href="/tools/recipe?tab=my-recipes" className={cardClass} style={CARD_STYLE}>
-                <div className="flex w-full justify-between items-start gap-2">
-                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-400 to-pink-500 shadow-lg shadow-orange-500/30">
-                    <BookHeart className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
-                  </div>
+              <Link href="/tools/recipe?tab=my-recipes" className={`${quickCardClass} block cursor-pointer`}>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-500">
+                  <BookHeart className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />
                 </div>
-                <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Sammlung</h3>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Deine Favoriten</p>
+                <div className="w-full min-w-0 text-left">
+                  <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-slate-900">Sammlung</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">Deine Favoriten</p>
                 </div>
               </Link>
 
               <button
                 type="button"
                 onClick={onMagicWunsch}
-                className={cardClass}
-                style={CARD_STYLE}
+                className={`${quickCardClass} cursor-pointer`}
               >
-                <div className="flex w-full justify-between items-start gap-2">
-                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/30">
-                    <Sparkles className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
-                  </div>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                  <Sparkles className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />
                 </div>
-                <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">Wunschgericht</h3>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Tippe, worauf du Lust hast</p>
+                <div className="w-full min-w-0 text-left">
+                  <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-slate-900">Wunschgericht</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">Tippe, worauf du Lust hast</p>
                 </div>
               </button>
 
-              <Link href="/tools/shopping-list" className={cardClass} style={CARD_STYLE}>
-                <div className="flex w-full justify-between items-start gap-2">
-                  <div className="w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-600 to-rose-500 shadow-lg shadow-orange-600/30">
-                    <ShoppingBasket className="w-8 h-8 shrink-0 text-white" strokeWidth={2.5} aria-hidden />
-                  </div>
+              <Link href="/tools/shopping-list" className={`${quickCardClass} block cursor-pointer`}>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+                  <ShoppingBasket className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />
                 </div>
-                <div className="w-full text-left">
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">SmartCart</h3>
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">Einkäufe organisieren</p>
+                <div className="w-full min-w-0 text-left">
+                  <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-slate-900">SmartCart</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">Einkäufe organisieren</p>
                 </div>
               </Link>
             </div>
