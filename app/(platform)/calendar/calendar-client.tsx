@@ -23,6 +23,13 @@ import { getCalendarEvents, createMagicEvent, deleteCalendarEvent, updateCalenda
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
+/** Kalorien-Zusatz („… · 650 kcal“) aus Kalender-Titel für CookIQ-Prompt entfernen. */
+function titleForRecipeGeneratorQuery(raw: string): string {
+  const t = raw.trim() || 'Gericht';
+  const stripped = t.replace(/\s*·\s*[\d.]+\s*kcal\s*$/i, '').trim();
+  return stripped.length > 0 ? stripped : t;
+}
+
 function getDateKey(d: Date): string {
   return format(d, 'yyyy-MM-dd');
 }
@@ -424,16 +431,26 @@ export function CalendarClient() {
                             : `${event.time} Uhr`}
                         </p>
                         <div className="flex flex-wrap items-center gap-2 mt-3">
-                          {(event.actionTag === 'food' || event.recipeResultId) && (
-                            <Link
-                              href={event.recipeResultId ? `/tools/recipe?open=${event.recipeResultId}` : '/tools/recipe'}
-                              onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 hover:scale-105 active:scale-95 transition-all rounded-full text-xs font-bold shadow-sm"
-                            >
-                              <Utensils className="w-3.5 h-3.5 shrink-0" />
-                              Zum Rezept
-                            </Link>
-                          )}
+                          {(event.actionTag === 'food' || event.recipeResultId) &&
+                            (event.recipeResultId ? (
+                              <Link
+                                href={`/tools/recipe?open=${encodeURIComponent(event.recipeResultId)}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 hover:scale-105 active:scale-95 transition-all rounded-full text-xs font-bold shadow-sm"
+                              >
+                                <Utensils className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                                Zum Rezept ›
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/tools/recipe?query=${encodeURIComponent(titleForRecipeGeneratorQuery(event.title))}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:scale-105 active:scale-95 transition-all rounded-full text-xs font-bold shadow-sm ring-1 ring-orange-200/60"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                                Rezept generieren ✨
+                              </Link>
+                            ))}
                           {event.actionTag === 'shopping' && (
                             <Link
                               href="/tools/shopping-list"

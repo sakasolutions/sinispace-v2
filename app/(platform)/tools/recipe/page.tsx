@@ -228,6 +228,8 @@ function SubmitButton({ inspirationMode }: { inspirationMode: boolean }) {
 export default function RecipePage() {
   const searchParams = useSearchParams();
   const openResultId = searchParams.get('open');
+  /** Kalender „Rezept generieren“: Mahlzeitentitel ins Zutaten-/Prompt-Feld (Schritt 1). */
+  const recipePrefillQuery = searchParams.get('query');
   const tabParam = searchParams.get('tab');
   // @ts-ignore
   const [state, formAction] = useActionState(generateRecipe, null);
@@ -513,6 +515,22 @@ export default function RecipePage() {
       }
     });
   }, [openResultId]);
+
+  useEffect(() => {
+    if (openResultId || !recipePrefillQuery) return;
+    let text = recipePrefillQuery;
+    try {
+      text = decodeURIComponent(recipePrefillQuery);
+    } catch {
+      /* ungültige Kodierung: Rohstring nutzen */
+    }
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setIngredients(trimmed);
+    setShowCockpit(false);
+    setActiveTab('create');
+    setWizardStep(1);
+  }, [openResultId, recipePrefillQuery]);
 
   useEffect(() => {
     if (!addToListToast) return;
