@@ -33,6 +33,8 @@ const config: Config = {
     'md:hover:border-gray-500',
     'md:hover:bg-gray-50',
     'interactive-lift',
+    'shadow-tier1',
+    'rounded-card',
   ],
   theme: {
     extend: {
@@ -109,6 +111,17 @@ const config: Config = {
       scale: {
         '102': '1.02',
         '110': '1.10',
+      },
+      /** Tier-1 B2C: weiche, diffuse Karten-/Modal-Schatten (Apple/Airbnb-Nähe) */
+      boxShadow: {
+        tier1: '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
+      },
+      /**
+       * Squircle-Hauptkarten: 32px. Kleine Controls: weiterhin rounded-2xl im UI.
+       * (Tailwind rounded-3xl = 24px – für maximale Rundung rounded-card nutzen.)
+       */
+      borderRadius: {
+        card: '2rem',
       },
     },
   },

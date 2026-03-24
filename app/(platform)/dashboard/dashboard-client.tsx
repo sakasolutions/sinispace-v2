@@ -10,29 +10,24 @@ import { createElement } from 'react';
 import {
   Mail,
   Languages,
-  Sparkles,
   Pencil,
   Scale,
   FileText,
   Table2,
   MessageCircleHeart,
-  MessageSquare,
-  MessageCircle,
   FileInput,
   Terminal,
   ChefHat,
   Dumbbell,
   Plane,
   Share2,
-  ArrowUpRight,
   Search,
-  TrendingUp,
-  Briefcase,
   ShoppingCart,
   FileImage,
   ChevronDown,
   ChevronRight,
   CheckCircle,
+  Hand,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
@@ -56,110 +51,26 @@ const TOOL_SUBTITLES: Record<string, string> = {
   social: 'LinkedIn & Social',
 };
 
-/** Hero Glow – farbiger Schatten für Top-4 (stärkerer Colored Shadow) */
-const TOOL_GLOW_SHADOW: Record<string, string> = {
-  recipe: 'shadow-[0_4px_24px_-2px_rgba(249,115,22,0.3)]',
-  'shopping-list': 'shadow-[0_4px_24px_-2px_rgba(234,88,12,0.35)]',
-  pdf: 'shadow-[0_4px_24px_-2px_rgba(239,68,68,0.3)]',
-  email: 'shadow-[0_4px_24px_-2px_rgba(59,130,246,0.3)]',
-  polish: 'shadow-[0_4px_24px_-2px_rgba(20,184,166,0.3)]',
-  invoice: 'shadow-[0_4px_24px_-2px_rgba(16,185,129,0.3)]',
-  excel: 'shadow-[0_4px_24px_-2px_rgba(34,197,94,0.3)]',
-  legal: 'shadow-[0_4px_24px_-2px_rgba(139,92,246,0.3)]',
-  'tough-msg': 'shadow-[0_4px_24px_-2px_rgba(99,102,241,0.3)]',
-  summarize: 'shadow-[0_4px_24px_-2px_rgba(245,158,11,0.3)]',
-  travel: 'shadow-[0_4px_24px_-2px_rgba(14,165,233,0.3)]',
-  translate: 'shadow-[0_4px_24px_-2px_rgba(99,102,241,0.3)]',
-  fitness: 'shadow-[0_4px_24px_-2px_rgba(244,63,94,0.3)]',
-  code: 'shadow-[0_4px_24px_-2px_rgba(100,116,139,0.3)]',
-  social: 'shadow-[0_4px_24px_-2px_rgba(236,72,153,0.3)]',
-};
-
-/** Section-Backgrounds für Workflow-Trennung */
-const WORKFLOW_SECTION_BG: Record<string, string> = {
-  productivity: 'bg-gradient-to-b from-orange-50/30 to-transparent',
-  communication: 'bg-gradient-to-b from-blue-50/30 to-transparent',
-  personal: 'bg-gradient-to-b from-rose-50/30 to-transparent',
-  professional: 'bg-gradient-to-b from-violet-50/30 to-transparent',
-};
-
-/** Icon-Bg-Kreis – subtiler Tint pro Farbe */
-const ICON_BG_CLASS: Record<string, string> = {
-  orange: 'bg-orange-50',
-  pink: 'bg-pink-50',
-  blue: 'bg-blue-50',
-  emerald: 'bg-emerald-50',
-  green: 'bg-green-50',
-  violet: 'bg-violet-50',
-  indigo: 'bg-indigo-50',
-  amber: 'bg-amber-50',
-  rose: 'bg-rose-50',
-  cyan: 'bg-cyan-50',
-  slate: 'bg-slate-50',
-  teal: 'bg-teal-50',
-  red: 'bg-red-50',
-  sky: 'bg-sky-50',
-};
-
-/** Icon-Farben – Brand pro Tool (Solid-Look) */
-const HERO_ICON_COLORS: Record<string, string> = {
-  recipe: 'text-orange-500',
-  'shopping-list': 'text-orange-600',
-  pdf: 'text-red-500',
-  email: 'text-blue-500',
-  polish: 'text-teal-500',
-  invoice: 'text-emerald-500',
-  excel: 'text-green-500',
-  legal: 'text-violet-500',
-  'tough-msg': 'text-indigo-500',
-  summarize: 'text-amber-500',
-  travel: 'text-sky-500',
-  translate: 'text-indigo-500',
-  fitness: 'text-rose-500',
-  code: 'text-slate-500',
-  social: 'text-pink-500',
-};
-
-/** Squircle-Container pro Tool – Apple Vision Style (Gradient + Glow) */
+/** Squircle-Container pro Tool – Gradient + dezenter Schatten (Tier-1) */
 const TOOL_SQUIRCLE: Record<string, { gradient: string; shadow: string }> = {
-  recipe: { gradient: 'bg-gradient-to-br from-orange-500 to-amber-500', shadow: 'shadow-lg shadow-orange-500/30' },
-  'shopping-list': { gradient: 'bg-gradient-to-br from-orange-600 to-rose-500', shadow: 'shadow-lg shadow-orange-600/30' },
-  fitness: { gradient: 'bg-gradient-to-br from-rose-500 to-purple-600', shadow: 'shadow-lg shadow-rose-500/30' },
-  travel: { gradient: 'bg-gradient-to-br from-sky-400 to-indigo-500', shadow: 'shadow-lg shadow-sky-500/30' },
-  pdf: { gradient: 'bg-gradient-to-br from-red-400 to-rose-400', shadow: 'shadow-lg shadow-red-500/30' },
-  email: { gradient: 'bg-gradient-to-br from-blue-400 to-cyan-500', shadow: 'shadow-lg shadow-blue-500/30' },
-  excel: { gradient: 'bg-gradient-to-br from-blue-400 to-cyan-500', shadow: 'shadow-lg shadow-cyan-500/30' },
-  polish: { gradient: 'bg-gradient-to-br from-teal-500 to-emerald-500', shadow: 'shadow-lg shadow-teal-500/30' },
-  invoice: { gradient: 'bg-gradient-to-br from-emerald-500 to-green-500', shadow: 'shadow-lg shadow-emerald-500/30' },
-  legal: { gradient: 'bg-gradient-to-br from-violet-500 to-purple-600', shadow: 'shadow-lg shadow-violet-500/30' },
-  'tough-msg': { gradient: 'bg-gradient-to-br from-indigo-500 to-violet-500', shadow: 'shadow-lg shadow-indigo-500/30' },
-  summarize: { gradient: 'bg-gradient-to-br from-amber-400 to-orange-500', shadow: 'shadow-lg shadow-amber-500/30' },
-  translate: { gradient: 'bg-gradient-to-br from-indigo-400 to-violet-500', shadow: 'shadow-lg shadow-indigo-500/30' },
-  code: { gradient: 'bg-gradient-to-br from-slate-500 to-slate-600', shadow: 'shadow-lg shadow-slate-500/30' },
-  social: { gradient: 'bg-gradient-to-br from-pink-500 to-rose-500', shadow: 'shadow-lg shadow-pink-500/30' },
+  recipe: { gradient: 'bg-gradient-to-br from-orange-500 to-amber-500', shadow: 'shadow-sm shadow-black/10' },
+  'shopping-list': { gradient: 'bg-gradient-to-br from-orange-600 to-rose-500', shadow: 'shadow-sm shadow-black/10' },
+  fitness: { gradient: 'bg-gradient-to-br from-rose-500 to-purple-600', shadow: 'shadow-sm shadow-black/10' },
+  travel: { gradient: 'bg-gradient-to-br from-sky-400 to-indigo-500', shadow: 'shadow-sm shadow-black/10' },
+  pdf: { gradient: 'bg-gradient-to-br from-red-400 to-rose-400', shadow: 'shadow-sm shadow-black/10' },
+  email: { gradient: 'bg-gradient-to-br from-blue-400 to-cyan-500', shadow: 'shadow-sm shadow-black/10' },
+  excel: { gradient: 'bg-gradient-to-br from-blue-400 to-cyan-500', shadow: 'shadow-sm shadow-black/10' },
+  polish: { gradient: 'bg-gradient-to-br from-teal-500 to-emerald-500', shadow: 'shadow-sm shadow-black/10' },
+  invoice: { gradient: 'bg-gradient-to-br from-emerald-500 to-green-500', shadow: 'shadow-sm shadow-black/10' },
+  legal: { gradient: 'bg-gradient-to-br from-violet-500 to-purple-600', shadow: 'shadow-sm shadow-black/10' },
+  'tough-msg': { gradient: 'bg-gradient-to-br from-indigo-500 to-violet-500', shadow: 'shadow-sm shadow-black/10' },
+  summarize: { gradient: 'bg-gradient-to-br from-amber-400 to-orange-500', shadow: 'shadow-sm shadow-black/10' },
+  translate: { gradient: 'bg-gradient-to-br from-indigo-400 to-violet-500', shadow: 'shadow-sm shadow-black/10' },
+  code: { gradient: 'bg-gradient-to-br from-slate-500 to-slate-600', shadow: 'shadow-sm shadow-black/10' },
+  social: { gradient: 'bg-gradient-to-br from-pink-500 to-rose-500', shadow: 'shadow-sm shadow-black/10' },
 };
 
-const SQUIRCLE_FALLBACK = { gradient: 'bg-gradient-to-br from-orange-400 to-pink-500', shadow: 'shadow-lg shadow-orange-500/30' };
-
-/** Accordion-Listen: dezente Icon-Box pro Tool (kleiner Squircle) */
-const ACCORDION_ICON: Record<string, { bg: string; text: string }> = {
-  recipe: { bg: 'bg-orange-100', text: 'text-orange-600' },
-  'shopping-list': { bg: 'bg-orange-100', text: 'text-orange-600' },
-  excel: { bg: 'bg-green-100', text: 'text-green-600' },
-  email: { bg: 'bg-blue-100', text: 'text-blue-600' },
-  'tough-msg': { bg: 'bg-indigo-100', text: 'text-indigo-600' },
-  translate: { bg: 'bg-indigo-100', text: 'text-indigo-600' },
-  fitness: { bg: 'bg-rose-100', text: 'text-rose-600' },
-  travel: { bg: 'bg-sky-100', text: 'text-sky-600' },
-  polish: { bg: 'bg-teal-100', text: 'text-teal-600' },
-  legal: { bg: 'bg-violet-100', text: 'text-violet-600' },
-  invoice: { bg: 'bg-emerald-100', text: 'text-emerald-600' },
-  pdf: { bg: 'bg-red-100', text: 'text-red-600' },
-  summarize: { bg: 'bg-amber-100', text: 'text-amber-600' },
-  code: { bg: 'bg-slate-100', text: 'text-slate-600' },
-  social: { bg: 'bg-pink-100', text: 'text-pink-600' },
-};
-const ACCORDION_ICON_FALLBACK = { bg: 'bg-gray-100', text: 'text-gray-600' };
+const SQUIRCLE_FALLBACK = { gradient: 'bg-gradient-to-br from-orange-400 to-pink-500', shadow: 'shadow-sm shadow-black/10' };
 
 /** Live-Badges für Top-4 (CookIQ + SmartCart kommen aus DB-Props) */
 const TOOL_LIVE_BADGE: Record<string, { label: string }> = {
@@ -185,23 +96,6 @@ function resolveToolLiveBadge(
   }
   return TOOL_LIVE_BADGE[toolId]?.label ?? null;
 }
-
-const COLOR_FALLBACK: Record<string, string> = {
-  orange: 'text-orange-500',
-  pink: 'text-pink-500',
-  blue: 'text-blue-500',
-  emerald: 'text-emerald-500',
-  green: 'text-green-500',
-  violet: 'text-violet-500',
-  indigo: 'text-indigo-500',
-  amber: 'text-amber-500',
-  rose: 'text-rose-500',
-  cyan: 'text-cyan-500',
-  slate: 'text-slate-500',
-  teal: 'text-teal-500',
-  red: 'text-red-500',
-  sky: 'text-sky-500',
-};
 
 type Tool = {
   id: string;
@@ -429,15 +323,6 @@ const TOOL_WORKFLOW: Record<string, (typeof WORKFLOW_SECTIONS)[number]['id']> = 
   social: 'professional',
 };
 
-function getHeaderContent(date: Date): { headline: string; subline: string } {
-  const weekday = date.toLocaleDateString('de-DE', { weekday: 'long' });
-  const dateStr = date.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
-  return {
-    headline: `${weekday}.`,
-    subline: dateStr,
-  };
-}
-
 /** Zeitbasiertes Greeting (ohne Name – Name kommt aus Einstellungen) */
 function getSunriseGreetingBase(): { base: string; subline: string } {
   const h = new Date().getHours();
@@ -452,201 +337,6 @@ function getTimeOfDay(): 'sunrise' | 'night' {
   const h = new Date().getHours();
   return h >= 6 && h < 18 ? 'sunrise' : 'night';
 }
-
-// PREMIUM HIGH-FIDELITY: Helper-Funktion für Akzentfarben (RGB-Werte)
-const getAccentColorRGB = (accentColor: string): { r: number; g: number; b: number } => {
-  const colorMap: Record<string, { r: number; g: number; b: number }> = {
-    orange: { r: 249, g: 115, b: 22 },
-    pink: { r: 244, g: 114, b: 182 },
-    blue: { r: 59, g: 130, b: 246 },
-    emerald: { r: 16, g: 185, b: 129 },
-    green: { r: 34, g: 197, b: 94 },
-    violet: { r: 139, g: 92, b: 246 },
-    indigo: { r: 99, g: 102, b: 241 },
-    amber: { r: 245, g: 158, b: 11 },
-    cyan: { r: 6, g: 182, b: 212 },
-    rose: { r: 244, g: 63, b: 94 },
-    red: { r: 239, g: 68, b: 68 },
-    slate: { r: 100, g: 116, b: 139 },
-  };
-  return colorMap[accentColor] || colorMap.blue;
-};
-
-// FESTES MAPPING: Desktop Hover-Klassen für jede Tool-Farbe (explizit, damit Tailwind sie erkennt)
-const desktopHoverClasses: Record<string, { border: string; bg: string }> = {
-  orange: {
-    border: 'md:group-hover:border-orange-500',
-    bg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-orange-50 md:group-hover:to-pink-50',
-  },
-  pink: {
-    border: 'md:group-hover:border-pink-500',
-    bg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-pink-50 md:group-hover:to-orange-50',
-  },
-  rose: {
-    border: 'md:group-hover:border-rose-500',
-    bg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-pink-50 md:group-hover:to-rose-50',
-  },
-  emerald: {
-    border: 'md:group-hover:border-emerald-500',
-    bg: 'md:group-hover:bg-emerald-50',
-  },
-  blue: {
-    border: 'md:group-hover:border-blue-500',
-    bg: 'md:group-hover:bg-blue-50',
-  },
-  green: {
-    border: 'md:group-hover:border-green-500',
-    bg: 'md:group-hover:bg-green-50',
-  },
-  violet: {
-    border: 'md:group-hover:border-violet-500',
-    bg: 'md:group-hover:bg-violet-50',
-  },
-  indigo: {
-    border: 'md:group-hover:border-indigo-500',
-    bg: 'md:group-hover:bg-indigo-50',
-  },
-  amber: {
-    border: 'md:group-hover:border-amber-500',
-    bg: 'md:group-hover:bg-amber-50',
-  },
-  cyan: {
-    border: 'md:group-hover:border-cyan-500',
-    bg: 'md:group-hover:bg-cyan-50',
-  },
-  slate: {
-    border: 'md:group-hover:border-gray-500',
-    bg: 'md:group-hover:bg-gray-50',
-  },
-  red: {
-    border: 'md:group-hover:border-red-500',
-    bg: 'md:group-hover:bg-red-50',
-  },
-};
-
-// PREMIUM FLOATING DESIGN: Permanent Floating Cards mit vollumfänglichem farbigen Rahmen
-const toolColors: Record<string, {
-  bg: string;
-  border: string;
-  text: string;
-  iconBg: string;
-  hoverBorder: string;
-  hoverBg: string;
-  gradient?: string;
-  accentColor: string; // Vollumfänglicher farbiger Rahmen (1px solid)
-}> = {
-  emerald: {
-    bg: 'bg-white',
-    border: 'border-emerald-300',
-    text: 'text-emerald-600',
-    iconBg: 'bg-emerald-50',
-    hoverBorder: 'md:group-hover:border-emerald-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-emerald-50', // Nur Desktop
-    accentColor: 'emerald',
-  },
-  blue: {
-    bg: 'bg-white',
-    border: 'border-blue-300',
-    text: 'text-blue-600',
-    iconBg: 'bg-blue-50',
-    hoverBorder: 'md:group-hover:border-blue-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-blue-50', // Nur Desktop
-    accentColor: 'blue',
-  },
-  green: {
-    bg: 'bg-white',
-    border: 'border-green-300',
-    text: 'text-green-600',
-    iconBg: 'bg-green-50',
-    hoverBorder: 'md:group-hover:border-green-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-green-50', // Nur Desktop
-    accentColor: 'green',
-  },
-  violet: {
-    bg: 'bg-white',
-    border: 'border-violet-300',
-    text: 'text-violet-600',
-    iconBg: 'bg-violet-50',
-    hoverBorder: 'md:group-hover:border-violet-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-violet-50', // Nur Desktop
-    accentColor: 'violet',
-  },
-  indigo: {
-    bg: 'bg-white',
-    border: 'border-indigo-300',
-    text: 'text-indigo-600',
-    iconBg: 'bg-indigo-50',
-    hoverBorder: 'md:group-hover:border-indigo-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-indigo-50', // Nur Desktop
-    accentColor: 'indigo',
-  },
-  amber: {
-    bg: 'bg-white',
-    border: 'border-amber-300',
-    text: 'text-amber-600',
-    iconBg: 'bg-amber-50',
-    hoverBorder: 'md:group-hover:border-amber-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-amber-50', // Nur Desktop
-    accentColor: 'amber',
-  },
-  cyan: {
-    bg: 'bg-white',
-    border: 'border-cyan-300',
-    text: 'text-cyan-600',
-    iconBg: 'bg-cyan-50',
-    hoverBorder: 'md:group-hover:border-cyan-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-cyan-50', // Nur Desktop
-    accentColor: 'cyan',
-  },
-  orange: {
-    bg: 'bg-white',
-    border: 'border-orange-300',
-    text: 'text-orange-600',
-    iconBg: 'bg-gradient-to-br from-orange-50 to-pink-50',
-    hoverBorder: 'md:group-hover:border-orange-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-orange-50 md:group-hover:to-pink-50', // Nur Desktop
-    gradient: 'from-orange-500 to-pink-500',
-    accentColor: 'orange',
-  },
-  rose: {
-    bg: 'bg-white',
-    border: 'border-rose-300',
-    text: 'text-rose-600',
-    iconBg: 'bg-gradient-to-br from-pink-50 to-rose-50',
-    hoverBorder: 'md:group-hover:border-rose-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-pink-50 md:group-hover:to-rose-50', // Nur Desktop
-    gradient: 'from-pink-500 to-rose-500',
-    accentColor: 'rose',
-  },
-  slate: {
-    bg: 'bg-white',
-    border: 'border-gray-300',
-    text: 'text-gray-600',
-    iconBg: 'bg-gray-50',
-    hoverBorder: 'md:group-hover:border-gray-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-gray-50', // Nur Desktop
-    accentColor: 'gray',
-  },
-  pink: {
-    bg: 'bg-white',
-    border: 'border-pink-300',
-    text: 'text-pink-600',
-    iconBg: 'bg-gradient-to-br from-pink-50 to-orange-50',
-    hoverBorder: 'md:group-hover:border-pink-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-gradient-to-br md:group-hover:from-pink-50 md:group-hover:to-orange-50', // Nur Desktop
-    gradient: 'from-pink-500 to-orange-500',
-    accentColor: 'pink',
-  },
-  red: {
-    bg: 'bg-white',
-    border: 'border-red-300',
-    text: 'text-red-600',
-    iconBg: 'bg-red-50',
-    hoverBorder: 'md:group-hover:border-red-400', // Nur Desktop
-    hoverBg: 'md:group-hover:bg-red-50', // Nur Desktop
-    accentColor: 'red',
-  },
-};
 
 export type DashboardClientProps = {
   /** Aus CalendarEvent (meal) für heutiges Datum (Europe/Berlin) */
@@ -797,12 +487,12 @@ export default function DashboardClient({
   }, [usageStats]);
 
   const sunriseGreeting = getSunriseGreetingBase();
-  const greetingText = displayName ? `${sunriseGreeting.base}, ${displayName}! 👋` : `${sunriseGreeting.base}! 👋`;
+  const greetingText = displayName ? `${sunriseGreeting.base}, ${displayName}!` : `${sunriseGreeting.base}!`;
 
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white"
+      className="min-h-screen w-full relative overflow-x-hidden bg-[var(--app-canvas,#fcfbfa)]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -842,19 +532,28 @@ export default function DashboardClient({
           </div>
         }
         title={
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-            {greetingText}
+          <h1
+            className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mt-0 text-white flex items-center gap-3 flex-wrap"
+            style={{ letterSpacing: '-0.3px' }}
+          >
+            <span
+              className="inline-flex items-center justify-center rounded-xl bg-white/15 p-2 text-white border border-white/25 shrink-0"
+              aria-hidden
+            >
+              <Hand className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2} />
+            </span>
+            <span>{greetingText}</span>
           </h1>
         }
         subtitle={
-          <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+          <p className="text-sm sm:text-base mt-1 font-normal text-white/75" style={{ letterSpacing: '0.1px' }}>
             {sunriseGreeting.subline}
           </p>
         }
         headerExtra={
           <div className="mt-4 flex flex-wrap gap-2">
             <span
-              className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 shrink-0 bg-white/10 border border-white/20 text-white/80 min-w-0 max-w-full"
+              className="backdrop-blur-md rounded-2xl px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 shrink-0 bg-white/10 border border-white/20 text-white/80 min-w-0 max-w-full"
               title={
                 todaysMealTitle
                   ? `Heute: ${todaysMealTitle}`
@@ -866,7 +565,7 @@ export default function DashboardClient({
                 {todaysMealTitle ? <>Heute: {todaysMealTitle}</> : <>Planung offen</>}
               </span>
             </span>
-            <span className="backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80 uppercase tracking-wide">
+            <span className="backdrop-blur-md rounded-2xl px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80 uppercase tracking-wide">
               {openCartItemsCount === 0 ? (
                 <>
                   <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
@@ -899,25 +598,19 @@ export default function DashboardClient({
                     <div
                       key={tool.id}
                       className={cn(
-                        'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-2xl overflow-hidden',
+                        'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-card overflow-hidden',
+                        'bg-white/90 backdrop-blur-sm border border-slate-200/70 shadow-tier1',
                         'hover:scale-[1.02] transition-all duration-300',
                         'p-5',
                         tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
                       )}
-                      style={{
-                        background: 'rgba(255,255,255,0.16)',
-                        border: '1px solid rgba(255,255,255,0.22)',
-                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                        backdropFilter: 'blur(8px)',
-                      }}
                     >
                       {/* Status-Badge: dezent oben rechts (einheitliches Micro-Design) */}
                       {(liveBadgeLabel || (!tool.available && tool.status === 'soon')) && (
                         <div className="absolute top-4 right-4 flex flex-col items-end gap-0.5 max-w-[calc(100%-2rem)]">
                           {liveBadgeLabel && (
                             <span
-                              className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm shrink-0 max-w-[100px] truncate text-right"
+                              className="bg-slate-100/95 text-slate-600 text-[10px] uppercase font-semibold px-2 py-1 rounded-2xl shrink-0 max-w-[100px] truncate text-right"
                               style={{ letterSpacing: '0.6px' }}
                               title={liveBadgeLabel}
                             >
@@ -925,7 +618,7 @@ export default function DashboardClient({
                             </span>
                           )}
                           {!tool.available && tool.status === 'soon' && (
-                            <span className="bg-gray-50/90 text-gray-700 text-[10px] uppercase font-semibold px-2 py-1 rounded shadow-sm" style={{ letterSpacing: '0.6px' }}>Bald</span>
+                            <span className="bg-slate-100/95 text-slate-600 text-[10px] uppercase font-semibold px-2 py-1 rounded-2xl" style={{ letterSpacing: '0.6px' }}>Bald</span>
                           )}
                         </div>
                       )}
@@ -934,7 +627,7 @@ export default function DashboardClient({
                         {(() => {
                           const sq = TOOL_SQUIRCLE[tool.id] ?? SQUIRCLE_FALLBACK;
                           return (
-                            <div className={cn('w-16 h-16 rounded-[22px] flex items-center justify-center shrink-0', sq.gradient, sq.shadow)}>
+                            <div className={cn('w-16 h-16 rounded-2xl flex items-center justify-center shrink-0', sq.gradient, sq.shadow)}>
                               {createElement(Icon, { className: 'w-8 h-8 shrink-0 text-white', strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                             </div>
                           );
@@ -942,8 +635,8 @@ export default function DashboardClient({
                       </div>
                       {/* Unten: Titel + Subtext */}
                       <div className="w-full text-left">
-                        <h3 className="font-semibold text-[1.0625rem] text-gray-900 leading-tight line-clamp-2">{tool.title}</h3>
-                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{subtitle}</p>
+                        <h3 className="font-bold text-lg text-slate-900 leading-tight line-clamp-2">{tool.title}</h3>
+                        <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">{subtitle}</p>
                       </div>
                     </div>
                   );
@@ -970,28 +663,23 @@ export default function DashboardClient({
               return (
                 <div
                   key={section.id}
-                  className="rounded-2xl overflow-hidden mb-4"
-                  style={{
-                    background: 'rgba(255,255,255,0.16)',
-                    border: '1px solid rgba(255,255,255,0.22)',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                    backdropFilter: 'blur(8px)',
-                  }}
+                  className="rounded-card overflow-hidden mb-4 bg-white/90 backdrop-blur-sm border border-slate-200/70 shadow-tier1"
                 >
                   <button
                     type="button"
                     onClick={() => { triggerHaptic('light'); toggleAccordion(section.id); }}
-                    className="w-full flex items-center justify-between p-4 text-left hover:bg-white/30 transition-colors"
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50/80 transition-colors"
                   >
-                    <span className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                      <SectionIcon className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center rounded-xl bg-orange-100 text-orange-600 p-2 shrink-0">
+                        <SectionIcon className="w-4 h-4" strokeWidth={2} aria-hidden />
+                      </span>
                       {section.label}
                     </span>
                     <motion.span
                       animate={{ rotate: isOpen ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
-                      className="text-gray-500"
+                      className="text-slate-400"
                     >
                       <ChevronDown className="w-5 h-5" />
                     </motion.span>
@@ -1010,15 +698,15 @@ export default function DashboardClient({
                           const subtitle = TOOL_SUBTITLES[tool.id];
                           const sq = TOOL_SQUIRCLE[tool.id] ?? SQUIRCLE_FALLBACK;
                           const row = (
-                            <div className="flex items-center gap-3 py-4 px-4 border-b border-white/20 last:border-0 hover:bg-white/40 transition-colors">
-                              <div className={cn('w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0 shadow-sm', sq.gradient)}>
+                            <div className="flex items-center gap-3 py-4 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50/90 transition-colors">
+                              <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center shrink-0', sq.gradient, sq.shadow)}>
                                 {createElement(Icon, { className: 'w-5 h-5 shrink-0 text-white', strokeWidth: 2, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-800 truncate">{tool.title}</p>
-                                <p className="text-sm text-gray-500 truncate">{subtitle}</p>
+                                <p className="font-semibold text-base text-slate-900 truncate">{tool.title}</p>
+                                <p className="text-sm text-slate-500 truncate">{subtitle}</p>
                               </div>
-                              <ChevronRight className="w-5 h-5 shrink-0 text-gray-400" />
+                              <ChevronRight className="w-5 h-5 shrink-0 text-slate-400" />
                             </div>
                           );
                           return tool.available ? (
@@ -1045,9 +733,11 @@ export default function DashboardClient({
           </div>
         ) : (
           <div className="text-center py-24">
-            <Search className="w-16 h-16 mx-auto mb-6 text-gray-300" />
-            <p className="text-gray-600 text-lg font-medium tracking-wide mb-2">Keine Tools gefunden.</p>
-            <p className="text-gray-500 text-sm font-normal">
+            <span className="inline-flex items-center justify-center rounded-xl bg-orange-100 text-orange-600 p-3 mx-auto mb-6">
+              <Search className="w-8 h-8" strokeWidth={2} aria-hidden />
+            </span>
+            <p className="text-slate-900 text-xl font-bold tracking-tight mb-2">Keine Tools gefunden.</p>
+            <p className="text-slate-500 text-sm font-normal">
               Versuche eine andere Suche oder Kategorie.
             </p>
           </div>

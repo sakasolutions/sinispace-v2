@@ -8,11 +8,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Tier-1 B2C: Buttons/Inputs typ. rounded-2xl, Hauptkarten rounded-card (32px) / rounded-3xl, Schatten shadow-tier1.
+ * Siehe tailwind.config.ts → theme.extend.boxShadow.tier1 & borderRadius.card.
+ */
+
 @layer base {
   :root {
     --font-plus-jakarta-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
     --font-inter: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
     --font-merriweather: 'Merriweather', Georgia, 'Times New Roman', serif;
+    /** Tier-1 Canvas: warmes Off-White (kein reines #FFF als Fläche) */
+    --app-canvas: #fcfbfa;
   }
 }
 
@@ -45,7 +52,7 @@
   }
   
   html {
-    background: #ffffff;
+    background: var(--app-canvas);
     /* Full Coverage */
     height: 100%;
     min-height: 100dvh;
@@ -70,8 +77,8 @@
   }
   
   body {
-    background: #ffffff;
-    color: #111827;
+    background: var(--app-canvas);
+    color: rgb(15 23 42); /* slate-900 */
     /* Full Coverage */
     height: 100%;
     min-height: 100dvh;
