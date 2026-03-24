@@ -2,7 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed, CalendarDays, X } from 'lucide-react';
-import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
+import {
+  AddToShoppingListModal,
+  type AddToShoppingListSuccessPayload,
+} from '@/components/recipe/add-to-shopping-list-modal';
 import { scheduleSingleRecipe } from '@/actions/calendar-actions';
 import { cn } from '@/lib/utils';
 import { parseIngredient, formatIngredientDisplay } from '@/lib/format-ingredient';
@@ -60,20 +63,29 @@ export function RecipeDetailView({
   const [isAddToListOpen, setIsAddToListOpen] = useState(false);
   /** Welche Zutaten im „Einkaufen“-Modal angezeigt werden: alle (vom Einkaufen-Button) oder nur fehlende (vom Auf Einkaufsliste-Button). */
   const [addToListIngredients, setAddToListIngredients] = useState<string[]>([]);
+  /**
+   * Nach SmartCart-Speichern: Zutaten, die im Modal abgewählt waren („habe ich schon“).
+   * Verschiebt Einträge von „Fehlt noch“ → „Vorhanden“ (bzw. blendet bei reiner Zutatenliste aus).
+   */
+  const [markedAsAtHome, setMarkedAsAtHome] = useState<string[]>([]);
   const [toast, setToast] = useState<{ message: string } | null>(null);
   const [cookingMode, setCookingMode] = useState(false);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [scheduleDate, setScheduleDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [scheduleMealType, setScheduleMealType] = useState<'breakfast' | 'lunch' | 'dinner'>('dinner');
   const [isScheduling, setIsScheduling] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(t);
   }, [toast]);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    setMarkedAsAtHome([]);
+  }, [resultId, servings]);
 
   const handleScheduleRecipe = async () => {
     setIsScheduling(true);
@@ -149,6 +161,44 @@ export function RecipeDetailView({
   };
 
   const cookingTime = parseTime(recipe.stats?.time || '');
+
+  function mergeIngredientKeys(prev: string[], additions: string[]): string[] {
+    return [...new Set([...prev, ...additions])];
+  }
+
+  function handleAddToListSuccess(payload: AddToShoppingListSuccessPayload) {
+    const { count, listName, uncheckedIngredients } = payload;
+    setToast({
+      message: count
+        ? `${count} ${count === 1 ? 'Zutat' : 'Zutaten'} zu „${listName}“ hinzugefügt`
+        : 'SmartCart aktualisiert',
+    });
+    if (uncheckedIngredients.length > 0) {
+      setMarkedAsAtHome((p) => mergeIngredientKeys(p, uncheckedIngredients));
+    }
+  }
+
+  /** „Fehlt noch“ ohne die als zuhause markierten Zeilen (gleiche Strings wie im Modal). */
+  const missingShoppingDisplay = useMemo(() => {
+    return adjustedShoppingList.filter((ing) => !markedAsAtHome.includes(ing));
+  }, [adjustedShoppingList, markedAsAtHome]);
+
+  /** Aus Einkaufsliste nach SmartCart-Abwahl unter „Vorhanden“. */
+  const shoppingMovedToPantry = useMemo(() => {
+    return adjustedShoppingList.filter((ing) => markedAsAtHome.includes(ing));
+  }, [adjustedShoppingList, markedAsAtHome]);
+
+  const vorhandenDisplay = useMemo(() => {
+    return [...adjustedIngredients, ...shoppingMovedToPantry];
+  }, [adjustedIngredients, shoppingMovedToPantry]);
+
+  /** Nur Zutatenliste (ohne separate shoppingList): abgewählte aus Hauptliste ausblenden, optional „Bereits vorhanden“. */
+  const simpleListNeed = useMemo(() => {
+    return adjustedIngredients.filter((ing) => !markedAsAtHome.includes(ing));
+  }, [adjustedIngredients, markedAsAtHome]);
+  const simpleListHave = useMemo(() => {
+    return adjustedIngredients.filter((ing) => markedAsAtHome.includes(ing));
+  }, [adjustedIngredients, markedAsAtHome]);
 
   const heroImageUrl =
     recipe.imageUrl && String(recipe.imageUrl).trim().length > 0
@@ -287,7 +337,7 @@ export function RecipeDetailView({
 
       <div className="px-4 md:px-6">
         {/* Hero Card – Meta & Aktionen */}
-        <div className="relative z-20 mx-auto max-w-5xl rounded-[40px] p-6 md:p-10 shadow-2xl" style={RECIPE_GLASS_STYLE}>
+        <div className="relative z-20 mx-auto max-w-5xl rounded-3xl p-6 md:p-10 shadow-sm border border-gray-100 bg-white/90 backdrop-blur-md">
         {/* Nur Wochenplan: In Sammlung speichern (Zurück nur in der Shell oben) */}
         {fromWeekPlan && onSaveToCollection && (
           <div className="flex justify-end mb-4">
@@ -461,7 +511,7 @@ export function RecipeDetailView({
                 setAddToListIngredients(adjustedShoppingList.length > 0 ? adjustedShoppingList : adjustedIngredients);
                 setIsAddToListOpen(true);
               }}
-              className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold hover:bg-rose-100 transition-colors border-0 shadow-none"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl bg-rose-500 text-white text-sm font-semibold hover:bg-rose-600 transition-colors shadow-md shadow-rose-500/25"
             >
               <ShoppingBasket className="w-4 h-4 shrink-0" />
               <span className="leading-tight text-center">Einkaufen</span>
@@ -469,7 +519,7 @@ export function RecipeDetailView({
             <button
               type="button"
               onClick={() => setIsCalendarModalOpen(true)}
-              className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl bg-purple-50 text-purple-600 text-sm font-semibold hover:bg-purple-100 transition-colors border-0 shadow-none"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition-colors border border-slate-200/80"
             >
               <CalendarDays className="w-4 h-4 shrink-0" />
               <span className="leading-tight text-center text-xs sm:text-sm">Im Kalender planen</span>
@@ -478,13 +528,13 @@ export function RecipeDetailView({
 
           {adjustedShoppingList.length > 0 ? (
             <>
-              {adjustedIngredients.length > 0 && (
+              {vorhandenDisplay.length > 0 && (
                 <>
                   <h2 className="text-lg font-bold text-gray-900 mb-3">Zutaten (Vorhanden)</h2>
                   <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
                   <ul className="divide-y divide-gray-100 mb-6">
-                    {adjustedIngredients.map((ingredient, index) => (
-                      <li key={index} className="flex items-start gap-2 py-2.5">
+                    {vorhandenDisplay.map((ingredient, index) => (
+                      <li key={`v-${index}-${ingredient}`} className="flex items-start gap-2 py-2.5">
                         <span className="text-gray-400 mt-0.5 shrink-0">•</span>
                         <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
                       </li>
@@ -492,32 +542,55 @@ export function RecipeDetailView({
                   </ul>
                 </>
               )}
-              <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" aria-hidden />
-                Fehlt noch
-              </h2>
-              <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
-              <ul className="divide-y divide-gray-100">
-                {adjustedShoppingList.map((ingredient, index) => (
-                  <li key={index} className="flex items-start gap-2 py-2.5">
-                    <span className="text-amber-500 mt-0.5 shrink-0">•</span>
-                    <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
-                  </li>
-                ))}
-              </ul>
+              {missingShoppingDisplay.length > 0 ? (
+                <>
+                  <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" aria-hidden />
+                    Fehlt noch
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
+                  <ul className="divide-y divide-gray-100">
+                    {missingShoppingDisplay.map((ingredient, index) => (
+                      <li key={`m-${index}-${ingredient}`} className="flex items-start gap-2 py-2.5">
+                        <span className="text-amber-500 mt-0.5 shrink-0">•</span>
+                        <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p className="text-sm font-medium text-emerald-700 bg-emerald-50/80 border border-emerald-100 rounded-xl px-3 py-2.5">
+                  Für die Einkaufsliste ist nichts mehr offen – oder du hast alles als vorhanden markiert.
+                </p>
+              )}
             </>
           ) : (
             <>
               <h2 className="text-lg font-bold text-gray-900 mb-3">Zutaten</h2>
               <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
-              <ul className="divide-y divide-gray-100">
-                {adjustedIngredients.map((ingredient, index) => (
-                  <li key={index} className="flex items-start gap-2 py-2.5">
-                    <span className="text-gray-400 mt-0.5 shrink-0">•</span>
-                    <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
-                  </li>
-                ))}
-              </ul>
+              {simpleListNeed.length > 0 && (
+                <ul className="divide-y divide-gray-100">
+                  {simpleListNeed.map((ingredient, index) => (
+                    <li key={`n-${index}-${ingredient}`} className="flex items-start gap-2 py-2.5">
+                      <span className="text-gray-400 mt-0.5 shrink-0">•</span>
+                      <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {simpleListHave.length > 0 && (
+                <div className={cn(simpleListNeed.length > 0 ? 'mt-6' : '')}>
+                  <h3 className="text-sm font-bold text-gray-800 mb-2">Bereits vorhanden (nicht einkaufen)</h3>
+                  <ul className="divide-y divide-gray-100">
+                    {simpleListHave.map((ingredient, index) => (
+                      <li key={`h-${index}-${ingredient}`} className="flex items-start gap-2 py-2.5">
+                        <span className="text-emerald-500 mt-0.5 shrink-0">•</span>
+                        <span className="text-sm text-gray-700 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -525,12 +598,12 @@ export function RecipeDetailView({
         {/* Rechte Spalte: Zubereitung */}
         <div className="md:col-span-8">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Zubereitung</h2>
-          <ol>
+          <ol className="space-y-10">
             {recipe.instructions.map((step, index) => (
-              <li key={index} className="flex gap-4 mb-8 last:mb-0">
-                <span className="flex-shrink-0 text-3xl font-bold text-orange-500/80 tabular-nums mr-0 w-10 text-right">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
+              <li key={index} className="flex gap-4 items-start">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-bold text-sm shrink-0">
+                  {index + 1}
+                </div>
                 <p className="text-gray-700 text-lg leading-relaxed flex-1 pt-0.5">{step}</p>
               </li>
             ))}
@@ -569,11 +642,7 @@ export function RecipeDetailView({
           isOpen={isAddToListOpen}
           onClose={() => setIsAddToListOpen(false)}
           ingredients={addToListIngredients}
-          onAdded={(count) => {
-            setToast({
-              message: count ? `${count} ${count === 1 ? 'Zutat' : 'Zutaten'} hinzugefügt` : 'Zutaten hinzugefügt',
-            });
-          }}
+          onAdded={handleAddToListSuccess}
         />
 
       {/* Im Kalender planen – Modal */}

@@ -1345,7 +1345,7 @@ export default function RecipePage() {
           isOpen={isAddToListOpen}
           onClose={() => setIsAddToListOpen(false)}
           ingredients={recipe.shoppingList}
-          onAdded={(count, listName) => {
+          onAdded={({ count, listName }) => {
             setAddToListToast({
               message: `${count} ${count === 1 ? 'Zutat' : 'Zutaten'} zu „${listName}“ hinzugefügt`,
             });

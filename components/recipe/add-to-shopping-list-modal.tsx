@@ -10,11 +10,18 @@ import { formatIngredientDisplay } from '@/lib/format-ingredient';
 
 const NEW_LIST_VALUE = '__new__';
 
+export type AddToShoppingListSuccessPayload = {
+  count: number;
+  listName: string;
+  /** Im Modal abgewählte Zutaten („habe ich schon“) – werden nicht in den SmartCart übernommen. */
+  uncheckedIngredients: string[];
+};
+
 export interface AddToShoppingListModalProps {
   isOpen: boolean;
   onClose: () => void;
   ingredients: string[];
-  onAdded?: (count: number, listName: string) => void;
+  onAdded?: (payload: AddToShoppingListSuccessPayload) => void;
 }
 
 export function AddToShoppingListModal({
@@ -75,7 +82,8 @@ export function AddToShoppingListModal({
     const { success } = await saveShoppingLists(next);
     setSaving(false);
     if (!success) return;
-    onAdded?.(appendedCount, listName);
+    const uncheckedIngredients = ingredients.filter((ing) => !selected.has(ing));
+    onAdded?.({ count: appendedCount, listName, uncheckedIngredients });
     onClose();
   };
 
