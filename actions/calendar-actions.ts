@@ -5,9 +5,6 @@ import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { addDays, format, isBefore, setYear, startOfDay, startOfWeek } from 'date-fns';
 import { getNextMonday } from '@/lib/week-plan-dates';
-
-/** Re-Export: gemeinsame Montags-Logik für Wochenplan-Publish (Mo→+7 Tage, So→+1). */
-export { getNextMonday } from '@/lib/week-plan-dates';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
