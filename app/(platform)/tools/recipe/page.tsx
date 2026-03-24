@@ -2132,13 +2132,16 @@ export default function RecipePage() {
                           setActiveWeekPlan(ok ? restored.plan : planForCalendarActivation);
                           setWeekDraft([]);
                         } else {
+                          const errText = 'error' in res && res.error ? String(res.error) : 'Kalender konnte nicht aktualisiert werden.';
                           setAddToListToast({
-                            message: res.error || 'Kalender konnte nicht aktualisiert werden.',
+                            message: `Fehler: ${errText}`,
                           });
                         }
                       } catch (e) {
                         console.error('[CookIQ] activateWeeklyPlan:', e);
-                        setAddToListToast({ message: 'Kalender konnte nicht aktualisiert werden.' });
+                        setAddToListToast({
+                          message: `Fehler: ${e instanceof Error ? e.message : 'Kalender konnte nicht aktualisiert werden.'}`,
+                        });
                       } finally {
                         setIsActivatingWeeklyPlan(false);
                       }

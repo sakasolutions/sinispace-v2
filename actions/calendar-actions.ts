@@ -26,23 +26,63 @@ export type CalendarEventJson = {
   recipeResultId?: string;
 };
 
+/** CookIQ-/Wochenplan-Mahlzeiten aus CalendarEvent in dasselbe JSON-Format wie Magic-Events mappen (Kalender-UI). */
+function mealRowsToCalendarJson(
+  rows: { id: string; date: string; time: string; title: string | null; resultId: string | null }[]
+): CalendarEventJson[] {
+  return rows.map((m) => ({
+    id: m.id,
+    type: 'custom',
+    title: (m.title ?? '').trim() || 'Gericht',
+    date: m.date,
+    time: (m.time ?? '12:00').slice(0, 5),
+    eventType: 'personal',
+    actionTag: 'food' as const,
+    recipeResultId: m.resultId ?? undefined,
+  }));
+}
+
 /**
- * Lädt die Kalender-Events des eingeloggten Users aus der DB (UserCalendar.eventsJson).
- * Kein LocalStorage-Fallback.
+ * Lädt Kalender-Events: UserCalendar.eventsJson **plus** Mahlzeiten aus CalendarEvent (CookIQ).
  */
 export async function getCalendarEvents(): Promise<CalendarEventJson[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
 
   try {
+    const userId = session.user.id;
     const row = await prisma.userCalendar.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
       select: { eventsJson: true },
     });
-    if (!row?.eventsJson) return [];
-    const parsed = JSON.parse(row.eventsJson) as unknown;
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
+    let jsonEvents: CalendarEventJson[] = [];
+    if (row?.eventsJson) {
+      const parsed = JSON.parse(row.eventsJson) as unknown;
+      if (Array.isArray(parsed)) jsonEvents = parsed as CalendarEventJson[];
+    }
+
+    const rangeStart = format(addDays(startOfDay(new Date()), -14), 'yyyy-MM-dd');
+    const rangeEnd = format(addDays(startOfDay(new Date()), 180), 'yyyy-MM-dd');
+    const mealRows = await prisma.calendarEvent.findMany({
+      where: {
+        userId,
+        eventType: 'meal',
+        date: { gte: rangeStart, lte: rangeEnd },
+      },
+      select: { id: true, date: true, time: true, title: true, resultId: true },
+      orderBy: [{ date: 'asc' }, { time: 'asc' }],
+    });
+    const mealEvents = mealRowsToCalendarJson(mealRows);
+
+    const merged = [...jsonEvents, ...mealEvents];
+    merged.sort((a, b) => {
+      const dc = a.date.localeCompare(b.date);
+      if (dc !== 0) return dc;
+      return a.time.localeCompare(b.time);
+    });
+    return merged;
+  } catch (e) {
+    console.error('[CALENDAR] getCalendarEvents:', e);
     return [];
   }
 }
@@ -317,23 +357,32 @@ export async function deleteCalendarEvent(
   }
 
   try {
+    const userId = session.user.id;
+    let removedFromJson = false;
+
     const calendar = await prisma.userCalendar.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
     });
-    if (!calendar) {
-      return { success: true }; // Kein Kalender = nichts zu löschen
+    if (calendar?.eventsJson) {
+      const events = (JSON.parse(calendar.eventsJson) as CalendarEventJson[]) || [];
+      const filtered = events.filter((e) => e.id !== eventId);
+      if (filtered.length < events.length) {
+        await prisma.userCalendar.update({
+          where: { userId },
+          data: { eventsJson: JSON.stringify(filtered) },
+        });
+        removedFromJson = true;
+      }
     }
 
-    const events = (JSON.parse(calendar.eventsJson) as CalendarEventJson[]) || [];
-    const filtered = events.filter((e) => e.id !== eventId);
-    if (filtered.length === events.length) {
-      return { success: true }; // ID nicht gefunden, idempotent
+    if (!removedFromJson) {
+      const mealDel = await prisma.calendarEvent.deleteMany({
+        where: { id: eventId, userId },
+      });
+      if (mealDel.count === 0 && !calendar) {
+        return { success: true };
+      }
     }
-
-    await prisma.userCalendar.update({
-      where: { userId: session.user.id },
-      data: { eventsJson: JSON.stringify(filtered) },
-    });
 
     revalidatePath('/calendar');
     return { success: true };
@@ -375,7 +424,23 @@ export async function updateCalendarEvent(
     const events = (JSON.parse(calendar.eventsJson) as CalendarEventJson[]) || [];
     const index = events.findIndex((e) => e.id === eventId);
     if (index === -1) {
-      return { success: false, error: 'Termin nicht gefunden' };
+      try {
+        const data: { title?: string; date?: string; time?: string } = {};
+        if (updatedData.title !== undefined) data.title = updatedData.title;
+        if (updatedData.date !== undefined) data.date = updatedData.date;
+        if (updatedData.time !== undefined) data.time = updatedData.time;
+        if (Object.keys(data).length === 0) {
+          return { success: false, error: 'Termin nicht gefunden' };
+        }
+        await prisma.calendarEvent.update({
+          where: { id: eventId, userId: session.user.id },
+          data,
+        });
+        revalidatePath('/calendar');
+        return { success: true };
+      } catch {
+        return { success: false, error: 'Termin nicht gefunden' };
+      }
     }
 
     events[index] = { ...events[index], ...updatedData };
@@ -502,6 +567,7 @@ export async function saveWeeklyPlan(planData: WeeklyPlanEntry[]) {
 
     return { success: true as const };
   } catch (error) {
+    console.error('PRISMA SAVE ERROR:', error);
     console.error('[CALENDAR] saveWeeklyPlan:', error);
     const detail = error instanceof Error ? error.message : String(error);
     return {
@@ -566,6 +632,8 @@ export async function activateWeeklyPlan(
     return { success: false, error: 'Ungültiger Wochenplan (JSON).' };
   }
 
+  console.log('[activateWeeklyPlan] RECEIVED DRAFT (days):', days.length, 'sample:', JSON.stringify(days.slice(0, 2)));
+
   const nextMonday = getNextMonday();
   const planData: WeeklyPlanEntry[] = [];
 
@@ -596,12 +664,30 @@ export async function activateWeeklyPlan(
   }
 
   if (planData.length === 0) {
+    console.warn('[activateWeeklyPlan] planData empty after mapping (meals missing on days?)');
     return { success: false, error: 'Keine Mahlzeiten im Plan – nichts zu aktivieren.' };
   }
 
-  const res = await saveWeeklyPlan(planData);
-  if (!res.success) {
-    return { success: false, error: res.error || 'Kalender konnte nicht aktualisiert werden.' };
+  const calculatedDates = [...new Set(planData.map((p) => p.date))].sort();
+  console.log('[activateWeeklyPlan] CALCULATED DATES (YYYY-MM-DD):', calculatedDates);
+  console.log('[activateWeeklyPlan] nextMonday (ISO):', nextMonday.toISOString(), 'meal rows:', planData.length);
+
+  try {
+    const res = await saveWeeklyPlan(planData);
+    if (!res.success) {
+      return { success: false, error: res.error || 'Kalender konnte nicht aktualisiert werden.' };
+    }
+  } catch (error) {
+    console.error('PRISMA SAVE ERROR:', error);
+    const msg = error instanceof Error ? error.message : String(error);
+    return { success: false, error: `Speichern fehlgeschlagen: ${msg}` };
+  }
+
+  try {
+    revalidatePath('/calendar');
+    revalidatePath('/tools/recipe');
+  } catch (revalErr) {
+    console.error('[activateWeeklyPlan] revalidatePath:', revalErr);
   }
 
   const sunday = addDays(nextMonday, 6);
