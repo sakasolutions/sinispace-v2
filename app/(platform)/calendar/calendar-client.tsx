@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useTransition } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   format,
@@ -20,7 +20,7 @@ import { de } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Sparkles, Loader2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MapPin, ShoppingCart, Utensils, Calendar, X } from 'lucide-react';
 import { getCalendarEvents, createMagicEvent, deleteCalendarEvent, updateCalendarEvent, type CalendarEventJson } from '@/actions/calendar-actions';
-import { generateRecipeFromCalendar } from '@/actions/week-planner-ai';
+import { GenerateRecipeButton } from '@/components/platform/calendar/generate-recipe-button';
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -81,8 +81,6 @@ export function CalendarClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEventJson | null>(null);
   const [editForm, setEditForm] = useState({ title: '', date: '', time: '', location: '' });
-  const [, startTransition] = useTransition();
-  const [generatingRecipeEventId, setGeneratingRecipeEventId] = useState<string | null>(null);
 
   const selectedDateKey = useMemo(
     () => format(currentDate, 'yyyy-MM-dd'),
@@ -110,29 +108,6 @@ export function CalendarClient() {
   }
 
   const gridDays = viewMode === 'week' ? weekDays : monthGridDays;
-
-  function handleCalendarRecipeGenerate(event: CalendarEventJson) {
-    if (!event.syncedMeal) return;
-    startTransition(() => {
-      void (async () => {
-        setGeneratingRecipeEventId(event.id);
-        try {
-          const res = await generateRecipeFromCalendar(event.id, event.title);
-          if (res.success) {
-            const list = await getCalendarEvents();
-            setEvents(list);
-          } else {
-            alert(res.error);
-          }
-        } catch (err) {
-          console.error('[Kalender] generateRecipeFromCalendar:', err);
-          alert('Rezept konnte nicht erstellt werden.');
-        } finally {
-          setGeneratingRecipeEventId(null);
-        }
-      })();
-    });
-  }
 
   useEffect(() => {
     let cancelled = false;
@@ -468,27 +443,14 @@ export function CalendarClient() {
                                 Zum Rezept ›
                               </Link>
                             ) : event.syncedMeal ? (
-                              <button
-                                type="button"
-                                disabled={generatingRecipeEventId === event.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCalendarRecipeGenerate(event);
+                              <GenerateRecipeButton
+                                calendarEventId={event.id}
+                                title={event.title}
+                                onSuccess={async () => {
+                                  const list = await getCalendarEvents();
+                                  setEvents(list);
                                 }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:scale-105 active:scale-95 transition-all rounded-full text-xs font-bold shadow-sm ring-1 ring-orange-200/60 disabled:opacity-70 disabled:pointer-events-none disabled:hover:scale-100"
-                              >
-                                {generatingRecipeEventId === event.id ? (
-                                  <>
-                                    <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" aria-hidden />
-                                    Kochbuch wird geschrieben…
-                                  </>
-                                ) : (
-                                  <>
-                                    <Sparkles className="w-3.5 h-3.5 shrink-0" aria-hidden />
-                                    Rezept generieren ✨
-                                  </>
-                                )}
-                              </button>
+                              />
                             ) : (
                               <Link
                                 href={`/tools/recipe?query=${encodeURIComponent(titleForRecipeGeneratorQuery(event.title))}`}
