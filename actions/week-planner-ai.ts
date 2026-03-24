@@ -7,7 +7,7 @@ import {
   saveWeeklyPlan as saveWeeklyPlanToCalendar,
   activateWeeklyPlan as activateWeeklyPlanToCalendar,
 } from '@/actions/calendar-actions';
-import { getNextWeekRange } from '@/lib/week-plan-dates';
+import { getNextMonday } from '@/lib/week-plan-dates';
 import { saveResult } from '@/actions/workspace-actions';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import { appendToList, defaultList } from '@/lib/shopping-lists-storage';
@@ -420,11 +420,13 @@ export async function saveWeeklyPlan(
   }
 
   try {
-    const { weekStart, queryFrom: savedFrom, queryTo: savedTo } = getNextWeekRange();
+    const nextMonday = getNextMonday();
+    const savedFrom = format(nextMonday, 'yyyy-MM-dd');
+    const savedTo = format(addDays(nextMonday, 6), 'yyyy-MM-dd');
 
     const planData = weekDraft.flatMap((dayObj, dayIndex) => {
-      const date = addDays(weekStart, dayIndex);
-      const dateStr = format(date, 'yyyy-MM-dd');
+      const mealDate = addDays(nextMonday, dayIndex);
+      const dateStr = format(mealDate, 'yyyy-MM-dd');
       return (dayObj.meals ?? []).map((meal) => {
         const t = meal.title || 'Gericht';
         const raw = (meal.calories || '').trim();

@@ -8,8 +8,9 @@ import { addDays, format, startOfDay } from 'date-fns';
  *
  * Kein 'use server': darf aus Server Actions importiert werden.
  */
-export function getNextMonday(from: Date = new Date()): Date {
-  const today = startOfDay(from);
+/** @param currentDate – Bezugsdatum (Standard: jetzt), in lokaler Auswertung via `startOfDay`. */
+export function getNextMonday(currentDate: Date = new Date()): Date {
+  const today = startOfDay(currentDate);
   const dow = today.getDay(); // 0 So … 6 Sa
   let daysToAdd: number;
   if (dow === 0) daysToAdd = 1;
@@ -19,8 +20,8 @@ export function getNextMonday(from: Date = new Date()): Date {
 }
 
 /** YYYY-MM-DD des nächsten Plan-Montags. */
-export function getNextMondayDateString(from?: Date): string {
-  return format(getNextMonday(from ?? new Date()), 'yyyy-MM-dd');
+export function getNextMondayDateString(currentDate?: Date): string {
+  return format(getNextMonday(currentDate ?? new Date()), 'yyyy-MM-dd');
 }
 
 /**

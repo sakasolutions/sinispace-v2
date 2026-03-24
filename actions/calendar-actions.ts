@@ -5,6 +5,9 @@ import { randomUUID } from 'crypto';
 import type { Prisma } from '@prisma/client';
 import { addDays, format, isBefore, setYear, startOfDay, startOfWeek } from 'date-fns';
 import { getNextMonday } from '@/lib/week-plan-dates';
+
+/** Re-Export: gemeinsame Montags-Logik für Wochenplan-Publish (Mo→+7 Tage, So→+1). */
+export { getNextMonday } from '@/lib/week-plan-dates';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -541,8 +544,9 @@ function mapDraftMealTypeToCalendar(t: string | undefined): 'breakfast' | 'lunch
 }
 
 /**
- * Übernimmt einen serialisierten 7-Tage-Wochenplan (JSON-Array) in CalendarEvent ab **getNextMonday()**.
- * `draftId`: Derzeit `JSON.stringify(WeekDraftDay[])` – Platzhalter für spätere echte Draft-IDs aus der DB.
+ * Publish: serialisierter 7-Tage-Entwurf → `CalendarEvent` (meal), **immer ab nächstem Plan-Montag**.
+ * Datierung: `mealDate = addDays(getNextMonday(), dayIndex)` für `dayIndex` 0…6 (= Mo…So der Zielwoche).
+ * `draftId`: aktuell `JSON.stringify(WeekDraftDay[])`; später ersetzbar durch echte Draft-ID + DB-Laden.
  */
 export async function activateWeeklyPlan(
   draftId: string
@@ -565,12 +569,13 @@ export async function activateWeeklyPlan(
     return { success: false, error: 'Ungültiger Wochenplan (JSON).' };
   }
 
-  const startMonday = getNextMonday();
+  const nextMonday = getNextMonday();
   const planData: WeeklyPlanEntry[] = [];
 
-  for (let i = 0; i < Math.min(days.length, 7); i++) {
-    const dayObj = days[i];
-    const dateStr = format(addDays(startMonday, i), 'yyyy-MM-dd');
+  for (let dayIndex = 0; dayIndex < Math.min(days.length, 7); dayIndex++) {
+    const dayObj = days[dayIndex];
+    const mealDate = addDays(nextMonday, dayIndex);
+    const dateStr = format(mealDate, 'yyyy-MM-dd');
     const meals = Array.isArray(dayObj?.meals) ? dayObj.meals : [];
     for (const meal of meals) {
       const title = mealTitleWithCaloriesForCalendar(
@@ -602,10 +607,10 @@ export async function activateWeeklyPlan(
     return { success: false, error: res.error || 'Kalender konnte nicht aktualisiert werden.' };
   }
 
-  const sunday = addDays(startMonday, 6);
+  const sunday = addDays(nextMonday, 6);
   return {
     success: true,
-    from: format(startMonday, 'yyyy-MM-dd'),
+    from: format(nextMonday, 'yyyy-MM-dd'),
     to: format(sunday, 'yyyy-MM-dd'),
   };
 }

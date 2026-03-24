@@ -2007,10 +2007,10 @@ export default function RecipePage() {
                         alert('Wochenplan konnte nicht gespeichert werden.');
                       }
                     }}
-                    className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl py-4 font-bold shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-slate-900 text-white rounded-2xl py-4 font-bold shadow-[0_8px_28px_-6px_rgba(15,23,42,0.4)] hover:bg-slate-800 hover:shadow-[0_12px_32px_-8px_rgba(15,23,42,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 ring-1 ring-slate-800/80"
                   >
-                    <Rocket className="w-5 h-5 text-orange-400" />
-                    Plan finalisieren & speichern
+                    <CalendarDays className="w-5 h-5 text-rose-400 shrink-0" aria-hidden />
+                    Woche ab Montag speichern
                   </button>
                 </div>
               </div>
@@ -2122,7 +2122,7 @@ export default function RecipePage() {
                       try {
                         const res = await activateWeeklyPlan(JSON.stringify(planForCalendarActivation));
                         if (res.success) {
-                          setAddToListToast({ message: 'Plan für nächste Woche ist aktiv!' });
+                          setAddToListToast({ message: 'Dein Plan für nächste Woche steht!' });
                           setIsPantryModalOpen(false);
                           setGroceryList([]);
                           const restored = await getCurrentWeekMeals();
@@ -2143,17 +2143,17 @@ export default function RecipePage() {
                         setIsActivatingWeeklyPlan(false);
                       }
                     }}
-                    className="w-full rounded-2xl py-4 font-bold shadow-lg shadow-emerald-900/15 transition-all inline-flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:pointer-events-none bg-gradient-to-r from-emerald-700 via-teal-600 to-cyan-700 text-white hover:brightness-105 hover:shadow-xl hover:shadow-emerald-900/20 active:scale-[0.99] ring-1 ring-white/20"
+                    className="w-full rounded-2xl py-4 font-bold transition-all inline-flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:pointer-events-none bg-slate-900 text-white hover:bg-slate-800 shadow-[0_8px_28px_-6px_rgba(15,23,42,0.45)] hover:shadow-[0_12px_32px_-8px_rgba(15,23,42,0.4)] active:scale-[0.99] ring-1 ring-slate-800/80"
                   >
                     {isActivatingWeeklyPlan ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin shrink-0" aria-hidden />
-                        Wird eingetragen…
+                        Kalender wird aktualisiert…
                       </>
                     ) : (
                       <>
-                        <CalendarDays className="w-5 h-5 shrink-0 opacity-95" aria-hidden />
-                        Wochenplan aktivieren
+                        <CalendarDays className="w-5 h-5 shrink-0 text-rose-400" aria-hidden />
+                        Woche ab Montag aktivieren
                       </>
                     )}
                   </button>
