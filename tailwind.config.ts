@@ -34,6 +34,8 @@ const config: Config = {
     'md:hover:bg-gray-50',
     'interactive-lift',
     'shadow-tier1',
+    'shadow-glow-rose',
+    'shadow-glow-orange',
     'rounded-card',
   ],
   theme: {
@@ -115,6 +117,8 @@ const config: Config = {
       /** Tier-1 B2C: weiche, diffuse Karten-/Modal-Schatten (Apple/Airbnb-Nähe) */
       boxShadow: {
         tier1: '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
+        'glow-rose': '0 8px 24px -6px rgba(244, 63, 94, 0.4)',
+        'glow-orange': '0 8px 24px -6px rgba(249, 115, 22, 0.4)',
       },
       /**
        * Squircle-Hauptkarten: 32px. Kleine Controls: weiterhin rounded-2xl im UI.

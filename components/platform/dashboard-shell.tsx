@@ -8,8 +8,12 @@ export type DashboardHeaderVariant = 'default' | 'withCTA';
 export type DashboardShellProps = {
   /** Header bottom padding: default = pb-6, withCTA = pb-12. No custom or pb-24. */
   headerVariant: DashboardHeaderVariant;
-  /** Layer 0: background (gradient, image+overlay, or custom). Rendered inside canonical h-[280px] rounded-b-[40px] wrapper. */
+  /** Layer 0: background (gradient, image+overlay, or custom). Rendered inside rounded-b-[40px] wrapper; height via layer0HeightClass (default 280px). */
   headerBackground: React.ReactNode;
+  /** Tailwind height classes for layer 0 (e.g. recipe hero ~35vh). Default: h-[280px]. */
+  layer0HeightClass?: string;
+  /** Mindesthöhe des Headers, damit ein hohes Layer-0 (z. B. Rezept-Hero) nicht abgeschnitten wird. Default: min-h-[280px]. */
+  headerMinHeightClass?: string;
   /** Main title (e.g. h1). */
   title: React.ReactNode;
   /** Subtitle (e.g. p below title). */
@@ -24,14 +28,14 @@ export type DashboardShellProps = {
   children: React.ReactNode;
 };
 
-const HEADER_WRAPPER_CLASS = cn(
-  'relative z-[1] min-h-[280px]',
+const HEADER_WRAPPER_BASE = cn(
+  'relative z-[1]',
   'w-full max-w-[100vw] -mx-0 sm:-mx-4 md:w-[calc(100%+3rem)] md:-mx-6 lg:w-[calc(100%+4rem)] lg:-mx-8',
   '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
 );
 
-const LAYER0_WRAPPER_CLASS =
-  'absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px]';
+const LAYER0_WRAPPER_BASE =
+  'absolute top-0 left-0 w-full z-0 overflow-hidden rounded-b-[40px]';
 
 /**
  * Canonical dashboard layout: header (safe-area, consistent padding, optional CTA/actions)
@@ -41,6 +45,8 @@ const LAYER0_WRAPPER_CLASS =
 export function DashboardShell({
   headerVariant,
   headerBackground,
+  layer0HeightClass = 'h-[280px]',
+  headerMinHeightClass = 'min-h-[280px]',
   title,
   subtitle,
   headerExtra,
@@ -52,8 +58,8 @@ export function DashboardShell({
 
   return (
     <>
-      <header className={HEADER_WRAPPER_CLASS}>
-        <div className={LAYER0_WRAPPER_CLASS} aria-hidden>
+      <header className={cn(HEADER_WRAPPER_BASE, headerMinHeightClass)}>
+        <div className={cn(LAYER0_WRAPPER_BASE, layer0HeightClass)} aria-hidden>
           {headerBackground}
         </div>
         <div

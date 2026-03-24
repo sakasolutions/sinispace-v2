@@ -905,9 +905,22 @@ export default function RecipePage() {
         </div>
       ) : (
         /* Create / Meine Rezepte: DashboardShell für einheitliches Header/Overlap */
-        <div className="min-h-screen w-full bg-gradient-to-b from-rose-50 via-white to-white" style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}>
+        <div
+          className="min-h-screen w-full bg-[var(--app-canvas,#fcfbfa)]"
+          style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
+        >
           <DashboardShell
             headerVariant="default"
+            layer0HeightClass={
+              activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl
+                ? 'h-[min(35vh,380px)] min-h-[220px]'
+                : undefined
+            }
+            headerMinHeightClass={
+              activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl
+                ? 'min-h-[min(35vh,380px)]'
+                : undefined
+            }
             headerBackground={
               activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl ? (
                 <div className="relative w-full h-full bg-gray-900">
@@ -917,7 +930,11 @@ export default function RecipePage() {
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                   <div
-                    className="absolute inset-0 z-[1] bg-gradient-to-b from-black/80 via-black/55 to-black/70"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[55%] bg-gradient-to-t from-black/75 via-black/25 to-transparent"
+                    aria-hidden
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/35 via-transparent to-transparent"
                     aria-hidden
                   />
                 </div>
@@ -945,26 +962,27 @@ export default function RecipePage() {
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   {selectedRecipe ? 'Zurück zur Sammlung' : 'Zurück zur Übersicht'}
                 </button>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1 mt-0 drop-shadow-md" style={{ letterSpacing: '-0.3px' }}>
-                  {selectedRecipe
-                    ? selectedRecipe.recipe.recipeName
-                    : activeTab === 'my-recipes'
-                      ? 'Meine Sammlung'
-                      : 'Rezept Generator'}
-                </h1>
+                {selectedRecipe ? (
+                  <h1 className="sr-only">{selectedRecipe.recipe.recipeName}</h1>
+                ) : (
+                  <h1
+                    className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1 mt-0 drop-shadow-md"
+                    style={{ letterSpacing: '-0.3px' }}
+                  >
+                    {activeTab === 'my-recipes' ? 'Meine Sammlung' : 'Rezept Generator'}
+                  </h1>
+                )}
               </>
             }
             subtitle={
               <>
+                {!selectedRecipe && (
                 <p className="text-white/90 text-lg md:text-xl drop-shadow-sm">
-                  {selectedRecipe
-                    ? selectedRecipe.recipe.stats?.time
-                      ? `${selectedRecipe.recipe.stats.time} · ${selectedRecipe.recipe.stats.calories ?? ''}`
-                      : 'Rezeptdetails'
-                    : activeTab === 'my-recipes'
-                      ? 'Deine kulinarischen Schätze.'
-                      : 'Dein Smart-Chef für den Kühlschrank.'}
+                  {activeTab === 'my-recipes'
+                    ? 'Deine kulinarischen Schätze.'
+                    : 'Dein Smart-Chef für den Kühlschrank.'}
                 </p>
+                )}
                 {activeTab === 'create' && (
                   <>
                     <p className="text-white/70 text-sm font-medium mt-2" style={{ letterSpacing: '0.05em' }}>
