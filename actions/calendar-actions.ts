@@ -24,6 +24,8 @@ export type CalendarEventJson = {
   actionTag?: CalendarActionTag;
   /** Rezept-Verknüpfung (CookIQ: „Im Kalender planen“) – für Link „Jetzt kochen“. */
   recipeResultId?: string;
+  /** `true` wenn `id` ein `CalendarEvent`-Datensatz (Wochenplan/Mahlzeit) ist – One-Click-Rezept möglich. */
+  syncedMeal?: boolean;
 };
 
 /** CookIQ-/Wochenplan-Mahlzeiten aus CalendarEvent in dasselbe JSON-Format wie Magic-Events mappen (Kalender-UI). */
@@ -39,6 +41,7 @@ function mealRowsToCalendarJson(
     eventType: 'personal',
     actionTag: 'food' as const,
     recipeResultId: m.resultId ?? undefined,
+    syncedMeal: true,
   }));
 }
 

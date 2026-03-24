@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { addDays, format } from 'date-fns';
 import { createChatCompletion } from '@/lib/openai-wrapper';
 import { isUserPremium } from '@/lib/subscription';
@@ -12,6 +13,7 @@ import { saveResult } from '@/actions/workspace-actions';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import { appendToList, defaultList } from '@/lib/shopping-lists-storage';
 import { auth } from '@/auth';
+import { prisma } from '@/lib/prisma';
 import { fetchUnsplashImageForRecipe } from '@/lib/unsplash-recipe-image';
 import { normalizeSmartCartCategory, SHOPPING_CATEGORIES } from '@/lib/shopping-list-categories';
 import { z } from 'zod';
@@ -304,17 +306,27 @@ Regeln:
   }
 }
 
+type GenerateFullRecipeOutcome =
+  | { success: true; recipe: Record<string, unknown>; resultId: string }
+  | { success: false; error?: string };
+
+/** Kalorien-Zusatz („… · 650 kcal“) für KI-Prompt entfernen (Server-seitig). */
+function dishTitleWithoutKcalSuffix(raw: string): string {
+  const t = raw.trim() || 'Gericht';
+  const stripped = t.replace(/\s*·\s*[\d.]+\s*kcal\s*$/i, '').trim();
+  return stripped.length > 0 ? stripped : t;
+}
+
 /**
- * JIT: Generiert aus Titel/Kalorien/Zeit das volle Rezept per KI und speichert es in der Sammlung (Result).
+ * KI-Vollrezept + Unsplash + `Result` speichern (JIT-Wochenplan & Kalender One-Click).
  */
-export async function generateAndSaveFullRecipe(
-  title: string,
+async function generateFullRecipeCore(
+  dishTitle: string,
   calories: string,
-  time: string
-): Promise<
-  | { success: true; recipe: Record<string, unknown>; resultId?: string }
-  | { success: false; error?: string }
-> {
+  time: string,
+  openaiAnalyticsLabel: string,
+  metadata: Record<string, unknown>
+): Promise<GenerateFullRecipeOutcome> {
   const isAllowed = await isUserPremium();
   if (!isAllowed) {
     return { success: false, error: 'Premium-Feature. Bitte upgrade deinen Account.' };
@@ -348,14 +360,14 @@ ${imageSearchRule}`,
           },
           {
             role: 'user',
-            content: `Gericht: "${title}". Ungefähr ${calories || '—'}, Zubereitung ${time || '—'}. Erstelle das komplette Rezept mit Zutaten und Zubereitungsschritten.`,
+            content: `Gericht: "${dishTitle}". Ungefähr ${calories || '—'}, Zubereitung ${time || '—'}. Erstelle das komplette Rezept mit Zutaten und Zubereitungsschritten.`,
           },
         ],
         response_format: { type: 'json_object' as const },
         temperature: 0.7,
       },
       'recipe',
-      'CookIQ Wochenplan JIT'
+      openaiAnalyticsLabel
     );
 
     const content = response.choices[0]?.message?.content;
@@ -389,7 +401,7 @@ ${imageSearchRule}`,
       JSON.stringify(recipe),
       undefined,
       String(recipe.recipeName),
-      JSON.stringify({ source: 'week-planner-jit', calories, time })
+      JSON.stringify({ ...metadata, calories, time })
     );
 
     if (!saved?.success || !saved.result) {
@@ -398,9 +410,88 @@ ${imageSearchRule}`,
 
     return { success: true, recipe, resultId: saved.result.id };
   } catch (error) {
-    console.error('Fehler bei JIT-Generierung:', error);
+    console.error('Fehler bei Vollrezept-Generierung:', error);
     return { success: false, error: 'Konnte Rezept nicht generieren.' };
   }
+}
+
+/**
+ * JIT: Generiert aus Titel/Kalorien/Zeit das volle Rezept per KI und speichert es in der Sammlung (Result).
+ */
+export async function generateAndSaveFullRecipe(
+  title: string,
+  calories: string,
+  time: string
+): Promise<
+  | { success: true; recipe: Record<string, unknown>; resultId?: string }
+  | { success: false; error?: string }
+> {
+  const out = await generateFullRecipeCore(title, calories, time, 'CookIQ Wochenplan JIT', {
+    source: 'week-planner-jit',
+  });
+  if (!out.success) return out;
+  return { success: true, recipe: out.recipe, resultId: out.resultId };
+}
+
+/**
+ * One-Click aus dem Kalender: Vollrezept erzeugen, `Result` speichern, `CalendarEvent.resultId` setzen.
+ * Nur für Zeilen aus `CalendarEvent` (Wochenplan); Magic-Events in `eventsJson` nutzen weiter den CookIQ-Wizard-Link.
+ */
+export async function generateRecipeFromCalendar(
+  calendarEventId: string,
+  title: string
+): Promise<{ success: true; resultId: string } | { success: false; error: string }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Nicht angemeldet.' };
+  }
+
+  const id = typeof calendarEventId === 'string' ? calendarEventId.trim() : '';
+  if (!id) {
+    return { success: false, error: 'Keine Termin-ID.' };
+  }
+
+  const row = await prisma.calendarEvent.findFirst({
+    where: {
+      id,
+      userId: session.user.id,
+      eventType: 'meal',
+    },
+    select: { id: true, title: true, time: true, resultId: true },
+  });
+
+  if (!row) {
+    return { success: false, error: 'Mahlzeit nicht gefunden.' };
+  }
+
+  if (row.resultId) {
+    return { success: false, error: 'Für diesen Termin ist bereits ein Rezept verknüpft.' };
+  }
+
+  const rawTitle = (typeof title === 'string' && title.trim().length > 0 ? title.trim() : row.title || 'Gericht').trim();
+  const dishTitle = dishTitleWithoutKcalSuffix(rawTitle);
+  const kcalMatch = rawTitle.match(/·\s*([\d.]+)\s*kcal/i);
+  const calories = kcalMatch ? `${kcalMatch[1]} kcal` : '';
+  const timeStr = typeof row.time === 'string' && row.time.length >= 5 ? row.time.slice(0, 5) : '';
+
+  const gen = await generateFullRecipeCore(dishTitle, calories, timeStr, 'CookIQ Kalender One-Click', {
+    source: 'calendar-one-click',
+    calendarEventId: row.id,
+  });
+
+  if (!gen.success) {
+    return { success: false, error: gen.error ?? 'Rezept konnte nicht erstellt werden.' };
+  }
+
+  await prisma.calendarEvent.update({
+    where: { id: row.id },
+    data: { resultId: gen.resultId },
+  });
+
+  revalidatePath('/calendar');
+  revalidatePath('/tools/recipe');
+
+  return { success: true, resultId: gen.resultId };
 }
 
 /**
