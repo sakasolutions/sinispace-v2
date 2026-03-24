@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed, CalendarDays, X } from 'lucide-react';
+import { useState, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
+import { ArrowLeft, Clock, Users, ChefHat, ShoppingCart, Minus, Plus, AlertCircle, RotateCcw, Play, CheckCircle2, Lightbulb, Flame, Share2, ShoppingBasket, UtensilsCrossed, CalendarDays, X, Circle } from 'lucide-react';
 import {
   AddToShoppingListModal,
   type AddToShoppingListSuccessPayload,
@@ -48,6 +48,42 @@ const RECIPE_GLASS_STYLE: React.CSSProperties = {
   backdropFilter: 'blur(12px)',
 };
 
+export type IngredientRow = {
+  /** Stabil über Portionen (p-0, s-1, u-2), damit isAvailable erhalten bleibt. */
+  id: string;
+  /** Angezeigter / für SmartCart genutzter Text (portionsskalierter String). */
+  name: string;
+  /** true = „Vorhanden“, false = „Fehlt noch“. */
+  isAvailable: boolean;
+};
+
+function rebuildSplitRows(
+  pantry: string[],
+  shopping: string[],
+  prev: IngredientRow[] | null
+): IngredientRow[] {
+  const rows: IngredientRow[] = [];
+  pantry.forEach((name, i) => {
+    const id = `p-${i}`;
+    const prevRow = prev?.find((r) => r.id === id);
+    rows.push({ id, name, isAvailable: prevRow?.isAvailable ?? true });
+  });
+  shopping.forEach((name, i) => {
+    const id = `s-${i}`;
+    const prevRow = prev?.find((r) => r.id === id);
+    rows.push({ id, name, isAvailable: prevRow?.isAvailable ?? false });
+  });
+  return rows;
+}
+
+function rebuildUnifiedRows(ingredients: string[], prev: IngredientRow[] | null): IngredientRow[] {
+  return ingredients.map((name, i) => {
+    const id = `u-${i}`;
+    const prevRow = prev?.find((r) => r.id === id);
+    return { id, name, isAvailable: prevRow?.isAvailable ?? true };
+  });
+}
+
 export function RecipeDetailView({
   recipe,
   resultId,
@@ -63,11 +99,8 @@ export function RecipeDetailView({
   const [isAddToListOpen, setIsAddToListOpen] = useState(false);
   /** Welche Zutaten im „Einkaufen“-Modal angezeigt werden: alle (vom Einkaufen-Button) oder nur fehlende (vom Auf Einkaufsliste-Button). */
   const [addToListIngredients, setAddToListIngredients] = useState<string[]>([]);
-  /**
-   * Nach SmartCart-Speichern: Zutaten, die im Modal abgewählt waren („habe ich schon“).
-   * Verschiebt Einträge von „Fehlt noch“ → „Vorhanden“ (bzw. blendet bei reiner Zutatenliste aus).
-   */
-  const [markedAsAtHome, setMarkedAsAtHome] = useState<string[]>([]);
+  /** Single source of truth für Vorhanden / Fehlt noch + SmartCart-Vorauswahl. */
+  const [ingredientRows, setIngredientRows] = useState<IngredientRow[]>([]);
   const [toast, setToast] = useState<{ message: string } | null>(null);
   const [cookingMode, setCookingMode] = useState(false);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
@@ -83,9 +116,7 @@ export function RecipeDetailView({
     return () => clearTimeout(t);
   }, [toast]);
 
-  useEffect(() => {
-    setMarkedAsAtHome([]);
-  }, [resultId, servings]);
+  const lastResultIdRef = useRef(resultId);
 
   const handleScheduleRecipe = async () => {
     setIsScheduling(true);
@@ -137,6 +168,22 @@ export function RecipeDetailView({
     );
   }, [recipe.shoppingList, servings, originalServings]);
 
+  const hasSplitIngredientLayout = adjustedShoppingList.length > 0;
+
+  useLayoutEffect(() => {
+    const resultChanged = lastResultIdRef.current !== resultId;
+    if (resultChanged) lastResultIdRef.current = resultId;
+    const expectedCount = hasSplitIngredientLayout
+      ? adjustedIngredients.length + adjustedShoppingList.length
+      : adjustedIngredients.length;
+    setIngredientRows((prev) => {
+      const carryPrev = resultChanged || prev.length !== expectedCount ? null : prev;
+      return hasSplitIngredientLayout
+        ? rebuildSplitRows(adjustedIngredients, adjustedShoppingList, carryPrev)
+        : rebuildUnifiedRows(adjustedIngredients, carryPrev);
+    });
+  }, [resultId, servings, adjustedIngredients, adjustedShoppingList, hasSplitIngredientLayout]);
+
   // Kalorien pro Portion anpassen (unterstützt Zahl oder String wie "450 kcal")
   const adjustedCalories = useMemo(() => {
     if (recipe.stats?.calories == null) return null;
@@ -162,8 +209,21 @@ export function RecipeDetailView({
 
   const cookingTime = parseTime(recipe.stats?.time || '');
 
-  function mergeIngredientKeys(prev: string[], additions: string[]): string[] {
-    return [...new Set([...prev, ...additions])];
+  const availableIngredients = useMemo(
+    () => ingredientRows.filter((r) => r.isAvailable),
+    [ingredientRows]
+  );
+  const missingIngredients = useMemo(
+    () => ingredientRows.filter((r) => !r.isAvailable),
+    [ingredientRows]
+  );
+
+  function toggleIngredient(ingredientName: string) {
+    setIngredientRows((prev) =>
+      prev.map((row) =>
+        row.name === ingredientName ? { ...row, isAvailable: !row.isAvailable } : row
+      )
+    );
   }
 
   function handleAddToListSuccess(payload: AddToShoppingListSuccessPayload) {
@@ -174,31 +234,13 @@ export function RecipeDetailView({
         : 'SmartCart aktualisiert',
     });
     if (uncheckedIngredients.length > 0) {
-      setMarkedAsAtHome((p) => mergeIngredientKeys(p, uncheckedIngredients));
+      setIngredientRows((prev) =>
+        prev.map((row) =>
+          uncheckedIngredients.includes(row.name) ? { ...row, isAvailable: true } : row
+        )
+      );
     }
   }
-
-  /** „Fehlt noch“ ohne die als zuhause markierten Zeilen (gleiche Strings wie im Modal). */
-  const missingShoppingDisplay = useMemo(() => {
-    return adjustedShoppingList.filter((ing) => !markedAsAtHome.includes(ing));
-  }, [adjustedShoppingList, markedAsAtHome]);
-
-  /** Aus Einkaufsliste nach SmartCart-Abwahl unter „Vorhanden“. */
-  const shoppingMovedToPantry = useMemo(() => {
-    return adjustedShoppingList.filter((ing) => markedAsAtHome.includes(ing));
-  }, [adjustedShoppingList, markedAsAtHome]);
-
-  const vorhandenDisplay = useMemo(() => {
-    return [...adjustedIngredients, ...shoppingMovedToPantry];
-  }, [adjustedIngredients, shoppingMovedToPantry]);
-
-  /** Nur Zutatenliste (ohne separate shoppingList): abgewählte aus Hauptliste ausblenden, optional „Bereits vorhanden“. */
-  const simpleListNeed = useMemo(() => {
-    return adjustedIngredients.filter((ing) => !markedAsAtHome.includes(ing));
-  }, [adjustedIngredients, markedAsAtHome]);
-  const simpleListHave = useMemo(() => {
-    return adjustedIngredients.filter((ing) => markedAsAtHome.includes(ing));
-  }, [adjustedIngredients, markedAsAtHome]);
 
   const heroImageUrl =
     recipe.imageUrl && String(recipe.imageUrl).trim().length > 0
@@ -508,7 +550,15 @@ export function RecipeDetailView({
             <button
               type="button"
               onClick={() => {
-                setAddToListIngredients(adjustedShoppingList.length > 0 ? adjustedShoppingList : adjustedIngredients);
+                const missing = missingIngredients.map((r) => r.name);
+                if (missing.length === 0) {
+                  setToast({
+                    message:
+                      'Alles als vorhanden markiert – tippe Zutaten an, die du noch einkaufen musst, oder schiebe sie nach „Fehlt noch“.',
+                  });
+                  return;
+                }
+                setAddToListIngredients(missing);
                 setIsAddToListOpen(true);
               }}
               className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl bg-rose-500 text-white text-sm font-semibold hover:bg-rose-600 transition-colors shadow-md shadow-rose-500/25"
@@ -526,72 +576,64 @@ export function RecipeDetailView({
             </button>
           </div>
 
-          {adjustedShoppingList.length > 0 ? (
+          {ingredientRows.length > 0 ? (
             <>
-              {vorhandenDisplay.length > 0 && (
+              {availableIngredients.length > 0 && (
                 <>
                   <h2 className="text-lg font-bold text-gray-900 mb-3">Zutaten (Vorhanden)</h2>
-                  <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
-                  <ul className="divide-y divide-gray-100 mb-6">
-                    {vorhandenDisplay.map((ingredient, index) => (
-                      <li key={`v-${index}-${ingredient}`} className="flex items-start gap-2 py-2.5">
-                        <span className="text-gray-400 mt-0.5 shrink-0">•</span>
-                        <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
+                  <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umsortieren</p>
+                  <ul className="flex flex-col gap-0.5 mb-6">
+                    {availableIngredients.map((row) => (
+                      <li key={row.id}>
+                        <button
+                          type="button"
+                          onClick={() => toggleIngredient(row.name)}
+                          className="cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors flex items-center gap-3 -ml-2 text-left w-full"
+                        >
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" aria-hidden />
+                          <span className="text-sm text-gray-800 leading-relaxed">
+                            {formatIngredientDisplay(row.name)}
+                          </span>
+                        </button>
                       </li>
                     ))}
                   </ul>
                 </>
               )}
-              {missingShoppingDisplay.length > 0 ? (
+              {missingIngredients.length > 0 ? (
                 <>
                   <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" aria-hidden />
                     Fehlt noch
                   </h2>
-                  <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
-                  <ul className="divide-y divide-gray-100">
-                    {missingShoppingDisplay.map((ingredient, index) => (
-                      <li key={`m-${index}-${ingredient}`} className="flex items-start gap-2 py-2.5">
-                        <span className="text-amber-500 mt-0.5 shrink-0">•</span>
-                        <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
+                  <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umsortieren</p>
+                  <ul className="flex flex-col gap-0.5">
+                    {missingIngredients.map((row) => (
+                      <li key={row.id}>
+                        <button
+                          type="button"
+                          onClick={() => toggleIngredient(row.name)}
+                          className="cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors flex items-center gap-3 -ml-2 text-left w-full"
+                        >
+                          <Circle className="w-5 h-5 text-amber-500 shrink-0" strokeWidth={2} aria-hidden />
+                          <span className="text-sm text-gray-800 leading-relaxed">
+                            {formatIngredientDisplay(row.name)}
+                          </span>
+                        </button>
                       </li>
                     ))}
                   </ul>
                 </>
               ) : (
-                <p className="text-sm font-medium text-emerald-700 bg-emerald-50/80 border border-emerald-100 rounded-xl px-3 py-2.5">
-                  Für die Einkaufsliste ist nichts mehr offen – oder du hast alles als vorhanden markiert.
-                </p>
+                availableIngredients.length > 0 && (
+                  <p className="text-sm font-medium text-emerald-700 bg-emerald-50/80 border border-emerald-100 rounded-xl px-3 py-2.5">
+                    Für die Einkaufsliste ist nichts mehr offen – oder du hast alles als vorhanden markiert.
+                  </p>
+                )
               )}
             </>
           ) : (
-            <>
-              <h2 className="text-lg font-bold text-gray-900 mb-3">Zutaten</h2>
-              <p className="text-sm text-gray-500 mb-2">für {servings} {servings === 1 ? 'Person' : 'Personen'}</p>
-              {simpleListNeed.length > 0 && (
-                <ul className="divide-y divide-gray-100">
-                  {simpleListNeed.map((ingredient, index) => (
-                    <li key={`n-${index}-${ingredient}`} className="flex items-start gap-2 py-2.5">
-                      <span className="text-gray-400 mt-0.5 shrink-0">•</span>
-                      <span className="text-sm text-gray-800 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {simpleListHave.length > 0 && (
-                <div className={cn(simpleListNeed.length > 0 ? 'mt-6' : '')}>
-                  <h3 className="text-sm font-bold text-gray-800 mb-2">Bereits vorhanden (nicht einkaufen)</h3>
-                  <ul className="divide-y divide-gray-100">
-                    {simpleListHave.map((ingredient, index) => (
-                      <li key={`h-${index}-${ingredient}`} className="flex items-start gap-2 py-2.5">
-                        <span className="text-emerald-500 mt-0.5 shrink-0">•</span>
-                        <span className="text-sm text-gray-700 leading-relaxed">{formatIngredientDisplay(ingredient)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </>
+            <p className="text-sm text-gray-500">Keine Zutaten hinterlegt.</p>
           )}
         </div>
 
