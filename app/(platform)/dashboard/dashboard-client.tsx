@@ -25,9 +25,7 @@ import {
   FileImage,
   ChevronDown,
   ChevronRight,
-  Calendar,
   MessageCircle,
-  User,
   Flame,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -108,71 +106,6 @@ const TOOL_MINIMAL_ICON_FALLBACK = 'bg-white/10 border-white/15 text-white/70';
 
 const QUICK_ACCESS_COUNT = 6;
 
-function normalizeHHmm(t: string): string {
-  const s = t.trim().slice(0, 5);
-  if (s.length >= 4 && s.includes(':')) return s.padStart(5, '0');
-  return s;
-}
-
-/** „Heute“ wie in lib/dashboard-snapshot (Europe/Berlin) — nur für Client-Anzeige. */
-function getTodayDateStringBerlin(now: Date = new Date()): string {
-  return new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'Europe/Berlin',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(now);
-}
-
-function isMealEvent(e: CalendarEventJson): boolean {
-  return e.syncedMeal === true || e.actionTag === 'food';
-}
-
-function mealLabelFromTimeHHmm(time: string): string {
-  const h = parseInt(normalizeHHmm(time).slice(0, 2), 10) || 12;
-  if (h < 11) return 'Frühstück';
-  if (h < 15) return 'Mittagessen';
-  if (h < 17) return 'Snack';
-  return 'Abendessen';
-}
-
-function firstMealEventToday(events: CalendarEventJson[], todayStr: string): CalendarEventJson | null {
-  const meals = events
-    .filter((e) => e.date === todayStr && isMealEvent(e))
-    .sort((a, b) => normalizeHHmm(a.time).localeCompare(normalizeHHmm(b.time)));
-  return meals[0] ?? null;
-}
-
-function getNowHHmmBerlin(): string {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Berlin',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).formatToParts(new Date());
-  const h = parts.find((p) => p.type === 'hour')?.value ?? '00';
-  const m = parts.find((p) => p.type === 'minute')?.value ?? '00';
-  return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
-}
-
-function futureNonMealEventsToday(
-  events: CalendarEventJson[],
-  todayStr: string,
-  nowHHmm: string
-): CalendarEventJson[] {
-  return events
-    .filter((e) => e.date === todayStr && !isMealEvent(e))
-    .filter((e) => normalizeHHmm(e.time) >= nowHHmm)
-    .sort((a, b) => normalizeHHmm(a.time).localeCompare(normalizeHHmm(b.time)));
-}
-
-function initialsFromDisplayName(name: string): string {
-  const p = name.trim().split(/\s+/).filter(Boolean);
-  if (p.length === 0) return '';
-  if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
-  return (p[0][0] + p[1][0]).toUpperCase();
-}
-
 /** Live-Badges für Top-4 (CookIQ + SmartCart kommen aus DB-Props) */
 const TOOL_LIVE_BADGE: Record<string, { label: string }> = {
   fitness: { label: '3 geplant' },
@@ -196,27 +129,6 @@ function resolveToolLiveBadge(
     return `${opts.openCartItemsCount} offen`;
   }
   return TOOL_LIVE_BADGE[toolId]?.label ?? null;
-}
-
-function buildDashboardSubtitle(opts: {
-  todaysMealTitle: string | null;
-  openCartItemsCount: number;
-  firstMealTime: string | null;
-}): string {
-  const meal = opts.todaysMealTitle?.trim();
-  const slot = opts.firstMealTime ? mealLabelFromTimeHHmm(opts.firstMealTime) : '';
-
-  if (meal && opts.openCartItemsCount > 0) {
-    const mahlzeit = slot || 'Mahlzeit';
-    return `${mahlzeit} heute — ${opts.openCartItemsCount} Artikel auf der Liste`;
-  }
-  if (!meal && opts.openCartItemsCount > 0) {
-    return `${opts.openCartItemsCount} Artikel auf der Einkaufsliste`;
-  }
-  if (meal && opts.openCartItemsCount === 0) {
-    return `${meal} steht auf dem Plan`;
-  }
-  return 'Was steht heute an?';
 }
 
 function resolveQuickContext(
@@ -618,21 +530,15 @@ export default function DashboardClient({
 
   const sunriseGreeting = getSunriseGreetingBase();
 
-  const todayStr = getTodayDateStringBerlin();
-  const firstMealForSubtitle = firstMealEventToday(initialCalendarEvents, todayStr);
-  const contextualSubtitle = buildDashboardSubtitle({
-    todaysMealTitle,
-    openCartItemsCount,
-    firstMealTime: firstMealForSubtitle?.time ?? null,
-  });
-
-  const nextApptForChip =
-    futureNonMealEventsToday(initialCalendarEvents, todayStr, getNowHHmmBerlin())[0] ?? null;
-  const mealTitleForChip =
-    todaysMealTitle?.trim() || firstMealForSubtitle?.title?.trim() || null;
-  const chipMealLabel =
-    mealTitleForChip && mealTitleForChip.length > 28 ? `${mealTitleForChip.slice(0, 26)}…` : mealTitleForChip;
-  const initials = initialsFromDisplayName(displayName);
+  const formattedDate = useMemo(() => {
+    const raw = new Date().toLocaleDateString('de-DE', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'long',
+      timeZone: 'Europe/Berlin',
+    });
+    return raw.replace(/^(\w+)\./, '$1');
+  }, []);
 
   const quickAccessTools = useMemo(
     () => sortedTools.filter((t) => t.available).slice(0, QUICK_ACCESS_COUNT),
@@ -681,64 +587,19 @@ export default function DashboardClient({
         headerMinHeightClass="min-h-0"
         headerBackground={<div className="h-full w-full bg-transparent" aria-hidden />}
         title={
-          <div className="relative w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 md:p-6">
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background: 'linear-gradient(135deg, rgba(139,92,246,0.05) 0%, transparent 60%)',
-              }}
-              aria-hidden
-            />
-            <div className="relative min-w-0">
-              <p className="text-sm text-white/35">{sunriseGreeting.base}</p>
-              <p className="text-2xl font-semibold tracking-tight text-white">
-                {(displayName || '').trim() || 'du'}
-              </p>
-              <p className="mt-1 text-sm text-white/45">{contextualSubtitle}</p>
-              <div className="mt-3 flex flex-wrap gap-2" role="list">
-                <span
-                  role="listitem"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-violet-500/[0.12] bg-violet-500/10 px-2.5 py-1 text-xs text-violet-400/80"
-                >
-                  <ChefHat className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
-                  {chipMealLabel ?? 'Kein Plan'}
-                </span>
-                <span
-                  role="listitem"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-orange-400/[0.12] bg-orange-400/10 px-2.5 py-1 text-xs text-orange-400/80"
-                >
-                  <ShoppingCart className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
-                  {openCartItemsCount > 0 ? `${openCartItemsCount} offen` : 'Erledigt'}
-                </span>
-                <span
-                  role="listitem"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/10 bg-emerald-400/[0.08] px-2.5 py-1 text-xs text-emerald-400/80"
-                >
-                  <Calendar className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
-                  {nextApptForChip ? normalizeHHmm(nextApptForChip.time) : 'Frei'}
-                </span>
-              </div>
+          <div className="mb-5 flex items-baseline justify-between md:mb-6">
+            <div>
+              <span className="text-sm text-white/30">{sunriseGreeting.base},</span>
+              {(displayName || '').trim() ? (
+                <span className="ml-1 text-sm font-semibold text-white/80">{(displayName || '').trim()}</span>
+              ) : null}
             </div>
+            <span className="text-xs text-white/20">{formattedDate}</span>
           </div>
         }
         subtitle={null}
-        headerActionsRight={
-          <div
-            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] md:flex"
-            style={{
-              background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(236,72,153,0.1) 100%)',
-            }}
-            aria-hidden
-          >
-            {initials ? (
-              <span className="text-xs font-semibold text-white/70">{initials}</span>
-            ) : (
-              <User className="h-[18px] w-[18px] text-white/50" strokeWidth={1.5} />
-            )}
-          </div>
-        }
       >
-        <div className="space-y-8 md:space-y-10">
+        <div>
           <TodayZoneCards
             todaysMealTitle={todaysMealTitle}
             openCartItemsCount={openCartItemsCount}
@@ -746,14 +607,14 @@ export default function DashboardClient({
           />
 
           {/* Zone 2: Schnellzugriff */}
-          <section aria-labelledby="quick-heading">
+          <section className="mb-5" aria-labelledby="quick-heading">
             <h2
               id="quick-heading"
-              className="mb-2 text-xs font-medium tracking-wide text-white/20"
+              className="mb-2 text-[11px] font-medium text-white/15"
             >
               Deine Tools
             </h2>
-            <div className="overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.02]">
+            <div className="overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.02] p-0">
               {quickAccessTools.map((tool, index) => {
                 const visual = TOOL_QUICK_VISUAL[tool.id] ?? {
                   ...TOOL_QUICK_FALLBACK,
@@ -782,7 +643,7 @@ export default function DashboardClient({
                       );
                     }}
                     className={cn(
-                      'flex items-center justify-between gap-3 px-3.5 py-3 transition-colors hover:bg-white/[0.03]',
+                      'flex items-center justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-white/[0.03] md:px-3.5 md:py-3',
                       !isLast && 'border-b border-white/[0.03]'
                     )}
                   >
@@ -814,7 +675,7 @@ export default function DashboardClient({
 
           {/* Zone 3: Alle Tools — Akkordeons (ohne Schnellzugriff) */}
           <section aria-labelledby="all-tools-heading">
-            <h2 id="all-tools-heading" className="mb-3 text-sm font-medium uppercase tracking-wider text-white/40">
+            <h2 id="all-tools-heading" className="mb-3 text-sm font-medium text-white/40">
               Alle Tools
             </h2>
             <div className="space-y-3">
