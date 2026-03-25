@@ -27,7 +27,6 @@ import {
   ChevronDown,
   ChevronRight,
   CheckCircle,
-  Hand,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
@@ -51,26 +50,28 @@ const TOOL_SUBTITLES: Record<string, string> = {
   social: 'LinkedIn & Social',
 };
 
-/** Squircle-Container pro Tool – Gradient + dezenter Schatten (Tier-1) */
-const TOOL_SQUIRCLE: Record<string, { gradient: string; shadow: string }> = {
-  recipe: { gradient: 'bg-gradient-to-br from-orange-500 to-amber-500', shadow: 'shadow-sm shadow-black/10' },
-  'shopping-list': { gradient: 'bg-gradient-to-br from-orange-600 to-rose-500', shadow: 'shadow-sm shadow-black/10' },
-  fitness: { gradient: 'bg-gradient-to-br from-rose-500 to-purple-600', shadow: 'shadow-sm shadow-black/10' },
-  travel: { gradient: 'bg-gradient-to-br from-sky-400 to-indigo-500', shadow: 'shadow-sm shadow-black/10' },
-  pdf: { gradient: 'bg-gradient-to-br from-red-400 to-rose-400', shadow: 'shadow-sm shadow-black/10' },
-  email: { gradient: 'bg-gradient-to-br from-blue-400 to-cyan-500', shadow: 'shadow-sm shadow-black/10' },
-  excel: { gradient: 'bg-gradient-to-br from-blue-400 to-cyan-500', shadow: 'shadow-sm shadow-black/10' },
-  polish: { gradient: 'bg-gradient-to-br from-teal-500 to-emerald-500', shadow: 'shadow-sm shadow-black/10' },
-  invoice: { gradient: 'bg-gradient-to-br from-emerald-500 to-green-500', shadow: 'shadow-sm shadow-black/10' },
-  legal: { gradient: 'bg-gradient-to-br from-violet-500 to-purple-600', shadow: 'shadow-sm shadow-black/10' },
-  'tough-msg': { gradient: 'bg-gradient-to-br from-indigo-500 to-violet-500', shadow: 'shadow-sm shadow-black/10' },
-  summarize: { gradient: 'bg-gradient-to-br from-amber-400 to-orange-500', shadow: 'shadow-sm shadow-black/10' },
-  translate: { gradient: 'bg-gradient-to-br from-indigo-400 to-violet-500', shadow: 'shadow-sm shadow-black/10' },
-  code: { gradient: 'bg-gradient-to-br from-slate-500 to-slate-600', shadow: 'shadow-sm shadow-black/10' },
-  social: { gradient: 'bg-gradient-to-br from-pink-500 to-rose-500', shadow: 'shadow-sm shadow-black/10' },
+/** Premium-Minimal: kleine Kreise mit zarter Tinte + Rand (keine Vollflächen-Gradients) */
+const TOOL_MINIMAL_ICON: Record<string, string> = {
+  recipe: 'bg-orange-50/50 border-orange-100 text-orange-600',
+  'shopping-list': 'bg-rose-50/50 border-rose-100 text-rose-600',
+  invoice: 'bg-emerald-50/50 border-emerald-100 text-emerald-600',
+  email: 'bg-blue-50/50 border-blue-100 text-blue-600',
+  excel: 'bg-green-50/50 border-green-100 text-green-600',
+  legal: 'bg-violet-50/50 border-violet-100 text-violet-600',
+  'tough-msg': 'bg-indigo-50/50 border-indigo-100 text-indigo-600',
+  summarize: 'bg-amber-50/50 border-amber-100 text-amber-600',
+  polish: 'bg-teal-50/50 border-teal-100 text-teal-600',
+  travel: 'bg-sky-50/50 border-sky-100 text-sky-600',
+  pdf: 'bg-red-50/50 border-red-100 text-red-600',
+  translate: 'bg-indigo-50/50 border-indigo-100 text-indigo-600',
+  fitness: 'bg-rose-50/50 border-rose-100 text-rose-600',
+  code: 'bg-slate-50/50 border-slate-200 text-slate-600',
+  social: 'bg-pink-50/50 border-pink-100 text-pink-600',
 };
 
-const SQUIRCLE_FALLBACK = { gradient: 'bg-gradient-to-br from-orange-400 to-pink-500', shadow: 'shadow-sm shadow-black/10' };
+const TOOL_MINIMAL_ICON_FALLBACK = 'bg-slate-50/50 border-slate-200 text-slate-600';
+
+const CARD_SHADOW_SOFT = 'shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)]';
 
 /** Live-Badges für Top-4 (CookIQ + SmartCart kommen aus DB-Props) */
 const TOOL_LIVE_BADGE: Record<string, { label: string }> = {
@@ -332,12 +333,6 @@ function getSunriseGreetingBase(): { base: string; subline: string } {
   return { base: 'Hallo', subline: 'Willkommen zurück.' }; // 22:00 – 04:59
 }
 
-/** Day (06:00–18:00) = sunrise, Night (18:00–06:00) = night */
-function getTimeOfDay(): 'sunrise' | 'night' {
-  const h = new Date().getHours();
-  return h >= 6 && h < 18 ? 'sunrise' : 'night';
-}
-
 export type DashboardClientProps = {
   /** Aus CalendarEvent (meal) für heutiges Datum (Europe/Berlin) */
   todaysMealTitle: string | null;
@@ -353,14 +348,7 @@ export default function DashboardClient({
   const [usageStats, setUsageStats] = useState<Record<string, { count7d: number; count30d: number; isTrending: boolean }>>({});
   const [openAccordions, setOpenAccordions] = useState<Set<string>>(new Set());
   const [displayName, setDisplayName] = useState<string>('');
-  const [timeOfDay, setTimeOfDay] = useState<'sunrise' | 'night'>(() => getTimeOfDay());
 
-  // Time-of-day aktualisieren (z. B. jede Minute), damit Theme wechselt
-  useEffect(() => {
-    setTimeOfDay(getTimeOfDay());
-    const interval = setInterval(() => setTimeOfDay(getTimeOfDay()), 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
   const toggleAccordion = (id: string) => {
     setOpenAccordions((prev) => {
       const next = new Set(prev);
@@ -492,7 +480,7 @@ export default function DashboardClient({
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full relative overflow-x-hidden bg-[var(--app-canvas,#fcfbfa)]"
+      className="relative min-h-screen w-full overflow-x-hidden bg-[#F8F9FA]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -505,19 +493,14 @@ export default function DashboardClient({
 
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 50 && (
-        <div
-          className={cn(
-            'fixed top-0 left-0 right-0 flex items-center justify-center h-16 z-50',
-            timeOfDay === 'sunrise' ? 'bg-white' : 'bg-slate-900'
-          )}
-        >
+        <div className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-center border-b border-slate-100 bg-[#F8F9FA]/95 backdrop-blur-sm">
           {pullDistance >= 150 ? (
-            <div className={cn('flex items-center gap-2', timeOfDay === 'sunrise' ? 'text-orange-500' : 'text-violet-400')}>
-              <div className={cn('w-5 h-5 border-2 border-t-transparent rounded-full animate-spin', timeOfDay === 'sunrise' ? 'border-orange-500' : 'border-violet-400')} />
-              <span className={cn('text-sm font-medium', timeOfDay === 'sunrise' ? 'text-gray-700' : 'text-white/90')}>Loslassen zum Aktualisieren</span>
+            <div className="flex items-center gap-2 text-slate-600">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+              <span className="text-sm font-medium">Loslassen zum Aktualisieren</span>
             </div>
           ) : (
-            <div className={cn('flex items-center gap-2', timeOfDay === 'sunrise' ? 'text-gray-500' : 'text-white/70')}>
+            <div className="flex items-center gap-2 text-slate-500">
               <span className="text-sm font-medium">Ziehen zum Aktualisieren</span>
             </div>
           )}
@@ -526,54 +509,44 @@ export default function DashboardClient({
 
       <DashboardShell
         headerVariant="default"
-        headerBackground={
-          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/dashboard-header.webp)' }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
-          </div>
-        }
+        headerBackground={<div className="h-full w-full bg-[#F8F9FA]" aria-hidden />}
         title={
           <h1
-            className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mt-0 text-white flex items-center gap-3 flex-wrap"
+            className="mt-0 flex flex-wrap items-center gap-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl md:text-4xl"
             style={{ letterSpacing: '-0.3px' }}
           >
-            <span
-              className="inline-flex items-center justify-center rounded-xl bg-white/15 p-2 text-white border border-white/25 shrink-0"
-              aria-hidden
-            >
-              <Hand className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2} />
-            </span>
             <span>{greetingText}</span>
           </h1>
         }
         subtitle={
-          <p className="text-sm sm:text-base mt-1 font-normal text-white/75" style={{ letterSpacing: '0.1px' }}>
+          <p className="mt-1 text-sm font-normal text-slate-500 sm:text-base" style={{ letterSpacing: '0.02em' }}>
             {sunriseGreeting.subline}
           </p>
         }
         headerExtra={
           <div className="mt-4 flex flex-wrap gap-2">
             <span
-              className="backdrop-blur-md rounded-2xl px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 shrink-0 bg-white/10 border border-white/20 text-white/80 min-w-0 max-w-full"
+              className="flex max-w-full min-w-0 shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm"
               title={
                 todaysMealTitle
                   ? `Heute: ${todaysMealTitle}`
                   : 'Noch keine Mahlzeit für heute geplant'
               }
             >
-              <ChefHat className="w-3 h-3 opacity-90 shrink-0" aria-hidden />
-              <span className="uppercase tracking-wide truncate max-w-[140px]">
+              <ChefHat className="h-3 w-3 shrink-0 text-slate-500" aria-hidden />
+              <span className="truncate max-w-[200px]">
                 {todaysMealTitle ? <>Heute: {todaysMealTitle}</> : <>Planung offen</>}
               </span>
             </span>
-            <span className="backdrop-blur-md rounded-2xl px-3 py-1.5 text-xs font-medium flex items-center shrink-0 bg-white/10 border border-white/20 text-white/80 uppercase tracking-wide">
+            <span className="flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
               {openCartItemsCount === 0 ? (
                 <>
-                  <CheckCircle className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                  <CheckCircle className="mr-1.5 h-3 w-3 shrink-0 text-slate-500" aria-hidden />
                   Alles erledigt
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="w-3 h-3 mr-1.5 opacity-90 shrink-0" aria-hidden />
+                  <ShoppingCart className="mr-1.5 h-3 w-3 shrink-0 text-slate-500" aria-hidden />
                   {openCartItemsCount} offen
                 </>
               )}
@@ -586,7 +559,7 @@ export default function DashboardClient({
             {/* Erste Cards: Oberkante bei Main+36px (pt-9 in Shell), Titel im Header */}
             <section aria-labelledby="recent-heading">
               <h2 id="recent-heading" className="sr-only">Zuletzt verwendet</h2>
-              <div className="grid grid-cols-2 gap-4 md:gap-4 md:max-w-3xl md:mx-auto">
+              <div className="grid grid-cols-2 gap-4 md:mx-auto md:max-w-3xl md:gap-5">
                 {sortedTools.slice(0, 4).map((tool) => {
                   const Icon = tool.icon;
                   const subtitle = TOOL_SUBTITLES[tool.id];
@@ -594,58 +567,55 @@ export default function DashboardClient({
                     todaysMealTitle,
                     openCartItemsCount,
                   });
+                  const iconRing = TOOL_MINIMAL_ICON[tool.id] ?? TOOL_MINIMAL_ICON_FALLBACK;
                   const card = (
                     <div
-                      key={tool.id}
                       className={cn(
-                        'group relative flex flex-col justify-between h-full items-start min-h-[160px] rounded-card overflow-hidden',
-                        'bg-white/90 backdrop-blur-sm border border-slate-200/70 shadow-tier1',
-                        'hover:scale-[1.02] transition-all duration-300',
-                        'p-5',
-                        tool.available ? 'cursor-pointer active:scale-[0.98]' : 'opacity-60 cursor-not-allowed'
+                        'group relative flex h-full min-h-[148px] flex-col items-start gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-5',
+                        CARD_SHADOW_SOFT,
+                        'transition-all duration-300 hover:scale-[1.02]',
+                        tool.available ? 'cursor-pointer active:scale-[0.98]' : 'cursor-not-allowed opacity-60'
                       )}
                     >
-                      {/* Status-Badge: dezent oben rechts (einheitliches Micro-Design) */}
                       {(liveBadgeLabel || (!tool.available && tool.status === 'soon')) && (
-                        <div className="absolute top-4 right-4 flex flex-col items-end gap-0.5 max-w-[calc(100%-2rem)]">
+                        <div className="absolute right-3 top-3 z-[1] flex max-w-[55%] flex-col items-end gap-0.5 text-right">
                           {liveBadgeLabel && (
                             <span
-                              className="bg-slate-100/95 text-slate-600 text-[10px] uppercase font-semibold px-2 py-1 rounded-2xl shrink-0 max-w-[100px] truncate text-right"
-                              style={{ letterSpacing: '0.6px' }}
+                              className="max-w-full truncate text-[10px] font-medium text-slate-400"
                               title={liveBadgeLabel}
                             >
                               {liveBadgeLabel}
                             </span>
                           )}
                           {!tool.available && tool.status === 'soon' && (
-                            <span className="bg-slate-100/95 text-slate-600 text-[10px] uppercase font-semibold px-2 py-1 rounded-2xl" style={{ letterSpacing: '0.6px' }}>Bald</span>
+                            <span className="text-[10px] font-medium text-slate-400">Bald</span>
                           )}
                         </div>
                       )}
-                      {/* Squircle (App-Icon-Style) */}
-                      <div className="flex w-full justify-between items-start gap-2">
-                        {(() => {
-                          const sq = TOOL_SQUIRCLE[tool.id] ?? SQUIRCLE_FALLBACK;
-                          return (
-                            <div className={cn('w-16 h-16 rounded-2xl flex items-center justify-center shrink-0', sq.gradient, sq.shadow)}>
-                              {createElement(Icon, { className: 'w-8 h-8 shrink-0 text-white', strokeWidth: 2.5, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
-                            </div>
-                          );
-                        })()}
+                      <div
+                        className={cn(
+                          'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border',
+                          iconRing
+                        )}
+                      >
+                        {createElement(Icon, {
+                          className: 'h-[18px] w-[18px] shrink-0',
+                          strokeWidth: 2,
+                          'aria-hidden': true,
+                        } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                       </div>
-                      {/* Unten: Titel + Subtext */}
-                      <div className="w-full text-left">
-                        <h3 className="font-bold text-lg text-slate-900 leading-tight line-clamp-2">{tool.title}</h3>
-                        <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">{subtitle}</p>
+                      <div className="min-w-0 max-w-[88%] text-left">
+                        <h3 className="line-clamp-2 text-base font-semibold leading-tight text-slate-900">{tool.title}</h3>
+                        <p className="mt-1 line-clamp-2 text-xs text-slate-500">{subtitle}</p>
                       </div>
                     </div>
                   );
                   return tool.available ? (
-                    <Link key={tool.id} href={tool.href} className="block h-full min-h-[160px]" onClick={async () => { triggerHaptic('light'); await trackToolUsage(tool.id, tool.title); setTimeout(() => getToolUsageStats().then((r) => r.success && r.stats && setUsageStats(r.stats)), 500); }}>
+                    <Link key={tool.id} href={tool.href} className="block h-full min-h-[148px]" onClick={async () => { triggerHaptic('light'); await trackToolUsage(tool.id, tool.title); setTimeout(() => getToolUsageStats().then((r) => r.success && r.stats && setUsageStats(r.stats)), 500); }}>
                       {card}
                     </Link>
                   ) : (
-                    <div key={tool.id} className="h-full min-h-[160px]">{card}</div>
+                    <div key={tool.id} className="h-full min-h-[148px]">{card}</div>
                   );
                 })}
               </div>
@@ -663,16 +633,16 @@ export default function DashboardClient({
               return (
                 <div
                   key={section.id}
-                  className="rounded-card overflow-hidden mb-4 bg-white/90 backdrop-blur-sm border border-slate-200/70 shadow-tier1"
+                  className="mb-4 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm"
                 >
                   <button
                     type="button"
                     onClick={() => { triggerHaptic('light'); toggleAccordion(section.id); }}
-                    className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50/80 transition-colors"
+                    className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-slate-50/90"
                   >
-                    <span className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                      <span className="inline-flex items-center justify-center rounded-xl bg-orange-100 text-orange-600 p-2 shrink-0">
-                        <SectionIcon className="w-4 h-4" strokeWidth={2} aria-hidden />
+                    <span className="flex items-center gap-3 text-sm font-semibold text-slate-900">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500">
+                        <SectionIcon className="h-4 w-4" strokeWidth={2} aria-hidden />
                       </span>
                       {section.label}
                     </span>
@@ -696,17 +666,16 @@ export default function DashboardClient({
                         {tools.map((tool) => {
                           const Icon = tool.icon;
                           const subtitle = TOOL_SUBTITLES[tool.id];
-                          const sq = TOOL_SQUIRCLE[tool.id] ?? SQUIRCLE_FALLBACK;
                           const row = (
-                            <div className="flex items-center gap-3 py-4 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50/90 transition-colors">
-                              <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center shrink-0', sq.gradient, sq.shadow)}>
-                                {createElement(Icon, { className: 'w-5 h-5 shrink-0 text-white', strokeWidth: 2, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                            <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4 transition-colors last:border-0 hover:bg-slate-50/90">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500">
+                                {createElement(Icon, { className: 'h-[18px] w-[18px] shrink-0', strokeWidth: 2, 'aria-hidden': true } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-base text-slate-900 truncate">{tool.title}</p>
-                                <p className="text-sm text-slate-500 truncate">{subtitle}</p>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-base font-semibold text-slate-900">{tool.title}</p>
+                                <p className="truncate text-sm text-slate-500">{subtitle}</p>
                               </div>
-                              <ChevronRight className="w-5 h-5 shrink-0 text-slate-400" />
+                              <ChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
                             </div>
                           );
                           return tool.available ? (
@@ -732,9 +701,9 @@ export default function DashboardClient({
             })}
           </div>
         ) : (
-          <div className="text-center py-24">
-            <span className="inline-flex items-center justify-center rounded-xl bg-orange-100 text-orange-600 p-3 mx-auto mb-6">
-              <Search className="w-8 h-8" strokeWidth={2} aria-hidden />
+          <div className="py-24 text-center">
+            <span className="mx-auto mb-6 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm">
+              <Search className="h-6 w-6" strokeWidth={2} aria-hidden />
             </span>
             <p className="text-slate-900 text-xl font-bold tracking-tight mb-2">Keine Tools gefunden.</p>
             <p className="text-slate-500 text-sm font-normal">
