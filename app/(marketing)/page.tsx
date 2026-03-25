@@ -280,7 +280,7 @@ export default function LandingPage() {
         </section>
 
         {/* --- MARQUEE --- */}
-        <section className="relative z-20 overflow-hidden border-y border-white/10 bg-white/[0.03] py-10 backdrop-blur-sm">
+        <section className="relative z-20 overflow-hidden border-y border-white/[0.06] bg-white/[0.02] py-10 backdrop-blur-sm">
            <div className="absolute bottom-0 left-0 top-0 z-10 w-32 bg-gradient-to-r from-dark-bg to-transparent" />
            <div className="absolute bottom-0 right-0 top-0 z-10 w-32 bg-gradient-to-l from-dark-bg to-transparent" />
            <motion.div 
@@ -301,11 +301,6 @@ export default function LandingPage() {
 
         {/* --- FEATURES (Tier-1 Glass) --- */}
         <section id="features" className="relative overflow-hidden py-20">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-1/4 top-1/4 -z-10 h-[420px] w-[420px] rounded-full bg-brand-orange/10 blur-[100px]" />
-            <div className="absolute bottom-1/4 right-1/4 -z-10 h-[420px] w-[420px] rounded-full bg-brand-pink/10 blur-[100px]" />
-          </div>
-
           <div className="relative z-10 container mx-auto px-4 md:px-6">
             <motion.div className="mx-auto mb-12 max-w-3xl md:text-center" {...fadeUp(0.1)}>
               <h2 className="mb-6 text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
@@ -427,9 +422,9 @@ export default function LandingPage() {
 
         {/* --- TRUST & SAFETY --- */}
         <section className="relative overflow-hidden py-20">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-1/4 top-1/2 -z-10 h-[360px] w-[360px] rounded-full bg-emerald-400/10 blur-[90px]" />
-            <div className="absolute bottom-1/2 right-1/4 -z-10 h-[360px] w-[360px] rounded-full bg-brand-purple/15 blur-[90px]" />
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute left-1/3 top-0 h-[280px] w-[480px] -translate-x-1/2 rounded-full bg-brand-purple/[0.07] blur-[100px]" />
+            <div className="absolute bottom-0 right-1/4 h-[240px] w-[400px] rounded-full bg-emerald-400/[0.05] blur-[90px]" />
           </div>
 
           <div className="relative z-10 container mx-auto px-4 md:px-6">
@@ -507,7 +502,7 @@ export default function LandingPage() {
         </section>
 
         {/* --- TESTIMONIALS --- */}
-        <section id="testimonials" className="border-t border-white/10 bg-white/[0.02] py-24 backdrop-blur-sm">
+        <section id="testimonials" className="py-24">
            <div className="container mx-auto px-4 md:px-6">
              <div className="mb-16 text-center">
                 <h2 className="text-3xl font-bold tracking-tight text-white">Gebaut für echte Zeitsparer.</h2>
@@ -528,7 +523,7 @@ export default function LandingPage() {
         </section>
 
         {/* --- PRICING TEASER --- */}
-        <section className="relative overflow-hidden border-t border-white/10 py-24">
+        <section className="relative overflow-hidden py-24">
           <div className="container mx-auto px-4 text-center">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-dark-bg to-brand-purple/20 px-6 py-16 text-white shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)] md:py-20">
                <div className="pointer-events-none absolute left-1/2 top-0 h-[280px] w-[480px] -translate-x-1/2 rounded-full bg-brand-pink/15 blur-[80px]" />
@@ -560,8 +555,7 @@ export default function LandingPage() {
         </section>
 
         {/* --- FINAL CTA --- */}
-        <section className="relative overflow-hidden border-t border-white/10 bg-dark-bg py-28 text-center md:py-36">
-           <div className="absolute inset-0 opacity-[0.06]"><div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]" /></div>
+        <section className="relative overflow-hidden py-28 text-center md:py-36">
            <div className="relative z-10 container mx-auto px-4">
              <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-8 text-4xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">Weniger Stress. Besser essen.</motion.h2>
              <p className="mx-auto mb-12 max-w-[560px] text-lg leading-relaxed text-white/80 md:text-xl">Kostenlos registrieren, CookIQ & SmartCart entdecken. <br className="hidden sm:block" />Premium, wenn du den Wochenplan voll nutzen willst.</p>
@@ -575,7 +569,7 @@ export default function LandingPage() {
       </main>
 
       {/* --- FOOTER --- */}
-      <footer className="relative z-10 border-t border-white/10 bg-dark-surface/40 py-12 backdrop-blur-xl">
+      <footer className="relative z-10 border-t border-white/[0.06] bg-transparent py-12">
         <div className="container mx-auto flex flex-col items-center justify-between gap-6 px-4 md:flex-row">
           <div className="flex items-center gap-2">
              <div className="relative h-10 w-40">
