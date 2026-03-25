@@ -146,73 +146,140 @@ function resolveQuickContext(
   return TOOL_LIVE_BADGE[toolId]?.label ?? null;
 }
 
-/** Top-4-Karten: nur Icon-Pille + Hover-Glow (einheitliches dunkles Glas auf der Karte). */
-const TOP4_CARD_ACCENTS: Record<string, { iconWrap: string; hover: string }> = {
+function setRgbaAlpha(color: string, alpha: number): string {
+  const m = color.match(/rgba?\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,)\s]+)\s*(?:,\s*([^)]+)\s*)?\)/i);
+  if (!m) return color;
+  const r = m[1].trim();
+  const g = m[2].trim();
+  const b = m[3].trim();
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+const TOOL_COLORS: Record<
+  string,
+  { bg: string; border: string; glow: string; icon: string; title: string; meta: string }
+> = {
   recipe: {
-    iconWrap: 'bg-brand-orange/10 text-brand-orange border border-brand-orange/20',
-    hover: 'hover:shadow-glow-orange',
+    bg: 'rgba(251,146,60,0.06)',
+    border: 'rgba(251,146,60,0.10)',
+    glow: 'rgba(251,146,60,0.06)',
+    icon: 'rgba(251,146,60,0.85)',
+    title: 'rgba(251,186,120,0.95)',
+    meta: 'rgba(251,146,60,0.40)',
   },
   'shopping-list': {
-    iconWrap: 'bg-brand-pink/10 text-brand-pink border border-brand-pink/20',
-    hover: 'hover:shadow-glow-pink-orange',
+    bg: 'rgba(236,72,153,0.05)',
+    border: 'rgba(236,72,153,0.09)',
+    glow: 'rgba(236,72,153,0.05)',
+    icon: 'rgba(236,72,153,0.85)',
+    title: 'rgba(244,150,196,0.95)',
+    meta: 'rgba(236,72,153,0.40)',
   },
   invoice: {
-    iconWrap: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(16,185,129,0.3)]',
-  },
-  email: {
-    iconWrap: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(14,165,233,0.3)]',
+    bg: 'rgba(52,211,153,0.04)',
+    border: 'rgba(52,211,153,0.08)',
+    glow: 'rgba(52,211,153,0.04)',
+    icon: 'rgba(52,211,153,0.85)',
+    title: 'rgba(130,230,190,0.95)',
+    meta: 'rgba(52,211,153,0.40)',
   },
   'tough-msg': {
-    iconWrap: 'bg-brand-purple/10 text-brand-purple border border-brand-purple/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(168,85,247,0.35)]',
+    bg: 'rgba(96,165,250,0.04)',
+    border: 'rgba(96,165,250,0.08)',
+    glow: 'rgba(96,165,250,0.04)',
+    icon: 'rgba(96,165,250,0.85)',
+    title: 'rgba(160,200,255,0.95)',
+    meta: 'rgba(96,165,250,0.40)',
+  },
+  email: {
+    bg: 'rgba(168,85,247,0.04)',
+    border: 'rgba(168,85,247,0.08)',
+    glow: 'rgba(168,85,247,0.04)',
+    icon: 'rgba(168,85,247,0.85)',
+    title: 'rgba(200,160,255,0.95)',
+    meta: 'rgba(168,85,247,0.40)',
   },
   excel: {
-    iconWrap: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(16,185,129,0.3)]',
-  },
-  legal: {
-    iconWrap: 'bg-brand-purple/10 text-brand-purple border border-brand-purple/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(168,85,247,0.35)]',
+    bg: 'rgba(34,197,94,0.04)',
+    border: 'rgba(34,197,94,0.08)',
+    glow: 'rgba(34,197,94,0.04)',
+    icon: 'rgba(34,197,94,0.85)',
+    title: 'rgba(130,230,160,0.95)',
+    meta: 'rgba(34,197,94,0.40)',
   },
   summarize: {
-    iconWrap: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(245,158,11,0.3)]',
+    bg: 'rgba(234,179,8,0.04)',
+    border: 'rgba(234,179,8,0.08)',
+    glow: 'rgba(234,179,8,0.04)',
+    icon: 'rgba(234,179,8,0.85)',
+    title: 'rgba(250,210,100,0.95)',
+    meta: 'rgba(234,179,8,0.40)',
   },
   polish: {
-    iconWrap: 'bg-brand-pink/10 text-brand-pink border border-brand-pink/20',
-    hover: 'hover:shadow-glow-pink-orange',
+    bg: 'rgba(244,114,182,0.04)',
+    border: 'rgba(244,114,182,0.08)',
+    glow: 'rgba(244,114,182,0.04)',
+    icon: 'rgba(244,114,182,0.85)',
+    title: 'rgba(250,170,210,0.95)',
+    meta: 'rgba(244,114,182,0.40)',
   },
-  travel: {
-    iconWrap: 'bg-brand-orange/10 text-brand-orange border border-brand-orange/20',
-    hover: 'hover:shadow-glow-orange',
+  legal: {
+    bg: 'rgba(148,163,184,0.04)',
+    border: 'rgba(148,163,184,0.08)',
+    glow: 'rgba(148,163,184,0.04)',
+    icon: 'rgba(148,163,184,0.85)',
+    title: 'rgba(190,200,215,0.95)',
+    meta: 'rgba(148,163,184,0.40)',
   },
   translate: {
-    iconWrap: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(14,165,233,0.3)]',
+    bg: 'rgba(56,189,248,0.04)',
+    border: 'rgba(56,189,248,0.08)',
+    glow: 'rgba(56,189,248,0.04)',
+    icon: 'rgba(56,189,248,0.85)',
+    title: 'rgba(140,215,255,0.95)',
+    meta: 'rgba(56,189,248,0.40)',
+  },
+  travel: {
+    bg: 'rgba(251,146,60,0.04)',
+    border: 'rgba(251,146,60,0.08)',
+    glow: 'rgba(251,146,60,0.04)',
+    icon: 'rgba(251,146,60,0.85)',
+    title: 'rgba(251,186,120,0.95)',
+    meta: 'rgba(251,146,60,0.40)',
   },
   fitness: {
-    iconWrap: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(244,63,94,0.25)]',
-  },
-  pdf: {
-    iconWrap: 'bg-red-500/10 text-red-400 border border-red-500/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(239,68,68,0.25)]',
+    bg: 'rgba(239,68,68,0.04)',
+    border: 'rgba(239,68,68,0.08)',
+    glow: 'rgba(239,68,68,0.04)',
+    icon: 'rgba(239,68,68,0.85)',
+    title: 'rgba(255,150,150,0.95)',
+    meta: 'rgba(239,68,68,0.40)',
   },
   code: {
-    iconWrap: 'bg-brand-purple/10 text-brand-purple border border-brand-purple/20',
-    hover: 'hover:shadow-[0_8px_32px_-6px_rgba(168,85,247,0.35)]',
+    bg: 'rgba(139,92,246,0.04)',
+    border: 'rgba(139,92,246,0.08)',
+    glow: 'rgba(139,92,246,0.04)',
+    icon: 'rgba(139,92,246,0.85)',
+    title: 'rgba(180,150,255,0.95)',
+    meta: 'rgba(139,92,246,0.40)',
   },
   social: {
-    iconWrap: 'bg-brand-pink/10 text-brand-pink border border-brand-pink/20',
-    hover: 'hover:shadow-glow-pink-orange',
+    bg: 'rgba(236,72,153,0.04)',
+    border: 'rgba(236,72,153,0.08)',
+    glow: 'rgba(236,72,153,0.04)',
+    icon: 'rgba(236,72,153,0.85)',
+    title: 'rgba(244,150,196,0.95)',
+    meta: 'rgba(236,72,153,0.40)',
   },
 };
 
-const TOP4_CARD_DEFAULT_ACCENT = {
-  iconWrap: 'bg-white/[0.06] text-white border border-white/[0.12]',
-  hover: 'hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.45)]',
+const DEFAULT_COLOR = {
+  bg: 'rgba(148,163,184,0.04)',
+  border: 'rgba(148,163,184,0.08)',
+  glow: 'rgba(148,163,184,0.04)',
+  icon: 'rgba(148,163,184,0.85)',
+  title: 'rgba(190,200,215,0.95)',
+  meta: 'rgba(148,163,184,0.40)',
 };
 
 type Tool = {
@@ -672,7 +739,7 @@ export default function DashboardClient({
           />
 
           {/* Zone 2: Top 4 Tools */}
-          <section className="mb-5 mt-8 md:mb-6 md:mt-10" aria-labelledby="top-tools-heading">
+          <section className="mb-5" aria-labelledby="top-tools-heading">
             <h2
               id="top-tools-heading"
               className="mb-2.5 text-[11px] font-medium text-white/15"
@@ -680,9 +747,9 @@ export default function DashboardClient({
               Deine Tools
             </h2>
 
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 gap-2.5 md:gap-3">
               {top4Tools.map((tool) => {
-                const accent = TOP4_CARD_ACCENTS[tool.id] ?? TOP4_CARD_DEFAULT_ACCENT;
+                const c = TOOL_COLORS[tool.id] ?? DEFAULT_COLOR;
                 const ctx = resolveQuickContext(tool.id, {
                   todaysMealTitle,
                   openCartItemsCount,
@@ -690,8 +757,18 @@ export default function DashboardClient({
                 });
                 const Icon = tool.icon;
 
+                const iconBg = setRgbaAlpha(c.bg, 0.12);
+                const iconBorder = setRgbaAlpha(c.border, 0.15);
+
+                const cardStyle: React.CSSProperties = {
+                  background: c.bg,
+                  border: `1px solid ${c.border}`,
+                  boxShadow: `0 0 20px ${c.glow}, inset 0 1px 0 rgba(255,255,255,0.04)`,
+                };
+
                 const icon = createElement(Icon, {
-                  className: 'h-5 w-5 shrink-0',
+                  className: 'h-4 w-4 md:h-[18px] md:w-[18px] shrink-0',
+                  style: { color: c.icon },
                   strokeWidth: 1.75,
                   'aria-hidden': true,
                 } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number });
@@ -699,25 +776,20 @@ export default function DashboardClient({
                 const inner = (
                   <>
                     <div
-                      className={cn(
-                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl',
-                        accent.iconWrap
-                      )}
+                      className="flex h-9 w-9 items-center justify-center rounded-[10px] md:h-10 md:w-10"
+                      style={{ background: iconBg, border: `1px solid ${iconBorder}` }}
                     >
                       {icon}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-lg font-semibold leading-snug text-white">{tool.title}</div>
-                      <div className="mt-0.5 text-sm leading-snug text-slate-400">{ctx ?? ''}</div>
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-semibold leading-snug text-white">{tool.title}</div>
+                      <div className="mt-0.5 text-[11px] leading-snug text-white/70">{ctx ?? ''}</div>
                     </div>
                   </>
                 );
 
-                const baseClass = cn(
-                  'flex items-center gap-4 rounded-[28px] border border-white/[0.08] bg-white/[0.03] p-5 text-left shadow-2xl backdrop-blur-xl transition-all duration-300 md:p-6',
-                  'hover:-translate-y-[1px]',
-                  accent.hover
-                );
+                const baseClass =
+                  'flex items-center gap-3 rounded-[14px] p-3.5 text-left transition-all duration-200 hover:-translate-y-[1px] md:p-4';
 
                 return tool.available ? (
                   <Link
@@ -735,6 +807,7 @@ export default function DashboardClient({
                       );
                     }}
                     className={baseClass}
+                    style={cardStyle}
                   >
                     {inner}
                   </Link>
@@ -742,6 +815,7 @@ export default function DashboardClient({
                   <div
                     key={tool.id}
                     className={cn(baseClass, 'cursor-not-allowed opacity-60')}
+                    style={cardStyle}
                     aria-disabled
                   >
                     {inner}

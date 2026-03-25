@@ -111,11 +111,14 @@ function freierTagCopy(): string {
   return 'Freier Tag';
 }
 
+const ZONE_CARD_GLOW =
+  'shadow-[0_0_20px_rgba(255,255,255,0.03)] hover:shadow-[0_0_30px_rgba(255,255,255,0.08)] transition-shadow duration-300';
+
 const MEAL_CARD =
-  'group flex min-h-[140px] cursor-pointer flex-col justify-between rounded-2xl border border-white/[0.06] bg-white/[0.025] p-5 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:min-h-[180px] md:p-6';
+  `group flex min-h-[140px] cursor-pointer flex-col justify-between rounded-2xl border border-white/[0.06] bg-white/[0.025] p-5 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:min-h-[180px] md:p-6 ${ZONE_CARD_GLOW}`;
 
 const SHOP_CARD =
-  'group flex cursor-pointer flex-col rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40';
+  `group flex cursor-pointer flex-col rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 ${ZONE_CARD_GLOW}`;
 
 export type TodayZoneCardsProps = {
   todaysMealTitle: string | null;
@@ -327,7 +330,8 @@ export function TodayZoneCards({
           href="/calendar"
           onClick={() => triggerHaptic('light')}
           className={cn(
-            'col-span-1 flex min-h-0 cursor-pointer flex-col justify-between gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:row-start-2 md:col-start-2 md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3.5'
+            'col-span-1 flex min-h-0 cursor-pointer flex-col justify-between gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:row-start-2 md:col-start-2 md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3.5',
+            ZONE_CARD_GLOW
           )}
         >
           {nextAppt ? (
