@@ -10,7 +10,7 @@ import {
   Flame,
   ChevronRight,
 } from 'lucide-react';
-import { DashboardShell } from '@/components/platform/dashboard-shell';
+import { PageTransition } from '@/components/ui/PageTransition';
 
 /** Hintergrund, wenn kein Mahlzeiten-Bild (töniges Gradient, harmoniert mit CookIQ). */
 const ACTIVE_WEEK_FALLBACK_BG_CLASS =
@@ -40,15 +40,10 @@ export type GourmetCockpitProps = {
   onAktiveWocheAnsehen?: () => void;
 };
 
-/** Nahtloser Übergang zum Canvas #0f0914 (unten stark ausgeblendet für Text + CTA). */
-const HERO_BOTTOM_FADE_STYLE: React.CSSProperties = {
-  background:
-    'linear-gradient(to top, #0f0914 0%, #0f0914 8%, rgba(15,9,20,0.9) 25%, rgba(15,9,20,0.5) 50%, rgba(15,9,20,0.15) 75%, transparent 100%)',
-};
-
-const compactCardClass =
-  'col-span-1 flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.05] md:col-span-1';
-
+/**
+ * CookIQ nutzt kein DashboardShell-Header/Layer0 (kein rounded-b-[40px], kein -mt-20-Overlap).
+ * Gleiche horizontale Paddings wie Shell-Children für optische Konsistenz.
+ */
 export function GourmetCockpit(props: GourmetCockpitProps) {
   const {
     onVorschlagGenerieren,
@@ -73,23 +68,20 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
 
   return (
     <div className="relative w-full overflow-x-visible bg-transparent">
-      <DashboardShell
-        headerVariant="default"
-        layer0HeightClass="h-[min(360px,48vh)] min-h-[280px]"
-        headerMinHeightClass="min-h-[min(360px,48vh)]"
-        headerBackground={
-          <div className="relative h-full min-h-0 w-full overflow-hidden rounded-b-[40px] md:min-w-0 md:rounded-b-[28px] lg:rounded-b-[24px]">
+      <PageTransition className="relative z-10 mx-auto w-full max-w-7xl px-3 pb-32 sm:px-4 md:px-6 md:pb-32 lg:px-8">
+        <div className="w-full space-y-0 pt-4 md:pt-6">
+          {/* Hero — normaler Fluss, kein Layer0 */}
+          <div className="relative h-[280px] w-full overflow-hidden rounded-2xl md:h-[340px] lg:h-[380px]">
             <div
-              className="absolute inset-0 bg-cover bg-center md:bg-no-repeat"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute inset-0 z-[1]"
-              style={HERO_BOTTOM_FADE_STYLE}
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent"
               aria-hidden
             />
-            <div className="relative z-10 flex h-full min-h-0 flex-col justify-end px-6 pb-20 pt-0 md:px-8 md:pb-24 lg:px-10 lg:pb-28">
+            <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-8">
               <h1
                 className="text-2xl font-bold tracking-tight text-white md:text-3xl"
                 style={{ textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}
@@ -107,60 +99,64 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               </button>
             </div>
           </div>
-        }
-        title={null}
-        subtitle={null}
-      >
-        <div className="relative z-10 mb-6 md:mb-8">
-          <section aria-labelledby="gourmet-actions-heading">
+
+          <section className="mt-4" aria-labelledby="gourmet-actions-heading">
             <h2 id="gourmet-actions-heading" className="sr-only">
               Schnellaktionen
             </h2>
 
-            {/* Asymmetrisches Grid: Woche planen prominent + 3 kompakte Aktionen */}
             <div
-              className="-mt-3 grid grid-cols-2 gap-2.5 md:-mt-4 md:grid-cols-[1.3fr_1fr_1fr_1fr] md:gap-3"
+              className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3"
               role="toolbar"
               aria-label="CookIQ Aktionen"
             >
               <button
                 type="button"
                 onClick={() => onWochePlanen?.()}
-                className="col-span-2 flex w-full cursor-pointer items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 backdrop-blur-xl transition-all duration-200 hover:border-white/[0.12] hover:bg-white/[0.06] md:col-span-1"
+                className="col-span-2 flex cursor-pointer items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 transition-all hover:border-white/[0.12] hover:bg-white/[0.06] md:col-span-1"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-orange-400/[0.12] bg-orange-400/[0.1]">
-                  <CalendarDays className="h-[18px] w-[18px] text-orange-400/80" strokeWidth={1.75} aria-hidden />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-orange-400/[0.12] bg-orange-400/[0.1]">
+                  <CalendarDays className="h-5 w-5 text-orange-400/80" strokeWidth={1.75} aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1 text-left">
-                  <p className="text-sm font-semibold text-white/90">Woche planen</p>
-                  <p className="text-xs text-white/35">Dein Essensplan</p>
+                  <div className="text-sm font-semibold text-white/90">Woche planen</div>
+                  <div className="text-xs text-white/35">Dein Essensplan</div>
                 </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-white/20" aria-hidden />
+                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-white/20" aria-hidden />
               </button>
 
-              <button type="button" onClick={() => onMagicWunsch?.()} className={`${compactCardClass} col-span-1`}>
-                <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-amber-400/[0.08]">
+              <button
+                type="button"
+                onClick={() => onMagicWunsch?.()}
+                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 transition-all hover:border-white/[0.09] hover:bg-white/[0.05]"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/[0.08]">
                   <Sparkles className="h-4 w-4 text-amber-400/70" strokeWidth={1.75} aria-hidden />
                 </div>
                 <span className="text-sm text-white/70">Wunschgericht</span>
               </button>
 
-              <Link href="/tools/recipe?tab=my-recipes" className={`${compactCardClass} col-span-1`}>
-                <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-violet-400/[0.08]">
+              <Link
+                href="/tools/recipe?tab=my-recipes"
+                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 transition-all hover:border-white/[0.09] hover:bg-white/[0.05]"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-400/[0.08]">
                   <BookOpen className="h-4 w-4 text-violet-400/70" strokeWidth={1.75} aria-hidden />
                 </div>
                 <span className="text-sm text-white/70">Sammlung</span>
               </Link>
 
-              <Link href="/tools/shopping-list" className={`${compactCardClass} col-span-2 md:col-span-1`}>
-                <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-pink-400/[0.08]">
+              <Link
+                href="/tools/shopping-list"
+                className="col-span-2 flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 transition-all hover:border-white/[0.09] hover:bg-white/[0.05] md:col-span-1"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-pink-400/[0.08]">
                   <ShoppingCart className="h-4 w-4 text-pink-400/70" strokeWidth={1.75} aria-hidden />
                 </div>
                 <span className="text-sm text-white/70">SmartCart</span>
               </Link>
             </div>
 
-            {/* Aktive Woche — Rezeptkarte */}
             {hasActiveWeek ? (
               <div
                 role="button"
@@ -292,7 +288,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
             )}
           </section>
         </div>
-      </DashboardShell>
+      </PageTransition>
     </div>
   );
 }

@@ -879,10 +879,7 @@ export default function RecipePage() {
     <>
       {/* Cockpit (Landing) – Header bricht auf Desktop aus (data-header-full-bleed verhindert overflow-x-hidden im Layout) */}
       {showCockpit ? (
-        <div
-          data-header-full-bleed
-          className="relative min-h-screen w-full overflow-x-visible -mt-3 sm:-mt-4 sm:-mx-4 md:-mt-8 md:-mx-8 lg:-mx-8"
-        >
+        <div data-header-full-bleed className="relative w-full overflow-x-visible">
           <GourmetCockpit
             onVorschlagGenerieren={() => {
               setShowCockpit(false);
