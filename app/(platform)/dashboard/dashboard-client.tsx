@@ -50,26 +50,26 @@ const TOOL_SUBTITLES: Record<string, string> = {
   social: 'LinkedIn & Social',
 };
 
-/** Premium-Minimal: kleine Kreise mit zarter Tinte + Rand (keine Vollflächen-Gradients) */
+/** Tier-1: zarte Kreise mit kräftigerer Tinte (bg-*-100) – kein Regenbogen-Block */
 const TOOL_MINIMAL_ICON: Record<string, string> = {
-  recipe: 'bg-orange-50/50 border-orange-100 text-orange-600',
-  'shopping-list': 'bg-rose-50/50 border-rose-100 text-rose-600',
-  invoice: 'bg-emerald-50/50 border-emerald-100 text-emerald-600',
-  email: 'bg-blue-50/50 border-blue-100 text-blue-600',
-  excel: 'bg-green-50/50 border-green-100 text-green-600',
-  legal: 'bg-violet-50/50 border-violet-100 text-violet-600',
-  'tough-msg': 'bg-indigo-50/50 border-indigo-100 text-indigo-600',
-  summarize: 'bg-amber-50/50 border-amber-100 text-amber-600',
-  polish: 'bg-teal-50/50 border-teal-100 text-teal-600',
-  travel: 'bg-sky-50/50 border-sky-100 text-sky-600',
-  pdf: 'bg-red-50/50 border-red-100 text-red-600',
-  translate: 'bg-indigo-50/50 border-indigo-100 text-indigo-600',
-  fitness: 'bg-rose-50/50 border-rose-100 text-rose-600',
-  code: 'bg-slate-50/50 border-slate-200 text-slate-600',
-  social: 'bg-pink-50/50 border-pink-100 text-pink-600',
+  recipe: 'bg-orange-100 border-orange-200/80 text-orange-600',
+  'shopping-list': 'bg-rose-100 border-rose-200/80 text-rose-600',
+  invoice: 'bg-emerald-100 border-emerald-200/80 text-emerald-600',
+  email: 'bg-blue-100 border-blue-200/80 text-blue-600',
+  excel: 'bg-green-100 border-green-200/80 text-green-600',
+  legal: 'bg-violet-100 border-violet-200/80 text-violet-600',
+  'tough-msg': 'bg-indigo-100 border-indigo-200/80 text-indigo-600',
+  summarize: 'bg-amber-100 border-amber-200/80 text-amber-600',
+  polish: 'bg-teal-100 border-teal-200/80 text-teal-600',
+  travel: 'bg-sky-100 border-sky-200/80 text-sky-600',
+  pdf: 'bg-red-100 border-red-200/80 text-red-600',
+  translate: 'bg-indigo-100 border-indigo-200/80 text-indigo-600',
+  fitness: 'bg-rose-100 border-rose-200/80 text-rose-600',
+  code: 'bg-slate-100 border-slate-200 text-slate-600',
+  social: 'bg-pink-100 border-pink-200/80 text-pink-600',
 };
 
-const TOOL_MINIMAL_ICON_FALLBACK = 'bg-slate-50/50 border-slate-200 text-slate-600';
+const TOOL_MINIMAL_ICON_FALLBACK = 'bg-slate-100 border-slate-200 text-slate-600';
 
 const CARD_SHADOW_SOFT = 'shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)]';
 
@@ -480,7 +480,7 @@ export default function DashboardClient({
   return (
     <div
       ref={containerRef}
-      className="relative min-h-screen w-full overflow-x-hidden bg-[#F8F9FA]"
+      className="relative isolate min-h-screen w-full overflow-x-hidden bg-[#FAFAFC]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -489,11 +489,15 @@ export default function DashboardClient({
         transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none',
       }}
     >
-      {/* Ambient-Blobs liegen im globalen Layout (hinter Sidebar + Content) */}
+      {/* Ambient Aurora – weiches Brand-Licht oben (nicht interaktiv) */}
+      <div
+        className="pointer-events-none absolute left-0 top-0 z-0 h-96 w-full bg-gradient-to-br from-fuchsia-500/10 via-purple-500/5 to-orange-400/10 blur-[100px]"
+        aria-hidden
+      />
 
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 50 && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-center border-b border-slate-100 bg-[#F8F9FA]/95 backdrop-blur-sm">
+        <div className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-center border-b border-slate-100 bg-[#FAFAFC]/95 backdrop-blur-sm">
           {pullDistance >= 150 ? (
             <div className="flex items-center gap-2 text-slate-600">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
@@ -507,12 +511,13 @@ export default function DashboardClient({
         </div>
       )}
 
+      <div className="relative z-10">
       <DashboardShell
         headerVariant="default"
-        headerBackground={<div className="h-full w-full bg-[#F8F9FA]" aria-hidden />}
+        headerBackground={<div className="h-full w-full bg-[#FAFAFC]" aria-hidden />}
         title={
           <h1
-            className="mt-0 flex flex-wrap items-center gap-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl md:text-4xl"
+            className="mt-0 flex flex-wrap items-center gap-3 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl"
             style={{ letterSpacing: '-0.3px' }}
           >
             <span>{greetingText}</span>
@@ -573,8 +578,10 @@ export default function DashboardClient({
                       className={cn(
                         'group relative flex h-full min-h-[148px] flex-col items-start gap-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-5',
                         CARD_SHADOW_SOFT,
-                        'transition-all duration-300 hover:scale-[1.02]',
-                        tool.available ? 'cursor-pointer active:scale-[0.98]' : 'cursor-not-allowed opacity-60'
+                        'transition-all duration-300',
+                        tool.available
+                          ? 'cursor-pointer hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/50 active:scale-[0.98]'
+                          : 'cursor-not-allowed opacity-60'
                       )}
                     >
                       {(liveBadgeLabel || (!tool.available && tool.status === 'soon')) && (
@@ -712,6 +719,7 @@ export default function DashboardClient({
           </div>
         )}
       </DashboardShell>
+      </div>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { AppBackground } from '@/components/ui/app-background';
 import { MobileNav } from '@/components/mobile-nav';
 import { AnalyticsTracker } from '@/components/platform/analytics-tracker';
 import { triggerHaptic } from '@/lib/haptic-feedback';
+import { cn } from '@/lib/utils';
 
 interface PlatformLayoutContentProps {
   children: React.ReactNode;
@@ -182,11 +183,12 @@ function NavItem({ href, label, pathname, isChat }: { href: string; label: strin
     <Link
       href={href}
       onClick={() => triggerHaptic('light')}
-      className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+      className={cn(
+        'block rounded-lg border-l-4 px-3 py-2.5 text-sm transition-all duration-300',
         isActive
-          ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30'
-          : 'text-gray-600 hover:text-violet-600'
-      }`}
+          ? 'border-fuchsia-500 bg-fuchsia-50 font-semibold text-fuchsia-600'
+          : 'border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+      )}
     >
       {label}
     </Link>
