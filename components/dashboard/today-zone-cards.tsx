@@ -120,6 +120,10 @@ const MEAL_CARD =
 const SHOP_CARD =
   `group flex cursor-pointer flex-col rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 ${ZONE_CARD_GLOW}`;
 
+/** Hero: „Was kochst du heute?“ — stärkere Elevation & Gradient */
+const HERO_EMPTY_MEAL_CARD =
+  'group relative flex min-h-[140px] cursor-pointer flex-col justify-between overflow-hidden rounded-[28px] border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 shadow-2xl transition-all duration-200 hover:border-white/[0.12] hover:from-white/[0.08] hover:to-white/[0.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:min-h-[180px] md:p-6';
+
 export type TodayZoneCardsProps = {
   todaysMealTitle: string | null;
   openCartItemsCount: number;
@@ -244,24 +248,25 @@ export function TodayZoneCards({
           <Link
             href="/tools/recipe"
             onClick={() => triggerHaptic('light')}
-            className={cn(MEAL_CARD, 'col-span-2 md:col-span-1 md:row-span-2 md:row-start-1 md:col-start-1')}
+            className={cn(
+              HERO_EMPTY_MEAL_CARD,
+              'col-span-2 md:col-span-1 md:row-span-2 md:row-start-1 md:col-start-1'
+            )}
           >
-            <div className="flex flex-1 flex-col">
+            <div className="relative z-10 flex flex-1 flex-col">
               <div
-                className="mb-4 flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-orange-400/10 bg-orange-400/[0.08]"
+                className="mb-4 flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-brand-orange/30 bg-brand-orange/20 text-brand-orange"
                 aria-hidden
               >
-                <Flame className="h-4 w-4 text-orange-400/70" strokeWidth={1.5} />
+                <Flame className="h-4 w-4" strokeWidth={1.5} />
               </div>
-              <h3 className="text-lg font-semibold tracking-tight text-white/90 md:text-xl">
-                Was kochst du heute?
-              </h3>
-              <p className="mt-1 hidden whitespace-pre-line text-xs leading-relaxed text-white/30 md:block">
+              <h3 className="mb-2 text-xl font-bold text-white">Was kochst du heute?</h3>
+              <p className="mt-0 hidden whitespace-pre-line text-xs leading-relaxed text-white/30 md:block">
                 Noch kein Abendessen geplant.{'\n'}Lass dich inspirieren.
               </p>
-              <p className="mt-1 text-xs text-white/30 md:hidden">Noch kein Plan. Lass dich inspirieren.</p>
+              <p className="mt-0 text-xs text-white/30 md:hidden">Noch kein Plan. Lass dich inspirieren.</p>
             </div>
-            <span className="mt-auto text-xs text-white/25 transition group-hover:text-white/50">
+            <span className="relative z-10 mt-4 inline-flex items-center text-sm font-semibold text-brand-orange transition-colors hover:text-white">
               Inspiration holen →
             </span>
           </Link>
