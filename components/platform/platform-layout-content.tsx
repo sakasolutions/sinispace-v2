@@ -20,16 +20,12 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
   return (
     <div className="relative flex h-[100dvh] overflow-x-hidden">
       <AppBackground />
-      <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
-        <div className="absolute -left-40 -top-40 h-[600px] w-[600px] rounded-full bg-sini-purple/15 blur-[120px]" />
-        <div className="absolute -bottom-40 -right-40 hidden h-[600px] w-[600px] rounded-full bg-sini-orange/15 blur-[120px] md:block" />
-      </div>
       <div
         className="pointer-events-none fixed bottom-0 left-0 right-0 -z-[1] h-[env(safe-area-inset-bottom)] bg-canvas md:hidden"
         aria-hidden
       />
 
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-white/10 bg-white/5 backdrop-blur-xl md:block">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-white/10 bg-white/[0.06] backdrop-blur-xl md:block">
         <div className="flex h-16 items-center border-b border-white/10 px-6">
           <Link href="/dashboard" className="group flex items-center">
             <div className="relative h-10 w-10 overflow-hidden rounded-xl ring-2 ring-transparent transition-all duration-300 group-hover:ring-white/20">
@@ -64,7 +60,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
       </aside>
 
       <main
-        className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-canvas md:ml-64"
+        className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-transparent md:ml-64"
         style={
           {
             height: '100%',
@@ -77,7 +73,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden" data-scroll-container>
           <div
             className={cn(
-              'min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden bg-canvas pb-24 scrollbar-hide md:pb-6',
+              'min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden bg-transparent pb-24 scrollbar-hide md:pb-6',
               'has-[>[data-no-padding]]:overflow-hidden',
               '[&>[data-no-padding]]:flex [&>[data-no-padding]]:h-full [&>[data-no-padding]]:min-h-0 [&>[data-no-padding]]:flex-1',
               '[&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8',

@@ -584,7 +584,7 @@ export default function DashboardClient({
   return (
     <div
       ref={containerRef}
-      className="relative isolate min-h-[100dvh] w-full overflow-x-hidden bg-canvas"
+      className="relative isolate min-h-[100dvh] w-full overflow-x-hidden bg-transparent"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -618,7 +618,7 @@ export default function DashboardClient({
       <div className="relative z-10">
       <DashboardShell
         headerVariant="default"
-        headerBackground={<div className="h-full w-full bg-canvas" aria-hidden />}
+        headerBackground={<div className="h-full w-full bg-transparent" aria-hidden />}
         title={
           <h1
             className="mt-0 flex flex-wrap items-center gap-3 bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent md:text-4xl"
