@@ -41,10 +41,10 @@ export type GourmetCockpitProps = {
 
 const heroTitleShadow: React.CSSProperties = { textShadow: '0 2px 12px rgba(0,0,0,0.5)' };
 
-/** Nahtloser Übergang zum Canvas #0f0914 (unten dunkel → oben klar). */
+/** Nahtloser Übergang zum Canvas #0f0914 (unten stark ausgeblendet für Text + Chips). */
 const HERO_BOTTOM_FADE_STYLE: React.CSSProperties = {
   background:
-    'linear-gradient(to top, #0f0914 0%, #0f0914 5%, rgba(15, 9, 20, 0.85) 30%, rgba(15, 9, 20, 0.4) 60%, transparent 100%)',
+    'linear-gradient(to top, #0f0914 0%, #0f0914 8%, rgba(15,9,20,0.9) 25%, rgba(15,9,20,0.5) 50%, rgba(15,9,20,0.15) 75%, transparent 100%)',
 };
 
 const chipBaseClass =
@@ -75,11 +75,11 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
   );
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-visible bg-transparent">
+    <div className="relative w-full overflow-x-visible bg-transparent">
       <DashboardShell
         headerVariant="default"
-        layer0HeightClass="h-[min(320px,44vh)] min-h-[260px]"
-        headerMinHeightClass="min-h-[min(320px,44vh)]"
+        layer0HeightClass="h-[min(360px,48vh)] min-h-[280px]"
+        headerMinHeightClass="min-h-[min(360px,48vh)]"
         headerBackground={
           <div className="relative h-full min-h-0 w-full overflow-hidden rounded-b-[40px]">
             <div
@@ -92,7 +92,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               style={HERO_BOTTOM_FADE_STYLE}
               aria-hidden
             />
-            <div className="relative z-10 flex h-full min-h-0 flex-col justify-end px-4 pb-6 pt-0 md:px-6 md:pb-8">
+            <div className="relative z-10 flex h-full min-h-0 flex-col justify-end px-4 pb-14 pt-0 md:px-6 md:pb-16">
               <h1
                 className="text-2xl font-bold tracking-tight text-white md:text-3xl"
                 style={heroTitleShadow}
@@ -114,7 +114,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
 
             {/* Horizontale Aktions-Leiste (5 Chips) */}
             <div
-              className="-mt-5 flex snap-x snap-mandatory items-center gap-2 overflow-x-auto px-4 scrollbar-hide md:-mt-6 md:flex-wrap md:items-center md:justify-center md:overflow-visible md:px-0"
+              className="-mt-3 flex snap-x snap-mandatory items-center gap-2 overflow-x-auto px-4 scrollbar-hide md:-mt-4 md:flex-wrap md:items-center md:justify-center md:overflow-visible md:px-0"
               role="toolbar"
               aria-label="CookIQ Aktionen"
             >
@@ -146,6 +146,8 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                 <ShoppingCart className={`${chipIconClass} text-pink-400/70`} strokeWidth={1.75} aria-hidden />
                 <span className="text-sm text-white/70">SmartCart</span>
               </Link>
+              {/* Endspacer (nur Mobil): letzter Chip beim Horizontal-Scroll nicht am Rand abschneiden */}
+              <span className="inline-block min-w-4 shrink-0 md:hidden" aria-hidden />
             </div>
 
             {/* Aktive Woche — Rezeptkarte */}
