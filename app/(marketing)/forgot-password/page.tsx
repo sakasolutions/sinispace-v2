@@ -1,68 +1,54 @@
 'use client';
 
-import { useState } from 'react';
-import { useActionState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useActionState } from 'react';
 import { requestPasswordReset } from '@/actions/auth-actions';
-import dynamic from 'next/dynamic';
+import { MARKETING_PAGE_AURORA_BACKGROUND } from '@/lib/marketing-aurora';
 
-const HeroBackground = dynamic(() => import('@/components/ui/hero-background').then(mod => ({ default: mod.HeroBackground })), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 pointer-events-none">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-    </div>
-  ),
-});
+const inputClass =
+  'flex h-12 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-white/40 focus:border-brand-pink/50 focus:outline-none focus:ring-2 focus:ring-brand-purple/25 transition-all';
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
-  // @ts-ignore
   const [state, formAction] = useActionState(requestPasswordReset, null);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-white">
-      <HeroBackground showGlows={true} />
+    <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-dark-bg px-4 py-12 text-white selection:bg-brand-pink/30 selection:text-white">
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{ background: MARKETING_PAGE_AURORA_BACKGROUND }}
+        aria-hidden
+      />
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="relative w-full max-w-sm z-10"
+        className="relative z-10 w-full max-w-sm"
       >
-        {/* LOGO */}
         <div className="mb-8 flex justify-center">
-          <Link href="/" className="relative h-12 w-12 overflow-hidden rounded-2xl shadow-md border border-gray-200 bg-white hover:scale-105 transition-transform duration-300">
-            <Image 
-              src="/assets/logos/logo.webp" 
-              alt="Sinispace Logo" 
-              fill 
-              className="object-contain p-1.5" 
-              priority 
-            />
+          <Link
+            href="/"
+            className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/15 bg-white/5 shadow-[0_8px_40px_rgba(0,0,0,0.35)] transition-transform duration-300 hover:scale-105"
+          >
+            <Image src="/assets/logos/logo.webp" alt="Sinispace Logo" fill className="object-contain p-1.5" priority />
           </Link>
         </div>
 
-        {/* CARD - Dashboard Style */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
-          <div className="space-y-2 text-center mb-8">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Passwort vergessen?</h1>
-            <p className="text-sm text-gray-600">
-              Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen.
-            </p>
+        <div className="rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+          <div className="mb-8 space-y-2 text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-white">Passwort vergessen?</h1>
+            <p className="text-sm text-white/60">Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen.</p>
           </div>
 
-          {/* FORM */}
           <form action={formAction} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-gray-700 ml-1" htmlFor="email">
+              <label className="ml-1 text-xs font-semibold uppercase tracking-wider text-white/50" htmlFor="email">
                 E-Mail
               </label>
               <input
-                className="flex h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+                className={inputClass}
                 id="email"
                 name="email"
                 placeholder="name@beispiel.de"
@@ -71,20 +57,17 @@ export default function ForgotPasswordPage() {
               />
             </div>
 
-            {/* Success/Error Meldung */}
             {state?.success && (
-              <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-600">
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                 {state.message}
               </div>
             )}
             {state?.error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                {state.error}
-              </div>
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{state.error}</div>
             )}
 
             <button
-              className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm transition-all hover:from-orange-600 hover:to-pink-600 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait shadow-md"
+              className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-gradient-to-r from-brand-pink to-brand-orange text-sm font-bold text-white shadow-glow-pink-orange transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
               type="submit"
               disabled={state?.success}
             >
@@ -92,8 +75,11 @@ export default function ForgotPasswordPage() {
             </button>
           </form>
 
-          <div className="mt-8 text-center text-sm text-gray-600">
-            <Link href="/login" className="text-gray-900 hover:text-orange-500 font-medium transition-colors underline underline-offset-4 decoration-gray-300 hover:decoration-orange-500">
+          <div className="mt-8 text-center text-sm text-white/55">
+            <Link
+              href="/login"
+              className="font-medium text-white underline decoration-white/25 underline-offset-4 transition-colors hover:text-brand-pink hover:decoration-brand-pink/50"
+            >
               Zurück zur Anmeldung
             </Link>
           </div>
