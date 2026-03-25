@@ -25,11 +25,10 @@ import {
   FileImage,
   ChevronDown,
   ChevronRight,
-  CheckCircle,
-  Calendar,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
+import { TodayZoneCards } from '@/components/dashboard/today-zone-cards';
 import type { CalendarEventJson } from '@/actions/calendar-actions';
 
 /** Kurze Untertitel – visuelle Dichte (1–2 Wörter) */
@@ -90,18 +89,6 @@ function getTodayDateStringBerlin(now: Date = new Date()): string {
   }).format(now);
 }
 
-function getNowHHmmBerlin(): string {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Berlin',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).formatToParts(new Date());
-  const h = parts.find((p) => p.type === 'hour')?.value ?? '00';
-  const m = parts.find((p) => p.type === 'minute')?.value ?? '00';
-  return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
-}
-
 function isMealEvent(e: CalendarEventJson): boolean {
   return e.syncedMeal === true || e.actionTag === 'food';
 }
@@ -112,20 +99,6 @@ function mealLabelFromTimeHHmm(time: string): string {
   if (h < 15) return 'Mittagessen';
   if (h < 17) return 'Mittagessen';
   return 'Abendessen';
-}
-
-/** Nächster Termin heute (ohne Mahlzeiten — vermeidet Doppelung zur Essen-Karte). */
-function getNextAppointmentToday(
-  events: CalendarEventJson[],
-  todayStr: string,
-  nowHHmm: string
-): { next: CalendarEventJson | null; hasAnyToday: boolean } {
-  const today = events
-    .filter((e) => e.date === todayStr)
-    .filter((e) => !isMealEvent(e))
-    .sort((a, b) => normalizeHHmm(a.time).localeCompare(normalizeHHmm(b.time)));
-  const next = today.find((e) => normalizeHHmm(e.time) >= nowHHmm) ?? null;
-  return { next, hasAnyToday: today.length > 0 };
 }
 
 function firstMealEventToday(events: CalendarEventJson[], todayStr: string): CalendarEventJson | null {
@@ -158,6 +131,35 @@ function resolveToolLiveBadge(
     return `${opts.openCartItemsCount} offen`;
   }
   return TOOL_LIVE_BADGE[toolId]?.label ?? null;
+}
+
+function buildDashboardSubtitle(opts: {
+  todaysMealTitle: string | null;
+  openCartItemsCount: number;
+  firstMealTime: string | null;
+}): string {
+  const meal = opts.todaysMealTitle?.trim();
+  if (meal && opts.openCartItemsCount > 0) {
+    const slot = opts.firstMealTime ? mealLabelFromTimeHHmm(opts.firstMealTime) : '';
+    const slotPhrase =
+      slot === 'Abendessen'
+        ? 'heute Abend'
+        : slot === 'Mittagessen'
+          ? 'heute Mittag'
+          : slot === 'Frühstück'
+            ? 'heute Morgen'
+            : slot === 'Snack'
+              ? 'heute Nachmittag'
+              : 'heute';
+    return `${meal} ${slotPhrase}, ${opts.openCartItemsCount} Artikel fehlen noch`;
+  }
+  if (meal && opts.openCartItemsCount === 0) {
+    return `${meal} steht auf dem Plan`;
+  }
+  if (!meal && opts.openCartItemsCount > 0) {
+    return `${opts.openCartItemsCount} Artikel auf der Einkaufsliste`;
+  }
+  return 'Was steht heute an?';
 }
 
 function resolveQuickContext(
@@ -561,19 +563,12 @@ export default function DashboardClient({
   const greetingText = displayName ? `${sunriseGreeting.base}, ${displayName}!` : `${sunriseGreeting.base}!`;
 
   const todayStr = getTodayDateStringBerlin();
-  const nowHHmm = getNowHHmmBerlin();
-  const { next: nextAppointment, hasAnyToday: hasAnyApptToday } = getNextAppointmentToday(
-    initialCalendarEvents,
-    todayStr,
-    nowHHmm
-  );
-  const firstMeal = firstMealEventToday(initialCalendarEvents, todayStr);
-  const mealSubtitle =
-    todaysMealTitle && firstMeal
-      ? mealLabelFromTimeHHmm(firstMeal.time)
-      : todaysMealTitle
-        ? 'Heute geplant'
-        : '';
+  const firstMealForSubtitle = firstMealEventToday(initialCalendarEvents, todayStr);
+  const contextualSubtitle = buildDashboardSubtitle({
+    todaysMealTitle,
+    openCartItemsCount,
+    firstMealTime: firstMealForSubtitle?.time ?? null,
+  });
 
   const quickAccessTools = useMemo(
     () => sortedTools.filter((t) => t.available).slice(0, QUICK_ACCESS_COUNT),
@@ -628,171 +623,25 @@ export default function DashboardClient({
           </h1>
         }
         subtitle={
-          <p className="mt-1 text-sm font-normal text-white/60 sm:text-base" style={{ letterSpacing: '0.02em' }}>
-            {sunriseGreeting.subline}
+          <p className="mt-1 text-sm font-normal text-white/55 sm:text-base" style={{ letterSpacing: '0.02em' }}>
+            {contextualSubtitle}
           </p>
-        }
-        headerExtra={
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span
-              className="flex max-w-full min-w-0 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/70 backdrop-blur-md"
-              title={
-                todaysMealTitle
-                  ? `Heute: ${todaysMealTitle}`
-                  : 'Noch keine Mahlzeit für heute geplant'
-              }
-            >
-              <ChefHat className="h-3 w-3 shrink-0 text-white/50" aria-hidden />
-              <span className="max-w-[200px] truncate">
-                {todaysMealTitle ? <>Heute: {todaysMealTitle}</> : <>Planung offen</>}
-              </span>
-            </span>
-            <span className="flex shrink-0 items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/70 backdrop-blur-md">
-              {openCartItemsCount === 0 ? (
-                <>
-                  <CheckCircle className="mr-1.5 h-3 w-3 shrink-0 text-white/50" aria-hidden />
-                  Alles erledigt
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="mr-1.5 h-3 w-3 shrink-0 text-white/50" aria-hidden />
-                  {openCartItemsCount} offen
-                </>
-              )}
-            </span>
-          </div>
         }
       >
         <div className="space-y-8 md:space-y-10">
-          {/* Zone 1: Heute — drei Status-Karten */}
-          <section aria-labelledby="today-heading">
-            <h2 id="today-heading" className="mb-3 text-sm font-medium uppercase tracking-wider text-white/40">
-              Heute
-            </h2>
-            <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 md:grid md:grid-cols-3 md:overflow-visible md:pb-0">
-              {/* Essen */}
-              <div className="relative min-w-[260px] max-w-[100%] shrink-0 snap-center rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl md:min-w-0">
-                <div
-                  className="absolute left-0 right-0 top-0 h-[2px] rounded-t-2xl bg-gradient-to-r from-emerald-400 to-teal-400"
-                  aria-hidden
-                />
-                <div className="flex items-start gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                    <ChefHat className="h-5 w-5 text-white/90" strokeWidth={2} aria-hidden />
-                  </div>
-                  <div className="min-w-0 flex-1 pt-0.5">
-                    <p className="text-sm font-medium text-white">Essen heute</p>
-                    {todaysMealTitle ? (
-                      <>
-                        <p className="mt-1 line-clamp-2 text-xs text-white/40">{todaysMealTitle}</p>
-                        {mealSubtitle ? (
-                          <p className="mt-0.5 text-xs text-white/40">{mealSubtitle}</p>
-                        ) : null}
-                        <Link
-                          href="/tools/recipe"
-                          className="mt-3 inline-block text-xs text-white/60 transition-colors hover:text-white"
-                          onClick={() => triggerHaptic('light')}
-                        >
-                          → Rezept öffnen
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        <p className="mt-1 text-xs text-white/40">Noch nichts geplant</p>
-                        <Link
-                          href="/tools/recipe"
-                          className="mt-3 inline-block text-xs text-white/60 transition-colors hover:text-white"
-                          onClick={() => triggerHaptic('light')}
-                        >
-                          → Planen
-                        </Link>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Einkauf */}
-              <div className="relative min-w-[260px] max-w-[100%] shrink-0 snap-center rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl md:min-w-0">
-                <div
-                  className="absolute left-0 right-0 top-0 h-[2px] rounded-t-2xl bg-gradient-to-r from-orange-400 to-amber-400"
-                  aria-hidden
-                />
-                <div className="flex items-start gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                    <ShoppingCart className="h-5 w-5 text-white/90" strokeWidth={2} aria-hidden />
-                  </div>
-                  <div className="min-w-0 flex-1 pt-0.5">
-                    <p className="text-sm font-medium text-white">Einkauf</p>
-                    {openCartItemsCount > 0 ? (
-                      <>
-                        <p className="mt-1 text-xs text-white/40">
-                          {openCartItemsCount} Artikel offen
-                        </p>
-                        <Link
-                          href="/tools/shopping-list"
-                          className="mt-3 inline-block text-xs text-white/60 transition-colors hover:text-white"
-                          onClick={() => triggerHaptic('light')}
-                        >
-                          → Liste öffnen
-                        </Link>
-                      </>
-                    ) : (
-                      <p className="mt-1 text-xs text-white/40">Alles erledigt ✓</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Nächster Termin */}
-              <div className="relative min-w-[260px] max-w-[100%] shrink-0 snap-center rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl md:min-w-0">
-                <div
-                  className="absolute left-0 right-0 top-0 h-[2px] rounded-t-2xl bg-gradient-to-r from-brand-pink to-brand-orange"
-                  aria-hidden
-                />
-                <div className="flex items-start gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                    <Calendar className="h-5 w-5 text-white/90" strokeWidth={2} aria-hidden />
-                  </div>
-                  <div className="min-w-0 flex-1 pt-0.5">
-                    <p className="text-sm font-medium text-white">Nächster Termin</p>
-                    {nextAppointment ? (
-                      <>
-                        <p className="mt-1 text-xs text-white/40">
-                          {nextAppointment.time} Uhr — {nextAppointment.title}
-                        </p>
-                        <Link
-                          href="/calendar"
-                          className="mt-3 inline-block text-xs text-white/60 transition-colors hover:text-white"
-                          onClick={() => triggerHaptic('light')}
-                        >
-                          → Kalender
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        <p className="mt-1 text-xs text-white/40">
-                          {hasAnyApptToday ? 'Keine weiteren Termine heute' : 'Keine Termine heute'}
-                        </p>
-                        <Link
-                          href="/calendar"
-                          className="mt-3 inline-block text-xs text-white/60 transition-colors hover:text-white"
-                          onClick={() => triggerHaptic('light')}
-                        >
-                          → Kalender
-                        </Link>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+          <TodayZoneCards
+            todaysMealTitle={todaysMealTitle}
+            openCartItemsCount={openCartItemsCount}
+            initialCalendarEvents={initialCalendarEvents}
+          />
 
           {/* Zone 2: Schnellzugriff */}
           <section aria-labelledby="quick-heading">
-            <h2 id="quick-heading" className="mb-3 text-sm font-medium uppercase tracking-wider text-white/40">
-              Schnellzugriff
+            <h2
+              id="quick-heading"
+              className="mb-3 text-xs font-medium tracking-wide text-white/25"
+            >
+              Deine Tools
             </h2>
             <div className={cn('overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl')}>
               {quickAccessTools.map((tool, index) => {
