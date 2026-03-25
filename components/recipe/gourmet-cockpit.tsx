@@ -78,9 +78,9 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
         layer0HeightClass="h-[min(360px,48vh)] min-h-[280px]"
         headerMinHeightClass="min-h-[min(360px,48vh)]"
         headerBackground={
-          <div className="relative h-full min-h-0 w-full overflow-hidden rounded-b-[40px]">
+          <div className="relative h-full min-h-0 w-full overflow-hidden rounded-b-[40px] md:min-w-0 md:rounded-b-[28px] lg:rounded-b-[24px]">
             <div
-              className="absolute inset-0 bg-cover bg-center"
+              className="absolute inset-0 bg-cover bg-center md:bg-no-repeat"
               style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
               aria-hidden
             />
@@ -89,7 +89,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               style={HERO_BOTTOM_FADE_STYLE}
               aria-hidden
             />
-            <div className="relative z-10 flex h-full min-h-0 flex-col justify-end px-6 pb-20 pt-0 md:px-8 md:pb-20 lg:px-10">
+            <div className="relative z-10 flex h-full min-h-0 flex-col justify-end px-6 pb-20 pt-0 md:px-8 md:pb-24 lg:px-10 lg:pb-28">
               <h1
                 className="text-2xl font-bold tracking-tight text-white md:text-3xl"
                 style={{ textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}
