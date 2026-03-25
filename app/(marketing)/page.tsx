@@ -120,7 +120,7 @@ function Header() {
           </Link>
           <Link
             href="/register"
-            className="rounded-full bg-gradient-to-r from-brand-pink to-brand-orange px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_24px_rgba(236,72,153,0.35)] transition-transform hover:scale-105"
+            className="rounded-full bg-gradient-to-r from-brand-pink to-brand-orange px-5 py-2.5 text-sm font-bold text-white shadow-glow-pink-orange transition-transform hover:scale-105"
           >
             Kostenlos starten
           </Link>
@@ -167,7 +167,7 @@ function Header() {
               <Link
                 href="/register"
                 onClick={() => setIsMenuOpen(false)}
-                className="block w-full rounded-full bg-gradient-to-r from-brand-pink to-brand-orange py-3 text-center font-bold text-white shadow-[0_0_24px_rgba(236,72,153,0.35)]"
+                className="block w-full rounded-full bg-gradient-to-r from-brand-pink to-brand-orange py-3 text-center font-bold text-white shadow-glow-pink-orange"
               >
                 Kostenlos starten
               </Link>
@@ -203,39 +203,43 @@ export default function LandingPage() {
       <Header />
 
       <main>
-        {/* --- HERO: SiniSpace Aurora --- */}
-        <section className="relative flex min-h-[92vh] flex-col justify-center overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
-          {/* Aurora mesh: weiche, warme Brand-Glows */}
+        {/* --- HERO: Dribbble-style radial mesh (full-bleed, kein flacher Zentral-Orb) --- */}
+        <section className="relative flex min-h-[92vh] flex-col justify-center overflow-hidden bg-dark-bg pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
           <div
-            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[600px] w-[80%] max-w-[800px] -translate-x-1/2 rounded-full bg-gradient-to-br from-brand-purple/15 via-brand-pink/15 to-brand-orange/15 blur-[120px]"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute -bottom-32 left-0 -z-10 h-[420px] w-[55%] max-w-[520px] rounded-full bg-gradient-to-tr from-brand-orange/10 via-brand-pink/8 to-brand-purple/12 blur-[100px]"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute -right-20 top-1/3 -z-10 h-[320px] w-[320px] rounded-full bg-gradient-to-bl from-brand-purple/12 to-brand-pink/8 blur-[90px]"
+            className="pointer-events-none absolute inset-0 -z-10"
+            style={{
+              background: `
+                radial-gradient(circle at 30% 20%, rgba(168,85,247,0.15), transparent 60%),
+                radial-gradient(circle at 70% 30%, rgba(236,72,153,0.15), transparent 60%),
+                radial-gradient(circle at 50% 10%, rgba(249,115,22,0.1), transparent 50%)
+              `,
+            }}
             aria-hidden
           />
 
           <div className="relative z-10 mx-auto max-w-5xl px-4 text-center">
             <motion.h1
               {...fadeConfigs.title}
-              className="text-center text-5xl font-extrabold leading-tight tracking-tight text-white md:text-7xl"
+              className="text-balance text-center text-5xl font-extrabold leading-tight tracking-tight text-white md:text-7xl"
               style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
             >
               SiniSpace macht den Alltag lecker.
             </motion.h1>
 
-            <motion.p {...fadeConfigs.sub} className="mx-auto mt-8 max-w-2xl text-center text-lg text-white/60">
+            <motion.p
+              {...fadeConfigs.sub}
+              className="mx-auto mt-10 max-w-2xl text-pretty text-center text-lg leading-relaxed text-white/60 md:mt-12"
+            >
               Wochenplan, Einkauf und Termine – vorgefertigte KI-Helfer ohne Prompt-Stress. Mehr Ruhe, weniger Koordination.
             </motion.p>
 
-            <motion.div {...fadeConfigs.btn} className="mx-auto mt-12 flex max-w-xl flex-col items-center justify-center gap-4 md:flex-row">
+            <motion.div
+              {...fadeConfigs.btn}
+              className="mx-auto mt-14 flex max-w-xl flex-col items-center justify-center gap-4 md:mt-16 md:flex-row"
+            >
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand-pink to-brand-orange px-8 py-4 text-lg font-bold text-white shadow-[0_8px_32px_rgba(236,72,153,0.3)] transition-transform hover:scale-105"
+                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand-pink to-brand-orange px-8 py-4 text-lg font-bold text-white shadow-glow-pink-orange transition-transform hover:scale-105"
               >
                 Kostenlos starten
               </Link>
@@ -252,12 +256,12 @@ export default function LandingPage() {
               whileInView={mounted ? { opacity: 1, y: 0 } : {}}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="mx-auto mt-16 max-w-lg"
+              className="mx-auto mt-20 max-w-lg md:mt-24"
             >
-              <div className="rounded-[32px] border border-dark-border bg-dark-surface p-8 text-left shadow-2xl backdrop-blur-xl">
-                <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Vorschau</p>
-                <p className="mt-2 text-lg font-semibold text-white">Glassmorphism Surface</p>
-                <p className="mt-3 text-sm leading-relaxed text-white/60">
+              <div className="rounded-[32px] border border-white/10 bg-white/5 p-8 text-left shadow-2xl backdrop-blur-xl">
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/45">Vorschau</p>
+                <p className="mt-3 text-lg font-semibold tracking-tight text-white">Glassmorphism Surface</p>
+                <p className="mt-4 text-sm leading-relaxed text-white/55">
                   So wirken Karten & Panels in der neuen Oberfläche – weiche Kanten, Tiefe, sanfte Aurora im Hintergrund.
                 </p>
                 <div className="mt-6 flex gap-2">

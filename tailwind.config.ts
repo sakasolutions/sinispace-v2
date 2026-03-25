@@ -36,6 +36,7 @@ const config: Config = {
     'shadow-tier1',
     'shadow-glow-rose',
     'shadow-glow-orange',
+    'shadow-glow-pink-orange',
     'rounded-card',
   ],
   theme: {
@@ -139,6 +140,8 @@ const config: Config = {
         tier1: '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
         'glow-rose': '0 8px 24px -6px rgba(244, 63, 94, 0.4)',
         'glow-orange': '0 8px 24px -6px rgba(249, 115, 22, 0.4)',
+        'glow-pink-orange':
+          '0 8px 32px -6px rgba(236,72,153,0.3), 0 8px 32px -6px rgba(249,115,22,0.3)',
       },
       /**
        * Squircle-Hauptkarten: 32px. Kleine Controls: weiterhin rounded-2xl im UI.
