@@ -48,6 +48,17 @@ const config: Config = {
           orange: 'hsl(var(--sini-orange) / <alpha-value>)',
           purple: 'hsl(var(--sini-purple) / <alpha-value>)',
         },
+        /** Immersive Dark (Landing + global foundation) */
+        dark: {
+          bg: '#0A0510',
+          surface: 'rgba(255, 255, 255, 0.05)',
+          border: 'rgba(255, 255, 255, 0.1)',
+        },
+        brand: {
+          pink: '#EC4899',
+          orange: '#F97316',
+          purple: '#A855F7',
+        },
       },
       fontFamily: {
         sans: ['var(--font-plus-jakarta-sans)', ...defaultTheme.fontFamily.sans],
