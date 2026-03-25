@@ -56,39 +56,48 @@ export function DashboardShell({
 }: DashboardShellProps) {
   const layer1Pb = headerVariant === 'withCTA' ? 'pb-12' : 'pb-6';
 
+  const hasTitleRow =
+    title != null ||
+    subtitle != null ||
+    headerExtra != null ||
+    headerPrimaryCTA != null ||
+    headerActionsRight != null;
+
   return (
     <>
       <header className={cn(HEADER_WRAPPER_BASE, headerMinHeightClass)}>
         <div className={cn(LAYER0_WRAPPER_BASE, layer0HeightClass)} aria-hidden>
           {headerBackground}
         </div>
-        <div
-          className={cn(
-            'dashboard-header-pt md:pt-12 relative z-10 w-full',
-            layer1Pb
-          )}
-        >
-          <div className="max-w-7xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8">
-            {headerActionsRight != null ? (
-              <div className="flex items-start justify-between gap-4 max-w-3xl mx-auto">
-                <div className="max-w-2xl min-w-0">
+        {hasTitleRow ? (
+          <div
+            className={cn(
+              'dashboard-header-pt relative z-10 w-full md:pt-12',
+              layer1Pb
+            )}
+          >
+            <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
+              {headerActionsRight != null ? (
+                <div className="mx-auto flex max-w-3xl items-start justify-between gap-4">
+                  <div className="min-w-0 max-w-2xl">
+                    {title}
+                    {subtitle}
+                    {headerExtra}
+                    {headerPrimaryCTA}
+                  </div>
+                  <div className="shrink-0">{headerActionsRight}</div>
+                </div>
+              ) : (
+                <div className="max-w-2xl">
                   {title}
                   {subtitle}
                   {headerExtra}
                   {headerPrimaryCTA}
                 </div>
-                <div className="shrink-0">{headerActionsRight}</div>
-              </div>
-            ) : (
-              <div className="max-w-2xl">
-                {title}
-                {subtitle}
-                {headerExtra}
-                {headerPrimaryCTA}
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
       </header>
 
       <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20 pt-9">

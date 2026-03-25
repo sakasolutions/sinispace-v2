@@ -33,9 +33,15 @@ export type GourmetCockpitProps = {
 };
 
 const quickCardClass =
-  'group relative flex h-full min-h-[148px] w-full flex-col items-start rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 text-left shadow-none backdrop-blur-xl transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.05] active:scale-[0.98] md:min-h-[152px] md:p-6';
+  'group relative flex h-full min-h-[140px] w-full flex-col items-start rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 text-left shadow-none backdrop-blur-xl transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.05] active:scale-[0.98] md:min-h-[160px] md:p-6';
 
 const heroTitleShadow: React.CSSProperties = { textShadow: '0 2px 12px rgba(0,0,0,0.5)' };
+
+/** Nahtloser Übergang zum Canvas #0f0914 (unten dunkel → oben klar). */
+const HERO_BOTTOM_FADE_STYLE: React.CSSProperties = {
+  background:
+    'linear-gradient(to top, #0f0914 0%, #0f0914 5%, rgba(15, 9, 20, 0.85) 30%, rgba(15, 9, 20, 0.4) 60%, transparent 100%)',
+};
 
 export function GourmetCockpit(props: GourmetCockpitProps) {
   const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null, todayMealSpotlight = null, onAktiveWocheAnsehen } = props;
@@ -51,17 +57,18 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
         layer0HeightClass="h-[min(320px,44vh)] min-h-[260px]"
         headerMinHeightClass="min-h-[min(320px,44vh)]"
         headerBackground={
-          <div className="relative h-full w-full overflow-hidden rounded-b-[40px]">
+          <div className="relative h-full min-h-0 w-full overflow-hidden rounded-b-[40px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[60%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent"
+              className="pointer-events-none absolute inset-0 z-[1]"
+              style={HERO_BOTTOM_FADE_STYLE}
               aria-hidden
             />
-            <div className="relative z-10 flex h-full min-h-0 flex-col justify-end px-4 pb-6 pt-8 md:px-6 md:pb-8">
+            <div className="relative z-10 flex h-full min-h-0 flex-col justify-end px-4 pb-6 pt-0 md:px-6 md:pb-8">
               <h1
                 className="text-2xl font-bold tracking-tight text-white md:text-3xl"
                 style={heroTitleShadow}
@@ -72,9 +79,9 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               <button
                 type="button"
                 onClick={onVorschlagGenerieren}
-                className="mt-4 inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-900/30 transition-all hover:from-orange-600 hover:to-amber-600 sm:w-auto"
+                className="mt-4 inline-flex w-auto shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-orange-500/20 transition-all hover:from-orange-600 hover:to-amber-600"
               >
-                <Sparkles className="h-5 w-5 shrink-0" aria-hidden />
+                <Sparkles className="h-4 w-4 shrink-0 opacity-95" aria-hidden />
                 Vorschlag generieren
               </button>
             </div>
@@ -83,49 +90,49 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
         title={null}
         subtitle={null}
       >
-        <div className="mb-6 space-y-6 md:mb-8 md:space-y-8">
+        <div className="relative z-10 mb-6 space-y-6 md:mb-8 md:space-y-8">
           <section aria-labelledby="gourmet-quick-heading">
             <h2 id="gourmet-quick-heading" className="sr-only">
               Schnellzugriff
             </h2>
-            <div className="mt-0 grid grid-cols-2 gap-3 md:mx-auto md:mt-2 md:max-w-3xl md:gap-4">
-              <button type="button" onClick={() => onWochePlanen?.()} className={`${quickCardClass} cursor-pointer gap-3`}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-400/10 bg-orange-400/[0.08] md:h-11 md:w-11">
+            <div className="-mt-10 grid grid-cols-2 gap-3 md:-mt-12 md:mx-auto md:max-w-3xl md:gap-4">
+              <button type="button" onClick={() => onWochePlanen?.()} className={`${quickCardClass} cursor-pointer`}>
+                <div className="mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-400/10 bg-orange-400/[0.08] md:h-11 md:w-11">
                   <CalendarDays className="h-5 w-5 shrink-0 text-orange-400/70 md:h-[22px] md:w-[22px]" strokeWidth={1.5} aria-hidden />
                 </div>
                 <div className="w-full min-w-0 text-left">
                   <h3 className="line-clamp-2 text-base font-semibold leading-tight text-white/90">Woche planen</h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-white/40">Dein Essensplan</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-white/35">Dein Essensplan</p>
                 </div>
               </button>
 
-              <Link href="/tools/recipe?tab=my-recipes" className={`${quickCardClass} block cursor-pointer gap-3`}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-400/10 bg-violet-400/[0.08] md:h-11 md:w-11">
+              <Link href="/tools/recipe?tab=my-recipes" className={`${quickCardClass} block cursor-pointer`}>
+                <div className="mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-400/10 bg-violet-400/[0.08] md:h-11 md:w-11">
                   <BookHeart className="h-5 w-5 shrink-0 text-violet-400/70 md:h-[22px] md:w-[22px]" strokeWidth={1.5} aria-hidden />
                 </div>
                 <div className="w-full min-w-0 text-left">
                   <h3 className="line-clamp-2 text-base font-semibold leading-tight text-white/90">Sammlung</h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-white/40">Deine Favoriten</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-white/35">Deine Favoriten</p>
                 </div>
               </Link>
 
-              <button type="button" onClick={onMagicWunsch} className={`${quickCardClass} cursor-pointer gap-3`}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/10 bg-amber-400/[0.08] md:h-11 md:w-11">
+              <button type="button" onClick={onMagicWunsch} className={`${quickCardClass} cursor-pointer`}>
+                <div className="mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/10 bg-amber-400/[0.08] md:h-11 md:w-11">
                   <Sparkles className="h-5 w-5 shrink-0 text-amber-400/70 md:h-[22px] md:w-[22px]" strokeWidth={1.5} aria-hidden />
                 </div>
                 <div className="w-full min-w-0 text-left">
                   <h3 className="line-clamp-2 text-base font-semibold leading-tight text-white/90">Wunschgericht</h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-white/40">Tippe, worauf du Lust hast</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-white/35">Tippe, worauf du Lust hast</p>
                 </div>
               </button>
 
-              <Link href="/tools/shopping-list" className={`${quickCardClass} block cursor-pointer gap-3`}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-pink-400/10 bg-pink-400/[0.08] md:h-11 md:w-11">
+              <Link href="/tools/shopping-list" className={`${quickCardClass} block cursor-pointer`}>
+                <div className="mb-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-pink-400/10 bg-pink-400/[0.08] md:h-11 md:w-11">
                   <ShoppingBasket className="h-5 w-5 shrink-0 text-pink-400/70 md:h-[22px] md:w-[22px]" strokeWidth={1.5} aria-hidden />
                 </div>
                 <div className="w-full min-w-0 text-left">
                   <h3 className="line-clamp-2 text-base font-semibold leading-tight text-white/90">SmartCart</h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-white/40">Einkäufe organisieren</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-white/35">Einkäufe organisieren</p>
                 </div>
               </Link>
             </div>
@@ -141,7 +148,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                     onAktiveWocheAnsehen();
                   }
                 }}
-                className="group relative mt-6 mb-6 w-full cursor-pointer overflow-hidden rounded-2xl shadow-xl shadow-black/25 transition-transform hover:-translate-y-0.5"
+                className="group relative mt-6 mb-6 w-full cursor-pointer overflow-hidden rounded-2xl shadow-xl shadow-black/25 transition-transform hover:-translate-y-0.5 md:mt-8"
               >
                 <div className="relative aspect-video w-full min-h-[200px] md:min-h-[240px] md:h-[240px]">
                   {activeMealImageUrl ? (
