@@ -50,6 +50,18 @@ const testimonialData = [
   { text: "Kalender und Essensplan an einem Ort. Premium hat sich gelohnt, weniger Mental Load nach der Arbeit.", author: "Julia K.", role: "Zwei Kinder, Vollzeit" },
 ];
 
+/** Eine durchgehende Aurora über die volle Scroll-Höhe (absolute inset-0 am Page-Wrapper). */
+const PAGE_AURORA_BACKGROUND = `
+  radial-gradient(ellipse 130% 55% at 50% -5%, rgba(88, 42, 82, 0.28) 0%, transparent 42%),
+  radial-gradient(ellipse 70% 40% at 8% 22%, rgba(168, 85, 247, 0.09) 0%, transparent 48%),
+  radial-gradient(ellipse 65% 38% at 92% 28%, rgba(130, 70, 150, 0.1) 0%, transparent 46%),
+  radial-gradient(ellipse 90% 45% at 18% 58%, rgba(100, 55, 120, 0.08) 0%, transparent 50%),
+  radial-gradient(ellipse 85% 42% at 82% 62%, rgba(110, 60, 130, 0.09) 0%, transparent 48%),
+  radial-gradient(ellipse 110% 50% at 50% 88%, rgba(65, 32, 62, 0.16) 0%, transparent 48%),
+  radial-gradient(ellipse 95% 40% at 50% 102%, rgba(45, 22, 48, 0.12) 0%, transparent 45%),
+  linear-gradient(180deg, #181020 0%, #0f0914 22%, #0f0914 55%, #0b0710 100%)
+`;
+
 // --- ANIMATION CONFIG ---
 const fadeUp = (delay = 0, reducedMotion = false) => ({
   initial: reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 },
@@ -199,27 +211,18 @@ export default function LandingPage() {
   }), [prefersReducedMotion, mounted]);
 
   return (
-    <div className="min-h-screen bg-dark-bg font-sans text-white selection:bg-brand-pink/30 selection:text-white">
+    <div className="relative min-h-screen bg-dark-bg font-sans text-white selection:bg-brand-pink/30 selection:text-white">
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{ background: PAGE_AURORA_BACKGROUND }}
+        aria-hidden
+      />
+
       <Header />
 
-      <main>
-        {/* --- HERO: Aurora / mesh – NICHT mit -z-10 unter bg-dark-bg legen (wird vom soliden Section-Hintergrund verdeckt) --- */}
-        <section className="relative isolate flex min-h-[92vh] flex-col justify-center overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
-          <div
-            className="pointer-events-none absolute inset-0 z-0"
-            style={{
-              background: `
-                radial-gradient(circle at 30% 18%, rgba(168,85,247,0.22), transparent 58%),
-                radial-gradient(circle at 72% 28%, rgba(236,72,153,0.18), transparent 58%),
-                radial-gradient(circle at 50% 8%, rgba(249,115,22,0.14), transparent 48%),
-                radial-gradient(ellipse 130% 85% at 50% -15%, rgba(74,29,63,0.55) 0%, transparent 52%),
-                radial-gradient(ellipse 100% 70% at 50% 0%, rgba(120,50,100,0.2) 0%, transparent 42%),
-                linear-gradient(180deg, #1a0f22 0%, #0f0914 42%, #0a060e 100%)
-              `,
-            }}
-            aria-hidden
-          />
-
+      <main className="relative z-10">
+        {/* --- HERO: Inhalt über globaler Aurora; kein extra starker lokaler Glow --- */}
+        <section className="relative flex min-h-[92vh] flex-col justify-center overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
           <div className="relative z-10 mx-auto max-w-5xl px-4 text-center">
             <motion.h1
               {...fadeConfigs.title}
@@ -572,7 +575,7 @@ export default function LandingPage() {
       </main>
 
       {/* --- FOOTER --- */}
-      <footer className="border-t border-white/10 bg-dark-surface/40 py-12 backdrop-blur-xl">
+      <footer className="relative z-10 border-t border-white/10 bg-dark-surface/40 py-12 backdrop-blur-xl">
         <div className="container mx-auto flex flex-col items-center justify-between gap-6 px-4 md:flex-row">
           <div className="flex items-center gap-2">
              <div className="relative h-10 w-40">
