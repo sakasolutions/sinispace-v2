@@ -672,9 +672,9 @@
 
 /* Typography Upgrade */
 @layer base {
-  /* Plus Jakarta Sans für alle Überschriften */
+  /* Inter (Root-Layout); Landing-Hero kann weiter Plus Jakarta per inline style nutzen */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-plus-jakarta-sans), sans-serif;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
@@ -703,7 +703,7 @@
   
   /* Card Titles - Extra fett */
   [class*="card-title"], [class*="dashboard-card"] h3 {
-    font-family: var(--font-plus-jakarta-sans), sans-serif;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     font-weight: 700;
     letter-spacing: -0.02em;
   }

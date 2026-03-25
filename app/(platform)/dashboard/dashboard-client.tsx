@@ -25,6 +25,10 @@ import {
   FileImage,
   ChevronDown,
   ChevronRight,
+  Calendar,
+  MessageCircle,
+  User,
+  Flame,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
@@ -50,7 +54,38 @@ const TOOL_SUBTITLES: Record<string, string> = {
   social: 'LinkedIn & Social',
 };
 
-/** Tier-1: dezente Farbring-Icons (Dark / Glass) */
+/** Schnellzugriff: 28×28, Lucide, dezente Tint-Boxen */
+type ToolQuickVisual = {
+  Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  box: string;
+  iconClass: string;
+};
+
+const TOOL_QUICK_VISUAL: Record<string, ToolQuickVisual> = {
+  recipe: { Icon: ChefHat, box: 'border-orange-400/10 bg-orange-400/[0.08]', iconClass: 'text-orange-400/70' },
+  'shopping-list': { Icon: ShoppingCart, box: 'border-pink-400/10 bg-pink-400/[0.08]', iconClass: 'text-pink-400/70' },
+  invoice: { Icon: FileText, box: 'border-emerald-400/10 bg-emerald-400/[0.08]', iconClass: 'text-emerald-400/70' },
+  email: { Icon: Mail, box: 'border-violet-400/10 bg-violet-400/[0.08]', iconClass: 'text-violet-400/70' },
+  excel: { Icon: Table2, box: 'border-green-400/10 bg-green-400/[0.08]', iconClass: 'text-green-400/70' },
+  legal: { Icon: Scale, box: 'border-violet-400/10 bg-violet-400/[0.08]', iconClass: 'text-violet-400/70' },
+  'tough-msg': { Icon: MessageCircle, box: 'border-sky-400/10 bg-sky-400/[0.08]', iconClass: 'text-sky-400/70' },
+  summarize: { Icon: FileInput, box: 'border-amber-400/10 bg-amber-400/[0.08]', iconClass: 'text-amber-400/70' },
+  polish: { Icon: Pencil, box: 'border-teal-400/10 bg-teal-400/[0.08]', iconClass: 'text-teal-400/70' },
+  travel: { Icon: Plane, box: 'border-sky-400/10 bg-sky-400/[0.08]', iconClass: 'text-sky-400/70' },
+  pdf: { Icon: FileImage, box: 'border-red-400/10 bg-red-400/[0.08]', iconClass: 'text-red-400/70' },
+  translate: { Icon: Languages, box: 'border-indigo-400/10 bg-indigo-400/[0.08]', iconClass: 'text-indigo-400/70' },
+  fitness: { Icon: Dumbbell, box: 'border-rose-400/10 bg-rose-400/[0.08]', iconClass: 'text-rose-400/70' },
+  code: { Icon: Terminal, box: 'border-white/10 bg-white/[0.06]', iconClass: 'text-white/60' },
+  social: { Icon: Share2, box: 'border-pink-400/10 bg-pink-400/[0.08]', iconClass: 'text-pink-400/70' },
+};
+
+const TOOL_QUICK_FALLBACK: ToolQuickVisual = {
+  Icon: Flame,
+  box: 'border-white/10 bg-white/[0.06]',
+  iconClass: 'text-white/60',
+};
+
+/** Tier-1: dezente Farbring-Icons (Dark / Glass) — Akkordeon „Alle Tools“ */
 const TOOL_MINIMAL_ICON: Record<string, string> = {
   recipe: 'bg-orange-500/15 border-orange-500/35 text-orange-300',
   'shopping-list': 'bg-rose-500/15 border-rose-500/35 text-rose-300',
@@ -97,7 +132,7 @@ function mealLabelFromTimeHHmm(time: string): string {
   const h = parseInt(normalizeHHmm(time).slice(0, 2), 10) || 12;
   if (h < 11) return 'Frühstück';
   if (h < 15) return 'Mittagessen';
-  if (h < 17) return 'Mittagessen';
+  if (h < 17) return 'Snack';
   return 'Abendessen';
 }
 
@@ -106,6 +141,36 @@ function firstMealEventToday(events: CalendarEventJson[], todayStr: string): Cal
     .filter((e) => e.date === todayStr && isMealEvent(e))
     .sort((a, b) => normalizeHHmm(a.time).localeCompare(normalizeHHmm(b.time)));
   return meals[0] ?? null;
+}
+
+function getNowHHmmBerlin(): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Berlin',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date());
+  const h = parts.find((p) => p.type === 'hour')?.value ?? '00';
+  const m = parts.find((p) => p.type === 'minute')?.value ?? '00';
+  return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+}
+
+function futureNonMealEventsToday(
+  events: CalendarEventJson[],
+  todayStr: string,
+  nowHHmm: string
+): CalendarEventJson[] {
+  return events
+    .filter((e) => e.date === todayStr && !isMealEvent(e))
+    .filter((e) => normalizeHHmm(e.time) >= nowHHmm)
+    .sort((a, b) => normalizeHHmm(a.time).localeCompare(normalizeHHmm(b.time)));
+}
+
+function initialsFromDisplayName(name: string): string {
+  const p = name.trim().split(/\s+/).filter(Boolean);
+  if (p.length === 0) return '';
+  if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
+  return (p[0][0] + p[1][0]).toUpperCase();
 }
 
 /** Live-Badges für Top-4 (CookIQ + SmartCart kommen aus DB-Props) */
@@ -139,25 +204,17 @@ function buildDashboardSubtitle(opts: {
   firstMealTime: string | null;
 }): string {
   const meal = opts.todaysMealTitle?.trim();
+  const slot = opts.firstMealTime ? mealLabelFromTimeHHmm(opts.firstMealTime) : '';
+
   if (meal && opts.openCartItemsCount > 0) {
-    const slot = opts.firstMealTime ? mealLabelFromTimeHHmm(opts.firstMealTime) : '';
-    const slotPhrase =
-      slot === 'Abendessen'
-        ? 'heute Abend'
-        : slot === 'Mittagessen'
-          ? 'heute Mittag'
-          : slot === 'Frühstück'
-            ? 'heute Morgen'
-            : slot === 'Snack'
-              ? 'heute Nachmittag'
-              : 'heute';
-    return `${meal} ${slotPhrase}, ${opts.openCartItemsCount} Artikel fehlen noch`;
-  }
-  if (meal && opts.openCartItemsCount === 0) {
-    return `${meal} steht auf dem Plan`;
+    const mahlzeit = slot || 'Mahlzeit';
+    return `${mahlzeit} heute — ${opts.openCartItemsCount} Artikel auf der Liste`;
   }
   if (!meal && opts.openCartItemsCount > 0) {
     return `${opts.openCartItemsCount} Artikel auf der Einkaufsliste`;
+  }
+  if (meal && opts.openCartItemsCount === 0) {
+    return `${meal} steht auf dem Plan`;
   }
   return 'Was steht heute an?';
 }
@@ -560,7 +617,6 @@ export default function DashboardClient({
   }, [usageStats]);
 
   const sunriseGreeting = getSunriseGreetingBase();
-  const greetingText = displayName ? `${sunriseGreeting.base}, ${displayName}!` : `${sunriseGreeting.base}!`;
 
   const todayStr = getTodayDateStringBerlin();
   const firstMealForSubtitle = firstMealEventToday(initialCalendarEvents, todayStr);
@@ -569,6 +625,14 @@ export default function DashboardClient({
     openCartItemsCount,
     firstMealTime: firstMealForSubtitle?.time ?? null,
   });
+
+  const nextApptForChip =
+    futureNonMealEventsToday(initialCalendarEvents, todayStr, getNowHHmmBerlin())[0] ?? null;
+  const mealTitleForChip =
+    todaysMealTitle?.trim() || firstMealForSubtitle?.title?.trim() || null;
+  const chipMealLabel =
+    mealTitleForChip && mealTitleForChip.length > 28 ? `${mealTitleForChip.slice(0, 26)}…` : mealTitleForChip;
+  const initials = initialsFromDisplayName(displayName);
 
   const quickAccessTools = useMemo(
     () => sortedTools.filter((t) => t.available).slice(0, QUICK_ACCESS_COUNT),
@@ -613,19 +677,65 @@ export default function DashboardClient({
       <div className="relative z-10">
       <DashboardShell
         headerVariant="default"
+        layer0HeightClass="h-0"
+        headerMinHeightClass="min-h-0"
         headerBackground={<div className="h-full w-full bg-transparent" aria-hidden />}
         title={
-          <h1
-            className="mt-0 flex flex-wrap items-center gap-3 bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent md:text-4xl"
-            style={{ letterSpacing: '-0.3px' }}
-          >
-            <span>{greetingText}</span>
-          </h1>
+          <div className="relative w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 md:p-6">
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background: 'linear-gradient(135deg, rgba(139,92,246,0.05) 0%, transparent 60%)',
+              }}
+              aria-hidden
+            />
+            <div className="relative min-w-0">
+              <p className="text-sm text-white/35">{sunriseGreeting.base}</p>
+              <p className="text-2xl font-semibold tracking-tight text-white">
+                {(displayName || '').trim() || 'du'}
+              </p>
+              <p className="mt-1 text-sm text-white/45">{contextualSubtitle}</p>
+              <div className="mt-3 flex flex-wrap gap-2" role="list">
+                <span
+                  role="listitem"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-violet-500/[0.12] bg-violet-500/10 px-2.5 py-1 text-xs text-violet-400/80"
+                >
+                  <ChefHat className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
+                  {chipMealLabel ?? 'Kein Plan'}
+                </span>
+                <span
+                  role="listitem"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-orange-400/[0.12] bg-orange-400/10 px-2.5 py-1 text-xs text-orange-400/80"
+                >
+                  <ShoppingCart className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
+                  {openCartItemsCount > 0 ? `${openCartItemsCount} offen` : 'Erledigt'}
+                </span>
+                <span
+                  role="listitem"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/10 bg-emerald-400/[0.08] px-2.5 py-1 text-xs text-emerald-400/80"
+                >
+                  <Calendar className="h-3.5 w-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
+                  {nextApptForChip ? normalizeHHmm(nextApptForChip.time) : 'Frei'}
+                </span>
+              </div>
+            </div>
+          </div>
         }
-        subtitle={
-          <p className="mt-1 text-sm font-normal text-white/55 sm:text-base" style={{ letterSpacing: '0.02em' }}>
-            {contextualSubtitle}
-          </p>
+        subtitle={null}
+        headerActionsRight={
+          <div
+            className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] md:flex"
+            style={{
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(236,72,153,0.1) 100%)',
+            }}
+            aria-hidden
+          >
+            {initials ? (
+              <span className="text-xs font-semibold text-white/70">{initials}</span>
+            ) : (
+              <User className="h-[18px] w-[18px] text-white/50" strokeWidth={1.5} />
+            )}
+          </div>
         }
       >
         <div className="space-y-8 md:space-y-10">
@@ -639,14 +749,17 @@ export default function DashboardClient({
           <section aria-labelledby="quick-heading">
             <h2
               id="quick-heading"
-              className="mb-3 text-xs font-medium tracking-wide text-white/25"
+              className="mb-2 text-xs font-medium tracking-wide text-white/20"
             >
               Deine Tools
             </h2>
-            <div className={cn('overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl')}>
+            <div className="overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.02]">
               {quickAccessTools.map((tool, index) => {
-                const Icon = tool.icon;
-                const iconRing = TOOL_MINIMAL_ICON[tool.id] ?? TOOL_MINIMAL_ICON_FALLBACK;
+                const visual = TOOL_QUICK_VISUAL[tool.id] ?? {
+                  ...TOOL_QUICK_FALLBACK,
+                  Icon: tool.icon,
+                };
+                const QIcon = visual.Icon;
                 const ctx = resolveQuickContext(tool.id, {
                   todaysMealTitle,
                   openCartItemsCount,
@@ -669,29 +782,29 @@ export default function DashboardClient({
                       );
                     }}
                     className={cn(
-                      'flex items-center justify-between gap-3 px-4 py-2.5 transition-colors hover:bg-white/5',
-                      !isLast && 'border-b border-white/5'
+                      'flex items-center justify-between gap-3 px-3.5 py-3 transition-colors hover:bg-white/[0.03]',
+                      !isLast && 'border-b border-white/[0.03]'
                     )}
                   >
-                    <span className="flex min-w-0 items-center gap-3">
-                      <span
-                        className={cn(
-                          'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border',
-                          iconRing
-                        )}
-                      >
-                        {createElement(Icon, {
-                          className: 'h-[18px] w-[18px] shrink-0',
-                          strokeWidth: 2,
-                          'aria-hidden': true,
-                        } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
-                      </span>
-                      <span className="truncate text-sm font-medium text-white">{tool.title}</span>
+                    <span
+                      className={cn(
+                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border',
+                        visual.box
+                      )}
+                    >
+                      {createElement(QIcon, {
+                        className: cn('h-[14px] w-[14px] shrink-0', visual.iconClass),
+                        strokeWidth: 1.5,
+                        'aria-hidden': true,
+                      } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/80">
+                      {tool.title}
                     </span>
                     {ctx ? (
-                      <span className="shrink-0 truncate text-xs text-white/40">{ctx}</span>
+                      <span className="shrink-0 truncate text-xs text-white/25">{ctx}</span>
                     ) : (
-                      <ChevronRight className="h-4 w-4 shrink-0 text-white/45" aria-hidden />
+                      <ChevronRight className="h-4 w-4 shrink-0 text-white/25" aria-hidden />
                     )}
                   </Link>
                 );

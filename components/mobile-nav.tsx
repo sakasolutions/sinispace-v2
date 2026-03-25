@@ -18,11 +18,14 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed left-1/2 z-50 block w-[90%] max-w-[400px] -translate-x-1/2 md:hidden"
-      style={{ bottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.05] bg-black/50 backdrop-blur-xl md:hidden"
+      style={{
+        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
+        paddingTop: '0.5rem',
+      }}
       aria-label="Hauptnavigation"
     >
-      <div className="flex h-auto items-center justify-between rounded-full border border-white/10 bg-black/40 px-4 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+      <div className="mx-auto flex max-w-lg items-stretch justify-around px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.active;
@@ -40,27 +43,34 @@ export function MobileNav() {
                 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/60'
               )}
             >
-              {isActive && (
-                <span
-                  className="absolute bottom-0.5 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-pink to-brand-orange"
-                  aria-hidden
-                />
-              )}
               <Icon
                 className={cn(
-                  'relative z-10 h-6 w-6 shrink-0 transition-colors duration-200',
-                  isActive ? 'text-white' : 'text-white/40 group-hover:text-white/70'
+                  'relative z-10 h-5 w-5 shrink-0 transition-colors duration-200',
+                  isActive ? 'text-white/90' : 'text-white/30 group-hover:text-white/50'
                 )}
-                strokeWidth={2}
+                strokeWidth={1.5}
+                aria-hidden
               />
               <span
                 className={cn(
                   'relative z-10 max-w-full truncate whitespace-nowrap text-[10px] font-medium transition-colors duration-200',
-                  isActive ? 'text-white' : 'text-white/40 group-hover:text-white/70'
+                  isActive ? 'text-white/90' : 'text-white/30 group-hover:text-white/45'
                 )}
               >
                 {item.label}
               </span>
+              <span
+                className={cn(
+                  'mt-0.5 h-1 w-1 shrink-0 rounded-full',
+                  isActive ? 'opacity-100' : 'opacity-0'
+                )}
+                style={
+                  isActive
+                    ? { background: 'linear-gradient(90deg, #ec4899, #f97316)' }
+                    : undefined
+                }
+                aria-hidden
+              />
             </Link>
           );
         })}

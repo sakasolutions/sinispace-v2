@@ -1,5 +1,12 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Sinispace',
@@ -33,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className="h-full text-white"
+      className={`h-full text-white ${inter.variable}`}
       style={
         {
           margin: 0,
@@ -50,7 +57,7 @@ export default function RootLayout({
       }
     >
       <body
-        className="min-h-[100dvh] font-sans antialiased tracking-tight text-white"
+        className={`min-h-[100dvh] font-sans antialiased tracking-tight text-white ${inter.className}`}
         style={
           {
             WebkitTapHighlightColor: 'transparent',

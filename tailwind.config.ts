@@ -51,7 +51,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-plus-jakarta-sans)', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-inter)', ...defaultTheme.fontFamily.sans],
         merriweather: ['Merriweather', 'Georgia', 'Times New Roman', 'serif'],
       },
       backgroundImage: {
