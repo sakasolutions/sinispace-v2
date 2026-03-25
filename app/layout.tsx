@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className="h-full bg-white" style={{ 
+    <html lang="de" className="h-full bg-[#FAFAFC]" style={{ 
       margin: 0, 
       padding: 0,
       height: '100%',
@@ -46,7 +46,7 @@ export default function RootLayout({
       WebkitTouchCallout: 'none',
       scrollBehavior: 'smooth',
     } as React.CSSProperties}>
-      <body className="font-sans bg-white text-gray-900 antialiased tracking-tight relative" style={{ 
+      <body className="relative font-sans bg-[#FAFAFC] text-gray-900 antialiased tracking-tight" style={{ 
         WebkitTapHighlightColor: 'transparent',
         WebkitTouchCallout: 'none',
         WebkitOverflowScrolling: 'touch',
@@ -62,9 +62,9 @@ export default function RootLayout({
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
       } as React.CSSProperties}>
-        {/* Globaler Hintergrund: oben dezent warm, unten zwingend weiß (to-white killt beigen Balken) */}
-        <div 
-          className="fixed inset-0 z-[-3] h-full w-full pointer-events-none bg-gradient-to-b from-rose-50 via-white to-white"
+        {/* Tier-1 Canvas: einheitliches Off-White – keine weißen Lücken unter kurzem Content */}
+        <div
+          className="pointer-events-none fixed inset-0 z-[-3] h-full min-h-[100dvh] w-full bg-[#FAFAFC]"
           aria-hidden="true"
         />
         

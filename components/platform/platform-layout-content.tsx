@@ -102,7 +102,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-orange-300/20 blur-[120px] hidden md:block" />
       </div>
       {/* Mobile: fester weißer Streifen unten (Safe-Area), deckt Rest ab */}
-      <div className="fixed bottom-0 left-0 right-0 h-[env(safe-area-inset-bottom)] bg-white -z-[1] pointer-events-none md:hidden" aria-hidden />
+      <div className="pointer-events-none fixed bottom-0 left-0 right-0 -z-[1] h-[env(safe-area-inset-bottom)] bg-[#FAFAFC] md:hidden" aria-hidden />
 
       {/* SIDEBAR (Desktop) – Crystal Glass über dem Ambient */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 md:block z-20 bg-white/60 backdrop-blur-xl border-r border-white/40">
@@ -140,7 +140,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
       </aside>
 
       {/* MAIN CONTENT – bg-white volle Breite/Höhe, damit keine Ambient-Blobs (Lila/Rosa) durchscheinen */}
-      <main className="relative z-10 flex-1 md:ml-64 flex flex-col overflow-hidden bg-white" style={{ height: '100%', maxHeight: '100dvh', overflowY: 'hidden', overflowX: 'hidden' } as React.CSSProperties}>
+      <main className="relative z-10 flex flex-1 flex-col overflow-hidden bg-[#FAFAFC] md:ml-64" style={{ height: '100%', maxHeight: '100dvh', overflowY: 'hidden', overflowX: 'hidden' } as React.CSSProperties}>
         {/* Mobile Header - AUSGEBLENDET (ersetzt durch Bottom Nav) */}
         {/* <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl px-4 md:hidden z-10">
           ...
@@ -154,14 +154,14 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         {/* Children Container: Chat-Seite nutzt h-full direkt, andere Seiten bekommen Padding und können scrollen */}
         {/* MOBILE: More breathing room um bottom navigation + Safe Area */}
         {/* WICHTIG: data-no-padding Seiten (Chat) haben eigenen Scroll-Container, hier NICHT scrollbar! */}
-        <div 
-          className="flex-1 overflow-hidden [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding]):not([data-header-full-bleed])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-32 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:md:pt-0 [&>*:not([data-no-padding])]:scrollbar-hide" 
+        <div
+          className="flex-1 overflow-hidden [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding]):not([data-header-full-bleed])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-36 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:md:pt-0 [&>*:not([data-no-padding])]:scrollbar-hide"
           data-scroll-container
           style={{
             minHeight: 0,
           } as React.CSSProperties}
         >
-          <div className="h-full w-full bg-white [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8 ">
+          <div className="h-full min-h-[100dvh] w-full bg-[#FAFAFC] [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
             {children}
           </div>
         </div>

@@ -480,7 +480,7 @@ export default function DashboardClient({
   return (
     <div
       ref={containerRef}
-      className="relative isolate min-h-screen w-full overflow-x-hidden bg-[#FAFAFC]"
+      className="relative isolate min-h-[100dvh] w-full overflow-x-hidden bg-[#FAFAFC]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
