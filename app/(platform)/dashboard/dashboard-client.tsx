@@ -664,13 +664,17 @@ export default function DashboardClient({
   const sunriseGreeting = getSunriseGreetingBase();
 
   const formattedDate = useMemo(() => {
-    const raw = new Date().toLocaleDateString('de-DE', {
-      weekday: 'short',
+    const d = new Date();
+    const tz = 'Europe/Berlin';
+    const weekday = new Intl.DateTimeFormat('de-DE', { weekday: 'short', timeZone: tz })
+      .format(d)
+      .replace(/\.$/, '');
+    const dayMonth = new Intl.DateTimeFormat('de-DE', {
       day: 'numeric',
       month: 'long',
-      timeZone: 'Europe/Berlin',
-    });
-    return raw.replace(/^(\w+)\./, '$1');
+      timeZone: tz,
+    }).format(d);
+    return `${weekday}, ${dayMonth}`;
   }, []);
 
   const top4Tools = useMemo(() => sortedTools.slice(0, 4), [sortedTools]);
@@ -717,16 +721,24 @@ export default function DashboardClient({
         headerMinHeightClass="min-h-0"
         headerBackground={<div className="h-full w-full bg-transparent" aria-hidden />}
         title={
-          <div className="mb-8 flex items-baseline justify-between md:mb-12 lg:mb-16">
-            <div className="min-w-0 leading-tight">
-              <p className="text-3xl font-extrabold tracking-tight text-white">
-                {sunriseGreeting.base}
-                {(displayName || '').trim() ? (
-                  <span className="font-extrabold">, {(displayName || '').trim()}</span>
-                ) : null}
+          <div className="mb-8 flex items-end justify-between px-2 md:px-4">
+            <div className="min-w-0 flex-1">
+              <p className="mb-1 text-sm font-medium uppercase tracking-wider text-brand-orange">
+                {formattedDate}
               </p>
+              <h1 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+                {sunriseGreeting.base}
+                {(displayName || '').trim() ? `, ${(displayName || '').trim()}` : null}
+              </h1>
             </div>
-            <span className="shrink-0 text-base font-normal text-slate-400">{formattedDate}</span>
+            <div
+              className="ml-3 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/[0.1] bg-white/[0.05] shadow-inner backdrop-blur-md"
+              aria-hidden
+            >
+              <span className="font-semibold text-white/50">
+                {(displayName || '').trim().charAt(0).toUpperCase() || 'A'}
+              </span>
+            </div>
           </div>
         }
         subtitle={null}
