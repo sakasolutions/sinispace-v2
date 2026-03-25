@@ -48,11 +48,11 @@ const config: Config = {
           orange: 'hsl(var(--sini-orange) / <alpha-value>)',
           purple: 'hsl(var(--sini-purple) / <alpha-value>)',
         },
-        /** Immersive Dark (Landing + global foundation) */
+        /** SiniSpace Aurora – warm plum foundation */
         dark: {
-          bg: '#0A0510',
-          surface: 'rgba(255, 255, 255, 0.05)',
-          border: 'rgba(255, 255, 255, 0.1)',
+          bg: '#0F0914',
+          surface: 'rgba(255, 255, 255, 0.03)',
+          border: 'rgba(255, 255, 255, 0.08)',
         },
         brand: {
           pink: '#EC4899',

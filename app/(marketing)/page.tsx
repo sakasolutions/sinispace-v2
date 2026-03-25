@@ -203,36 +203,39 @@ export default function LandingPage() {
       <Header />
 
       <main>
-        {/* --- HERO: Dribbble Dark / immersive plum --- */}
+        {/* --- HERO: SiniSpace Aurora --- */}
         <section className="relative flex min-h-[92vh] flex-col justify-center overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
+          {/* Aurora mesh: weiche, warme Brand-Glows */}
           <div
-            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-gradient-to-br from-brand-purple/20 via-brand-pink/20 to-brand-orange/20 blur-[120px]"
+            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[600px] w-[80%] max-w-[800px] -translate-x-1/2 rounded-full bg-gradient-to-br from-brand-purple/15 via-brand-pink/15 to-brand-orange/15 blur-[120px]"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -bottom-32 left-0 -z-10 h-[420px] w-[55%] max-w-[520px] rounded-full bg-gradient-to-tr from-brand-orange/10 via-brand-pink/8 to-brand-purple/12 blur-[100px]"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -right-20 top-1/3 -z-10 h-[320px] w-[320px] rounded-full bg-gradient-to-bl from-brand-purple/12 to-brand-pink/8 blur-[90px]"
             aria-hidden
           />
 
           <div className="relative z-10 mx-auto max-w-5xl px-4 text-center">
             <motion.h1
               {...fadeConfigs.title}
-              className="text-5xl font-bold tracking-tight text-white md:text-7xl"
+              className="text-center text-5xl font-extrabold leading-tight tracking-tight text-white md:text-7xl"
               style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
             >
-              Mehr Zeit für dich.
-              <br />
-              <span className="text-white">Weniger Chaos im Alltag.</span>
+              SiniSpace macht den Alltag lecker.
             </motion.h1>
 
-            <motion.p
-              {...fadeConfigs.sub}
-              className="mx-auto mt-8 max-w-2xl text-center text-lg leading-relaxed text-white/60 md:text-xl"
-            >
-              SiniSpace nimmt dir das Denken ab. Ob automatische Wochenpläne, smarte Einkaufslisten oder Terminplanung – nutze
-              vorgefertigte KI-Tools mit einem Klick. Ganz ohne komplexes Prompting.
+            <motion.p {...fadeConfigs.sub} className="mx-auto mt-8 max-w-2xl text-center text-lg text-white/60">
+              Wochenplan, Einkauf und Termine – vorgefertigte KI-Helfer ohne Prompt-Stress. Mehr Ruhe, weniger Koordination.
             </motion.p>
 
             <motion.div {...fadeConfigs.btn} className="mx-auto mt-12 flex max-w-xl flex-col items-center justify-center gap-4 md:flex-row">
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand-pink to-brand-orange px-8 py-4 text-lg font-bold text-white shadow-[0_0_30px_rgba(236,72,153,0.4)] transition-transform hover:scale-105"
+                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-brand-pink to-brand-orange px-8 py-4 text-lg font-bold text-white shadow-[0_8px_32px_rgba(236,72,153,0.3)] transition-transform hover:scale-105"
               >
                 Kostenlos starten
               </Link>
@@ -251,11 +254,11 @@ export default function LandingPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mx-auto mt-16 max-w-lg"
             >
-              <div className="rounded-[32px] border border-dark-border bg-dark-surface p-8 text-left shadow-[0_0_60px_rgba(168,85,247,0.12)] backdrop-blur-xl">
+              <div className="rounded-[32px] border border-dark-border bg-dark-surface p-8 text-left shadow-2xl backdrop-blur-xl">
                 <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Vorschau</p>
                 <p className="mt-2 text-lg font-semibold text-white">Glassmorphism Surface</p>
                 <p className="mt-3 text-sm leading-relaxed text-white/60">
-                  So sehen Karten & Panels in der neuen SiniSpace-Oberfläche aus – weiche Kanten, Tiefe, Neon-Akzente.
+                  So wirken Karten & Panels in der neuen Oberfläche – weiche Kanten, Tiefe, sanfte Aurora im Hintergrund.
                 </p>
                 <div className="mt-6 flex gap-2">
                   <span className="h-2 flex-1 rounded-full bg-gradient-to-r from-brand-pink/60 to-brand-orange/60" />

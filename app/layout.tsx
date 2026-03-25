@@ -22,7 +22,7 @@ export const viewport: Viewport = {
   userScalable: false, // App-feeling: kein Zoom
   viewportFit: 'cover', // iPhone notches
   height: 'device-height', // Full coverage
-  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#0a0510' }, { media: '(prefers-color-scheme: dark)', color: '#0a0510' }],
+  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#0f0914' }, { media: '(prefers-color-scheme: dark)', color: '#0f0914' }],
 };
 
 export default function RootLayout({
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className="h-full bg-dark-bg text-white"
+      className="h-full text-white"
       style={
         {
           margin: 0,
@@ -50,7 +50,7 @@ export default function RootLayout({
       }
     >
       <body
-        className="min-h-[100dvh] bg-dark-bg font-sans antialiased tracking-tight text-white"
+        className="min-h-[100dvh] font-sans antialiased tracking-tight text-white"
         style={
           {
             WebkitTapHighlightColor: 'transparent',

@@ -19,9 +19,9 @@
     --font-plus-jakarta-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
     --font-inter: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
     --font-merriweather: 'Merriweather', Georgia, 'Times New Roman', serif;
-    /** Canvas ≈ #0A0510 – Tailwind bg-canvas / konsistent mit dark-bg */
-    --app-canvas: 270 52% 4%;
-    --app-surface: 270 40% 12%;
+    /** Canvas ≈ #0F0914 – warm plum, konsistent mit dark-bg / bg-canvas */
+    --app-canvas: 275 38% 6%;
+    --app-surface: 275 32% 14%;
     --sini-pink: 326 100% 50%;
     --sini-orange: 24 100% 50%;
     --sini-purple: 271 91% 65%;
@@ -57,7 +57,7 @@
   }
   
   html {
-    background-color: #0a0510;
+    background-color: #0f0914;
     color-scheme: dark;
     /* Full Coverage */
     height: 100%;
@@ -83,7 +83,7 @@
   }
   
   body {
-    background-color: #0a0510;
+    background-color: #0f0914;
     color: #ffffff;
     min-height: 100dvh;
     overflow-x: hidden;
