@@ -117,8 +117,17 @@ const ZONE_CARD_GLOW =
 const MEAL_CARD =
   `group flex min-h-[140px] cursor-pointer flex-col justify-between rounded-2xl border border-white/[0.06] bg-white/[0.025] p-5 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:min-h-[180px] md:p-6 ${ZONE_CARD_GLOW}`;
 
-const SHOP_CARD =
-  `group flex cursor-pointer flex-col rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 ${ZONE_CARD_GLOW}`;
+/** Einkauf + Kalender/Freier Abend — einheitliches Glas */
+const SECONDARY_ZONE_CARD =
+  'group rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40';
+
+const SHOP_CARD = `flex cursor-pointer flex-col ${SECONDARY_ZONE_CARD} ${ZONE_CARD_GLOW}`;
+
+const SHOP_ITEM_PILL =
+  'inline-flex items-center rounded-full border border-white/[0.05] bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-white/80 shadow-sm';
+
+const SHOP_ITEM_PILL_BRAND =
+  'inline-flex items-center rounded-full border border-brand-pink/20 bg-brand-pink/10 px-3 py-1.5 text-xs font-medium text-brand-pink shadow-sm';
 
 /** Hero: „Was kochst du heute?“ — stärkere Elevation & Gradient */
 const HERO_EMPTY_MEAL_CARD =
@@ -305,19 +314,14 @@ export function TodayZoneCards({
                 </div>
               </div>
               {showPills ? (
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-2">
                   {normalizedPills.slice(0, 3).map((label, idx) => (
-                    <span
-                      key={`${idx}-${label}`}
-                      className="rounded-md bg-white/[0.05] px-2 py-0.5 text-[11px] text-white/50"
-                    >
+                    <span key={`${idx}-${label}`} className={SHOP_ITEM_PILL}>
                       {label}
                     </span>
                   ))}
                   {normalizedPills.length > 3 ? (
-                    <span className="rounded-md bg-white/[0.05] px-2 py-0.5 text-[11px] text-white/50">
-                      +{normalizedPills.length - 3}
-                    </span>
+                    <span className={SHOP_ITEM_PILL_BRAND}>+{normalizedPills.length - 3}</span>
                   ) : null}
                 </div>
               ) : (
@@ -335,7 +339,8 @@ export function TodayZoneCards({
           href="/calendar"
           onClick={() => triggerHaptic('light')}
           className={cn(
-            'col-span-1 flex min-h-0 cursor-pointer flex-col justify-between gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:row-start-2 md:col-start-2 md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3.5',
+            'col-span-1 flex min-h-0 cursor-pointer flex-col justify-between gap-2 md:row-start-2 md:col-start-2 md:flex-row md:items-center md:justify-between md:gap-3',
+            SECONDARY_ZONE_CARD,
             ZONE_CARD_GLOW
           )}
         >
@@ -354,7 +359,9 @@ export function TodayZoneCards({
                 </div>
               </div>
               {moreAppointments > 0 ? (
-                <span className="shrink-0 self-end text-[11px] text-white/20 md:self-auto">+{moreAppointments}</span>
+                <span className={cn(SHOP_ITEM_PILL_BRAND, 'shrink-0 self-end md:self-auto')}>
+                  +{moreAppointments}
+                </span>
               ) : null}
             </>
           ) : (

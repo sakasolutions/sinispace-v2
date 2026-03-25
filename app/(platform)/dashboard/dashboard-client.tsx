@@ -744,6 +744,69 @@ export default function DashboardClient({
         subtitle={null}
       >
         <div>
+          {/* Wochen-Kalender — UI-Platzhalter (statisch, keine Logik) */}
+          <div className="scrollbar-hide mb-8 w-full overflow-x-auto">
+            <div className="flex min-w-[300px] items-center justify-between gap-2 px-1">
+              <div className="group flex cursor-pointer flex-col items-center gap-2">
+                <span className="text-xs font-medium text-white/40 transition-colors group-hover:text-white/70">
+                  Mo
+                </span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white/60 transition-colors group-hover:bg-white/[0.05]">
+                  11
+                </div>
+              </div>
+              <div className="group flex cursor-pointer flex-col items-center gap-2">
+                <span className="text-xs font-medium text-white/40 transition-colors group-hover:text-white/70">
+                  Di
+                </span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white/60 transition-colors group-hover:bg-white/[0.05]">
+                  12
+                </div>
+              </div>
+              <div className="flex cursor-pointer flex-col items-center gap-2" aria-current="date">
+                <span className="text-xs font-bold text-white">Mi</span>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-brand-orange/30 bg-brand-orange/10 text-sm font-bold text-brand-orange shadow-[0_0_15px_rgba(249,115,22,0.2)]">
+                    13
+                  </div>
+                  <div className="h-1 w-1 rounded-full bg-brand-orange" aria-hidden />
+                </div>
+              </div>
+              <div className="group flex cursor-pointer flex-col items-center gap-2">
+                <span className="text-xs font-medium text-white/40 transition-colors group-hover:text-white/70">
+                  Do
+                </span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white/60 transition-colors group-hover:bg-white/[0.05]">
+                  14
+                </div>
+              </div>
+              <div className="group flex cursor-pointer flex-col items-center gap-2">
+                <span className="text-xs font-medium text-white/40 transition-colors group-hover:text-white/70">
+                  Fr
+                </span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white/60 transition-colors group-hover:bg-white/[0.05]">
+                  15
+                </div>
+              </div>
+              <div className="group flex cursor-pointer flex-col items-center gap-2">
+                <span className="text-xs font-medium text-white/40 transition-colors group-hover:text-white/70">
+                  Sa
+                </span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white/60 transition-colors group-hover:bg-white/[0.05]">
+                  16
+                </div>
+              </div>
+              <div className="group flex cursor-pointer flex-col items-center gap-2">
+                <span className="text-xs font-medium text-white/40 transition-colors group-hover:text-white/70">
+                  So
+                </span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white/60 transition-colors group-hover:bg-white/[0.05]">
+                  17
+                </div>
+              </div>
+            </div>
+          </div>
+
           <TodayZoneCards
             todaysMealTitle={todaysMealTitle}
             openCartItemsCount={openCartItemsCount}
@@ -754,7 +817,7 @@ export default function DashboardClient({
           <section className="mb-5" aria-labelledby="top-tools-heading">
             <h2
               id="top-tools-heading"
-              className="mb-2.5 text-[11px] font-medium text-white/15"
+              className="mb-4 ml-2 mt-10 text-xs font-bold uppercase tracking-[0.2em] text-white/40 md:mt-12"
             >
               Deine Tools
             </h2>
