@@ -936,7 +936,7 @@ export default function RecipePage() {
                     className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/35 via-transparent to-transparent"
                     aria-hidden
                   />
-                </div>
+              </div>
               ) : (
                 <div className="relative h-full w-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
                   <div className="absolute inset-x-0 bottom-0 z-0 h-[60%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent" aria-hidden />
@@ -969,8 +969,8 @@ export default function RecipePage() {
                     className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1 mt-0 drop-shadow-md"
                     style={{ letterSpacing: '-0.3px' }}
                   >
-                    {activeTab === 'my-recipes' ? 'Meine Sammlung' : 'Rezept Generator'}
-                  </h1>
+                  {activeTab === 'my-recipes' ? 'Meine Sammlung' : 'Rezept Generator'}
+                </h1>
                 )}
               </>
             }
