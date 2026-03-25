@@ -18,8 +18,12 @@
     --font-plus-jakarta-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
     --font-inter: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
     --font-merriweather: 'Merriweather', Georgia, 'Times New Roman', serif;
-    /** Tier-1 Canvas: warmes Off-White (kein reines #FFF als Fläche) */
-    --app-canvas: #fcfbfa;
+    /** Tier-1 semantische Flächen (HSL-Komponenten für hsl(var(--*)) / Tailwind) */
+    --app-canvas: 250 33% 99%;
+    --app-surface: 0 0% 100%;
+    --sini-pink: 326 100% 50%;
+    --sini-orange: 24 100% 50%;
+    --sini-purple: 271 91% 65%;
   }
 }
 
@@ -52,7 +56,7 @@
   }
   
   html {
-    background: var(--app-canvas);
+    background-color: hsl(var(--app-canvas));
     /* Full Coverage */
     height: 100%;
     min-height: 100dvh;
@@ -77,11 +81,11 @@
   }
   
   body {
-    background: var(--app-canvas);
-    color: rgb(15 23 42); /* slate-900 */
+    background-color: hsl(var(--app-canvas));
+    color: #0f172a;
+    min-height: 100dvh;
     /* Full Coverage */
     height: 100%;
-    min-height: 100dvh;
     margin: 0;
     padding: 0;
     /* NATIVE APP: Pull-to-Refresh deaktivieren */

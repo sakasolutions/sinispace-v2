@@ -96,13 +96,16 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
     <div className="flex h-[100dvh] overflow-x-hidden relative">
       {/* App Background: Warmverlauf + Ambient Brand Blobs (Variante 1+3) */}
       <AppBackground />
-      {/* Globale Ambient-Blobs: Lila/Orange – unten auf Mobile aus, sonst orangener Streifen unter Nav */}
+      {/* Ambient Blobs – semantic Brand, Studio-Licht */}
       <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-purple-400/20 blur-[120px]" />
-        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-orange-300/20 blur-[120px] hidden md:block" />
+        <div className="absolute -left-40 -top-40 h-[600px] w-[600px] rounded-full bg-sini-purple/20 blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 hidden h-[600px] w-[600px] rounded-full bg-sini-orange/20 blur-[120px] md:block" />
       </div>
-      {/* Mobile: fester weißer Streifen unten (Safe-Area), deckt Rest ab */}
-      <div className="pointer-events-none fixed bottom-0 left-0 right-0 -z-[1] h-[env(safe-area-inset-bottom)] bg-[#FAFAFC] md:hidden" aria-hidden />
+      {/* Mobile: Safe-Area unten, gleicher Canvas-Ton */}
+      <div
+        className="pointer-events-none fixed bottom-0 left-0 right-0 -z-[1] h-[env(safe-area-inset-bottom)] bg-canvas md:hidden"
+        aria-hidden
+      />
 
       {/* SIDEBAR (Desktop) – Crystal Glass über dem Ambient */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 md:block z-20 bg-white/60 backdrop-blur-xl border-r border-white/40">
@@ -139,8 +142,18 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         </div>
       </aside>
 
-      {/* MAIN CONTENT – bg-white volle Breite/Höhe, damit keine Ambient-Blobs (Lila/Rosa) durchscheinen */}
-      <main className="relative z-10 flex flex-1 flex-col overflow-hidden bg-[#FAFAFC] md:ml-64" style={{ height: '100%', maxHeight: '100dvh', overflowY: 'hidden', overflowX: 'hidden' } as React.CSSProperties}>
+      {/* MAIN: Canvas = body; Scroll + pb für Mobile Nav */}
+      <main
+        className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-canvas md:ml-64"
+        style={
+          {
+            height: '100%',
+            maxHeight: '100dvh',
+            overflowY: 'hidden',
+            overflowX: 'hidden',
+          } as React.CSSProperties
+        }
+      >
         {/* Mobile Header - AUSGEBLENDET (ersetzt durch Bottom Nav) */}
         {/* <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/5 bg-zinc-950/50 backdrop-blur-xl px-4 md:hidden z-10">
           ...
@@ -151,17 +164,17 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
           ...
         )} */}
         
-        {/* Children Container: Chat-Seite nutzt h-full direkt, andere Seiten bekommen Padding und können scrollen */}
-        {/* MOBILE: More breathing room um bottom navigation + Safe Area */}
-        {/* WICHTIG: data-no-padding Seiten (Chat) haben eigenen Scroll-Container, hier NICHT scrollbar! */}
-        <div
-          className="flex-1 overflow-hidden [&>*[data-no-padding]]:h-full [&>*[data-no-padding]]:overflow-hidden [&>*:not([data-no-padding])]:overflow-y-auto [&>*:not([data-no-padding]):not([data-header-full-bleed])]:overflow-x-hidden [&>*:not([data-no-padding])]:pb-36 [&>*:not([data-no-padding])]:md:pb-0 [&>*:not([data-no-padding])]:md:pt-0 [&>*:not([data-no-padding])]:scrollbar-hide"
-          data-scroll-container
-          style={{
-            minHeight: 0,
-          } as React.CSSProperties}
-        >
-          <div className="h-full min-h-[100dvh] w-full bg-[#FAFAFC] [&>*[data-no-padding]]:h-full [&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8">
+        {/* Scrollbar nur hier; pb-24 Mobile (Nav), md weniger. Chat: data-no-padding → kein outer scroll */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden" data-scroll-container>
+          <div
+            className={cn(
+              'min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden bg-canvas pb-24 scrollbar-hide md:pb-6',
+              'has-[>[data-no-padding]]:overflow-hidden',
+              '[&>[data-no-padding]]:flex [&>[data-no-padding]]:h-full [&>[data-no-padding]]:min-h-0 [&>[data-no-padding]]:flex-1',
+              '[&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-6 [&>*:not([data-no-padding])]:lg:p-8',
+              '[&>*:not([data-header-full-bleed])]:overflow-x-hidden'
+            )}
+          >
             {children}
           </div>
         </div>

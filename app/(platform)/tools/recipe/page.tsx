@@ -906,7 +906,7 @@ export default function RecipePage() {
       ) : (
         /* Create / Meine Rezepte: DashboardShell für einheitliches Header/Overlap */
         <div
-          className="min-h-screen w-full bg-[var(--app-canvas,#fcfbfa)]"
+          className="min-h-screen w-full bg-canvas"
           style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
         >
           <DashboardShell

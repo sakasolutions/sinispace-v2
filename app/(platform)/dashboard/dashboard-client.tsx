@@ -480,7 +480,7 @@ export default function DashboardClient({
   return (
     <div
       ref={containerRef}
-      className="relative isolate min-h-[100dvh] w-full overflow-x-hidden bg-[#FAFAFC]"
+      className="relative isolate min-h-[100dvh] w-full overflow-x-hidden bg-canvas"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -497,7 +497,7 @@ export default function DashboardClient({
 
       {/* Pull-to-Refresh Indicator */}
       {pullDistance > 50 && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-center border-b border-slate-100 bg-[#FAFAFC]/95 backdrop-blur-sm">
+        <div className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-center border-b border-slate-100 bg-canvas/95 backdrop-blur-sm">
           {pullDistance >= 150 ? (
             <div className="flex items-center gap-2 text-slate-600">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
@@ -514,7 +514,7 @@ export default function DashboardClient({
       <div className="relative z-10">
       <DashboardShell
         headerVariant="default"
-        headerBackground={<div className="h-full w-full bg-[#FAFAFC]" aria-hidden />}
+        headerBackground={<div className="h-full w-full bg-canvas" aria-hidden />}
         title={
           <h1
             className="mt-0 flex flex-wrap items-center gap-3 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl"

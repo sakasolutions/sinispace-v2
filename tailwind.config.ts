@@ -40,6 +40,15 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        canvas: 'hsl(var(--app-canvas) / <alpha-value>)',
+        surface: 'hsl(var(--app-surface) / <alpha-value>)',
+        sini: {
+          pink: 'hsl(var(--sini-pink) / <alpha-value>)',
+          orange: 'hsl(var(--sini-orange) / <alpha-value>)',
+          purple: 'hsl(var(--sini-purple) / <alpha-value>)',
+        },
+      },
       fontFamily: {
         sans: ['var(--font-plus-jakarta-sans)', ...defaultTheme.fontFamily.sans],
         merriweather: ['Merriweather', 'Georgia', 'Times New Roman', 'serif'],

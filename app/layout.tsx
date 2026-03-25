@@ -23,7 +23,7 @@ export const viewport: Viewport = {
   viewportFit: 'cover', // iPhone notches
   height: 'device-height', // Full coverage
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: light)', color: '#fafafc' },
     { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
   ],
 };
@@ -34,43 +34,45 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className="h-full bg-[#FAFAFC]" style={{ 
-      margin: 0, 
-      padding: 0,
-      height: '100%',
-      minHeight: '100dvh',
-      overscrollBehaviorY: 'none',
-      overscrollBehaviorX: 'none',
-      WebkitOverflowScrolling: 'touch',
-      WebkitTapHighlightColor: 'transparent',
-      WebkitTouchCallout: 'none',
-      scrollBehavior: 'smooth',
-    } as React.CSSProperties}>
-      <body className="relative font-sans bg-[#FAFAFC] text-gray-900 antialiased tracking-tight" style={{ 
-        WebkitTapHighlightColor: 'transparent',
-        WebkitTouchCallout: 'none',
-        WebkitOverflowScrolling: 'touch',
-        overscrollBehaviorY: 'none',
-        overscrollBehaviorX: 'none',
-        scrollBehavior: 'smooth',
-        margin: 0,
-        padding: 0,
-        minHeight: '100dvh',
-        height: '100%',
-        paddingTop: 0,
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)',
-      } as React.CSSProperties}>
-        {/* Tier-1 Canvas: einheitliches Off-White – keine weißen Lücken unter kurzem Content */}
-        <div
-          className="pointer-events-none fixed inset-0 z-[-3] h-full min-h-[100dvh] w-full bg-[#FAFAFC]"
-          aria-hidden="true"
-        />
-        
-        <div className="relative z-10 pb-32">
-          {children}
-        </div>
+    <html
+      lang="de"
+      className="h-full bg-canvas"
+      style={
+        {
+          margin: 0,
+          padding: 0,
+          height: '100%',
+          minHeight: '100dvh',
+          overscrollBehaviorY: 'none',
+          overscrollBehaviorX: 'none',
+          WebkitOverflowScrolling: 'touch',
+          WebkitTapHighlightColor: 'transparent',
+          WebkitTouchCallout: 'none',
+          scrollBehavior: 'smooth',
+        } as React.CSSProperties
+      }
+    >
+      <body
+        className="min-h-[100dvh] bg-canvas font-sans antialiased tracking-tight text-slate-900"
+        style={
+          {
+            WebkitTapHighlightColor: 'transparent',
+            WebkitTouchCallout: 'none',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehaviorY: 'none',
+            overscrollBehaviorX: 'none',
+            scrollBehavior: 'smooth',
+            margin: 0,
+            padding: 0,
+            height: '100%',
+            paddingTop: 0,
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            paddingLeft: 'env(safe-area-inset-left)',
+            paddingRight: 'env(safe-area-inset-right)',
+          } as React.CSSProperties
+        }
+      >
+        <div className="relative z-10">{children}</div>
       </body>
     </html>
   );
