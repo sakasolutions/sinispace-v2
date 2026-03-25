@@ -279,8 +279,7 @@
     /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
     opacity: 1;
     transform: none;
-    /* WICHTIG: Kein background-color hier, damit Tailwind-Hover-Klassen funktionieren */
-    /* Background wird von Tailwind-Klassen (bg-white, md:group-hover:bg-{color}-50) gesteuert */
+    /* Background: Tailwind (z. B. bg-white/5, md:group-hover:bg-white/10, Glass) */
     /* MOBILE FIRST: Vereinfachte Schatten (performanter) */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.04),
@@ -336,9 +335,9 @@
     }
   }
 
-  /* PRIMARY CARD FOCUS: Border-Akzentuierung für Accessibility */
+  /* PRIMARY CARD FOCUS: Brand-tönig (Dark UI) */
   .card-elevation-primary:focus-visible {
-    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline: 2px solid rgba(236, 72, 153, 0.45);
     outline-offset: 2px;
   }
 
@@ -347,8 +346,7 @@
     /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
     opacity: 1;
     transform: none;
-    /* WICHTIG: Kein background-color hier, damit Tailwind-Hover-Klassen funktionieren */
-    /* Background wird von Tailwind-Klassen (bg-white, md:group-hover:bg-{color}-50) gesteuert */
+    /* Background: Tailwind Glass / bg-white/5 … */
     /* MOBILE FIRST: Vereinfachte Schatten (kein Ambient Glow) */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.04),
@@ -406,8 +404,7 @@
     /* SICHTBARKEIT ERZWINGEN: Cards sind immer sichtbar, auch ohne JS */
     opacity: 1;
     transform: none;
-    /* WICHTIG: Kein background-color hier, damit Tailwind-Hover-Klassen funktionieren */
-    /* Background wird von Tailwind-Klassen (bg-white, md:group-hover:bg-{color}-50) gesteuert */
+    /* Background: Tailwind Glass / bg-white/5 … */
     /* MOBILE FIRST: Vereinfachte Schatten (performanter) */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.03),
@@ -456,7 +453,7 @@
 
   /* SECONDARY CARD FOCUS */
   .card-elevation-secondary:focus-visible {
-    outline: 2px solid rgba(59, 130, 246, 0.4);
+    outline: 2px solid rgba(168, 85, 247, 0.4);
     outline-offset: 2px;
   }
 
@@ -558,23 +555,23 @@
       0 4px 8px rgba(0, 0, 0, 0.03);
   }
   
-  /* PREMIUM: Glassmorphism Utilities - Layered Transparency */
+  /* Glassmorphism – Dark (App-Canvas-kompatibel) */
   .glass-light {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-  
-  .glass-medium {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
-  
-  .glass-heavy {
-    background: rgba(255, 255, 255, 0.4);
+
+  .glass-medium {
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+  }
+
+  .glass-heavy {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
   
   /* PREMIUM: Glass-Edge Border Gradients */

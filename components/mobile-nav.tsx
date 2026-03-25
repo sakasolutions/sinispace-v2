@@ -1,29 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { LayoutGrid, Calendar, MessageSquare, Settings } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { cn } from '@/lib/utils';
 
-/** Day (06:00–18:00) = sunrise, Night (18:00–06:00) = night – gleiche Logik wie Dashboard-Header */
-function getTimeOfDay(): 'sunrise' | 'night' {
-  if (typeof window === 'undefined') return 'sunrise';
-  const h = new Date().getHours();
-  return h >= 6 && h < 18 ? 'sunrise' : 'night';
-}
-
 export function MobileNav() {
   const pathname = usePathname();
-  const [timeOfDay, setTimeOfDay] = useState<'sunrise' | 'night'>(() => getTimeOfDay());
-
-  useEffect(() => {
-    setTimeOfDay(getTimeOfDay());
-    const interval = setInterval(() => setTimeOfDay(getTimeOfDay()), 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const navItems = [
     { href: '/dashboard', label: 'Home', icon: LayoutGrid, active: pathname === '/dashboard' },
@@ -32,22 +16,13 @@ export function MobileNav() {
     { href: '/settings', label: 'Profil', icon: Settings, active: pathname === '/settings' },
   ];
 
-  const isNight = timeOfDay === 'night';
-
   return (
     <nav
-      className="fixed left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[400px] block md:hidden"
+      className="fixed left-1/2 z-50 block w-[90%] max-w-[400px] -translate-x-1/2 md:hidden"
       style={{ bottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
       aria-label="Hauptnavigation"
     >
-      <div
-        className={cn(
-          'flex justify-between items-center py-3 px-4 rounded-full h-auto transition-colors duration-500',
-          isNight
-            ? 'bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)]'
-            : 'bg-white/90 border border-gray-200/50 shadow-[0_8px_30px_rgba(0,0,0,0.1)]'
-        )}
-      >
+      <div className="flex h-auto items-center justify-between rounded-full border border-white/10 bg-black/40 px-4 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.active;
@@ -60,40 +35,28 @@ export function MobileNav() {
               aria-current={isActive ? 'page' : undefined}
               aria-label={item.label}
               className={cn(
-                'group relative flex flex-1 flex-col items-center justify-center min-h-[52px] min-w-0 gap-0.5',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500',
-                'active:scale-95 transition-transform'
+                'group relative flex min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5',
+                'transition-transform active:scale-95',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/60'
               )}
             >
-              {/* Active: Aurora – weiche Lichtwolke, z-0 damit Icons (z-10) darüber schweben */}
               {isActive && (
-                <motion.div
-                  layoutId="active-nav-pill"
-                  className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none"
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                >
-                  <span className="rounded-full bg-violet-500/15 blur-xl w-8 h-8 scale-125" aria-hidden />
-                </motion.div>
+                <span
+                  className="absolute bottom-0.5 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-pink to-brand-orange"
+                  aria-hidden
+                />
               )}
               <Icon
                 className={cn(
-                  'relative z-10 w-6 h-6 shrink-0 transition-colors duration-300',
-                  isActive
-                    ? 'text-violet-600 drop-shadow-md'
-                    : isNight
-                      ? 'text-slate-400 group-hover:text-slate-300'
-                      : 'text-gray-500 group-hover:text-gray-600'
+                  'relative z-10 h-6 w-6 shrink-0 transition-colors duration-200',
+                  isActive ? 'text-white' : 'text-white/40 group-hover:text-white/70'
                 )}
                 strokeWidth={2}
               />
               <span
                 className={cn(
-                  'relative z-10 text-[10px] font-medium transition-colors duration-300 whitespace-nowrap truncate max-w-full',
-                  isActive
-                    ? 'text-violet-600'
-                    : isNight
-                      ? 'text-slate-400 group-hover:text-slate-300'
-                      : 'text-gray-500 group-hover:text-gray-600'
+                  'relative z-10 max-w-full truncate whitespace-nowrap text-[10px] font-medium transition-colors duration-200',
+                  isActive ? 'text-white' : 'text-white/40 group-hover:text-white/70'
                 )}
               >
                 {item.label}

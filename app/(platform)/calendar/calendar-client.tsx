@@ -182,7 +182,7 @@ export function CalendarClient() {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-x-hidden bg-gradient-to-b from-rose-50 via-white to-white">
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-transparent">
       {/* Ebene 2: Hero-Header (volle Breite, unten abgerundet) – Höhe dynamisch für Monatsansicht */}
       <header
         className={cn(
@@ -265,7 +265,7 @@ export function CalendarClient() {
                     className={cn(
                       'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
                       viewMode === 'week'
-                        ? 'bg-white text-purple-700 shadow-md'
+                        ? 'bg-white/20 text-white shadow-md shadow-black/20'
                         : 'text-white/70 hover:text-white'
                     )}
                   >
@@ -277,7 +277,7 @@ export function CalendarClient() {
                     className={cn(
                       'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
                       viewMode === 'month'
-                        ? 'bg-white text-purple-700 shadow-md'
+                        ? 'bg-white/20 text-white shadow-md shadow-black/20'
                         : 'text-white/70 hover:text-white'
                     )}
                   >
@@ -320,7 +320,7 @@ export function CalendarClient() {
                       className={cn(
                         'rounded-full text-sm font-medium transition-all flex items-center justify-center',
                         selected
-                          ? 'w-10 h-10 rounded-full flex items-center justify-center bg-white text-purple-600 font-bold shadow-[0_4px_14px_0_rgba(0,0,0,0.1)]'
+                          ? 'flex h-10 w-10 items-center justify-center rounded-full bg-white/20 font-bold text-white shadow-[0_4px_14px_0_rgba(0,0,0,0.25)]'
                           : cn(
                               'aspect-square w-full max-w-12',
                               inMonth ? 'text-white hover:bg-white/15' : 'text-white/40',
@@ -352,7 +352,7 @@ export function CalendarClient() {
         <div className="space-y-6 md:space-y-8">
           <div className="max-w-2xl mx-auto">
             {/* Magic Input – saubere Box */}
-            <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 flex items-center justify-between mb-8">
+            <div className="mb-8 flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.35)] backdrop-blur-xl">
               <input
                 type="text"
                 value={inputValue}
@@ -360,14 +360,14 @@ export function CalendarClient() {
                 onKeyDown={onKeyDown}
                 placeholder={isSubmitting ? 'Wird gespeichert...' : 'z.B. Morgen 18 Uhr Fussball'}
                 disabled={isSubmitting}
-                className="flex-1 min-w-0 bg-transparent outline-none placeholder:text-gray-500 text-gray-800 disabled:opacity-70"
+                className="min-w-0 flex-1 bg-transparent text-white outline-none placeholder:text-white/40 disabled:opacity-70"
                 aria-label="Termin in natürlicher Sprache eingeben"
               />
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting || !inputValue.trim()}
-                className="shrink-0 p-2 rounded-full text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                className="shrink-0 rounded-full p-2 text-white/45 transition-colors hover:bg-white/10 hover:text-brand-pink disabled:pointer-events-none disabled:opacity-50"
                 aria-label="Eingabe senden"
               >
                 {isSubmitting ? (
@@ -379,13 +379,13 @@ export function CalendarClient() {
             </div>
 
             {/* Event-Timeline: Heute / formatiertes Datum + Liste */}
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 capitalize">
+            <h2 className="mb-6 capitalize text-2xl font-bold text-white">
               {selectedDayLabel}
             </h2>
 
-            <div className="relative border-l-2 border-dashed border-gray-200 ml-3">
+            <div className="relative ml-3 border-l-2 border-dashed border-white/15">
               {displayEvents.length === 0 ? (
-                <p className="pl-8 text-gray-400 text-sm">
+                <p className="pl-8 text-sm text-white/45">
                   Keine Termine an diesem Tag.
                 </p>
               ) : (
@@ -395,7 +395,7 @@ export function CalendarClient() {
                     <div key={event.id} className="relative pl-10 mb-6">
                       <span
                         className={cn(
-                          'absolute -left-[11px] top-5 w-6 h-6 rounded-full border-2 border-white shadow-sm flex items-center justify-center',
+                          'absolute -left-[11px] top-5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white/30 shadow-sm',
                           dotBg
                         )}
                         aria-hidden
@@ -407,10 +407,10 @@ export function CalendarClient() {
                         tabIndex={0}
                         onClick={() => setEditingEvent(event)}
                         onKeyDown={(e) => e.key === 'Enter' && setEditingEvent(event)}
-                        className="bg-white border border-gray-100 shadow-sm rounded-2xl p-4 w-full group transition-all hover:shadow-md cursor-pointer"
+                        className="group w-full cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all hover:border-white/20 hover:shadow-lg"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <p className="text-lg font-semibold text-gray-800 flex-1 min-w-0">
+                          <p className="min-w-0 flex-1 text-lg font-semibold text-white">
                             {event.title}
                           </p>
                           <button
@@ -420,13 +420,13 @@ export function CalendarClient() {
                               setEvents((prev) => prev.filter((x) => x.id !== event.id));
                               void deleteCalendarEvent(event.id);
                             }}
-                            className="text-gray-300 hover:text-red-500 opacity-70 group-hover:opacity-100 transition-all p-2 rounded-full hover:bg-red-50 shrink-0"
+                            className="shrink-0 rounded-full p-2 text-white/35 opacity-80 transition-all hover:bg-red-500/15 hover:text-red-400 group-hover:opacity-100"
                             aria-label={`Termin „${event.title}" löschen`}
                           >
                             <Trash2 className="w-5 h-5" strokeWidth={2} />
                           </button>
                         </div>
-                        <p className="text-sm text-gray-500 font-medium mt-0.5">
+                        <p className="mt-0.5 text-sm font-medium text-white/55">
                           {event.endTime
                             ? `${event.time} – ${event.endTime} Uhr`
                             : `${event.time} Uhr`}
@@ -437,7 +437,7 @@ export function CalendarClient() {
                               <Link
                                 href={`/tools/recipe?open=${encodeURIComponent(event.recipeResultId)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 hover:scale-105 active:scale-95 transition-all rounded-full text-xs font-bold shadow-sm"
+                                className="flex items-center gap-1.5 rounded-full bg-pink-500/15 px-3 py-1.5 text-xs font-bold text-pink-200 shadow-sm transition-all hover:scale-105 hover:bg-pink-500/25 active:scale-95"
                               >
                                 <Utensils className="w-3.5 h-3.5 shrink-0" aria-hidden />
                                 Zum Rezept ›
@@ -455,7 +455,7 @@ export function CalendarClient() {
                               <Link
                                 href={`/tools/recipe?query=${encodeURIComponent(titleForRecipeGeneratorQuery(event.title))}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:scale-105 active:scale-95 transition-all rounded-full text-xs font-bold shadow-sm ring-1 ring-orange-200/60"
+                                className="flex items-center gap-1.5 rounded-full bg-orange-500/15 px-3 py-1.5 text-xs font-bold text-orange-200 shadow-sm ring-1 ring-orange-500/30 transition-all hover:scale-105 hover:bg-orange-500/25 active:scale-95"
                               >
                                 <Sparkles className="w-3.5 h-3.5 shrink-0" aria-hidden />
                                 Rezept generieren ✨
@@ -465,14 +465,14 @@ export function CalendarClient() {
                             <Link
                               href="/tools/shopping-list"
                               onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:scale-105 active:scale-95 transition-all rounded-full text-xs font-bold shadow-sm"
+                              className="flex items-center gap-1.5 rounded-full bg-orange-500/15 px-3 py-1.5 text-xs font-bold text-orange-200 shadow-sm transition-all hover:scale-105 hover:bg-orange-500/25 active:scale-95"
                             >
                               <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
                               Zur Einkaufsliste
                             </Link>
                           )}
                           {event.location && event.actionTag !== 'food' && event.actionTag !== 'shopping' && (
-                            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold">
+                            <span className="flex items-center gap-1.5 rounded-full bg-blue-500/15 px-3 py-1.5 text-xs font-semibold text-blue-200">
                               <MapPin className="w-3.5 h-3.5 shrink-0" />
                               {event.location}
                             </span>
@@ -491,28 +491,28 @@ export function CalendarClient() {
       {/* Smart Edit Modal */}
       {editingEvent && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="edit-event-title"
         >
           <div
-            className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden"
+            className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl shadow-black/50 backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header mit Gradient-Streifen + X */}
-            <div className="bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 h-1 w-full" />
-            <div className="flex items-center justify-between px-5 pt-4 pb-2">
-              <h3 id="edit-event-title" className="text-lg font-semibold text-gray-800">
+            <div className="h-1 w-full bg-gradient-to-r from-brand-pink via-sini-purple to-brand-orange" />
+            <div className="flex items-center justify-between px-5 pb-2 pt-4">
+              <h3 id="edit-event-title" className="text-lg font-semibold text-white">
                 Termin bearbeiten
               </h3>
               <button
                 type="button"
                 onClick={() => setEditingEvent(null)}
-                className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                className="rounded-full p-2 text-white/45 transition-colors hover:bg-white/10 hover:text-white"
                 aria-label="Schließen"
               >
-                <X className="w-5 h-5" strokeWidth={2} />
+                <X className="h-5 w-5" strokeWidth={2} />
               </button>
             </div>
 
@@ -533,13 +533,13 @@ export function CalendarClient() {
                   type="text"
                   value={editForm.title}
                   onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
-                  className="text-xl font-bold border-b border-gray-200 bg-transparent focus:border-purple-500 outline-none w-full py-2 text-gray-800 placeholder:text-gray-400"
+                  className="w-full border-b border-white/15 bg-transparent py-2 text-xl font-bold text-white placeholder:text-white/40 outline-none focus:border-brand-pink/60"
                   placeholder="Titel"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="edit-date" className="block text-xs font-medium text-gray-500 mb-1">
+                  <label htmlFor="edit-date" className="mb-1 block text-xs font-medium text-white/50">
                     Datum
                   </label>
                   <input
@@ -547,11 +547,11 @@ export function CalendarClient() {
                     type="date"
                     value={editForm.date}
                     onChange={(e) => setEditForm((f) => ({ ...f, date: e.target.value }))}
-                    className="border-b border-gray-200 bg-transparent focus:border-purple-500 outline-none w-full py-2 text-gray-800"
+                    className="w-full border-b border-white/15 bg-transparent py-2 text-white outline-none focus:border-brand-pink/60"
                   />
                 </div>
                 <div>
-                  <label htmlFor="edit-time" className="block text-xs font-medium text-gray-500 mb-1">
+                  <label htmlFor="edit-time" className="mb-1 block text-xs font-medium text-white/50">
                     Zeit
                   </label>
                   <input
@@ -559,7 +559,7 @@ export function CalendarClient() {
                     type="time"
                     value={editForm.time}
                     onChange={(e) => setEditForm((f) => ({ ...f, time: e.target.value }))}
-                    className="border-b border-gray-200 bg-transparent focus:border-purple-500 outline-none w-full py-2 text-gray-800"
+                    className="w-full border-b border-white/15 bg-transparent py-2 text-white outline-none focus:border-brand-pink/60"
                   />
                 </div>
               </div>
@@ -567,14 +567,14 @@ export function CalendarClient() {
                 <label htmlFor="edit-location" className="sr-only">
                   Ort
                 </label>
-                <div className="flex items-center gap-2 border-b border-gray-200 focus-within:border-purple-500 transition-colors">
-                  <MapPin className="w-4 h-4 text-gray-400 shrink-0" strokeWidth={2} />
+                <div className="flex items-center gap-2 border-b border-white/15 transition-colors focus-within:border-brand-pink/60">
+                  <MapPin className="h-4 w-4 shrink-0 text-white/45" strokeWidth={2} />
                   <input
                     id="edit-location"
                     type="text"
                     value={editForm.location}
                     onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))}
-                    className="flex-1 bg-transparent focus:outline-none py-2 text-gray-800 placeholder:text-gray-400"
+                    className="flex-1 bg-transparent py-2 text-white placeholder:text-white/40 outline-none focus:outline-none"
                     placeholder="Ort (optional)"
                   />
                 </div>
@@ -583,7 +583,7 @@ export function CalendarClient() {
               {/* Action: Speichern */}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 text-white rounded-full py-3 font-semibold shadow-lg hover:shadow-xl transition-all mt-6"
+                className="mt-6 w-full rounded-full bg-gradient-to-r from-brand-pink to-brand-orange py-3 font-semibold text-white shadow-glow-pink-orange transition-all hover:opacity-95"
               >
                 Speichern
               </button>
