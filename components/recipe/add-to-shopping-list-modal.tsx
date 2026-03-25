@@ -96,29 +96,29 @@ export function AddToShoppingListModal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[75] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden"
+        className="max-h-[90vh] w-full max-w-md overflow-hidden rounded-2xl border border-white/[0.08] bg-[#1a1025] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">Zutaten in den SmartCart</h2>
+        <div className="flex items-center justify-between border-b border-white/[0.06] p-4">
+          <h2 className="text-lg font-bold text-white">Zutaten in den SmartCart</h2>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-500 hover:text-gray-700"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.06] text-white/50 transition-colors hover:bg-white/[0.1] hover:text-white/80"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="p-4 space-y-4">
-          <p className="text-sm text-gray-600">
+        <div className="space-y-4 p-4">
+          <p className="text-sm text-white/60">
             Zutaten auswählen (abwählen, wenn du sie schon hast):
           </p>
 
-          <div className="bg-white max-h-[45vh] overflow-y-auto pr-2 scrollbar-thin rounded-xl divide-y divide-gray-100">
+          <div className="max-h-[45vh] divide-y divide-white/[0.06] overflow-y-auto rounded-xl border border-white/[0.06] bg-white/[0.02] pr-2 scrollbar-thin">
             {ingredients.map((ing, i) => {
               const isSelected = selected.has(ing);
               return (
@@ -126,20 +126,20 @@ export function AddToShoppingListModal({
                   key={i}
                   type="button"
                   onClick={() => toggle(ing)}
-                  className="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-white/[0.06]"
                 >
                   <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                    className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
                       isSelected
                         ? 'bg-gradient-to-r from-orange-500 to-amber-500'
-                        : 'border-2 border-gray-300 bg-white'
+                        : 'border-2 border-white/25 bg-white/[0.04]'
                     }`}
                   >
-                    {isSelected && <Check className="w-4 h-4 text-white" strokeWidth={2.5} />}
+                    {isSelected && <Check className="h-4 w-4 text-white" strokeWidth={2.5} />}
                   </div>
                   <span
-                    className={`text-sm flex-1 min-w-0 ${
-                      isSelected ? 'text-gray-800 font-medium' : 'text-gray-400 line-through'
+                    className={`min-w-0 flex-1 text-sm ${
+                      isSelected ? 'font-medium text-white/90' : 'text-white/35 line-through'
                     }`}
                   >
                     {formatIngredientDisplay(ing)}
@@ -150,12 +150,12 @@ export function AddToShoppingListModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-white/70">
               Zu welcher Liste hinzufügen?
             </label>
             {loading ? (
-              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-500">
-                <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-white/50">
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm">Listen laden …</span>
               </div>
             ) : (
@@ -164,11 +164,11 @@ export function AddToShoppingListModal({
                 onChange={(v) => setSelectedListId(v)}
                 options={listOptions}
                 placeholder="Liste auswählen"
-                theme="light"
+                theme="dark"
                 variant="dropdown"
                 dropdownInPortal
                 icon={ListChecks}
-                triggerClassName="!bg-gray-50 !border-gray-200 focus:!ring-orange-500/20 focus:!border-orange-400 pl-10"
+                triggerClassName="!border-white/[0.08] !bg-white/[0.04] pl-10 focus:!border-orange-400/50 focus:!ring-orange-500/20"
               />
             )}
             {!loading && isNewList && (
@@ -177,22 +177,22 @@ export function AddToShoppingListModal({
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
                 placeholder="Name der neuen Liste (z.B. Party, Wochenende)"
-                className="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all"
+                className="mt-2 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-white placeholder:text-white/25 transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20"
               />
             )}
           </div>
         </div>
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="border-t border-white/[0.06] p-4">
           <button
             onClick={() => handleSubmit()}
             disabled={selectedCount === 0 || saving || loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-orange-500/25"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-3 font-semibold text-white shadow-md shadow-orange-500/25 transition-all hover:from-orange-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <ListChecks className="w-4 h-4" />
+              <ListChecks className="h-4 w-4" />
             )}
             {saving
               ? 'Wird gespeichert …'

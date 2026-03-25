@@ -32,9 +32,10 @@ export type GourmetCockpitProps = {
   onAktiveWocheAnsehen?: () => void;
 };
 
-/** Tier-1 Schnellzugriff: festes Weiß, kein Hero-Blur; nur Tailwind auf diesen vier Karten. */
 const quickCardClass =
-  'group relative flex h-full min-h-[148px] w-full flex-col items-start gap-4 rounded-[24px] border border-slate-100/90 bg-white p-5 text-left shadow-tier1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] md:min-h-[152px] md:p-6';
+  'group relative flex h-full min-h-[148px] w-full flex-col items-start rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 text-left shadow-none backdrop-blur-xl transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.05] active:scale-[0.98] md:min-h-[152px] md:p-6';
+
+const heroTitleShadow: React.CSSProperties = { textShadow: '0 2px 12px rgba(0,0,0,0.5)' };
 
 export function GourmetCockpit(props: GourmetCockpitProps) {
   const { onVorschlagGenerieren, onMagicWunsch, onWochePlanen, activeWeekPlan = null, todayMealSpotlight = null, onAktiveWocheAnsehen } = props;
@@ -44,202 +45,193 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
       : null;
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-visible bg-slate-50">
+    <div className="relative min-h-screen w-full overflow-x-visible bg-transparent">
       <DashboardShell
-        headerVariant="withCTA"
+        headerVariant="default"
+        layer0HeightClass="h-[min(320px,44vh)] min-h-[260px]"
+        headerMinHeightClass="min-h-[min(320px,44vh)]"
         headerBackground={
-          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/gourmet-header.webp)' }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
-          </div>
-        }
-        title={
-          <>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
-              CookIQ
-            </h1>
-            <p className="text-xl sm:text-2xl font-semibold text-white mt-2" style={{ letterSpacing: '0.1px' }}>
-              Was kochen wir heute?
-            </p>
-          </>
-        }
-        subtitle={null}
-        headerPrimaryCTA={
-          <div className="mt-4 md:hidden">
-            <button
-              type="button"
-              onClick={onVorschlagGenerieren}
-              className="inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
-            >
-              <Sparkles className="w-5 h-5" />
-              Vorschlag generieren
-            </button>
-          </div>
-        }
-        headerActionsRight={
-          <button
-            type="button"
-            onClick={onVorschlagGenerieren}
-            className="hidden md:inline-flex items-center gap-2 rounded-xl px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-lg shadow-orange-900/30 hover:from-orange-600 hover:to-amber-600 transition-all"
-          >
-            <Sparkles className="w-5 h-5" />
-            Vorschlag generieren
-          </button>
-        }
-      >
-        <div className="space-y-6 md:space-y-8">
-          <section aria-labelledby="gourmet-quick-heading">
-            <h2 id="gourmet-quick-heading" className="sr-only">Schnellzugriff</h2>
-            <div className="mt-6 grid grid-cols-2 gap-4 md:mx-auto md:mt-8 md:max-w-3xl md:gap-5">
+          <div className="relative h-full w-full overflow-hidden rounded-b-[40px]">
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[60%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent"
+              aria-hidden
+            />
+            <div className="relative z-10 flex h-full min-h-0 flex-col justify-end px-4 pb-6 pt-8 md:px-6 md:pb-8">
+              <h1
+                className="text-2xl font-bold tracking-tight text-white md:text-3xl"
+                style={heroTitleShadow}
+              >
+                CookIQ
+              </h1>
+              <p className="mt-1 text-base text-white/80 md:text-lg">Was kochen wir heute?</p>
               <button
                 type="button"
-                onClick={() => onWochePlanen?.()}
-                className={`${quickCardClass} cursor-pointer`}
+                onClick={onVorschlagGenerieren}
+                className="mt-4 inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-900/30 transition-all hover:from-orange-600 hover:to-amber-600 sm:w-auto"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
-                  <CalendarDays className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />
+                <Sparkles className="h-5 w-5 shrink-0" aria-hidden />
+                Vorschlag generieren
+              </button>
+            </div>
+          </div>
+        }
+        title={null}
+        subtitle={null}
+      >
+        <div className="mb-6 space-y-6 md:mb-8 md:space-y-8">
+          <section aria-labelledby="gourmet-quick-heading">
+            <h2 id="gourmet-quick-heading" className="sr-only">
+              Schnellzugriff
+            </h2>
+            <div className="mt-0 grid grid-cols-2 gap-3 md:mx-auto md:mt-2 md:max-w-3xl md:gap-4">
+              <button type="button" onClick={() => onWochePlanen?.()} className={`${quickCardClass} cursor-pointer gap-3`}>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-400/10 bg-orange-400/[0.08] md:h-11 md:w-11">
+                  <CalendarDays className="h-5 w-5 shrink-0 text-orange-400/70 md:h-[22px] md:w-[22px]" strokeWidth={1.5} aria-hidden />
                 </div>
                 <div className="w-full min-w-0 text-left">
-                  <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-slate-900">Woche planen</h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">Dein Essensplan</p>
+                  <h3 className="line-clamp-2 text-base font-semibold leading-tight text-white/90">Woche planen</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-white/40">Dein Essensplan</p>
                 </div>
               </button>
 
-              <Link href="/tools/recipe?tab=my-recipes" className={`${quickCardClass} block cursor-pointer`}>
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-500">
-                  <BookHeart className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />
+              <Link href="/tools/recipe?tab=my-recipes" className={`${quickCardClass} block cursor-pointer gap-3`}>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-400/10 bg-violet-400/[0.08] md:h-11 md:w-11">
+                  <BookHeart className="h-5 w-5 shrink-0 text-violet-400/70 md:h-[22px] md:w-[22px]" strokeWidth={1.5} aria-hidden />
                 </div>
                 <div className="w-full min-w-0 text-left">
-                  <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-slate-900">Sammlung</h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">Deine Favoriten</p>
+                  <h3 className="line-clamp-2 text-base font-semibold leading-tight text-white/90">Sammlung</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-white/40">Deine Favoriten</p>
                 </div>
               </Link>
 
-              <button
-                type="button"
-                onClick={onMagicWunsch}
-                className={`${quickCardClass} cursor-pointer`}
-              >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-                  <Sparkles className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />
+              <button type="button" onClick={onMagicWunsch} className={`${quickCardClass} cursor-pointer gap-3`}>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-400/10 bg-amber-400/[0.08] md:h-11 md:w-11">
+                  <Sparkles className="h-5 w-5 shrink-0 text-amber-400/70 md:h-[22px] md:w-[22px]" strokeWidth={1.5} aria-hidden />
                 </div>
                 <div className="w-full min-w-0 text-left">
-                  <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-slate-900">Wunschgericht</h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">Tippe, worauf du Lust hast</p>
+                  <h3 className="line-clamp-2 text-base font-semibold leading-tight text-white/90">Wunschgericht</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-white/40">Tippe, worauf du Lust hast</p>
                 </div>
               </button>
 
-              <Link href="/tools/shopping-list" className={`${quickCardClass} block cursor-pointer`}>
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
-                  <ShoppingBasket className="h-6 w-6 shrink-0" strokeWidth={2} aria-hidden />
+              <Link href="/tools/shopping-list" className={`${quickCardClass} block cursor-pointer gap-3`}>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-pink-400/10 bg-pink-400/[0.08] md:h-11 md:w-11">
+                  <ShoppingBasket className="h-5 w-5 shrink-0 text-pink-400/70 md:h-[22px] md:w-[22px]" strokeWidth={1.5} aria-hidden />
                 </div>
                 <div className="w-full min-w-0 text-left">
-                  <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-slate-900">SmartCart</h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-500">Einkäufe organisieren</p>
+                  <h3 className="line-clamp-2 text-base font-semibold leading-tight text-white/90">SmartCart</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-white/40">Einkäufe organisieren</p>
                 </div>
               </Link>
             </div>
 
-            {/* Das Full-Width MVP-Cockpit für den aktiven Wochenplan */}
             {activeWeekPlan && Array.isArray(activeWeekPlan) && activeWeekPlan.length > 0 && onAktiveWocheAnsehen && (
               <div
                 role="button"
                 tabIndex={0}
                 onClick={() => onAktiveWocheAnsehen()}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAktiveWocheAnsehen(); } }}
-                className="w-full mt-6 relative overflow-hidden rounded-[2rem] min-h-[200px] md:min-h-[228px] text-white shadow-xl shadow-black/25 mb-6 group cursor-pointer transition-transform hover:-translate-y-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onAktiveWocheAnsehen();
+                  }
+                }}
+                className="group relative mt-6 mb-6 w-full cursor-pointer overflow-hidden rounded-2xl shadow-xl shadow-black/25 transition-transform hover:-translate-y-0.5"
               >
-                {/* Mahlzeiten-Bild (heute/nächstes Gericht) oder dezenter Farb-Fallback */}
-                {activeMealImageUrl ? (
-                  <img
-                    src={activeMealImageUrl}
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-700 ease-out pointer-events-none select-none"
+                <div className="relative aspect-video w-full min-h-[200px] md:min-h-[240px] md:h-[240px]">
+                  {activeMealImageUrl ? (
+                    <img
+                      src={activeMealImageUrl}
+                      alt=""
+                      className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                      aria-hidden
+                    />
+                  ) : (
+                    <div className={`absolute inset-0 ${ACTIVE_WEEK_FALLBACK_BG_CLASS}`} aria-hidden />
+                  )}
+                  <div
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
                     aria-hidden
                   />
-                ) : (
-                  <div className={`absolute inset-0 ${ACTIVE_WEEK_FALLBACK_BG_CLASS}`} aria-hidden />
-                )}
-                {/* Lesbarkeit: dunkler Verlauf von unten für weißen Text */}
-                <div
-                  className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent pointer-events-none"
-                  aria-hidden
-                />
-
-                <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 p-6 min-h-[200px] md:min-h-[228px]">
-                  {/* Linke Seite: Infos zum aktuellen Tag/Gericht */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-end">
-                    <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      <span className="bg-white/25 backdrop-blur-md px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest border border-white/20 text-white">
-                        Aktive Woche
+                  <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 md:p-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
+                        AKTIVE WOCHE
                       </span>
                       {todayMealSpotlight ? (
-                        <span className="text-white/90 text-xs sm:text-sm font-medium drop-shadow-sm">
+                        <span className="text-xs text-white/60">
                           {todayMealSpotlight.isTomorrow ? 'Morgen' : todayMealSpotlight.dayLabel} · {todayMealSpotlight.mealTypeLabel}
                         </span>
                       ) : (
-                        <span className="text-white/90 text-xs sm:text-sm font-medium">Diese Woche geplant</span>
+                        <span className="text-xs text-white/60">Diese Woche geplant</span>
                       )}
                     </div>
-
-                    {todayMealSpotlight ? (
-                      <>
-                        <h2 className="font-extrabold text-2xl md:text-3xl mb-3 tracking-tight leading-snug text-white drop-shadow-md line-clamp-2">
-                          {todayMealSpotlight.title}
-                        </h2>
-                        {(todayMealSpotlight.displayTime || todayMealSpotlight.displayCalories) ? (
-                          <div className="flex flex-wrap items-center gap-2">
-                            {todayMealSpotlight.displayTime ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/35 backdrop-blur-md border border-white/15 text-xs font-semibold text-white">
-                                <Clock className="w-3.5 h-3.5 shrink-0 opacity-90" aria-hidden />
-                                {todayMealSpotlight.displayTime}
-                              </span>
-                            ) : null}
-                            {todayMealSpotlight.displayCalories ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/35 backdrop-blur-md border border-white/15 text-xs font-semibold text-white">
-                                <Flame className="w-3.5 h-3.5 shrink-0 text-amber-300" aria-hidden />
-                                {todayMealSpotlight.displayCalories}
-                              </span>
-                            ) : null}
-                          </div>
-                        ) : todayMealSpotlight.subtext ? (
-                          <p className="text-white/85 text-sm font-medium line-clamp-2 drop-shadow-sm">
-                            {todayMealSpotlight.subtext}
-                          </p>
-                        ) : null}
-                      </>
-                    ) : (
-                      <>
-                        <h2 className="font-extrabold text-2xl md:text-3xl mb-2 tracking-tight leading-tight text-white drop-shadow-md">
-                          Heute steht nichts auf dem Plan
-                        </h2>
-                        <p className="text-white/85 text-sm font-medium">
-                          Klicke hier, um deine Woche zu sehen oder einen neuen Plan zu erstellen.
-                        </p>
-                      </>
-                    )}
+                    <div className="mt-auto space-y-2">
+                      {todayMealSpotlight ? (
+                        <>
+                          <h2 className="line-clamp-2 text-lg font-semibold tracking-tight text-white drop-shadow-md md:text-xl">
+                            {todayMealSpotlight.title}
+                          </h2>
+                          {(todayMealSpotlight.displayTime || todayMealSpotlight.displayCalories) ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                              {todayMealSpotlight.displayTime ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                                  <Clock className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
+                                  {todayMealSpotlight.displayTime}
+                                </span>
+                              ) : null}
+                              {todayMealSpotlight.displayCalories ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                                  <Flame className="h-3.5 w-3.5 shrink-0 text-amber-300" aria-hidden />
+                                  {todayMealSpotlight.displayCalories}
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : todayMealSpotlight.subtext ? (
+                            <p className="line-clamp-2 text-sm font-medium text-white/85 drop-shadow-sm">{todayMealSpotlight.subtext}</p>
+                          ) : null}
+                        </>
+                      ) : (
+                        <>
+                          <h2 className="text-lg font-semibold tracking-tight text-white drop-shadow-md md:text-xl">
+                            Heute steht nichts auf dem Plan
+                          </h2>
+                          <p className="text-sm text-white/60">Klicke hier, um deine Woche zu sehen oder einen neuen Plan zu erstellen.</p>
+                        </>
+                      )}
+                    </div>
                   </div>
+                </div>
 
-                  {/* Rechte Seite: Action-Buttons */}
-                  <div className="flex gap-3 w-full md:w-auto shrink-0 md:pb-0">
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
-                      className="flex-1 md:flex-none bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold py-3.5 px-8 rounded-2xl shadow-lg shadow-black/15 hover:bg-white/30 hover:border-white/45 hover:scale-[1.02] transition-all text-sm flex items-center justify-center"
-                    >
-                      Jetzt kochen
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); onAktiveWocheAnsehen(); }}
-                      className="flex-none bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white p-3.5 rounded-2xl transition-all flex items-center justify-center"
-                      aria-label="Details ansehen"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                    </button>
-                  </div>
+                <div className="flex gap-3 border-t border-white/[0.06] bg-transparent p-3 md:p-4">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAktiveWocheAnsehen();
+                    }}
+                    className="flex flex-1 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.06] py-3 text-center text-sm font-medium text-white/80 transition hover:bg-white/[0.1]"
+                  >
+                    Jetzt kochen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAktiveWocheAnsehen();
+                    }}
+                    className="flex shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-3 text-white/50 transition hover:bg-white/[0.08]"
+                    aria-label="Details ansehen"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             )}

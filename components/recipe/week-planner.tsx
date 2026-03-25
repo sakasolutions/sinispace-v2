@@ -457,7 +457,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           <button
             type="button"
             onClick={onBackToCockpit}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium bg-white/80 backdrop-blur-md shadow-sm border border-gray-100 text-gray-700 hover:bg-white transition-colors"
+            className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.06] px-4 py-2 text-sm font-medium text-white/80 shadow-sm backdrop-blur-md transition-colors hover:bg-white/[0.1]"
             aria-label="Zurück zum Cockpit"
           >
             <ChevronLeft className="w-4 h-4 shrink-0" />
@@ -469,10 +469,10 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
         <button
           type="button"
           onClick={() => setShowInfoModal(true)}
-          className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          className="rounded-full p-2 text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white/80"
           aria-label="Info"
         >
-          <Info className="w-5 h-5" />
+          <Info className="h-5 w-5" />
         </button>
       </div>
 
@@ -480,15 +480,15 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       <div className="mb-10 pt-2 pb-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Dein Wochenplan
             </h1>
-            <p className="text-base text-gray-500 mt-2">
+            <p className="mt-2 text-base text-white/45">
               KW {kw} • {dateRangeStr}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1.5 text-sm font-semibold bg-white/90 border border-gray-100 shadow-sm ring-2 ring-violet-200/80">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.06] py-1.5 pl-1.5 pr-3 text-sm font-semibold text-white/90 shadow-sm ring-2 ring-violet-500/25">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white text-xs font-bold">
                 {plannedCount}
               </span>
@@ -498,18 +498,18 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
               <button
                 type="button"
                 onClick={() => navigateWeek('prev')}
-                className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                className="rounded-full p-2 text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white/80"
                 aria-label="Vorherige Woche"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 type="button"
                 onClick={() => navigateWeek('next')}
-                className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                className="rounded-full p-2 text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white/80"
                 aria-label="Nächste Woche"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="h-5 w-5" />
               </button>
             </div>
           </div>
@@ -518,9 +518,9 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 
       {/* Trial Info */}
       {!isPremium && trialCount.remaining > 0 && (
-        <div className="rounded-2xl border border-violet-200 bg-violet-50 p-3 text-sm text-violet-800 mb-6">
+        <div className="mb-6 rounded-2xl border border-violet-400/25 bg-violet-500/10 p-3 text-sm text-violet-100/90">
           🎁 Du hast noch {trialCount.remaining} kostenlose Auto-Planung{trialCount.remaining > 1 ? 'en' : ''}.
-          <button onClick={() => router.push('/settings')} className="ml-2 font-medium underline hover:text-violet-900">
+          <button onClick={() => router.push('/settings')} className="ml-2 font-medium underline hover:text-white">
             Upgrade für unbegrenzt
           </button>
         </div>
@@ -541,9 +541,9 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           const hasDinner = !!day.meals.dinner;
           const hasAnyMeal = hasBreakfast || hasLunch || hasDinner;
           const slotConfig: { id: 'breakfast' | 'lunch' | 'dinner'; label: string; icon: string; borderClass: string; bgClass: string }[] = [
-            { id: 'breakfast', label: 'Frühstück', icon: '🥐', borderClass: 'border-l-yellow-400', bgClass: 'from-yellow-50 to-amber-50' },
-            { id: 'lunch', label: 'Mittag', icon: '🥗', borderClass: 'border-l-emerald-400', bgClass: 'from-emerald-50 to-green-50' },
-            { id: 'dinner', label: 'Abend', icon: '🍝', borderClass: 'border-l-orange-500', bgClass: 'from-orange-50 to-rose-50' },
+            { id: 'breakfast', label: 'Frühstück', icon: '🥐', borderClass: 'border-l-yellow-400', bgClass: 'from-yellow-500/15 to-amber-500/5' },
+            { id: 'lunch', label: 'Mittag', icon: '🥗', borderClass: 'border-l-emerald-400', bgClass: 'from-emerald-500/15 to-green-500/5' },
+            { id: 'dinner', label: 'Abend', icon: '🍝', borderClass: 'border-l-orange-500', bgClass: 'from-orange-500/15 to-rose-500/5' },
           ];
           const motionVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
           return (
@@ -551,51 +551,51 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
               key={dateKey}
               variants={motionVariants}
               transition={{ duration: 0.25, delay: index * 0.05 }}
-              className="rounded-2xl overflow-hidden"
+              className="overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl"
             >
               <button
                 type="button"
                 onClick={() => setOpenDay(isOpen ? null : dateKey)}
-                className="w-full flex items-stretch gap-3 text-left rounded-2xl overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
+                className="flex w-full items-stretch gap-3 overflow-hidden rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
               >
-                <div className="flex flex-col justify-center shrink-0 w-14 sm:w-16 py-3 pl-3">
-                  <span className="text-gray-800 font-black text-xl leading-tight uppercase tracking-tight">
+                <div className="flex w-14 shrink-0 flex-col justify-center py-3 pl-3 sm:w-16">
+                  <span className="text-xl font-black uppercase leading-tight tracking-tight text-white">
                     {formatWeekdaySlot(day.date)}
                   </span>
-                  <span className="text-gray-400 text-xs font-medium mt-0.5">
+                  <span className="mt-0.5 text-xs font-medium text-white/35">
                     {formatDateSmall(day.date)}
                   </span>
                 </div>
-                <div className="flex-1 min-w-0 flex items-center gap-2 pr-3">
+                <div className="flex min-w-0 flex-1 items-center gap-2 pr-3">
                   {slotConfig.map(({ id, icon }) => (day.meals[id] ? (
-                    <span key={id} className="text-lg shrink-0" title={id === 'breakfast' ? 'Frühstück' : id === 'lunch' ? 'Mittag' : 'Abend'}>{icon}</span>
+                    <span key={id} className="shrink-0 text-lg" title={id === 'breakfast' ? 'Frühstück' : id === 'lunch' ? 'Mittag' : 'Abend'}>{icon}</span>
                   ) : null))}
                   {!hasAnyMeal && (
-                    <span className="text-sm text-gray-400">Noch nichts geplant</span>
+                    <span className="text-sm text-white/35">Noch nichts geplant</span>
                   )}
-                  <ChevronDown className={`w-5 h-5 text-gray-400 shrink-0 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`ml-auto h-5 w-5 shrink-0 text-white/35 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
               </button>
 
               {isOpen && (
-                <div className="px-3 pb-4 pt-2 border-t border-gray-100 mt-2 space-y-3">
+                <div className="mt-2 space-y-3 border-t border-white/[0.06] px-3 pb-4 pt-2">
                   {slotConfig.map(({ id, label, icon, borderClass, bgClass }) => {
                     const entry = day.meals[id];
                     return (
                       <div key={id}>
-                        <p className="text-xs font-medium text-gray-500 mb-1.5">{label}</p>
+                        <p className="mb-1.5 text-xs font-medium text-white/45">{label}</p>
                         {entry ? (
-                          <div className={`rounded-xl border border-gray-100 shadow-sm overflow-hidden flex items-center gap-3 bg-gradient-to-r ${bgClass} border-l-4 ${borderClass} pl-3 pr-3 py-2`}>
-                            <div className="w-12 h-12 shrink-0 rounded-lg bg-white/80 flex items-center justify-center">
-                              <ChefHat className="w-6 h-6 text-gray-500" />
+                          <div className={`flex items-center gap-3 overflow-hidden rounded-xl border border-white/[0.08] bg-gradient-to-r ${bgClass} border-l-4 ${borderClass} py-2 pl-3 pr-3 shadow-sm`}>
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/[0.08]">
+                              <ChefHat className="h-6 w-6 text-white/50" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-gray-900 text-sm truncate">{entry.recipe.recipeName}</p>
+                              <p className="truncate text-sm font-semibold text-white/90">{entry.recipe.recipeName}</p>
                               {entry.recipe.stats?.time && (
-                                <p className="text-xs text-gray-500">⏱ {entry.recipe.stats.time}</p>
+                                <p className="text-xs text-white/45">⏱ {entry.recipe.stats.time}</p>
                               )}
                             </div>
-                            <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex shrink-0 items-center gap-1">
                               <button
                                 type="button"
                                 onClick={() => {
@@ -606,18 +606,18 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                                     day: day.dayName,
                                   });
                                 }}
-                                className="p-2 rounded-lg text-gray-500 hover:bg-white/80 transition-colors"
+                                className="rounded-lg p-2 text-white/45 transition-colors hover:bg-white/[0.08]"
                                 aria-label="Details"
                               >
-                                <ChevronDown className="w-4 h-4" />
+                                <ChevronDown className="h-4 w-4" />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => removeRecipeFromDay(dateKey, id)}
-                                className="p-2 rounded-lg text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors"
+                                className="rounded-lg p-2 text-white/45 transition-colors hover:bg-red-500/20 hover:text-red-300"
                                 aria-label="Löschen"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
                           </div>
@@ -625,10 +625,10 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setSelectedDay(dateKey); setSelectedSlot(id); setOpenDay(null); }}
-                            className={`group w-full h-16 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center gap-2 bg-gray-50/80 hover:bg-gray-100/80 transition-all border-l-4 ${borderClass} pl-3`}
+                            className={`group flex h-16 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/[0.12] bg-white/[0.04] transition-all hover:bg-white/[0.07] border-l-4 ${borderClass} pl-3`}
                           >
-                            <Plus className="w-5 h-5 text-gray-400 group-hover:text-violet-500 transition-colors" />
-                            <span className="text-sm font-medium text-gray-500 group-hover:text-violet-600 transition-colors">Hinzufügen</span>
+                            <Plus className="h-5 w-5 text-white/35 transition-colors group-hover:text-violet-300" />
+                            <span className="text-sm font-medium text-white/45 transition-colors group-hover:text-violet-200">Hinzufügen</span>
                           </button>
                         )}
                       </div>
@@ -647,9 +647,9 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
           <button
             type="button"
             onClick={() => setIsShoppingListOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 text-gray-800 font-medium transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.06] px-4 py-3 font-medium text-white/85 shadow-sm transition-colors hover:bg-white/[0.1]"
           >
-            <ShoppingCart className="w-5 h-5" />
+            <ShoppingCart className="h-5 w-5" />
             Wocheneinkauf erstellen ({masterShoppingList.length} Zutaten)
           </button>
         </div>
@@ -666,17 +666,17 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
 
       {/* Sticky Footer: über Navbar schwebend (bottom-nav ~80px), mit Schatten */}
       <div className="fixed bottom-[90px] left-0 right-0 z-50 p-4 pb-0 bg-transparent pointer-events-none">
-        <div className="max-w-2xl mx-auto pointer-events-auto flex flex-wrap gap-3 rounded-2xl bg-white/95 backdrop-blur-md border border-gray-100 shadow-lg p-4">
+        <div className="pointer-events-auto mx-auto flex max-w-2xl flex-wrap gap-3 rounded-2xl border border-white/[0.08] bg-[#1a1025]/95 p-4 shadow-lg backdrop-blur-md">
           <button
             type="button"
             onClick={handleAutoPlan}
             disabled={isAutoPlanning}
-            className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-white font-semibold transition-all shadow-lg ${
+            className={`flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-3.5 font-semibold text-white shadow-lg transition-all ${
               isAutoPlanning
-                ? 'bg-gray-300 cursor-not-allowed'
+                ? 'cursor-not-allowed bg-white/10'
                 : canAutoPlan || !hasPreferences
                 ? 'bg-gradient-to-r from-violet-600 to-fuchsia-500 hover:from-violet-700 hover:to-fuchsia-600 shadow-violet-500/25'
-                : 'bg-gray-300 cursor-not-allowed'
+                : 'cursor-not-allowed bg-white/10'
             }`}
           >
             {isAutoPlanning ? (
@@ -729,7 +729,7 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
                 type="button"
                 onClick={handleSavePlan}
                 disabled={isSavingPlan}
-                className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gray-900 hover:bg-gray-800 text-white font-semibold transition-colors shrink-0"
+                className="flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/[0.1] bg-white/[0.1] px-4 py-3.5 font-semibold text-white transition-colors hover:bg-white/[0.14]"
               >
                 {isSavingPlan ? (
                   <RefreshCw className="w-5 h-5 animate-spin" />
@@ -748,20 +748,20 @@ export function WeekPlanner({ myRecipes, workspaceId, isPremium: initialIsPremiu
       {/* Info-Modal */}
       {showInfoModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           onClick={() => setShowInfoModal(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl max-w-sm p-5 border border-gray-100"
+            className="max-w-sm rounded-2xl border border-white/[0.08] bg-[#1a1025] p-5 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-gray-700 font-medium">
+            <p className="font-medium text-white/85">
               Plane hier deine Mahlzeiten für die Woche. Die KI hilft dir dabei!
             </p>
             <button
               type="button"
               onClick={() => setShowInfoModal(false)}
-              className="mt-4 w-full py-2.5 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 transition-colors"
+              className="mt-4 w-full rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 py-2.5 font-medium text-white transition-colors hover:brightness-105"
             >
               Verstanden
             </button>
@@ -940,38 +940,38 @@ function RecipeSelectionModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[85vh] overflow-hidden flex flex-col"
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-white/[0.08] bg-[#1a1025] shadow-2xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header + Suche */}
-        <div className="shrink-0 p-4 border-b border-gray-100">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h2 className="text-lg font-semibold text-gray-900">Rezept für {mealTypeLabels[mealType]} auswählen</h2>
+        <div className="shrink-0 border-b border-white/[0.06] p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-white">Rezept für {mealTypeLabels[mealType]} auswählen</h2>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
+              className="rounded-full p-2 text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white/80"
               aria-label="Schließen"
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-white/35" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Suche nach Lasagne..."
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 text-gray-900 placeholder:text-gray-400 transition-colors"
+              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] py-3 pl-10 pr-4 text-white placeholder:text-white/25 transition-colors focus:border-white/[0.15] focus:outline-none focus:ring-2 focus:ring-violet-500/20"
             />
           </div>
           {/* Tabs */}
-          <div className="flex gap-1 mt-3 p-1 rounded-lg bg-gray-100">
+          <div className="mt-3 flex gap-1 rounded-lg bg-white/[0.06] p-1">
             {(
               [
                 { id: 'meine' as const, label: 'Meine Rezepte' },
@@ -983,8 +983,8 @@ function RecipeSelectionModal({
                 key={t.id}
                 type="button"
                 onClick={() => setTab(t.id)}
-                className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-                  tab === t.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
+                  tab === t.id ? 'bg-white/[0.12] text-white shadow-sm' : 'text-white/50 hover:text-white/80'
                 }`}
               >
                 {t.label}
@@ -999,7 +999,7 @@ function RecipeSelectionModal({
             <>
               {filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-gray-500 font-medium">
+                  <p className="font-medium text-white/50">
                     {recipes.length === 0 ? 'Noch keine Rezepte gespeichert.' : 'Keine Treffer für deine Suche.'}
                   </p>
                   {onRequestNewRecipe && (
@@ -1016,7 +1016,7 @@ function RecipeSelectionModal({
                     </button>
                   )}
                   {!onRequestNewRecipe && recipes.length === 0 && (
-                    <p className="text-sm text-gray-400 mt-2">Erstelle zuerst ein Rezept im Tab &quot;Neues Rezept&quot;.</p>
+                    <p className="mt-2 text-sm text-white/35">Erstelle zuerst ein Rezept im Tab &quot;Neues Rezept&quot;.</p>
                   )}
                 </div>
               ) : (
@@ -1028,19 +1028,19 @@ function RecipeSelectionModal({
                         <button
                           type="button"
                           onClick={() => onSelect(r, result.id)}
-                          className="w-full flex items-center gap-4 p-3 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-violet-50/50 hover:border-violet-200 transition-all text-left group"
+                          className="group flex w-full items-center gap-4 rounded-xl border border-white/[0.08] bg-white/[0.04] p-3 text-left transition-all hover:border-violet-400/30 hover:bg-white/[0.07]"
                         >
-                          <div className="w-16 h-16 shrink-0 rounded-xl bg-gradient-to-br from-orange-100 to-rose-100 flex items-center justify-center overflow-hidden">
-                            <ChefHat className="w-8 h-8 text-orange-400" />
+                          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-orange-500/20 to-rose-500/10">
+                            <ChefHat className="h-8 w-8 text-orange-300/80" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-gray-900 line-clamp-2">{r.recipeName}</p>
+                            <p className="line-clamp-2 font-semibold text-white/90">{r.recipeName}</p>
                             {r.stats?.time && (
-                              <p className="text-sm text-gray-500 mt-0.5">⏱ {r.stats.time}</p>
+                              <p className="mt-0.5 text-sm text-white/45">⏱ {r.stats.time}</p>
                             )}
                           </div>
-                          <div className="shrink-0 w-10 h-10 rounded-full bg-violet-100 group-hover:bg-violet-200 flex items-center justify-center text-violet-600 transition-colors">
-                            <Plus className="w-5 h-5" />
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-violet-200 transition-colors group-hover:bg-violet-500/30">
+                            <Plus className="h-5 w-5" />
                           </div>
                         </button>
                       </li>
@@ -1051,15 +1051,15 @@ function RecipeSelectionModal({
             </>
           )}
           {tab === 'favoriten' && (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <div className="flex flex-col items-center justify-center py-12 text-white/50">
               <p className="font-medium">Favoriten kommen bald.</p>
-              <p className="text-sm mt-1">Nutze in der Zwischenzeit &quot;Meine Rezepte&quot;.</p>
+              <p className="mt-1 text-sm text-white/35">Nutze in der Zwischenzeit &quot;Meine Rezepte&quot;.</p>
             </div>
           )}
           {tab === 'verlauf' && (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <div className="flex flex-col items-center justify-center py-12 text-white/50">
               <p className="font-medium">Verlauf kommt bald.</p>
-              <p className="text-sm mt-1">Nutze in der Zwischenzeit &quot;Meine Rezepte&quot;.</p>
+              <p className="mt-1 text-sm text-white/35">Nutze in der Zwischenzeit &quot;Meine Rezepte&quot;.</p>
             </div>
           )}
         </div>

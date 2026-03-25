@@ -588,13 +588,13 @@ export default function DashboardClient({
         headerBackground={<div className="h-full w-full bg-transparent" aria-hidden />}
         title={
           <div className="mb-5 flex items-baseline justify-between md:mb-6">
-            <div>
+            <div className="min-w-0 leading-snug">
               <span className="text-sm text-white/30">{sunriseGreeting.base},</span>
               {(displayName || '').trim() ? (
                 <span className="ml-1 text-sm font-semibold text-white/80">{(displayName || '').trim()}</span>
               ) : null}
             </div>
-            <span className="text-xs text-white/20">{formattedDate}</span>
+            <span className="shrink-0 text-[11px] leading-snug text-white/20 md:text-xs">{formattedDate}</span>
           </div>
         }
         subtitle={null}

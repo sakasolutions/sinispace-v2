@@ -13,13 +13,12 @@ import { FeedbackButton } from '@/components/ui/feedback-button';
 import { cn } from '@/lib/utils';
 import { toolInfoMap } from '@/lib/tool-info';
 
-/** Gleiche Glass-Karten-Styles wie Home (GourmetCockpit / Dashboard) */
+/** CookIQ Dark: Glass-Karten */
 const DASHBOARD_CARD_STYLE: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.16)',
-  border: '1px solid rgba(255,255,255,0.22)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
-  WebkitBackdropFilter: 'blur(8px)',
-  backdropFilter: 'blur(8px)',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  WebkitBackdropFilter: 'blur(12px)',
+  backdropFilter: 'blur(12px)',
 };
 import { getWorkspaceResults, deleteResult, cleanupOldResults, getResultById } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
@@ -78,30 +77,30 @@ function weekPlannerFilterChipClassNames(group: WeekPlannerChipGroup, selected: 
       return cn(
         base,
         selected
-          ? 'bg-green-100 text-green-900 border-2 border-green-400 shadow-sm'
-          : 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100/70 hover:border-green-300'
+          ? 'border-2 border-emerald-400/50 bg-emerald-500/20 text-white shadow-sm'
+          : 'border border-white/[0.08] bg-white/[0.04] text-white/70 hover:border-white/[0.12] hover:bg-white/[0.07]'
       );
     case 'blue':
       return cn(
         base,
         selected
-          ? 'bg-blue-100 text-blue-900 border-2 border-blue-400 shadow-sm'
-          : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100/70 hover:border-blue-300'
+          ? 'border-2 border-sky-400/50 bg-sky-500/20 text-white shadow-sm'
+          : 'border border-white/[0.08] bg-white/[0.04] text-white/70 hover:border-white/[0.12] hover:bg-white/[0.07]'
       );
     case 'orange':
       return cn(
         base,
         selected
-          ? 'bg-orange-100 text-orange-900 border-2 border-orange-400 shadow-sm'
-          : 'bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100/70 hover:border-orange-300'
+          ? 'border-2 border-orange-400/50 bg-orange-500/20 text-white shadow-sm'
+          : 'border border-white/[0.08] bg-white/[0.04] text-white/70 hover:border-white/[0.12] hover:bg-white/[0.07]'
       );
     case 'neutral':
     default:
       return cn(
         base,
         selected
-          ? 'bg-slate-200 text-slate-900 border-2 border-slate-400 shadow-sm'
-          : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+          ? 'border-2 border-white/25 bg-white/15 text-white shadow-sm'
+          : 'border border-white/[0.08] bg-white/[0.04] text-white/70 hover:border-white/[0.12] hover:bg-white/[0.07]'
       );
   }
 }
@@ -158,17 +157,17 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
   };
 
   return (
-    <div className="flex justify-between items-center border-b border-gray-100 bg-gray-50/80 px-4 py-3 rounded-t-xl mb-4">
-      <span className="text-xs uppercase tracking-wider text-gray-700 font-semibold">Dein Rezept</span>
+    <div className="mb-4 flex items-center justify-between rounded-t-xl border-b border-white/[0.06] bg-white/[0.03] px-4 py-3 backdrop-blur-xl">
+      <span className="text-xs font-semibold uppercase tracking-wider text-white/50">Dein Rezept</span>
       <div className="flex gap-2">
         <button
           onClick={handleCopy}
-          className="h-8 px-3 rounded-lg bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-300 transition-all flex items-center gap-1.5 text-xs font-semibold"
+          className="flex h-8 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.06] px-3 text-xs font-semibold text-white/80 transition-all hover:border-white/[0.12] hover:bg-white/[0.1]"
           title="In Zwischenablage kopieren"
         >
           {copied ? (
             <>
-              <span className="text-green-600">✓</span>
+              <span className="text-emerald-400">✓</span>
               <span className="hidden sm:inline">Kopiert!</span>
             </>
           ) : (
@@ -180,7 +179,7 @@ function ActionButtons({ recipe }: { recipe: Recipe }) {
         </button>
         <button
           onClick={handleGoToChat}
-          className="h-8 px-3 rounded-lg bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-300 transition-all flex items-center gap-1.5 text-xs font-semibold"
+          className="flex h-8 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.06] px-3 text-xs font-semibold text-white/80 transition-all hover:border-white/[0.12] hover:bg-white/[0.1]"
           title="Zu SiniChat"
         >
           <MessageSquare className="w-3.5 h-3.5" />
@@ -930,7 +929,7 @@ export default function RecipePage() {
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                   <div
-                    className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[55%] bg-gradient-to-t from-black/75 via-black/25 to-transparent"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[55%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/55 to-transparent"
                     aria-hidden
                   />
                   <div
@@ -939,8 +938,9 @@ export default function RecipePage() {
                   />
                 </div>
               ) : (
-                <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
-                  <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-800/60 to-gray-900/60 z-0" aria-hidden />
+                <div className="relative h-full w-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
+                  <div className="absolute inset-x-0 bottom-0 z-0 h-[60%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent" aria-hidden />
+                  <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/50 via-transparent to-transparent" aria-hidden />
                 </div>
               )
             }
@@ -1022,7 +1022,7 @@ export default function RecipePage() {
                           'group relative flex flex-col justify-between h-full items-start min-h-[132px] md:min-h-[100px] rounded-xl md:rounded-2xl overflow-hidden p-3 sm:p-3.5 text-left block w-full transition-all duration-300 cursor-pointer active:scale-[0.98]',
                           'hover:scale-[1.02]',
                           isActive
-                            ? 'border-0 bg-orange-500/20 text-orange-700 backdrop-blur-md shadow-[inset_0_0_15px_rgba(249,115,22,0.2)] scale-[1.02]'
+                            ? 'border-0 bg-orange-500/20 text-orange-200 backdrop-blur-md shadow-[inset_0_0_15px_rgba(249,115,22,0.2)] scale-[1.02]'
                             : 'border-2 border-transparent'
                         )}
                         style={!isActive ? DASHBOARD_CARD_STYLE : undefined}
@@ -1042,7 +1042,7 @@ export default function RecipePage() {
                           )}
                         </div>
                         <div className="w-full text-left mt-1">
-                          <h3 className={cn('font-semibold text-sm md:text-[0.9375rem] leading-tight line-clamp-2', isActive ? 'text-orange-700' : 'text-gray-900')}>
+                          <h3 className={cn('font-semibold text-sm md:text-[0.9375rem] leading-tight line-clamp-2', isActive ? 'text-orange-300' : 'text-white/90')}>
                             {option.label}
                           </h3>
                         </div>
@@ -1061,23 +1061,23 @@ export default function RecipePage() {
                   className="rounded-2xl overflow-hidden p-6 sm:p-8 flex flex-col items-center justify-center min-h-[200px]"
                   style={DASHBOARD_CARD_STYLE}
                 >
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 mb-4">Für wie viele Personen?</h3>
+                  <h3 className="mb-4 font-semibold text-[1.0625rem] text-white/90">Für wie viele Personen?</h3>
                   <div className="inline-flex items-center justify-between rounded-full p-2 gap-2 min-w-[200px]" style={DASHBOARD_CARD_STYLE}>
                     <button
                       type="button"
                       onClick={() => setServings(Math.max(1, servings - 1))}
                       disabled={servings <= 1}
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 shadow-sm text-orange-600 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-transform"
+                      className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.08] text-orange-300 shadow-sm transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Minus className="w-6 h-6" />
                     </button>
-                    <span className="font-bold text-2xl text-gray-900 min-w-[100px] text-center">
+                    <span className="min-w-[100px] text-center text-2xl font-bold text-white/90">
                       {servings} {servings === 1 ? 'Person' : 'Personen'}
                     </span>
                     <button
                       type="button"
                       onClick={() => setServings(servings + 1)}
-                      className="flex items-center justify-center w-12 h-12 rounded-full bg-white/90 shadow-sm text-orange-600 hover:scale-105 active:scale-95 transition-transform"
+                      className="flex h-12 w-12 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.08] text-orange-300 shadow-sm transition-transform hover:scale-105 active:scale-95"
                     >
                       <Plus className="w-6 h-6" />
                     </button>
@@ -1094,44 +1094,44 @@ export default function RecipePage() {
                 <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={DASHBOARD_CARD_STYLE}>
                   <div className="flex items-center gap-2 mb-3">
                     <Refrigerator className="w-5 h-5 text-orange-500 shrink-0" aria-hidden />
-                    <h3 className="font-semibold text-[1.0625rem] text-gray-900">Was hast du da?</h3>
+                    <h3 className="font-semibold text-[1.0625rem] text-white/90">Was hast du da?</h3>
                   </div>
                   <textarea
                     name="ingredients"
                     value={ingredients}
                     onChange={(e) => setIngredients(e.target.value)}
                     placeholder="z.B. Eier, Tomaten, Nudeln… (leer = Überraschung)"
-                    className="w-full rounded-xl bg-white/50 border border-white/40 text-gray-900 placeholder:text-gray-500 focus:bg-white/70 focus:border-orange-300 focus:ring-2 focus:ring-orange-500/20 p-4 text-base resize-none transition-all min-h-[160px]"
+                    className="min-h-[160px] w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 text-base text-white placeholder:text-white/25 focus:border-white/[0.15] focus:ring-2 focus:ring-orange-500/20"
                     rows={4}
                   />
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-3 mb-2">Schnell hinzufügen</p>
+                  <p className="mb-2 mt-3 text-xs font-semibold uppercase tracking-wider text-white/35">Schnell hinzufügen</p>
                   <div className="flex flex-wrap gap-2">
                     {['Tomaten', 'Eier', 'Nudeln', 'Zwiebeln', 'Käse', 'Reis', 'Hackfleisch', 'Paprika', 'Kartoffeln'].map((tag) => (
                       <button
                         key={tag}
                         type="button"
                         onClick={() => setIngredients(prev => prev ? `${prev}, ${tag}` : tag)}
-                        className="px-3 py-1.5 rounded-full bg-white/40 border border-white/50 text-gray-700 text-sm font-medium hover:bg-white/60 active:scale-95 transition-all"
+                        className="rounded-full border border-white/[0.08] bg-white/[0.06] px-3 py-1.5 text-sm font-medium text-white/70 transition-all hover:bg-white/[0.1] active:scale-95"
                       >
                         + {tag}
                       </button>
                     ))}
                   </div>
                   {ingredients.trim().length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-white/30">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Darf eingekauft werden?</p>
+                    <div className="mt-4 border-t border-white/[0.06] pt-4">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-white/35">Darf eingekauft werden?</p>
                       <div className="flex flex-wrap gap-2">
                         <button type="button" onClick={() => setShoppingMode('strict')}
                           className={cn(
-                            'px-4 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95',
-                            shoppingMode === 'strict' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white/40 border border-white/50 text-gray-700 hover:bg-white/60'
+                            'rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95',
+                            shoppingMode === 'strict' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20' : 'border border-white/[0.08] bg-white/[0.06] text-white/70 hover:bg-white/[0.1]'
                           )}>
                           Reste verwerten
                         </button>
                         <button type="button" onClick={() => setShoppingMode('shopping')}
                           className={cn(
-                            'px-4 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95',
-                            shoppingMode === 'shopping' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20' : 'bg-white/40 border border-white/50 text-gray-700 hover:bg-white/60'
+                            'rounded-xl px-4 py-2.5 text-sm font-medium transition-all active:scale-95',
+                            shoppingMode === 'shopping' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20' : 'border border-white/[0.08] bg-white/[0.06] text-white/70 hover:bg-white/[0.1]'
                           )}>
                           Fehlendes ergänzen
                         </button>
@@ -1141,11 +1141,11 @@ export default function RecipePage() {
                 </div>
                 {/* Filter als zweite Karte – Gruppen mit Icons, Tier-1-Chip-Design */}
                 <div className="rounded-2xl overflow-hidden p-5 sm:p-6" style={DASHBOARD_CARD_STYLE}>
-                  <h3 className="font-semibold text-[1.0625rem] text-gray-900 mb-4">Diät & Filter</h3>
+                  <h3 className="mb-4 font-semibold text-[1.0625rem] text-white/90">Diät & Filter</h3>
                   <div className="space-y-4">
                     {filterGroups.map((group) => (
                       <div key={group.groupLabel}>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">{group.groupLabel}</p>
+                        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-white/35">{group.groupLabel}</p>
                         <div className="flex flex-wrap gap-2">
                           {group.options.map((option) => {
                             const isActive = filters.includes(option.value);
@@ -1156,13 +1156,13 @@ export default function RecipePage() {
                                 type="button"
                                 onClick={() => toggleFilter(option.value)}
                                 className={cn(
-                                  'inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95',
+                                  'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all active:scale-95',
                                   isActive
-                                    ? 'bg-orange-50 border border-orange-200 text-orange-700 shadow-sm'
-                                    : 'bg-white/50 border border-white/40 text-slate-600 hover:bg-white/60'
+                                    ? 'border border-orange-400/40 bg-orange-500/20 text-orange-200 shadow-sm'
+                                    : 'border border-white/[0.08] bg-white/[0.04] text-white/60 hover:bg-white/[0.06]'
                                 )}
                               >
-                                <Icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-orange-600' : option.iconColor)} aria-hidden />
+                                <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-orange-300' : 'text-white/45')} aria-hidden />
                                 <span>{option.label}</span>
                               </button>
                             );
@@ -1188,7 +1188,7 @@ export default function RecipePage() {
                 <button
                   type="button"
                   onClick={() => setWizardStep((s) => s - 1 as 1 | 2 | 3)}
-                  className="order-2 sm:order-1 w-full sm:w-auto sm:min-w-[7rem] md:min-w-[8rem] h-12 sm:h-12 rounded-xl px-5 py-3.5 bg-gray-100/95 backdrop-blur-md border border-gray-200/80 text-gray-800 font-semibold shadow-md shadow-gray-300/40 hover:bg-gray-200/95 hover:scale-[1.02] transition-all active:scale-[0.98] flex items-center justify-center"
+                  className="order-2 flex h-12 w-full items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.06] px-5 py-3.5 text-sm font-semibold text-white/80 backdrop-blur-md transition-all hover:scale-[1.02] hover:border-white/[0.12] hover:bg-white/[0.1] active:scale-[0.98] sm:order-1 sm:h-12 sm:w-auto sm:min-w-[7rem] md:min-w-[8rem]"
                 >
                   Zurück
                 </button>
@@ -1219,9 +1219,9 @@ export default function RecipePage() {
         {state?.result && state.result.includes('🔒 Premium Feature') && (
         <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 mt-8">
           <div className="h-fit min-h-0" />
-          <div className="rounded-xl border border-gray-100 bg-white min-h-[200px] overflow-hidden">
+          <div className="min-h-[200px] overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
             <div className="p-4 sm:p-5 md:p-6">
-              <div className="prose prose-sm max-w-none text-gray-800 prose-p:text-gray-700 prose-a:text-orange-600 font-medium">
+              <div className="prose prose-sm prose-invert max-w-none font-medium text-white/80 prose-p:text-white/70 prose-a:text-orange-400">
                 <div dangerouslySetInnerHTML={{ __html: state.result.replace(/\n/g, '<br />') }} />
               </div>
             </div>
@@ -1243,15 +1243,15 @@ export default function RecipePage() {
           <div className="space-y-6">
             {/* Schwebende Karte: ragt in den Header, Suche + Filter */}
             <div className="relative z-20 -mt-8 mx-auto max-w-5xl px-4 sm:px-6">
-              <div className="bg-white/60 backdrop-blur-xl border border-white/40 shadow-xl rounded-2xl p-6">
-                <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-orange-500 transition-shadow">
-                  <Search className="w-5 h-5 text-gray-400 shrink-0" aria-hidden />
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6 shadow-xl backdrop-blur-xl">
+                <div className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 shadow-sm transition-shadow focus-within:border-orange-500/40 focus-within:ring-2 focus-within:ring-orange-500/20">
+                  <Search className="h-5 w-5 shrink-0 text-white/35" aria-hidden />
                   <input
                     type="search"
                     value={collectionSearch}
                     onChange={(e) => setCollectionSearch(e.target.value)}
                     placeholder="Suche nach Pizza, Pasta oder Zutaten..."
-                    className="flex-1 min-w-0 bg-white text-gray-900 placeholder-gray-400 text-sm font-medium outline-none border-0 focus:ring-0 p-0"
+                    className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm font-medium text-white placeholder:text-white/25 outline-none focus:ring-0"
                     aria-label="Rezepte durchsuchen"
                   />
                 </div>
@@ -1264,10 +1264,10 @@ export default function RecipePage() {
                         type="button"
                         onClick={() => setCollectionCategory(cat.id)}
                         className={cn(
-                          'rounded-full px-4 py-1.5 text-sm font-medium transition-all border border-transparent',
+                          'rounded-full border border-transparent px-4 py-1.5 text-sm font-medium transition-all',
                           isActive
                             ? 'bg-orange-500 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            : 'bg-white/[0.06] text-white/50 hover:bg-white/[0.1]'
                         )}
                       >
                         {cat.label}
@@ -1280,21 +1280,21 @@ export default function RecipePage() {
 
             {/* Grid */}
             {isLoadingRecipes ? (
-              <div className="rounded-3xl border border-white/60 bg-white/80 backdrop-blur-md p-8 text-center shadow-sm">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-500 mb-3" />
-                <p className="text-slate-700 font-semibold">Lade Rezepte…</p>
+              <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-8 text-center shadow-sm backdrop-blur-xl">
+                <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-orange-400" />
+                <p className="font-semibold text-white/80">Lade Rezepte…</p>
               </div>
             ) : myRecipes.length === 0 ? (
-              <div className="rounded-3xl border border-white/60 bg-white/80 backdrop-blur-md p-10 text-center shadow-sm">
-                <ChefHat className="w-14 h-14 mx-auto text-slate-400 mb-4" />
-                <p className="text-slate-800 font-semibold">Noch keine Rezepte gespeichert.</p>
-                <p className="text-sm text-slate-600 mt-2 font-medium">Erstelle dein erstes Rezept in der Übersicht.</p>
+              <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-10 text-center shadow-sm backdrop-blur-xl">
+                <ChefHat className="mx-auto mb-4 h-14 w-14 text-white/40" />
+                <p className="font-semibold text-white/90">Noch keine Rezepte gespeichert.</p>
+                <p className="mt-2 text-sm font-medium text-white/50">Erstelle dein erstes Rezept in der Übersicht.</p>
               </div>
             ) : filteredCollectionRecipes.length === 0 ? (
-              <div className="rounded-3xl border border-white/60 bg-white/80 backdrop-blur-md p-8 text-center shadow-sm">
-                <Search className="w-12 h-12 mx-auto text-slate-400 mb-3" />
-                <p className="text-slate-800 font-semibold">Keine Rezepte passen zu Suche oder Filter.</p>
-                <p className="text-sm text-slate-600 mt-1">Ändere die Suche oder wähle „Alle“.</p>
+              <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-8 text-center shadow-sm backdrop-blur-xl">
+                <Search className="mx-auto mb-3 h-12 w-12 text-white/35" />
+                <p className="font-semibold text-white/90">Keine Rezepte passen zu Suche oder Filter.</p>
+                <p className="mt-1 text-sm text-white/50">Ändere die Suche oder wähle „Alle“.</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -1382,13 +1382,13 @@ export default function RecipePage() {
 
       {/* Magic-Input-Modal: Wunschgericht */}
       {isMagicModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="magic-modal-title">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="magic-modal-title">
+          <div className="relative w-full max-w-md rounded-3xl border border-white/[0.08] bg-[#1a1025] p-6 shadow-2xl">
             {!isMagicGenerating && (
               <button
                 type="button"
                 onClick={() => setIsMagicModalOpen(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors"
+                className="absolute right-4 top-4 rounded-lg p-1 text-white/40 transition-colors hover:bg-white/[0.06] hover:text-white/70"
                 aria-label="Schließen"
               >
                 ✕
@@ -1397,17 +1397,17 @@ export default function RecipePage() {
 
             {isMagicGenerating ? (
               <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in duration-300">
-                <div className="text-5xl animate-bounce mb-4" aria-hidden>👨‍🍳</div>
-                <h3 id="magic-modal-title" className="text-xl font-bold text-gray-800 mb-2">Chefkoch denkt nach...</h3>
-                <p className="text-sm text-gray-500 mb-6 px-4">
-                  Kreiere das perfekte Rezept für <br /><span className="font-semibold text-orange-500">&quot;{magicQuery}&quot;</span>
+                <div className="mb-4 text-5xl animate-bounce" aria-hidden>👨‍🍳</div>
+                <h3 id="magic-modal-title" className="mb-2 text-xl font-bold text-white">Chefkoch denkt nach...</h3>
+                <p className="mb-6 px-4 text-sm text-white/50">
+                  Kreiere das perfekte Rezept für <br /><span className="font-semibold text-orange-400">&quot;{magicQuery}&quot;</span>
                 </p>
-                <div className="w-10 h-10 border-4 border-orange-100 border-t-orange-500 rounded-full animate-spin" aria-hidden />
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-orange-500" aria-hidden />
               </div>
             ) : (
               <div className="animate-in fade-in duration-300">
-                <h3 id="magic-modal-title" className="text-xl font-bold mb-2 text-gray-800">Worauf hast du Lust?</h3>
-                <p className="text-sm text-gray-500 mb-6">Beschreibe dein Wunschgericht. Unsere KI zaubert das perfekte Rezept daraus.</p>
+                <h3 id="magic-modal-title" className="mb-2 text-xl font-bold text-white">Worauf hast du Lust?</h3>
+                <p className="mb-6 text-sm text-white/50">Beschreibe dein Wunschgericht. Unsere KI zaubert das perfekte Rezept daraus.</p>
 
                 <form onSubmit={handleMagicSubmit}>
                   <input type="hidden" name="mealType" value="Wunschgericht" />
@@ -1419,7 +1419,7 @@ export default function RecipePage() {
                       type="text"
                       name="magicPrompt"
                       placeholder="z.B. Hausgemachter Döner..."
-                      className="w-full border-2 border-orange-100 rounded-xl pl-4 pr-12 py-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium"
+                      className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] py-4 pl-4 pr-12 font-medium text-white placeholder:text-white/25 focus:border-white/[0.15] focus:outline-none focus:ring-1 focus:ring-white/[0.05]"
                       autoFocus
                       required
                     />
@@ -1441,12 +1441,12 @@ export default function RecipePage() {
 
       {/* Wochenplaner Setup-Modal (Tier 1 Phase 1) – per Portal für korrekte Darstellung auf Mobile */}
       {isWeekPlannerOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="week-planner-modal-title">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="week-planner-modal-title">
           <div
             className={cn(
-              'relative z-[101] w-full max-w-md bg-white rounded-3xl shadow-2xl max-h-[90vh]',
+              'relative z-[101] w-full max-w-md rounded-3xl border border-white/[0.08] bg-[#1a1025] shadow-2xl max-h-[90vh]',
               plannerPhase === 'active-view'
-                ? 'flex flex-col min-h-0 overflow-hidden p-0'
+                ? 'flex min-h-0 flex-col overflow-hidden p-0'
                 : 'overflow-y-auto p-6'
             )}
           >
@@ -1459,7 +1459,7 @@ export default function RecipePage() {
                   setWeekPlannerSetupStep(1);
                   setTimeout(() => setPlannerPhase('setup'), 300);
                 }}
-                className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100"
+                className="absolute right-4 top-4 z-10 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-white/40 transition-colors hover:bg-white/[0.06] hover:text-white/70"
                 aria-label="Schließen"
               >
                 ✕
@@ -1468,27 +1468,27 @@ export default function RecipePage() {
 
             {/* --- PHASE 1: SETUP (3-Schritte-Assistent) --- */}
             {plannerPhase === 'setup' && (
-              <div className="animate-in fade-in duration-300 flex flex-col min-h-0">
+              <div className="flex min-h-0 flex-col animate-in fade-in duration-300">
                 <div className="mb-4">
-                  <h3 id="week-planner-modal-title" className="text-2xl font-bold mb-1 text-gray-800">
+                  <h3 id="week-planner-modal-title" className="mb-1 text-2xl font-bold text-white">
                     Woche planen
                   </h3>
-                  <p className="text-xs font-semibold text-orange-600 uppercase tracking-wider">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-orange-400">
                     Schritt {weekPlannerSetupStep} von 3
                   </p>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="mt-2 text-sm text-white/50">
                     {weekPlannerSetupStep === 1 && 'Basis: Mahlzeiten & Zeitaufwand'}
                     {weekPlannerSetupStep === 2 && 'Ernährung & Fokus'}
                     {weekPlannerSetupStep === 3 && 'Stimmung & persönliche Wünsche'}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">Plan startet am kommenden Montag (Mo–So).</p>
+                  <p className="mt-1 text-xs text-white/35">Plan startet am kommenden Montag (Mo–So).</p>
                 </div>
 
                 {/* Schritt 1: Mahlzeiten + Zeitaufwand */}
                 {weekPlannerSetupStep === 1 && (
                   <div className="space-y-6 mb-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Welche Mahlzeiten?</label>
+                      <label className="mb-3 block text-sm font-medium text-white/70">Welche Mahlzeiten?</label>
                       <div className="flex gap-2">
                         {[
                           { id: 'breakfast', label: 'Frühstück', icon: '🥐' },
@@ -1499,10 +1499,10 @@ export default function RecipePage() {
                             key={meal.id}
                             type="button"
                             onClick={() => setWeekMeals((prev) => ({ ...prev, [meal.id]: !prev[meal.id as keyof typeof prev] }))}
-                            className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl text-sm font-medium transition-all ${
+                            className={`flex flex-1 flex-col items-center gap-1 rounded-2xl px-2 py-3 text-sm font-medium transition-all ${
                               weekMeals[meal.id as keyof typeof weekMeals]
-                                ? 'bg-orange-100 text-orange-700 border-2 border-orange-300 shadow-sm transform scale-105'
-                                : 'bg-gray-50 text-gray-500 border-2 border-transparent hover:bg-gray-100'
+                                ? 'scale-105 transform border-2 border-orange-400/50 bg-orange-500/20 text-orange-200 shadow-sm'
+                                : 'border-2 border-transparent bg-white/[0.04] text-white/45 hover:bg-white/[0.07]'
                             }`}
                           >
                             <span className="text-xl" aria-hidden>
@@ -1514,7 +1514,7 @@ export default function RecipePage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Zeitaufwand</label>
+                      <label className="mb-3 block text-sm font-medium text-white/70">Zeitaufwand</label>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <button
                           type="button"
@@ -1522,8 +1522,8 @@ export default function RecipePage() {
                           className={cn(
                             'flex-1 rounded-2xl border-2 py-3 px-4 text-left text-sm font-semibold transition-all',
                             weekTimePreference === 'quick'
-                              ? 'border-orange-400 bg-orange-50 text-orange-800'
-                              : 'border-transparent bg-gray-50 text-gray-600 hover:bg-gray-100'
+                              ? 'border-orange-400/50 bg-orange-500/20 text-orange-200'
+                              : 'border-transparent bg-white/[0.04] text-white/60 hover:bg-white/[0.07]'
                           )}
                         >
                           Schnelle Küche (&lt;30 Min)
@@ -1534,8 +1534,8 @@ export default function RecipePage() {
                           className={cn(
                             'flex-1 rounded-2xl border-2 py-3 px-4 text-left text-sm font-semibold transition-all',
                             weekTimePreference === 'normal'
-                              ? 'border-orange-400 bg-orange-50 text-orange-800'
-                              : 'border-transparent bg-gray-50 text-gray-600 hover:bg-gray-100'
+                              ? 'border-orange-400/50 bg-orange-500/20 text-orange-200'
+                              : 'border-transparent bg-white/[0.04] text-white/60 hover:bg-white/[0.07]'
                           )}
                         >
                           Normal
@@ -1548,7 +1548,7 @@ export default function RecipePage() {
                 {/* Schritt 2: Ernährung */}
                 {weekPlannerSetupStep === 2 && (
                   <div className="mb-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Ernährung &amp; Fokus</label>
+                    <label className="mb-3 block text-sm font-medium text-white/70">Ernährung &amp; Fokus</label>
                     <div className="flex flex-wrap gap-2.5">
                       {WEEK_PLANNER_DIET_CHIPS.map((chip) => {
                         const isSelected = selectedWeekFilters.includes(chip.value);
@@ -1578,7 +1578,7 @@ export default function RecipePage() {
                 {weekPlannerSetupStep === 3 && (
                   <div className="space-y-6 mb-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Stimmung</label>
+                      <label className="mb-3 block text-sm font-medium text-white/70">Stimmung</label>
                       <div className="flex flex-wrap gap-2.5">
                         {WEEK_PLANNER_VIBE_CHIPS.map((chip) => {
                           const isSelected = selectedWeekFilters.includes(chip.value);
@@ -1603,12 +1603,12 @@ export default function RecipePage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Weitere Wünsche? (Optional)</label>
+                      <label className="mb-3 block text-sm font-medium text-white/70">Weitere Wünsche? (Optional)</label>
                       <textarea
                         value={customWeekPrompt}
                         onChange={(e) => setCustomWeekPrompt(e.target.value)}
                         placeholder="z.B. Mittwoch etwas mit Kürbis, am Wochenende etwas Aufwendigeres..."
-                        className="w-full border-2 border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-500 bg-orange-50/30 font-medium resize-none h-28"
+                        className="h-28 w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 font-medium text-white placeholder:text-white/25 focus:border-white/[0.15] focus:outline-none focus:ring-1 focus:ring-white/[0.05]"
                         rows={4}
                       />
                     </div>
@@ -1616,12 +1616,12 @@ export default function RecipePage() {
                 )}
 
                 {/* Navigation */}
-                <div className="mt-auto pt-4 flex flex-col gap-3 border-t border-gray-100">
+                <div className="mt-auto flex flex-col gap-3 border-t border-white/[0.06] pt-4">
                   {weekPlannerSetupStep > 1 && (
                     <button
                       type="button"
                       onClick={() => setWeekPlannerSetupStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3) : s))}
-                      className="w-full py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition-colors"
+                      className="w-full rounded-xl py-2.5 text-sm font-semibold text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white/80"
                     >
                       Zurück
                     </button>
@@ -1665,12 +1665,12 @@ export default function RecipePage() {
             {/* --- PHASE 2: LOADING --- */}
             {plannerPhase === 'loading' && (
               <div className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in duration-300">
-                <div className="text-6xl animate-bounce mb-6" aria-hidden>👨‍🍳</div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">Dein Speiseplan entsteht...</h3>
-                <p className="text-sm text-gray-500 mb-8 px-4">
+                <div className="mb-6 text-6xl animate-bounce" aria-hidden>👨‍🍳</div>
+                <h3 className="mb-2 text-2xl font-bold text-white">Dein Speiseplan entsteht...</h3>
+                <p className="mb-8 max-w-xs px-4 text-sm text-white/50">
                   Unsere KI analysiert deine Wünsche und stellt 7 perfekte Tage zusammen.
                 </p>
-                <div className="w-12 h-12 border-4 border-orange-100 border-t-orange-500 rounded-full animate-spin" aria-hidden />
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/10 border-t-orange-500" aria-hidden />
               </div>
             )}
 
@@ -1681,12 +1681,12 @@ export default function RecipePage() {
                   <div className="absolute inset-0 bg-orange-400 blur-2xl opacity-20 rounded-full animate-pulse" aria-hidden />
                   <Rocket className="w-20 h-20 text-orange-500 animate-bounce relative z-10" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3 tracking-tight">Raketenstart...</h3>
-                <p className="text-sm text-gray-500 mb-8 px-6 max-w-xs mx-auto leading-relaxed">
+                <h3 className="mb-3 text-2xl font-bold tracking-tight text-white">Raketenstart...</h3>
+                <p className="mx-auto mb-8 max-w-xs px-6 text-sm leading-relaxed text-white/50">
                   Dein Wochenplan wird gespeichert und die Termine werden in deinen Kalender eingetragen.
                 </p>
-                <div className="w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full w-1/2 bg-gradient-to-r from-orange-400 to-pink-500 rounded-full animate-pulse" aria-hidden />
+                <div className="h-1.5 w-48 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-orange-400 to-pink-500" aria-hidden />
                 </div>
               </div>
             )}
@@ -1694,21 +1694,21 @@ export default function RecipePage() {
             {/* --- PHASE 5: AKTIVE WOCHE (Lese-Ansicht) --- */}
             {plannerPhase === 'active-view' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col flex-1 min-h-0">
-                <div className="sticky top-0 z-20 shrink-0 bg-white border-b border-gray-100 pt-6 pb-5 px-6">
-                  <div className="flex justify-between items-start w-full gap-2 min-w-0">
+                <div className="sticky top-0 z-20 shrink-0 border-b border-white/[0.06] bg-[#1a1025] px-6 pb-5 pt-6">
+                  <div className="flex min-w-0 items-start justify-between gap-2">
                     <div className="min-w-0 flex-1 pr-1">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 shrink-0" />
+                      <div className="flex min-w-0 items-center gap-3">
+                        <CalendarDays className="h-5 w-5 shrink-0 text-orange-400 sm:h-6 sm:w-6" />
                         <h3
                           id="week-planner-modal-title"
-                          className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight leading-tight shrink-0"
+                          className="shrink-0 text-xl font-bold leading-tight tracking-tight text-white sm:text-2xl"
                         >
                           Deine Woche
                         </h3>
                       </div>
-                      <p className="text-sm text-gray-500 mt-2 leading-relaxed">Hier ist dein aktueller Speiseplan.</p>
+                      <p className="mt-2 text-sm leading-relaxed text-white/50">Hier ist dein aktueller Speiseplan.</p>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0 self-start">
+                    <div className="flex shrink-0 items-center gap-3 self-start">
                       <button
                         type="button"
                         onClick={() => {
@@ -1717,7 +1717,7 @@ export default function RecipePage() {
                             setIsWeekPlannerOpen(false);
                           }
                         }}
-                        className="text-sm font-medium text-rose-500 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition whitespace-nowrap"
+                        className="whitespace-nowrap rounded-lg bg-rose-500/15 px-3 py-1.5 text-sm font-medium text-rose-300 transition hover:bg-rose-500/25"
                       >
                         Plan löschen
                       </button>
@@ -1728,7 +1728,7 @@ export default function RecipePage() {
                           setWeekPlannerSetupStep(1);
                           setTimeout(() => setPlannerPhase('setup'), 300);
                         }}
-                        className="text-gray-500 hover:text-gray-800 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 -mr-2"
+                        className="-mr-2 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white/80"
                         aria-label="Schließen"
                       >
                         ✕
@@ -1737,11 +1737,11 @@ export default function RecipePage() {
                   </div>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-thin space-y-8 pb-24 px-6 pt-4 bg-gray-50/50 rounded-b-3xl">
+                <div className="flex-1 min-h-0 space-y-8 overflow-y-auto overscroll-contain rounded-b-3xl bg-transparent px-6 pb-24 pt-4 scrollbar-thin">
                   {weekDraft.map((dayPlan, idx) => (
                     <div key={idx} className="relative">
                       <div className="mt-8 mb-4">
-                        <h4 className="text-xl font-bold text-gray-900">
+                        <h4 className="text-xl font-bold text-white/90">
                           {dayPlan.day}
                         </h4>
                       </div>
@@ -1750,14 +1750,14 @@ export default function RecipePage() {
                         {dayPlan.meals.map((meal: { type: string; title: string; time?: string; calories?: string; imageUrl?: string | null }, mIdx: number) => (
                           <div
                             key={mIdx}
-                            className="flex flex-col bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_12px_34px_rgb(0,0,0,0.08)] transition-shadow border border-black/5 overflow-hidden"
+                            className="flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] shadow-none transition-shadow hover:border-white/[0.09] hover:bg-white/[0.04]"
                           >
-                            <div className="relative w-full h-48 bg-gray-50">
+                            <div className="relative h-48 w-full bg-white/[0.04]">
                               {meal.imageUrl && String(meal.imageUrl).trim() ? (
-                                <img src={meal.imageUrl.trim()} alt="" className="w-full h-full object-cover" />
+                                <img src={meal.imageUrl.trim()} alt="" className="h-full w-full object-cover" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-300" aria-hidden>
-                                  <UtensilsCrossed className="w-10 h-10" strokeWidth={1.5} />
+                                <div className="flex h-full w-full items-center justify-center text-white/25" aria-hidden>
+                                  <UtensilsCrossed className="h-10 w-10" strokeWidth={1.5} />
                                 </div>
                               )}
                               <span className="absolute top-0 left-0 m-3 px-2 py-1 bg-black/40 backdrop-blur-md text-white rounded-md text-xs font-medium tracking-wider uppercase">
@@ -1771,7 +1771,7 @@ export default function RecipePage() {
                                 const calOk = shouldShowMealCalories(meal.calories);
                                 if (!timeOk && !calOk) return null;
                                 return (
-                                  <div className="flex items-center gap-3 text-sm text-gray-500 font-medium flex-wrap">
+                                  <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-white/45">
                                     {timeOk ? (
                                       <span className="inline-flex items-center gap-1.5">
                                         <Clock className="w-4 h-4 shrink-0" />
@@ -1787,12 +1787,12 @@ export default function RecipePage() {
                                   </div>
                                 );
                               })()}
-                              <p className="text-lg font-semibold text-gray-900 line-clamp-2 leading-tight">
+                              <p className="line-clamp-2 text-lg font-semibold leading-tight text-white/90">
                                 {meal.title}
                               </p>
                             </div>
 
-                            <div className="border-t border-gray-100 bg-gray-50/50 px-4 py-3 flex items-center justify-between gap-3">
+                            <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] bg-white/[0.02] px-4 py-3">
                               <button
                                 type="button"
                                 onClick={async (e) => {
@@ -1810,10 +1810,10 @@ export default function RecipePage() {
                                   savingRecipeId === `${dayPlan.day}-${meal.title}` ||
                                   savedRecipeIds.includes(`${dayPlan.day}-${meal.title}`)
                                 }
-                                className={`h-10 w-10 rounded-xl transition-colors flex items-center justify-center ${
+                                className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
                                   savedRecipeIds.includes(`${dayPlan.day}-${meal.title}`)
-                                    ? 'text-rose-500 bg-rose-50/80'
-                                    : 'text-gray-400 hover:text-rose-500'
+                                    ? 'bg-rose-500/20 text-rose-400'
+                                    : 'text-white/40 hover:text-rose-400'
                                 } disabled:opacity-60`}
                                 title="In Sammlung speichern"
                               >
@@ -1832,7 +1832,7 @@ export default function RecipePage() {
                                 type="button"
                                 onClick={() => handleOpenRecipe(dayPlan.day, meal)}
                                 disabled={loadingRecipeId === `${dayPlan.day}-${meal.title}`}
-                                className="h-10 px-4 rounded-xl text-sm font-bold flex items-center gap-1.5 justify-center text-orange-600 bg-white border border-orange-100 hover:bg-orange-50 hover:border-orange-200 transition-all disabled:opacity-50 shadow-sm"
+                                className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-orange-400/30 bg-orange-500/15 px-4 text-sm font-bold text-orange-200 transition-all hover:bg-orange-500/25 disabled:opacity-50"
                               >
                                 {loadingRecipeId === `${dayPlan.day}-${meal.title}` ? (
                                   <div className="w-4 h-4 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin" />
@@ -1848,7 +1848,7 @@ export default function RecipePage() {
                   ))}
                 </div>
 
-                <div className="shrink-0 z-20 bg-white border-t border-gray-100 px-6 pt-4 pb-6">
+                <div className="z-20 shrink-0 border-t border-white/[0.06] bg-[#1a1025] px-6 pb-6 pt-4">
                   <button
                     type="button"
                     onClick={async () => {
@@ -1889,45 +1889,45 @@ export default function RecipePage() {
             {plannerPhase === 'lab' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-[80vh]">
                 {/* Header */}
-                <div className="shrink-0 mb-6 pt-2">
-                  <h3 className="text-2xl font-bold text-gray-800 tracking-tight">Dein Wochenplan</h3>
-                  <p className="text-sm text-gray-500 mt-1">Prüfe den Entwurf. Tausche einzelne Gerichte einfach aus.</p>
+                <div className="mb-6 shrink-0 pt-2">
+                  <h3 className="text-2xl font-bold tracking-tight text-white">Dein Wochenplan</h3>
+                  <p className="mt-1 text-sm text-white/50">Prüfe den Entwurf. Tausche einzelne Gerichte einfach aus.</p>
                 </div>
 
                 {/* Scrollbarer Bereich für die Tage */}
-                <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin space-y-8 pb-8 min-h-0">
+                <div className="min-h-0 flex-1 space-y-8 overflow-y-auto pb-8 pr-2 scrollbar-thin">
                   {weekDraft.map((dayPlan, idx) => (
                     <div key={idx} className="relative">
                       {/* Tages-Header mit Icon */}
-                      <div className="flex items-center gap-2 mb-4 sticky top-0 bg-white/90 backdrop-blur-sm py-2 z-10">
-                        <CalendarDays className="w-5 h-5 text-orange-500" />
-                        <h4 className="font-bold text-lg text-gray-800">
+                      <div className="sticky top-0 z-10 mb-4 flex items-center gap-2 bg-[#1a1025]/95 py-2 backdrop-blur-sm">
+                        <CalendarDays className="h-5 w-5 text-orange-400" />
+                        <h4 className="text-lg font-bold text-white/90">
                           {dayPlan.day}
                         </h4>
                       </div>
 
                       {/* Mahlzeiten */}
-                      <div className="space-y-3 pl-2 border-l border-orange-100/60 ml-2">
+                      <div className="ml-2 space-y-3 border-l border-orange-500/25 pl-2">
                         {dayPlan.meals.map((meal: { type: string; title: string; calories: string; time: string; imageUrl?: string | null }, mIdx: number) => (
                           <div
                             key={mIdx}
-                            className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 group relative overflow-hidden flex flex-col"
+                            className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] shadow-none transition-shadow hover:border-white/[0.09] hover:bg-white/[0.04]"
                           >
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-200/90 via-orange-200/75 to-amber-100/70" aria-hidden />
+                            <div className="absolute bottom-0 left-0 top-0 w-1 bg-gradient-to-b from-amber-500/40 via-orange-500/30 to-amber-500/20" aria-hidden />
 
                             {/* Zeile 1: Bild + Infos */}
-                            <div className="pl-3 pr-3 pt-3.5 pb-3 flex gap-3 min-w-0">
-                              <div className="w-20 h-20 shrink-0 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100/80 shadow-sm">
+                            <div className="flex min-w-0 gap-3 px-3 pb-3 pt-3.5">
+                              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04] shadow-sm">
                                 {meal.imageUrl && String(meal.imageUrl).trim() ? (
-                                  <img src={meal.imageUrl.trim()} alt="" className="w-full h-full object-cover" />
+                                  <img src={meal.imageUrl.trim()} alt="" className="h-full w-full object-cover" />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-gray-300" aria-hidden>
-                                    <UtensilsCrossed className="w-8 h-8" strokeWidth={1.5} />
+                                  <div className="flex h-full w-full items-center justify-center text-white/25" aria-hidden>
+                                    <UtensilsCrossed className="h-8 w-8" strokeWidth={1.5} />
                                   </div>
                                 )}
                               </div>
                               <div className="min-w-0 flex-1 flex flex-col gap-1">
-                                <span className="text-[10px] font-bold text-orange-500/95 uppercase tracking-widest">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400/80">
                                   {meal.type === 'breakfast' ? 'Frühstück' : meal.type === 'lunch' ? 'Mittagessen' : 'Abendessen'}
                                 </span>
                                 {(() => {
@@ -1935,7 +1935,7 @@ export default function RecipePage() {
                                   const calOk = shouldShowMealCalories(meal.calories);
                                   if (!timeOk && !calOk) return null;
                                   return (
-                                    <div className="flex items-center gap-3 text-xs text-gray-500 font-medium flex-wrap">
+                                    <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-white/45">
                                       {timeOk ? (
                                         <span className="inline-flex items-center gap-1">
                                           <Clock className="w-3.5 h-3.5 shrink-0" />
@@ -1951,18 +1951,18 @@ export default function RecipePage() {
                                     </div>
                                   );
                                 })()}
-                                <p className="font-bold text-gray-800 text-[15px] sm:text-base leading-snug line-clamp-2 pr-0.5">
+                                <p className="line-clamp-2 pr-0.5 text-[15px] font-bold leading-snug text-white/90 sm:text-base">
                                   {meal.title}
                                 </p>
                               </div>
                             </div>
 
                             {/* Zeile 2: Verschieben + Neu würfeln */}
-                            <div className="border-t border-gray-100/90 px-2 py-2 flex items-center justify-between gap-2 bg-gray-50/40">
-                              <div className="relative group/swap flex-1 min-w-0 flex justify-start">
+                            <div className="flex items-center justify-between gap-2 border-t border-white/[0.06] bg-white/[0.02] px-2 py-2">
+                              <div className="group/swap relative flex min-w-0 flex-1 justify-start">
                                 <button
                                   type="button"
-                                  className="w-full max-w-[160px] min-h-[40px] px-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl transition-all text-xs font-semibold flex items-center justify-center gap-1.5 border border-transparent hover:border-blue-100"
+                                  className="flex min-h-[40px] w-full max-w-[160px] items-center justify-center gap-1.5 rounded-xl border border-transparent px-2 text-xs font-semibold text-white/45 transition-all hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-300"
                                   title="Auf anderen Tag verschieben"
                                   tabIndex={-1}
                                 >
@@ -1993,7 +1993,7 @@ export default function RecipePage() {
                                 type="button"
                                 onClick={() => handleReRollMeal(idx, mIdx, dayPlan.day, meal.type, meal.title)}
                                 disabled={rollingMealId === `${dayPlan.day}-${meal.type}`}
-                                className="min-h-[40px] px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 justify-center text-orange-600 bg-white/80 border border-orange-100/80 hover:bg-orange-50/90 transition-all disabled:opacity-70 shrink-0"
+                                className="flex min-h-[40px] shrink-0 items-center justify-center gap-1.5 rounded-xl border border-orange-400/30 bg-orange-500/15 px-3 text-xs font-semibold text-orange-200 transition-all hover:bg-orange-500/25 disabled:opacity-70"
                                 title="Gericht neu generieren"
                               >
                                 <RefreshCw
@@ -2010,7 +2010,7 @@ export default function RecipePage() {
                 </div>
 
                 {/* Footer / Commit Action */}
-                <div className="shrink-0 pt-4 mt-2 bg-white">
+                <div className="mt-2 shrink-0 bg-transparent pt-4">
                   <button
                     type="button"
                     onClick={async () => {
@@ -2043,9 +2043,9 @@ export default function RecipePage() {
                         alert('Wochenplan konnte nicht gespeichert werden.');
                       }
                     }}
-                    className="w-full bg-slate-900 text-white rounded-2xl py-4 font-bold shadow-[0_8px_28px_-6px_rgba(15,23,42,0.4)] hover:bg-slate-800 hover:shadow-[0_12px_32px_-8px_rgba(15,23,42,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 ring-1 ring-slate-800/80"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 py-4 font-bold text-white shadow-lg shadow-orange-900/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <CalendarDays className="w-5 h-5 text-rose-400 shrink-0" aria-hidden />
+                    <CalendarDays className="h-5 w-5 shrink-0 text-white" aria-hidden />
                     Woche ab Montag speichern
                   </button>
                 </div>
@@ -2059,7 +2059,7 @@ export default function RecipePage() {
       {isPantryModalOpen &&
         createPortal(
           <div
-            className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4 sm:p-6"
+            className="fixed inset-0 z-[110] flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center sm:p-6"
             role="dialog"
             aria-modal="true"
             aria-labelledby="pantry-modal-title"
@@ -2071,11 +2071,11 @@ export default function RecipePage() {
             }}
           >
             <div
-              className="relative w-full max-w-md max-h-[88vh] flex flex-col bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100/80 animate-in fade-in zoom-in-95 duration-200 sm:max-h-[85vh]"
+              className="relative flex max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/[0.08] bg-[#1a1025] shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:max-h-[85vh]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="shrink-0 flex items-center justify-between gap-3 px-5 pt-5 pb-3 border-b border-gray-100">
-                <h2 id="pantry-modal-title" className="text-xl font-bold text-gray-900 tracking-tight">
+              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 pb-3 pt-5">
+                <h2 id="pantry-modal-title" className="text-xl font-bold tracking-tight text-white">
                   Zutaten-Check
                 </h2>
                 <button
@@ -2086,7 +2086,7 @@ export default function RecipePage() {
                     setIsPantryModalOpen(false);
                     setGroceryList([]);
                   }}
-                  className="p-2 min-h-[44px] min-w-[44px] rounded-xl text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors disabled:opacity-40"
+                  className="min-h-[44px] min-w-[44px] rounded-xl p-2 text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white/80 disabled:opacity-40"
                   aria-label="Schließen"
                 >
                   ✕
@@ -2100,29 +2100,29 @@ export default function RecipePage() {
                       <div className="absolute inset-0 bg-rose-400/20 blur-2xl rounded-full animate-pulse" aria-hidden />
                       <Loader2 className="w-12 h-12 text-rose-500 animate-spin relative z-10" aria-hidden />
                     </div>
-                    <p className="text-sm font-semibold text-gray-800">KI berechnet benötigte Zutaten…</p>
-                    <p className="text-xs text-gray-500 mt-2 max-w-xs leading-relaxed">
+                    <p className="text-sm font-semibold text-white/90">KI berechnet benötigte Zutaten…</p>
+                    <p className="mt-2 max-w-xs text-xs leading-relaxed text-white/45">
                       Deine Wochengerichte werden analysiert und zu einer klugen Einkaufsliste zusammengefasst.
                     </p>
-                    <div className="w-full mt-8 space-y-3" aria-hidden>
+                    <div className="mt-8 w-full space-y-3" aria-hidden>
                       {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="h-12 rounded-xl bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 animate-pulse" />
+                        <div key={i} className="h-12 animate-pulse rounded-xl bg-gradient-to-r from-white/[0.06] via-white/[0.03] to-white/[0.06]" />
                       ))}
                     </div>
                   </div>
                 ) : groceryList.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-12">Keine Zutaten geladen.</p>
+                  <p className="py-12 text-center text-sm text-white/45">Keine Zutaten geladen.</p>
                 ) : (
                   <div className="space-y-8 pb-2">
                     {groupedPantryByCategory.map(([category, entries]) => (
                       <div key={category}>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 px-0.5">
+                        <h3 className="mb-3 px-0.5 text-xs font-bold uppercase tracking-wider text-white/35">
                           {getCategoryLabel(category)}
                         </h3>
                         <ul className="space-y-2">
                           {entries.map(({ row, index }) => (
                             <li key={`${category}-${index}`}>
-                              <label className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3 cursor-pointer hover:bg-gray-50 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose-500/30">
+                              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-3 transition-colors hover:bg-white/[0.06] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-rose-500/30">
                                 <input
                                   type="checkbox"
                                   checked={row.checked}
@@ -2131,11 +2131,11 @@ export default function RecipePage() {
                                       prev.map((g, i) => (i === index ? { ...g, checked: !g.checked } : g))
                                     )
                                   }
-                                  className="mt-0.5 h-5 w-5 shrink-0 rounded-md border-gray-300 text-rose-600 focus:ring-rose-500 focus:ring-offset-0 accent-rose-600"
+                                  className="mt-0.5 h-5 w-5 shrink-0 rounded-md border-white/20 text-rose-400 focus:ring-rose-500 focus:ring-offset-0 accent-rose-500"
                                 />
                                 <span className="min-w-0 flex-1">
-                                  <span className="block text-sm font-semibold text-gray-900">{row.item}</span>
-                                  <span className="block text-xs text-gray-500 mt-0.5">{row.amount}</span>
+                                  <span className="block text-sm font-semibold text-white/90">{row.item}</span>
+                                  <span className="mt-0.5 block text-xs text-white/45">{row.amount}</span>
                                 </span>
                               </label>
                             </li>
@@ -2147,7 +2147,7 @@ export default function RecipePage() {
                 )}
               </div>
 
-              <div className="shrink-0 border-t border-gray-100 bg-white px-5 pt-4 pb-5 sm:pb-6 space-y-4">
+              <div className="shrink-0 space-y-4 border-t border-white/[0.06] bg-[#1a1025] px-5 pb-5 pt-4 sm:pb-6">
                 {!isGeneratingGroceries && planForCalendarActivation ? (
                   <button
                     type="button"
@@ -2182,7 +2182,7 @@ export default function RecipePage() {
                         setIsActivatingWeeklyPlan(false);
                       }
                     }}
-                    className="w-full rounded-2xl py-4 font-bold transition-all inline-flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:pointer-events-none bg-slate-900 text-white hover:bg-slate-800 shadow-[0_8px_28px_-6px_rgba(15,23,42,0.45)] hover:shadow-[0_12px_32px_-8px_rgba(15,23,42,0.4)] active:scale-[0.99] ring-1 ring-slate-800/80"
+                    className="inline-flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 py-4 font-bold text-white shadow-lg shadow-orange-900/30 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50"
                   >
                     {isActivatingWeeklyPlan ? (
                       <>
@@ -2191,7 +2191,7 @@ export default function RecipePage() {
                       </>
                     ) : (
                       <>
-                        <CalendarDays className="w-5 h-5 shrink-0 text-rose-400" aria-hidden />
+                        <CalendarDays className="h-5 w-5 shrink-0 text-white" aria-hidden />
                         Woche ab Montag aktivieren
                       </>
                     )}
@@ -2200,11 +2200,11 @@ export default function RecipePage() {
 
                 {!isGeneratingGroceries && groceryList.length > 0 ? (
                   <div className="space-y-2">
-                    <label htmlFor="pantry-list-select" className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <label htmlFor="pantry-list-select" className="block text-xs font-semibold uppercase tracking-wider text-white/35">
                       In welche Liste speichern?
                     </label>
                     {isPantryListsLoading ? (
-                      <div className="h-11 rounded-xl bg-gray-100 animate-pulse" aria-hidden />
+                      <div className="h-11 animate-pulse rounded-xl bg-white/[0.06]" aria-hidden />
                     ) : (
                       <>
                         <select
@@ -2212,7 +2212,7 @@ export default function RecipePage() {
                           value={pantrySelectedListId}
                           onChange={(e) => setPantrySelectedListId(e.target.value)}
                           disabled={isSavingPantryToSmartCart}
-                          className="w-full rounded-xl border border-gray-200 bg-gray-50/80 px-3 py-2.5 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-300 disabled:opacity-50"
+                          className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm font-medium text-white focus:border-white/[0.15] focus:outline-none focus:ring-2 focus:ring-rose-500/20 disabled:opacity-50"
                         >
                           {pantrySmartCartLists.map((l) => (
                             <option key={l.id} value={l.id}>
@@ -2228,7 +2228,7 @@ export default function RecipePage() {
                             onChange={(e) => setPantryNewListName(e.target.value)}
                             placeholder="Name der neuen Liste (optional)"
                             disabled={isSavingPantryToSmartCart}
-                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-300 disabled:opacity-50"
+                            className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white placeholder:text-white/25 focus:border-white/[0.15] focus:outline-none focus:ring-2 focus:ring-rose-500/20 disabled:opacity-50"
                           />
                         ) : null}
                       </>

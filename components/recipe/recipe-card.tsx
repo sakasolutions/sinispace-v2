@@ -18,13 +18,13 @@ export type RecipeCardTheme = {
   shadow: string;
 };
 
-/** Glas-Stil wie Dashboard-Karten (Sammlung) */
+/** Dark glass — CookIQ Sammlung */
 const GLASS_CARD_STYLE: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.16)',
-  border: '1px solid rgba(255,255,255,0.22)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.08), 0 16px 48px -12px rgba(0,0,0,0.06)',
-  WebkitBackdropFilter: 'blur(8px)',
-  backdropFilter: 'blur(8px)',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  boxShadow: 'none',
+  WebkitBackdropFilter: 'blur(12px)',
+  backdropFilter: 'blur(12px)',
 };
 
 type RecipeCardProps = {
@@ -37,7 +37,7 @@ type RecipeCardProps = {
   onDelete: () => void;
   showVeganBadge?: boolean;
   showHighProteinBadge?: boolean;
-  /** Glas-Morphismus wie Dashboard-Karten (Sammlungs-Grid) */
+  /** Glas-Morphismus wie CookIQ-Dark */
   glass?: boolean;
 };
 
@@ -58,56 +58,57 @@ export function RecipeCard({
   return (
     <div
       className={cn(
-        'group relative rounded-[24px] overflow-hidden flex flex-col transition-all duration-300 cursor-pointer hover:-translate-y-1',
-        glass ? 'border-transparent' : 'bg-white border border-gray-100',
-        !glass && theme.shadow,
-        !glass && 'hover:shadow-xl shadow-sm'
+        'group relative flex cursor-pointer flex-col overflow-hidden rounded-[24px] transition-all duration-300 hover:-translate-y-1',
+        glass
+          ? 'border border-white/[0.06]'
+          : cn('border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl', theme.shadow, 'hover:shadow-xl shadow-sm')
       )}
       style={glass ? GLASS_CARD_STYLE : undefined}
       onClick={onSelect}
     >
-      {/* Header: echtes Bild (Unsplash) oder Gradient-Fallback */}
-      <div className="relative h-40 shrink-0 flex items-center justify-center overflow-hidden">
+      <div className="relative flex h-40 shrink-0 items-center justify-center overflow-hidden">
         {recipe.imageUrl ? (
           <>
-            <img src={recipe.imageUrl} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" aria-hidden />
+            <img src={recipe.imageUrl} alt="" className="h-full w-full object-cover" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" aria-hidden />
             {recipe.imageCredit && (
-              <span className="absolute bottom-1 left-2 text-[10px] text-white/80 pointer-events-none">Photo: {recipe.imageCredit}</span>
+              <span className="pointer-events-none absolute bottom-1 left-2 text-[10px] text-white/80">Photo: {recipe.imageCredit}</span>
             )}
           </>
         ) : (
           <>
             <div className={cn('absolute inset-0', theme.gradient)} aria-hidden />
-            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors pointer-events-none" aria-hidden />
-            <ThemeIcon className="w-16 h-16 text-white drop-shadow-md shrink-0 relative z-10" strokeWidth={2} aria-hidden />
+            <div className="pointer-events-none absolute inset-0 bg-white/0 transition-colors group-hover:bg-white/10" aria-hidden />
+            <ThemeIcon className="relative z-10 h-16 w-16 shrink-0 text-white drop-shadow-md" strokeWidth={2} aria-hidden />
           </>
         )}
-        {/* More-Menu oben rechts im Header */}
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute right-2 top-2 z-10">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               onMenuToggle();
             }}
-            className="p-1.5 rounded-full bg-black/20 hover:bg-black/30 backdrop-blur-sm text-white transition-colors"
+            className="rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-black/45"
             aria-label="Mehr Optionen"
           >
-            <MoreVertical className="w-4 h-4" />
+            <MoreVertical className="h-4 w-4" />
           </button>
           {isMenuOpen && (
             <>
-              <div className="absolute right-0 top-full mt-1 py-1 rounded-xl bg-white border border-gray-200 shadow-lg min-w-[140px] z-20" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-[#1a1025] py-1 shadow-lg backdrop-blur-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   type="button"
                   onClick={() => {
                     onMenuToggle();
                     alert('Edit-Feature kommt gleich!');
                   }}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg"
+                  className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 text-left text-sm font-medium text-white/80 hover:bg-white/[0.06]"
                 >
-                  <Edit className="w-4 h-4" />
+                  <Edit className="h-4 w-4" />
                   Bearbeiten
                 </button>
                 <button
@@ -116,44 +117,39 @@ export function RecipeCard({
                     onMenuToggle();
                     onDelete();
                   }}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg"
+                  className="flex w-full items-center gap-2 rounded-lg px-4 py-2.5 text-left text-sm font-medium text-red-400 hover:bg-red-500/10"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="h-4 w-4" />
                   Löschen
                 </button>
               </div>
-              <div
-                className="fixed inset-0 z-[5]"
-                aria-hidden
-                onClick={onMenuToggle}
-              />
+              <div className="fixed inset-0 z-[5]" aria-hidden onClick={onMenuToggle} />
             </>
           )}
         </div>
       </div>
-      {/* Body: Titel + Smart Badges (bei Glas leicht hinterlegt für Lesbarkeit) */}
-      <div className={cn('p-5 flex flex-col flex-grow min-h-0', glass && 'bg-white/20')}>
-        <h3 className="font-bold text-gray-900 text-lg leading-tight mb-3 line-clamp-2">{recipe.recipeName || 'Rezept'}</h3>
+      <div className={cn('flex min-h-0 flex-grow flex-col p-5', glass && 'bg-white/[0.02]')}>
+        <h3 className="mb-3 line-clamp-2 text-lg font-bold leading-tight text-white/90">{recipe.recipeName || 'Rezept'}</h3>
         <div className="flex flex-wrap items-center gap-2">
           {recipe.stats?.time && (
-            <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-md border border-gray-100">
-              <Clock className="w-3.5 h-3.5 shrink-0" />
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-white/50">
+              <Clock className="h-3.5 w-3.5 shrink-0" />
               {recipe.stats.time}
             </span>
           )}
           {recipe.stats?.calories != null && (
-            <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-md border border-gray-100">
-              <Flame className="w-3.5 h-3.5 shrink-0" />
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-white/50">
+              <Flame className="h-3.5 w-3.5 shrink-0" />
               {typeof recipe.stats.calories === 'number' ? `${recipe.stats.calories} kcal` : recipe.stats.calories}
             </span>
           )}
           {showVeganBadge && (
-            <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-medium px-2.5 py-1 rounded-md border border-green-100">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300/90">
               Veggie
             </span>
           )}
           {showHighProteinBadge && (
-            <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-medium px-2.5 py-1 rounded-md border border-green-100">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300/90">
               High Protein
             </span>
           )}

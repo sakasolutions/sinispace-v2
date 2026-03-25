@@ -59,13 +59,13 @@ export interface RecipeDetailViewProps {
   embedHeroInParent?: boolean;
 }
 
-/** Glass-Elemente: einheitliche Handschrift wie Dashboard/Gourmet (mobil + Desktop) */
+/** Glass-Elemente: Dark Theme (CookIQ / App-Canvas) */
 const RECIPE_GLASS_STYLE: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.7)',
-  border: '1px solid rgba(255,255,255,0.5)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 12px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.06)',
-  WebkitBackdropFilter: 'blur(12px)',
-  backdropFilter: 'blur(12px)',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.06)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 32px -8px rgba(0,0,0,0.45)',
+  WebkitBackdropFilter: 'blur(20px)',
+  backdropFilter: 'blur(20px)',
 };
 
 export type IngredientRow = {
@@ -273,33 +273,33 @@ export function RecipeDetailView({
     const progressPercent = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
     return (
       <div className="px-4 md:px-6 pb-32 max-w-4xl mx-auto">
-        <div className="relative z-20 rounded-[32px] overflow-hidden shadow-tier1 border border-white/50" style={RECIPE_GLASS_STYLE}>
-          <div className="h-1.5 w-full bg-gray-100" aria-hidden>
+        <div className="relative z-20 overflow-hidden rounded-[32px] border border-white/[0.08] shadow-tier1" style={RECIPE_GLASS_STYLE}>
+          <div className="h-1.5 w-full bg-white/[0.08]" aria-hidden>
             <div
               className="h-full bg-orange-500 transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <div className="p-6 sm:p-8 flex flex-col min-h-[50vh]">
+          <div className="flex min-h-[50vh] flex-col p-6 sm:p-8">
             <button
               type="button"
               onClick={() => setCookingMode(false)}
-              className="self-start text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors mb-4"
+              className="mb-4 self-start text-sm font-medium text-white/45 transition-colors hover:text-white/90"
             >
               ← Rezept
             </button>
             {/* Schritt-Indikator: Editorial – Wasserzeichen + Label */}
             <div className="relative">
-              <span className="text-6xl md:text-8xl font-black text-orange-100/50 absolute top-4 right-4 pointer-events-none select-none tabular-nums">
+              <span className="pointer-events-none absolute right-4 top-4 select-none text-6xl font-black text-orange-400/20 tabular-nums md:text-8xl">
                 {String(currentStep + 1).padStart(2, '0')}
               </span>
-              <p className="text-xs uppercase tracking-widest text-gray-400 font-bold mb-2">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-white/35">
                 Schritt {currentStep + 1} von {totalSteps}
               </p>
             </div>
 
             {/* Anleitungstext – groß und lesbar */}
-            <p className="text-xl md:text-2xl text-gray-800 font-medium leading-relaxed mt-12 mb-8 flex-1">
+            <p className="mb-8 mt-12 flex-1 text-xl font-medium leading-relaxed text-white/90 md:text-2xl">
               {recipe.instructions[currentStep]}
             </p>
 
@@ -313,10 +313,10 @@ export function RecipeDetailView({
                 setCompletedSteps(newCompleted);
               }}
               className={cn(
-                'self-start mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors border',
+                'mb-6 inline-flex items-center gap-2 self-start rounded-xl border px-4 py-2 text-sm font-medium transition-colors',
                 completedSteps.has(currentStep)
-                  ? 'bg-orange-500 border-orange-500 text-white'
-                  : 'bg-white border-gray-200 text-gray-500 hover:border-orange-300 hover:text-orange-600'
+                  ? 'border-orange-500 bg-orange-500 text-white'
+                  : 'border-white/[0.1] bg-white/[0.06] text-white/50 hover:border-orange-400/40 hover:text-orange-300'
               )}
             >
               <CheckCircle2 className="w-4 h-4" />
@@ -324,12 +324,12 @@ export function RecipeDetailView({
             </button>
 
             {/* Navigation – Fat Finger friendly */}
-            <div className="flex gap-4 mt-auto pt-8 border-t border-gray-100/80">
+            <div className="mt-auto flex gap-4 border-t border-white/[0.06] pt-8">
               <button
                 type="button"
                 onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
                 disabled={currentStep === 0}
-                className="flex-1 h-14 rounded-full bg-slate-100/90 hover:bg-slate-200/90 text-slate-700 font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="h-14 flex-1 rounded-full bg-white/[0.08] font-semibold text-white/80 transition-colors hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Zurück
               </button>
@@ -371,15 +371,15 @@ export function RecipeDetailView({
                 className="absolute inset-0 h-full w-full object-cover"
               />
             ) : (
-              <div
-                className="absolute inset-0 bg-gradient-to-br from-orange-200/90 via-amber-100 to-rose-100 flex items-center justify-center"
-                aria-hidden
-              >
-                <UtensilsCrossed className="w-24 h-24 text-orange-300/80" strokeWidth={1.5} />
-              </div>
+            <div
+              className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1a1025] via-[#0f0914] to-[#0f0914]"
+              aria-hidden
+            >
+              <UtensilsCrossed className="h-24 w-24 text-orange-400/40" strokeWidth={1.5} />
+            </div>
             )}
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent"
               aria-hidden
             />
             <div
@@ -408,7 +408,7 @@ export function RecipeDetailView({
           embedHeroInParent ? '-mt-14 md:-mt-24 px-0 sm:px-4 md:px-6' : '-mt-12 md:-mt-16 px-4 md:px-6'
         )}
       >
-        <div className="rounded-t-[40px] bg-white shadow-xl border border-slate-100/90 px-6 pt-8 pb-8 md:px-8 md:pb-10">
+        <div className="rounded-t-[40px] border border-white/[0.08] bg-white/[0.03] px-6 pb-8 pt-8 shadow-xl backdrop-blur-xl md:px-8 md:pb-10">
           {fromWeekPlan && onSaveToCollection && (
             <div className="flex justify-end mb-6">
               <button
@@ -425,12 +425,12 @@ export function RecipeDetailView({
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-4">
                 {!embedHeroInParent && !heroImageUrl ? (
-                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center">
-                    <UtensilsCrossed className="w-7 h-7 text-orange-500" strokeWidth={1.5} aria-hidden />
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-orange-400/15 bg-orange-400/[0.08]">
+                    <UtensilsCrossed className="h-7 w-7 text-orange-400/70" strokeWidth={1.5} aria-hidden />
                   </div>
                 ) : null}
                 <div className="min-w-0 flex-1 space-y-3">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/35">
                     Generiert am{' '}
                     {new Date(createdAt).toLocaleDateString('de-DE', {
                       day: '2-digit',
@@ -438,25 +438,25 @@ export function RecipeDetailView({
                       year: 'numeric',
                     })}
                   </p>
-                  <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">
+                  <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white">
                     {recipe.recipeName}
                   </h1>
                   <div className="flex flex-wrap gap-2">
                     {recipe.stats?.time ? (
-                      <span className="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-sm font-medium">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/15 bg-orange-400/[0.08] px-3 py-1.5 text-sm font-medium text-orange-300/90">
                         <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden />
                         {recipe.stats.time}
                       </span>
                     ) : null}
                     {adjustedCalories ? (
-                      <span className="inline-flex items-center gap-2 bg-rose-50 text-rose-600 px-3 py-1.5 rounded-full text-sm font-medium">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-rose-400/15 bg-rose-400/[0.08] px-3 py-1.5 text-sm font-medium text-rose-300/90">
                         <Flame className="w-3.5 h-3.5 shrink-0" aria-hidden />
                         {adjustedCalories}
                         {servings !== originalServings ? ' / Portion' : ''}
                       </span>
                     ) : null}
                     {recipe.stats?.difficulty ? (
-                      <span className="inline-flex items-center gap-2 bg-violet-50 text-violet-600 px-3 py-1.5 rounded-full text-sm font-medium">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-violet-400/15 bg-violet-400/[0.08] px-3 py-1.5 text-sm font-medium text-violet-300/90">
                         <ChefHat className="w-3.5 h-3.5 shrink-0" aria-hidden />
                         {recipe.stats.difficulty}
                       </span>
@@ -495,30 +495,30 @@ export function RecipeDetailView({
                       setToast({ message: 'Link kopiert' });
                     }
                   }}
-                  className="w-full px-5 py-3.5 rounded-full border border-slate-200/90 bg-white/80 backdrop-blur-sm text-slate-600 font-semibold hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.06] px-5 py-3.5 font-semibold text-white/70 shadow-sm backdrop-blur-sm transition-colors hover:bg-white/[0.1]"
                 >
                   <Share2 className="w-4 h-4 shrink-0" />
                   Teilen
                 </button>
               </div>
               <div className="flex flex-wrap items-center gap-4 justify-start">
-                <div className="inline-flex items-center gap-4 bg-slate-50 rounded-full px-5 py-2.5 border border-slate-100">
+                <div className="inline-flex items-center gap-4 rounded-full border border-white/[0.08] bg-white/[0.04] px-5 py-2.5">
                   <button
                     type="button"
                     onClick={() => setServings(Math.max(1, servings - 1))}
                     disabled={servings <= 1}
-                    className="w-9 h-9 flex items-center justify-center rounded-full text-slate-600 bg-white shadow-sm hover:shadow transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.08] text-white/70 shadow-sm transition-all hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
-                  <span className="text-slate-900 font-bold min-w-[6ch] tabular-nums text-center text-sm">
+                  <span className="min-w-[6ch] text-center text-sm font-bold tabular-nums text-white">
                     {servings} Pers.
                   </span>
                   <button
                     type="button"
                     onClick={() => setServings(Math.min(8, servings + 1))}
                     disabled={servings >= 8}
-                    className="w-9 h-9 flex items-center justify-center rounded-full text-slate-600 bg-white shadow-sm hover:shadow transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.08] text-white/70 shadow-sm transition-all hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -527,7 +527,7 @@ export function RecipeDetailView({
                   <button
                     type="button"
                     onClick={() => setServings(originalServings)}
-                    className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 hover:bg-slate-100"
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white/80"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     Original
@@ -546,27 +546,27 @@ export function RecipeDetailView({
             <>
               {availableIngredients.length > 0 && (
                 <>
-                  <h2 className="text-lg font-bold text-slate-900 mb-2">Zutaten (Vorhanden)</h2>
-                  <p className="text-sm text-slate-500 mb-6">
+                  <h2 className="mb-2 text-lg font-bold text-white">Zutaten (Vorhanden)</h2>
+                  <p className="mb-6 text-sm text-white/45">
                     für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umsortieren
                   </p>
-                  <div className="flex flex-col gap-3 mb-8">
+                  <div className="mb-8 flex flex-col gap-3">
                     {availableIngredients.map((row) => (
                       <button
                         key={row.id}
                         type="button"
                         onClick={() => toggleIngredient(row.name)}
-                        className="w-full text-left bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 hover:border-orange-100 hover:shadow-md transition-all active:scale-[0.99]"
+                        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-sm transition-all hover:border-orange-400/25 hover:bg-white/[0.05] active:scale-[0.99]"
                       >
-                        <span className="flex items-center gap-3 min-w-0">
-                          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-50 shrink-0">
-                            <CheckCircle2 className="w-5 h-5 text-emerald-600" aria-hidden />
+                        <span className="flex min-w-0 items-center gap-3">
+                          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15">
+                            <CheckCircle2 className="h-5 w-5 text-emerald-400/90" aria-hidden />
                           </span>
-                          <span className="text-sm text-slate-800 font-medium leading-relaxed">
+                          <span className="text-sm font-medium leading-relaxed text-white/85">
                             {formatIngredientDisplay(row.name)}
                           </span>
                         </span>
-                        <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" aria-hidden />
+                        <ChevronRight className="h-4 w-4 shrink-0 text-white/25" aria-hidden />
                       </button>
                     ))}
                   </div>
@@ -574,13 +574,13 @@ export function RecipeDetailView({
               )}
               {missingIngredients.length > 0 ? (
                 <>
-                  <h2 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-amber-50">
-                      <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" aria-hidden />
+                  <h2 className="mb-2 flex items-center gap-2 text-lg font-bold text-white">
+                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-amber-400/[0.12]">
+                      <AlertCircle className="h-5 w-5 shrink-0 text-amber-400/80" aria-hidden />
                     </span>
                     Fehlt noch
                   </h2>
-                  <p className="text-sm text-slate-500 mb-6">
+                  <p className="mb-6 text-sm text-white/45">
                     für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umsortieren
                   </p>
                   <div className="flex flex-col gap-3">
@@ -589,56 +589,56 @@ export function RecipeDetailView({
                         key={row.id}
                         type="button"
                         onClick={() => toggleIngredient(row.name)}
-                        className="w-full text-left bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3 hover:border-amber-100 hover:shadow-md transition-all active:scale-[0.99]"
+                        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-sm transition-all hover:border-amber-400/30 hover:bg-white/[0.05] active:scale-[0.99]"
                       >
-                        <span className="flex items-center gap-3 min-w-0">
-                          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-50 shrink-0">
-                            <Circle className="w-5 h-5 text-amber-600" strokeWidth={2} aria-hidden />
+                        <span className="flex min-w-0 items-center gap-3">
+                          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400/[0.12]">
+                            <Circle className="h-5 w-5 text-amber-400/80" strokeWidth={2} aria-hidden />
                           </span>
-                          <span className="text-sm text-slate-800 font-medium leading-relaxed">
+                          <span className="text-sm font-medium leading-relaxed text-white/85">
                             {formatIngredientDisplay(row.name)}
                           </span>
                         </span>
-                        <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" aria-hidden />
+                        <ChevronRight className="h-4 w-4 shrink-0 text-white/25" aria-hidden />
                       </button>
                     ))}
                   </div>
                 </>
               ) : (
                 availableIngredients.length > 0 && (
-                  <p className="text-sm font-medium text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-3 mt-2">
+                  <p className="mt-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-200/90">
                     Für die Einkaufsliste ist nichts mehr offen – oder du hast alles als vorhanden markiert.
                   </p>
                 )
               )}
             </>
           ) : (
-            <p className="text-sm text-slate-500">Keine Zutaten hinterlegt.</p>
+            <p className="text-sm text-white/45">Keine Zutaten hinterlegt.</p>
           )}
         </div>
 
         <div className="md:col-span-8">
-          <h2 className="text-lg font-bold text-slate-900 mb-8">Zubereitung</h2>
+          <h2 className="mb-8 text-lg font-bold text-white">Zubereitung</h2>
           <ol className="space-y-8 md:space-y-10">
             {recipe.instructions.map((step, index) => (
-              <li key={index} className="flex gap-5 items-start">
-                <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-orange-50 text-orange-600 font-bold text-sm shrink-0 border border-orange-100">
+              <li key={index} className="flex items-start gap-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-orange-400/20 bg-orange-400/[0.1] text-sm font-bold text-orange-300/90">
                   {index + 1}
                 </div>
-                <p className="text-slate-700 text-lg leading-relaxed flex-1 pt-1">{step}</p>
+                <p className="flex-1 pt-1 text-lg leading-relaxed text-white/70">{step}</p>
               </li>
             ))}
           </ol>
           {cookingTime > 0 && (
-            <div className="mt-10 pt-8 border-t border-slate-100 flex flex-wrap items-center gap-4">
-              <span className="inline-flex items-center gap-2 text-slate-600 text-sm font-medium">
-                <Clock className="w-5 h-5 text-orange-500 shrink-0" />
+            <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-white/[0.06] pt-8">
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-white/60">
+                <Clock className="h-5 w-5 shrink-0 text-orange-400/80" />
                 Gesamt-Kochzeit: {cookingTime} Minuten
               </span>
               <button
                 type="button"
                 onClick={() => alert(`Timer für ${cookingTime} Minuten – Feature kommt gleich!`)}
-                className="px-5 py-2.5 rounded-full bg-orange-50 text-orange-700 text-sm font-semibold hover:bg-orange-100 transition-colors border border-orange-100"
+                className="rounded-full border border-orange-400/25 bg-orange-400/[0.1] px-5 py-2.5 text-sm font-semibold text-orange-200/90 transition-colors hover:bg-orange-400/[0.15]"
               >
                 Timer starten
               </button>
@@ -650,13 +650,13 @@ export function RecipeDetailView({
       {/* Profi-Tipp */}
       {recipe.chefTip && (
         <div className="max-w-5xl mx-auto mt-12 md:mt-14 px-4 sm:px-6 md:px-8">
-          <div className="rounded-[32px] border border-orange-100/80 bg-gradient-to-br from-orange-50/90 to-amber-50/50 p-6 md:p-8 flex gap-5 shadow-sm">
-            <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-orange-100 shrink-0">
-              <Lightbulb className="w-6 h-6 text-orange-600" aria-hidden />
+          <div className="flex gap-5 rounded-[32px] border border-orange-400/20 bg-gradient-to-br from-orange-500/10 to-amber-500/5 p-6 shadow-sm md:p-8">
+            <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/[0.15]">
+              <Lightbulb className="h-6 w-6 text-orange-300/90" aria-hidden />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-slate-900 mb-2">Profi-Tipp</p>
-              <p className="text-slate-700 italic leading-relaxed">{recipe.chefTip}</p>
+              <p className="mb-2 text-sm font-bold text-white">Profi-Tipp</p>
+              <p className="italic leading-relaxed text-white/60">{recipe.chefTip}</p>
             </div>
           </div>
         </div>
@@ -664,13 +664,13 @@ export function RecipeDetailView({
 
       {/* Floating Action Bar – Glass, Daumenzone (Einkaufen + Kalender) */}
       <div
-        className="fixed left-1/2 z-50 flex w-[90%] max-w-md -translate-x-1/2 items-center gap-2 rounded-[32px] border border-white/20 bg-white/80 p-2 shadow-2xl backdrop-blur-xl"
+        className="fixed left-1/2 z-50 flex w-[90%] max-w-md -translate-x-1/2 items-center gap-2 rounded-[32px] border border-white/[0.1] bg-white/[0.08] p-2 shadow-2xl backdrop-blur-xl"
         style={{ bottom: 'max(1.5rem, calc(0.5rem + env(safe-area-inset-bottom, 0px)))' }}
       >
         <button
           type="button"
           onClick={() => setIsCalendarModalOpen(true)}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-slate-200/80 bg-white/90 text-slate-700 shadow-sm transition-all hover:bg-white active:scale-95"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.08] text-white/80 shadow-sm transition-all hover:bg-white/[0.12] active:scale-95"
           aria-label="Im Kalender planen"
         >
           <CalendarDays className="w-5 h-5" />
@@ -707,34 +707,38 @@ export function RecipeDetailView({
       {/* Im Kalender planen – Modal */}
       {isCalendarModalOpen && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="calendar-modal-title"
         >
-          <div className="relative w-full max-w-sm overflow-hidden rounded-[32px] bg-white p-6 shadow-2xl">
+          <div className="relative w-full max-w-sm overflow-hidden rounded-[32px] border border-white/[0.08] bg-[#1a1025] p-6 shadow-2xl">
             <button
               type="button"
               onClick={() => setIsCalendarModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute right-4 top-4 rounded-full p-1 text-white/40 transition-colors hover:bg-white/[0.06] hover:text-white/80"
               aria-label="Schließen"
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
-            <h3 id="calendar-modal-title" className="text-xl font-bold mb-4 text-gray-800">Wann kochen?</h3>
+            <h3 id="calendar-modal-title" className="mb-4 text-xl font-bold text-white">
+              Wann kochen?
+            </h3>
             <div className="space-y-4">
               <div>
-                <label htmlFor="schedule-date" className="block text-sm font-medium text-gray-600 mb-1">Datum</label>
+                <label htmlFor="schedule-date" className="mb-1 block text-sm font-medium text-white/60">
+                  Datum
+                </label>
                 <input
                   id="schedule-date"
                   type="date"
                   value={scheduleDate}
                   onChange={(e) => setScheduleDate(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:border-purple-500 bg-gray-50"
+                  className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-white focus:border-white/[0.15] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Mahlzeit</label>
+                <label className="mb-1 block text-sm font-medium text-white/60">Mahlzeit</label>
                 <div className="flex gap-2">
                   {[
                     { id: 'breakfast' as const, label: 'Frühstück' },
@@ -746,10 +750,10 @@ export function RecipeDetailView({
                       type="button"
                       onClick={() => setScheduleMealType(type.id)}
                       className={cn(
-                        'flex-1 py-2 rounded-xl text-sm font-medium transition-all border-2',
+                        'flex-1 rounded-xl border-2 py-2 text-sm font-medium transition-all',
                         scheduleMealType === type.id
-                          ? 'bg-purple-100 text-purple-700 border-purple-200'
-                          : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'
+                          ? 'border-orange-400/40 bg-orange-500/20 text-orange-200'
+                          : 'border-transparent bg-white/[0.06] text-white/50 hover:bg-white/[0.1]'
                       )}
                     >
                       {type.label}
