@@ -104,8 +104,6 @@ const TOOL_MINIMAL_ICON: Record<string, string> = {
 
 const TOOL_MINIMAL_ICON_FALLBACK = 'bg-white/10 border-white/15 text-white/70';
 
-const QUICK_ACCESS_COUNT = 6;
-
 /** Live-Badges für Top-4 (CookIQ + SmartCart kommen aus DB-Props) */
 const TOOL_LIVE_BADGE: Record<string, { label: string }> = {
   fitness: { label: '3 geplant' },
@@ -148,6 +146,143 @@ function resolveQuickContext(
   }
   return TOOL_LIVE_BADGE[toolId]?.label ?? null;
 }
+
+function setRgbaAlpha(color: string, alpha: number): string {
+  const m = color.match(/rgba?\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,)\s]+)\s*(?:,\s*([^)]+)\s*)?\)/i);
+  if (!m) return color;
+  const r = m[1].trim();
+  const g = m[2].trim();
+  const b = m[3].trim();
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+const TOOL_COLORS: Record<
+  string,
+  { bg: string; border: string; glow: string; icon: string; title: string; meta: string }
+> = {
+  recipe: {
+    bg: 'rgba(251,146,60,0.06)',
+    border: 'rgba(251,146,60,0.10)',
+    glow: 'rgba(251,146,60,0.06)',
+    icon: 'rgba(251,146,60,0.85)',
+    title: 'rgba(251,186,120,0.95)',
+    meta: 'rgba(251,146,60,0.40)',
+  },
+  'shopping-list': {
+    bg: 'rgba(236,72,153,0.05)',
+    border: 'rgba(236,72,153,0.09)',
+    glow: 'rgba(236,72,153,0.05)',
+    icon: 'rgba(236,72,153,0.85)',
+    title: 'rgba(244,150,196,0.95)',
+    meta: 'rgba(236,72,153,0.40)',
+  },
+  invoice: {
+    bg: 'rgba(52,211,153,0.04)',
+    border: 'rgba(52,211,153,0.08)',
+    glow: 'rgba(52,211,153,0.04)',
+    icon: 'rgba(52,211,153,0.85)',
+    title: 'rgba(130,230,190,0.95)',
+    meta: 'rgba(52,211,153,0.40)',
+  },
+  'tough-msg': {
+    bg: 'rgba(96,165,250,0.04)',
+    border: 'rgba(96,165,250,0.08)',
+    glow: 'rgba(96,165,250,0.04)',
+    icon: 'rgba(96,165,250,0.85)',
+    title: 'rgba(160,200,255,0.95)',
+    meta: 'rgba(96,165,250,0.40)',
+  },
+  email: {
+    bg: 'rgba(168,85,247,0.04)',
+    border: 'rgba(168,85,247,0.08)',
+    glow: 'rgba(168,85,247,0.04)',
+    icon: 'rgba(168,85,247,0.85)',
+    title: 'rgba(200,160,255,0.95)',
+    meta: 'rgba(168,85,247,0.40)',
+  },
+  excel: {
+    bg: 'rgba(34,197,94,0.04)',
+    border: 'rgba(34,197,94,0.08)',
+    glow: 'rgba(34,197,94,0.04)',
+    icon: 'rgba(34,197,94,0.85)',
+    title: 'rgba(130,230,160,0.95)',
+    meta: 'rgba(34,197,94,0.40)',
+  },
+  summarize: {
+    bg: 'rgba(234,179,8,0.04)',
+    border: 'rgba(234,179,8,0.08)',
+    glow: 'rgba(234,179,8,0.04)',
+    icon: 'rgba(234,179,8,0.85)',
+    title: 'rgba(250,210,100,0.95)',
+    meta: 'rgba(234,179,8,0.40)',
+  },
+  polish: {
+    bg: 'rgba(244,114,182,0.04)',
+    border: 'rgba(244,114,182,0.08)',
+    glow: 'rgba(244,114,182,0.04)',
+    icon: 'rgba(244,114,182,0.85)',
+    title: 'rgba(250,170,210,0.95)',
+    meta: 'rgba(244,114,182,0.40)',
+  },
+  legal: {
+    bg: 'rgba(148,163,184,0.04)',
+    border: 'rgba(148,163,184,0.08)',
+    glow: 'rgba(148,163,184,0.04)',
+    icon: 'rgba(148,163,184,0.85)',
+    title: 'rgba(190,200,215,0.95)',
+    meta: 'rgba(148,163,184,0.40)',
+  },
+  translate: {
+    bg: 'rgba(56,189,248,0.04)',
+    border: 'rgba(56,189,248,0.08)',
+    glow: 'rgba(56,189,248,0.04)',
+    icon: 'rgba(56,189,248,0.85)',
+    title: 'rgba(140,215,255,0.95)',
+    meta: 'rgba(56,189,248,0.40)',
+  },
+  travel: {
+    bg: 'rgba(251,146,60,0.04)',
+    border: 'rgba(251,146,60,0.08)',
+    glow: 'rgba(251,146,60,0.04)',
+    icon: 'rgba(251,146,60,0.85)',
+    title: 'rgba(251,186,120,0.95)',
+    meta: 'rgba(251,146,60,0.40)',
+  },
+  fitness: {
+    bg: 'rgba(239,68,68,0.04)',
+    border: 'rgba(239,68,68,0.08)',
+    glow: 'rgba(239,68,68,0.04)',
+    icon: 'rgba(239,68,68,0.85)',
+    title: 'rgba(255,150,150,0.95)',
+    meta: 'rgba(239,68,68,0.40)',
+  },
+  code: {
+    bg: 'rgba(139,92,246,0.04)',
+    border: 'rgba(139,92,246,0.08)',
+    glow: 'rgba(139,92,246,0.04)',
+    icon: 'rgba(139,92,246,0.85)',
+    title: 'rgba(180,150,255,0.95)',
+    meta: 'rgba(139,92,246,0.40)',
+  },
+  social: {
+    bg: 'rgba(236,72,153,0.04)',
+    border: 'rgba(236,72,153,0.08)',
+    glow: 'rgba(236,72,153,0.04)',
+    icon: 'rgba(236,72,153,0.85)',
+    title: 'rgba(244,150,196,0.95)',
+    meta: 'rgba(236,72,153,0.40)',
+  },
+};
+
+// Fallback für unbekannte Tools
+const DEFAULT_COLOR = {
+  bg: 'rgba(148,163,184,0.04)',
+  border: 'rgba(148,163,184,0.08)',
+  glow: 'rgba(148,163,184,0.04)',
+  icon: 'rgba(148,163,184,0.85)',
+  title: 'rgba(190,200,215,0.95)',
+  meta: 'rgba(148,163,184,0.40)',
+};
 
 type Tool = {
   id: string;
@@ -540,11 +675,8 @@ export default function DashboardClient({
     return raw.replace(/^(\w+)\./, '$1');
   }, []);
 
-  const quickAccessTools = useMemo(
-    () => sortedTools.filter((t) => t.available).slice(0, QUICK_ACCESS_COUNT),
-    [sortedTools]
-  );
-  const quickAccessIds = useMemo(() => new Set(quickAccessTools.map((t) => t.id)), [quickAccessTools]);
+  const top4Tools = useMemo(() => sortedTools.slice(0, 4), [sortedTools]);
+  const top4Ids = useMemo(() => new Set(top4Tools.map((t) => t.id)), [top4Tools]);
 
   return (
     <div
@@ -606,28 +738,70 @@ export default function DashboardClient({
             initialCalendarEvents={initialCalendarEvents}
           />
 
-          {/* Zone 2: Schnellzugriff */}
-          <section className="mb-5" aria-labelledby="quick-heading">
+          {/* Zone 2: Top 4 Tools */}
+          <section className="mb-5" aria-labelledby="top-tools-heading">
             <h2
-              id="quick-heading"
-              className="mb-2 text-[11px] font-medium text-white/15"
+              id="top-tools-heading"
+              className="mb-2.5 text-[11px] font-medium text-white/15"
             >
               Deine Tools
             </h2>
-            <div className="overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.02] p-0">
-              {quickAccessTools.map((tool, index) => {
-                const visual = TOOL_QUICK_VISUAL[tool.id] ?? {
-                  ...TOOL_QUICK_FALLBACK,
-                  Icon: tool.icon,
-                };
-                const QIcon = visual.Icon;
+
+            <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+              {top4Tools.map((tool) => {
+                const c = TOOL_COLORS[tool.id] ?? DEFAULT_COLOR;
                 const ctx = resolveQuickContext(tool.id, {
                   todaysMealTitle,
                   openCartItemsCount,
                   count7d: usageStats[tool.id]?.count7d ?? 0,
                 });
-                const isLast = index === quickAccessTools.length - 1;
-                return (
+                const Icon = tool.icon;
+
+                const iconBg = setRgbaAlpha(c.bg, 0.12);
+                const iconBorder = setRgbaAlpha(c.border, 0.15);
+
+                const cardStyle: React.CSSProperties = {
+                  background: c.bg,
+                  border: `1px solid ${c.border}`,
+                  boxShadow: `0 0 20px ${c.glow}, inset 0 1px 0 rgba(255,255,255,0.04)`,
+                };
+
+                const icon = createElement(Icon, {
+                  className: 'h-4 w-4 md:h-[18px] md:w-[18px] shrink-0',
+                  style: { color: c.icon },
+                  strokeWidth: 1.75,
+                  'aria-hidden': true,
+                } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number });
+
+                const inner = (
+                  <>
+                    <div
+                      className="flex h-9 w-9 items-center justify-center rounded-[10px] md:h-10 md:w-10"
+                      style={{ background: iconBg, border: `1px solid ${iconBorder}` }}
+                    >
+                      {icon}
+                    </div>
+                    <div className="min-w-0">
+                      <div
+                        className="text-[13px] font-semibold leading-snug"
+                        style={{ color: c.title }}
+                      >
+                        {tool.title}
+                      </div>
+                      <div
+                        className="mt-0.5 text-[11px] leading-snug"
+                        style={{ color: c.meta }}
+                      >
+                        {ctx ?? ''}
+                      </div>
+                    </div>
+                  </>
+                );
+
+                const baseClass =
+                  'flex items-center gap-3 rounded-[14px] p-3.5 text-left transition-all duration-200 hover:-translate-y-[1px] md:p-4';
+
+                return tool.available ? (
                   <Link
                     key={tool.id}
                     href={tool.href}
@@ -642,72 +816,66 @@ export default function DashboardClient({
                         500
                       );
                     }}
-                    className={cn(
-                      'flex items-center justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-white/[0.03] md:px-3.5 md:py-3',
-                      !isLast && 'border-b border-white/[0.03]'
-                    )}
+                    className={baseClass}
+                    style={cardStyle}
                   >
-                    <span
-                      className={cn(
-                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border',
-                        visual.box
-                      )}
-                    >
-                      {createElement(QIcon, {
-                        className: cn('h-[14px] w-[14px] shrink-0', visual.iconClass),
-                        strokeWidth: 1.5,
-                        'aria-hidden': true,
-                      } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-white/80">
-                      {tool.title}
-                    </span>
-                    {ctx ? (
-                      <span className="shrink-0 truncate text-xs text-white/25">{ctx}</span>
-                    ) : (
-                      <ChevronRight className="h-4 w-4 shrink-0 text-white/25" aria-hidden />
-                    )}
+                    {inner}
                   </Link>
+                ) : (
+                  <div
+                    key={tool.id}
+                    className={cn(baseClass, 'cursor-not-allowed opacity-60')}
+                    style={cardStyle}
+                    aria-disabled
+                  >
+                    {inner}
+                  </div>
                 );
               })}
             </div>
+
+            <div className="my-4 h-px bg-white/[0.04] md:my-5" />
           </section>
 
-          {/* Zone 3: Alle Tools — Akkordeons (ohne Schnellzugriff) */}
-          <section aria-labelledby="all-tools-heading">
-            <h2 id="all-tools-heading" className="mb-3 text-sm font-medium text-white/40">
-              Alle Tools
-            </h2>
+          {/* Zone 3: Kategorie-Akkordeons (ohne Top 4) */}
+          <section aria-label="Tools nach Kategorien">
             <div className="space-y-3">
               {WORKFLOW_SECTIONS.map((section) => {
                 const tools = sortedTools.filter(
-                  (t) => TOOL_WORKFLOW[t.id] === section.id && !quickAccessIds.has(t.id)
+                  (t) => TOOL_WORKFLOW[t.id] === section.id && !top4Ids.has(t.id)
                 );
                 if (tools.length === 0) return null;
                 const isOpen = openAccordions.has(section.id);
                 const SectionIcon = section.icon;
                 return (
-                  <div key={section.id} className="overflow-hidden rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl">
+                  <div
+                    key={section.id}
+                    className="overflow-hidden rounded-xl border border-white/[0.05] bg-white/[0.02]"
+                  >
                     <button
                       type="button"
                       onClick={() => {
                         triggerHaptic('light');
                         toggleAccordion(section.id);
                       }}
-                      className="flex w-full items-center justify-between rounded-xl p-4 text-left transition-colors hover:bg-white/8"
+                      className="flex w-full cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-left transition-colors hover:bg-white/[0.04]"
                     >
-                      <span className="flex items-center gap-3 text-sm font-semibold text-white">
-                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/60">
-                          <SectionIcon className="h-4 w-4" strokeWidth={2} aria-hidden />
+                      <span className="flex items-center gap-3">
+                        <span className="inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
+                          <SectionIcon
+                            className="h-[13px] w-[13px] text-white/30"
+                            strokeWidth={1.5}
+                            aria-hidden
+                          />
                         </span>
-                        {section.label}
+                        <span className="text-sm text-white/50">{section.label}</span>
                       </span>
                       <motion.span
-                        animate={{ rotate: isOpen ? 180 : 0 }}
+                        animate={{ rotate: isOpen ? 90 : 0 }}
                         transition={{ duration: 0.2 }}
-                        className="text-white/45"
+                        className="text-white/15"
                       >
-                        <ChevronDown className="h-5 w-5" />
+                        <ChevronRight className="h-4 w-4" aria-hidden />
                       </motion.span>
                     </button>
                     <AnimatePresence initial={false}>
@@ -719,53 +887,71 @@ export default function DashboardClient({
                           transition={{ duration: 0.25, ease: 'easeInOut' }}
                           className="overflow-hidden"
                         >
-                          <div className="grid grid-cols-1 gap-3 p-3 pt-0 md:grid-cols-2">
-                            {tools.map((tool) => {
+                          <div className="flex flex-col pb-2">
+                            {tools.map((tool, toolIndex) => {
                               const Icon = tool.icon;
                               const subtitle = TOOL_SUBTITLES[tool.id];
-                              const inner = (
-                                <div className="flex h-full flex-col gap-2 rounded-xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-white/20 hover:bg-white/8">
-                                  <div className="flex items-start gap-3">
-                                    <span
-                                      className={cn(
-                                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border',
-                                        TOOL_MINIMAL_ICON[tool.id] ?? TOOL_MINIMAL_ICON_FALLBACK
-                                      )}
-                                    >
-                                      {createElement(Icon, {
-                                        className: 'h-[18px] w-[18px] shrink-0',
-                                        strokeWidth: 2,
-                                        'aria-hidden': true,
-                                      } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
-                                    </span>
-                                    <div className="min-w-0 flex-1">
-                                      <p className="text-sm font-semibold text-white">{tool.title}</p>
-                                      <p className="mt-0.5 line-clamp-2 text-xs text-white/55">{subtitle}</p>
-                                    </div>
-                                  </div>
-                                </div>
+                              const isLast = toolIndex === tools.length - 1;
+
+                              const rowInner = (
+                                <>
+                                  <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
+                                    {createElement(Icon, {
+                                      className: 'h-[13px] w-[13px] shrink-0 text-white/30',
+                                      strokeWidth: 1.5,
+                                      'aria-hidden': true,
+                                    } as React.HTMLAttributes<SVGElement> & { strokeWidth?: number })}
+                                  </span>
+                                  <span className="min-w-0">
+                                    <p className="text-sm text-white/50">{tool.title}</p>
+                                    {subtitle ? (
+                                      <p className="mt-0.5 line-clamp-1 text-xs text-white/35">
+                                        {subtitle}
+                                      </p>
+                                    ) : null}
+                                  </span>
+                                </>
                               );
-                              return tool.available ? (
-                                <Link
+
+                              const borderClass = !isLast
+                                ? 'border-b border-white/[0.03]'
+                                : '';
+
+                              if (tool.available) {
+                                return (
+                                  <Link
+                                    key={tool.id}
+                                    href={tool.href}
+                                    onClick={async () => {
+                                      triggerHaptic('light');
+                                      await trackToolUsage(tool.id, tool.title);
+                                      setTimeout(
+                                        () =>
+                                          getToolUsageStats().then(
+                                            (r) => r.success && r.stats && setUsageStats(r.stats)
+                                          ),
+                                        500
+                                      );
+                                    }}
+                                    className={cn(
+                                      'flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.03]',
+                                      borderClass
+                                    )}
+                                  >
+                                    {rowInner}
+                                  </Link>
+                                );
+                              }
+
+                              return (
+                                <div
                                   key={tool.id}
-                                  href={tool.href}
-                                  onClick={async () => {
-                                    triggerHaptic('light');
-                                    await trackToolUsage(tool.id, tool.title);
-                                    setTimeout(
-                                      () =>
-                                        getToolUsageStats().then(
-                                          (r) => r.success && r.stats && setUsageStats(r.stats)
-                                        ),
-                                      500
-                                    );
-                                  }}
+                                  className={cn(
+                                    'flex cursor-not-allowed items-center gap-3 px-4 py-2.5 opacity-60',
+                                    borderClass
+                                  )}
                                 >
-                                  {inner}
-                                </Link>
-                              ) : (
-                                <div key={tool.id} className="cursor-not-allowed opacity-60">
-                                  {inner}
+                                  {rowInner}
                                 </div>
                               );
                             })}
