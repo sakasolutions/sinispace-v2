@@ -71,7 +71,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
       <PageTransition className="relative z-10 mx-auto w-full max-w-7xl px-3 pb-32 sm:px-4 md:px-6 md:pb-32 lg:px-8">
         <div className="w-full space-y-0 pt-4 md:pt-6">
           {/* Hero — normaler Fluss, kein Layer0 */}
-          <div className="relative h-[280px] w-full overflow-hidden rounded-2xl md:h-[340px] lg:h-[380px]">
+          <div className="relative -mx-3 sm:-mx-4 md:mx-0 h-[280px] w-full overflow-hidden rounded-none md:h-[340px] lg:h-[380px] md:rounded-2xl">
             <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
@@ -100,20 +100,20 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
             </div>
           </div>
 
-          <section className="mt-4" aria-labelledby="gourmet-actions-heading">
+          <section className="mt-4 md:mt-5" aria-labelledby="gourmet-actions-heading">
             <h2 id="gourmet-actions-heading" className="sr-only">
               Schnellaktionen
             </h2>
 
             <div
-              className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3"
+              className="grid grid-cols-3 gap-2.5 md:grid-cols-4 md:gap-3"
               role="toolbar"
               aria-label="CookIQ Aktionen"
             >
               <button
                 type="button"
                 onClick={() => onWochePlanen?.()}
-                className="col-span-2 flex cursor-pointer items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 transition-all hover:border-white/[0.12] hover:bg-white/[0.06] md:col-span-1"
+                className="col-span-3 flex cursor-pointer items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 transition-all hover:border-white/[0.12] hover:bg-white/[0.06] md:col-span-1"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-orange-400/[0.12] bg-orange-400/[0.1]">
                   <CalendarDays className="h-5 w-5 text-orange-400/80" strokeWidth={1.75} aria-hidden />
@@ -148,7 +148,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
 
               <Link
                 href="/tools/shopping-list"
-                className="col-span-2 flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 transition-all hover:border-white/[0.09] hover:bg-white/[0.05] md:col-span-1"
+                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 transition-all hover:border-white/[0.09] hover:bg-white/[0.05] md:col-span-1"
               >
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-pink-400/[0.08]">
                   <ShoppingCart className="h-4 w-4 text-pink-400/70" strokeWidth={1.75} aria-hidden />
