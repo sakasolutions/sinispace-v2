@@ -203,15 +203,18 @@ export default function LandingPage() {
       <Header />
 
       <main>
-        {/* --- HERO: Dribbble-style radial mesh (full-bleed, kein flacher Zentral-Orb) --- */}
-        <section className="relative flex min-h-[92vh] flex-col justify-center overflow-hidden bg-dark-bg pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
+        {/* --- HERO: Aurora / mesh – NICHT mit -z-10 unter bg-dark-bg legen (wird vom soliden Section-Hintergrund verdeckt) --- */}
+        <section className="relative isolate flex min-h-[92vh] flex-col justify-center overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
           <div
-            className="pointer-events-none absolute inset-0 -z-10"
+            className="pointer-events-none absolute inset-0 z-0"
             style={{
               background: `
-                radial-gradient(circle at 30% 20%, rgba(168,85,247,0.15), transparent 60%),
-                radial-gradient(circle at 70% 30%, rgba(236,72,153,0.15), transparent 60%),
-                radial-gradient(circle at 50% 10%, rgba(249,115,22,0.1), transparent 50%)
+                radial-gradient(circle at 30% 18%, rgba(168,85,247,0.22), transparent 58%),
+                radial-gradient(circle at 72% 28%, rgba(236,72,153,0.18), transparent 58%),
+                radial-gradient(circle at 50% 8%, rgba(249,115,22,0.14), transparent 48%),
+                radial-gradient(ellipse 130% 85% at 50% -15%, rgba(74,29,63,0.55) 0%, transparent 52%),
+                radial-gradient(ellipse 100% 70% at 50% 0%, rgba(120,50,100,0.2) 0%, transparent 42%),
+                linear-gradient(180deg, #1a0f22 0%, #0f0914 42%, #0a060e 100%)
               `,
             }}
             aria-hidden
