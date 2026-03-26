@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Calendar, CheckCircle2, ChefHat, Flame, ShoppingCart } from 'lucide-react';
+import { Calendar, CheckCircle2, ChefHat, Flame, ShoppingCart, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import type { CalendarEventJson } from '@/actions/calendar-actions';
@@ -123,12 +123,6 @@ const SECONDARY_ZONE_CARD =
 
 const SHOP_CARD = `flex cursor-pointer flex-col ${SECONDARY_ZONE_CARD} ${ZONE_CARD_GLOW}`;
 
-const SHOP_ITEM_PILL =
-  'inline-flex items-center rounded-full border border-white/[0.05] bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-white/80 shadow-sm';
-
-const SHOP_ITEM_PILL_BRAND =
-  'inline-flex items-center rounded-full border border-brand-pink/20 bg-brand-pink/10 px-3 py-1.5 text-xs font-medium text-brand-pink shadow-sm';
-
 /** Hero: „Was kochst du heute?“ — stärkere Elevation & Gradient */
 const HERO_EMPTY_MEAL_CARD =
   'group relative flex min-h-[140px] cursor-pointer flex-col justify-between overflow-hidden rounded-[28px] border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 shadow-2xl transition-all duration-200 hover:border-white/[0.12] hover:from-white/[0.08] hover:to-white/[0.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:min-h-[180px] md:p-6';
@@ -203,8 +197,7 @@ export function TodayZoneCards({
       ? `${normalizeHHmm(firstMeal.time)} · ${mealLabelFromTimeHHmm(firstMeal.time)}`
       : null;
 
-  const normalizedPills = openItemLabels.map(normalizeItemLabel).filter(Boolean);
-  const showPills = normalizedPills.length > 0 && openCartItemsCount > 0;
+  const todosTodayCount = futureAppointments.length;
 
   return (
     <section aria-labelledby="today-status-heading" className="mb-5 w-full min-w-0 md:mb-6">
@@ -270,14 +263,14 @@ export function TodayZoneCards({
                 <Flame className="h-4 w-4" strokeWidth={1.5} />
               </div>
               <h3 className="mb-2 text-xl font-bold text-white">Was kochst du heute?</h3>
-              <p className="mt-0 hidden whitespace-pre-line text-xs leading-relaxed text-white/30 md:block">
-                Noch kein Abendessen geplant.{'\n'}Lass dich inspirieren.
+              <p className="mb-6 text-sm text-white/60">
+                Dein Teller ist noch leer. Lass uns in Sekunden etwas Leckeres zaubern.
               </p>
-              <p className="mt-0 text-xs text-white/30 md:hidden">Noch kein Plan. Lass dich inspirieren.</p>
             </div>
-            <span className="relative z-10 mt-4 inline-flex items-center text-sm font-semibold text-brand-orange transition-colors hover:text-white">
-              Inspiration holen →
-            </span>
+            <div className="relative z-10 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-orange px-6 py-3 font-bold text-white shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-transform hover:scale-[1.02] sm:w-auto">
+              <Sparkles className="h-5 w-5" strokeWidth={1.9} />
+              KI-Rezept generieren
+            </div>
           </Link>
         )}
 
@@ -285,53 +278,31 @@ export function TodayZoneCards({
         <Link
           href="/tools/shopping-list"
           onClick={() => triggerHaptic('light')}
-          className={cn(SHOP_CARD, 'col-span-1 md:row-start-1 md:col-start-2')}
-        >
-          {openCartItemsCount === 0 ? (
-            <>
-              <div className="mb-3 flex items-center gap-2">
-                <div
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-pink-400/10 bg-pink-400/[0.08]"
-                  aria-hidden
-                >
-                  <CheckCircle2 className="h-[13px] w-[13px] text-emerald-400/60" strokeWidth={1.5} />
-                </div>
-                <span className="text-[13px] font-medium text-white/80">Alles eingekauft</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="mb-3 flex items-center gap-2">
-                <div
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-pink-400/10 bg-pink-400/[0.08]"
-                  aria-hidden
-                >
-                  <ShoppingCart className="h-[13px] w-[13px] text-pink-400/70" strokeWidth={1.5} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium text-white/80">Einkauf</p>
-                  <p className="text-[11px] text-white/25">{openCartItemsCount} Artikel offen</p>
-                </div>
-              </div>
-              {showPills ? (
-                <div className="flex flex-wrap gap-2">
-                  {normalizedPills.slice(0, 3).map((label, idx) => (
-                    <span key={`${idx}-${label}`} className={SHOP_ITEM_PILL}>
-                      {label}
-                    </span>
-                  ))}
-                  {normalizedPills.length > 3 ? (
-                    <span className={SHOP_ITEM_PILL_BRAND}>+{normalizedPills.length - 3}</span>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="flex flex-col">
-                  <span className="text-2xl font-semibold text-white/70">{openCartItemsCount}</span>
-                  <span className="text-xs text-white/25">Artikel</span>
-                </div>
-              )}
-            </>
+          className={cn(
+            SHOP_CARD,
+            'col-span-1 h-full min-h-[140px] flex-col justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-5 backdrop-blur-sm md:row-start-1 md:col-start-2'
           )}
+        >
+          <div className="mb-3 flex items-center gap-2">
+            <div
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-pink-400/10 bg-pink-400/[0.08]"
+              aria-hidden
+            >
+              {openCartItemsCount === 0 ? (
+                <CheckCircle2 className="h-[13px] w-[13px] text-emerald-400/60" strokeWidth={1.5} />
+              ) : (
+                <ShoppingCart className="h-[13px] w-[13px] text-pink-400/70" strokeWidth={1.5} />
+              )}
+            </div>
+            <p className="text-[13px] font-medium text-white/80">Einkauf</p>
+          </div>
+          <div className="mb-4 mt-2">
+            <span className="text-3xl font-bold text-white">{openCartItemsCount}</span>{' '}
+            <span className="text-sm text-white/50">Artikel offen</span>
+          </div>
+          <div className="mt-auto flex items-center text-xs font-semibold text-brand-pink transition-colors hover:text-white">
+            Zur Liste &rarr;
+          </div>
         </Link>
 
         {/* Termin — Desktop einzeilig; Mobil flex-col-Karte */}
@@ -339,50 +310,27 @@ export function TodayZoneCards({
           href="/calendar"
           onClick={() => triggerHaptic('light')}
           className={cn(
-            'col-span-1 flex min-h-0 cursor-pointer flex-col justify-between gap-2 md:row-start-2 md:col-start-2 md:flex-row md:items-center md:justify-between md:gap-3',
+            'col-span-1 flex h-full min-h-[140px] cursor-pointer flex-col justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-5 backdrop-blur-sm md:row-start-2 md:col-start-2',
             SECONDARY_ZONE_CARD,
             ZONE_CARD_GLOW
           )}
         >
-          {nextAppt ? (
-            <>
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-violet-400/10 bg-violet-400/[0.08]"
-                  aria-hidden
-                >
-                  <Calendar className="h-[13px] w-[13px] text-violet-400/70" strokeWidth={1.5} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-medium text-white/80">{nextAppt.title}</p>
-                  <p className="text-[11px] text-white/25">{normalizeHHmm(nextAppt.time)} Uhr</p>
-                </div>
-              </div>
-              {moreAppointments > 0 ? (
-                <span className={cn(SHOP_ITEM_PILL_BRAND, 'shrink-0 self-end md:self-auto')}>
-                  +{moreAppointments}
-                </span>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <div className="flex flex-1 items-start gap-3 md:items-center">
-                <div
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-violet-400/10 bg-violet-400/[0.08]"
-                  aria-hidden
-                >
-                  <Calendar className="h-[13px] w-[13px] text-violet-400/70" strokeWidth={1.5} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium text-white/80">{freierTagCopy()}</p>
-                  <p className="text-[11px] text-white/25">Keine Termine</p>
-                </div>
-              </div>
-              <span className="shrink-0 self-end text-[11px] text-white/20 transition group-hover:text-white/40 md:self-auto">
-                Eintragen →
-              </span>
-            </>
-          )}
+          <div className="mb-3 flex items-center gap-2">
+            <div
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-violet-400/10 bg-violet-400/[0.08]"
+              aria-hidden
+            >
+              <Calendar className="h-[13px] w-[13px] text-violet-400/70" strokeWidth={1.5} />
+            </div>
+            <p className="text-[13px] font-medium text-white/80">Termine</p>
+          </div>
+          <div className="mb-4 mt-2">
+            <span className="text-3xl font-bold text-white">{todosTodayCount}</span>{' '}
+            <span className="text-sm text-white/50">To-Dos heute</span>
+          </div>
+          <div className="mt-auto flex items-center text-xs font-semibold text-brand-purple transition-colors hover:text-white">
+            Tagesplan &rarr;
+          </div>
         </Link>
       </div>
     </section>
