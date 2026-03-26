@@ -115,17 +115,17 @@ const ZONE_CARD_GLOW =
   'shadow-[0_0_20px_rgba(255,255,255,0.03)] hover:shadow-[0_0_30px_rgba(255,255,255,0.08)] transition-shadow duration-300';
 
 const MEAL_CARD =
-  `group flex min-h-[140px] cursor-pointer flex-col justify-between rounded-2xl border border-white/[0.06] bg-white/[0.025] p-5 transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:min-h-[180px] md:p-6 ${ZONE_CARD_GLOW}`;
+  `group flex min-h-[140px] cursor-pointer flex-col justify-between rounded-2xl border border-white/[0.06] bg-white/[0.025] p-5 shadow-inner shadow-white/[0.05] transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:min-h-[180px] md:p-6 ${ZONE_CARD_GLOW}`;
 
 /** Einkauf + Kalender/Freier Abend — einheitliches Glas */
 const SECONDARY_ZONE_CARD =
-  'group rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40';
+  'group rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-5 shadow-inner shadow-white/[0.05] backdrop-blur-sm transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.05] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40';
 
 const SHOP_CARD = `flex cursor-pointer flex-col ${SECONDARY_ZONE_CARD} ${ZONE_CARD_GLOW}`;
 
 /** Hero: „Was kochst du heute?“ — stärkere Elevation & Gradient */
 const HERO_EMPTY_MEAL_CARD =
-  'group relative flex min-h-[140px] cursor-pointer flex-col justify-between overflow-hidden rounded-[28px] border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 shadow-2xl transition-all duration-200 hover:border-white/[0.12] hover:from-white/[0.08] hover:to-white/[0.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:min-h-[180px] md:p-6';
+  'group relative flex min-h-[140px] cursor-pointer flex-col justify-between overflow-hidden rounded-[28px] border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 shadow-2xl shadow-inner shadow-white/[0.05] transition-all duration-200 hover:border-white/[0.12] hover:from-white/[0.08] hover:to-white/[0.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple/40 md:min-h-[180px] md:p-6';
 
 export type TodayZoneCardsProps = {
   todaysMealTitle: string | null;
@@ -217,10 +217,10 @@ export function TodayZoneCards({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div
-                    className="mb-4 flex h-8 w-8 items-center justify-center rounded-[10px] border border-orange-400/10 bg-orange-400/[0.08]"
+                    className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-brand-orange/40 bg-brand-orange/20 text-brand-orange shadow-[0_0_15px_rgba(249,115,22,0.3)]"
                     aria-hidden
                   >
-                    <ChefHat className="h-4 w-4 text-orange-400/70" strokeWidth={1.5} />
+                    <ChefHat className="h-5 w-5" strokeWidth={1.6} />
                   </div>
                   <h3 className="mb-1 mt-1 text-2xl font-extrabold text-white md:text-3xl">
                     {mealTitleDisplay}
@@ -265,10 +265,10 @@ export function TodayZoneCards({
           >
             <div className="relative z-10 flex flex-1 flex-col">
               <div
-                className="mb-4 flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-brand-orange/30 bg-brand-orange/20 text-brand-orange"
+                className="mb-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-orange/40 bg-brand-orange/20 text-brand-orange shadow-[0_0_15px_rgba(249,115,22,0.3)]"
                 aria-hidden
               >
-                <Flame className="h-4 w-4" strokeWidth={1.5} />
+                <Flame className="h-5 w-5" strokeWidth={1.6} />
               </div>
               <h3 className="mb-2 text-xl font-bold text-white">Was kochst du heute?</h3>
               <p className="mb-6 text-sm text-white/60">
@@ -288,25 +288,29 @@ export function TodayZoneCards({
           onClick={() => triggerHaptic('light')}
           className={cn(
             SHOP_CARD,
-            'col-span-1 h-full min-h-[140px] flex-col justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-5 backdrop-blur-sm md:row-start-1 md:col-start-2'
+            'col-span-1 h-full min-h-[140px] flex-col justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-5 shadow-inner shadow-white/[0.05] backdrop-blur-sm md:row-start-1 md:col-start-2'
           )}
         >
           <div className="mb-3 flex items-center gap-2">
             <div
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-pink-400/10 bg-pink-400/[0.08]"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-pink/40 bg-brand-pink/20 text-brand-pink shadow-[0_0_15px_rgba(236,72,153,0.3)]"
               aria-hidden
             >
               {openCartItemsCount === 0 ? (
-                <CheckCircle2 className="h-[13px] w-[13px] text-emerald-400/60" strokeWidth={1.5} />
+                <CheckCircle2 className="h-5 w-5 text-brand-pink" strokeWidth={1.6} />
               ) : (
-                <ShoppingCart className="h-[13px] w-[13px] text-pink-400/70" strokeWidth={1.5} />
+                <ShoppingCart className="h-5 w-5 text-brand-pink" strokeWidth={1.6} />
               )}
             </div>
             <p className="text-[13px] font-medium text-white/80">Einkauf</p>
           </div>
-          <div className="mb-4 mt-2">
-            <span className="text-3xl font-bold text-white">{openCartItemsCount}</span>{' '}
-            <span className="text-sm text-white/50">Artikel offen</span>
+          <div className="mb-4 mt-2 flex flex-col">
+            <span className="bg-gradient-to-br from-white to-white/60 bg-clip-text text-5xl font-black tracking-tighter text-transparent drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]">
+              {openCartItemsCount}
+            </span>
+            <span className="mt-1 text-xs font-bold uppercase tracking-widest text-white/40">
+              Artikel offen
+            </span>
           </div>
           <div className="mt-auto flex items-center text-xs font-semibold text-brand-pink transition-colors hover:text-white">
             Zur Liste &rarr;
@@ -318,23 +322,27 @@ export function TodayZoneCards({
           href="/calendar"
           onClick={() => triggerHaptic('light')}
           className={cn(
-            'col-span-1 flex h-full min-h-[140px] cursor-pointer flex-col justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-5 backdrop-blur-sm md:row-start-2 md:col-start-2',
+            'col-span-1 flex h-full min-h-[140px] cursor-pointer flex-col justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-5 shadow-inner shadow-white/[0.05] backdrop-blur-sm md:row-start-2 md:col-start-2',
             SECONDARY_ZONE_CARD,
             ZONE_CARD_GLOW
           )}
         >
           <div className="mb-3 flex items-center gap-2">
             <div
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-violet-400/10 bg-violet-400/[0.08]"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-purple/40 bg-brand-purple/20 text-brand-purple shadow-[0_0_15px_rgba(168,85,247,0.3)]"
               aria-hidden
             >
-              <Calendar className="h-[13px] w-[13px] text-violet-400/70" strokeWidth={1.5} />
+              <Calendar className="h-5 w-5 text-brand-purple" strokeWidth={1.6} />
             </div>
             <p className="text-[13px] font-medium text-white/80">Termine</p>
           </div>
-          <div className="mb-4 mt-2">
-            <span className="text-3xl font-bold text-white">{todosTodayCount}</span>{' '}
-            <span className="text-sm text-white/50">To-Dos heute</span>
+          <div className="mb-4 mt-2 flex flex-col">
+            <span className="bg-gradient-to-br from-white to-white/60 bg-clip-text text-5xl font-black tracking-tighter text-transparent drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]">
+              {todosTodayCount}
+            </span>
+            <span className="mt-1 text-xs font-bold uppercase tracking-widest text-white/40">
+              To-Dos heute
+            </span>
           </div>
           <div className="mt-auto flex items-center text-xs font-semibold text-brand-purple transition-colors hover:text-white">
             Tagesplan &rarr;

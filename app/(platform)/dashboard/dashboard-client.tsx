@@ -721,7 +721,7 @@ export default function DashboardClient({
     >
       {/* Ambient Aurora – weiches Brand-Licht oben (nicht interaktiv) */}
       <div
-        className="pointer-events-none absolute left-0 top-0 z-0 h-96 w-full bg-gradient-to-br from-fuchsia-500/8 via-purple-500/5 to-orange-400/8 blur-[100px]"
+        className="pointer-events-none absolute left-0 right-0 top-0 -z-10 h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-orange/10 via-brand-pink/5 to-transparent blur-3xl"
         aria-hidden
       />
 
