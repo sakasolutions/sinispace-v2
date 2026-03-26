@@ -172,6 +172,7 @@ export function TodayZoneCards({
   const recipeHref = firstMeal?.recipeResultId
     ? `/tools/recipe?open=${encodeURIComponent(firstMeal.recipeResultId)}`
     : '/tools/recipe';
+  const hasRecipeResult = Boolean(firstMeal?.recipeResultId);
 
   useEffect(() => {
     const rid = firstMeal?.recipeResultId;
@@ -242,9 +243,16 @@ export function TodayZoneCards({
                 ) : null}
               </div>
             </div>
-            <div className="mt-auto inline-flex items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/[0.1]">
-              Rezept ansehen →
-            </div>
+            {hasRecipeResult ? (
+              <div className="mt-auto inline-flex items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/[0.1]">
+                Rezept ansehen →
+              </div>
+            ) : (
+              <div className="mt-auto inline-flex items-center gap-2 rounded-lg border border-white/[0.05] bg-white/[0.03] px-3 py-1.5">
+                <CheckCircle2 className="h-4 w-4 text-brand-orange" strokeWidth={1.8} />
+                <span className="text-xs font-medium text-white/50">Plan steht</span>
+              </div>
+            )}
           </Link>
         ) : (
           <Link
