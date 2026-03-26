@@ -71,7 +71,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
       <PageTransition className="relative z-10 mx-auto w-full max-w-7xl px-3 pb-32 sm:px-4 md:px-6 md:pb-32 lg:px-8">
         <div className="w-full space-y-0 pt-4 md:pt-6">
           {/* Hero — normaler Fluss, kein Layer0 */}
-          <div className="relative -mx-3 sm:-mx-4 md:mx-0 h-[280px] w-full overflow-hidden rounded-none md:h-[340px] lg:h-[380px] md:rounded-2xl">
+          <div className="relative mb-6 h-[260px] w-full overflow-hidden rounded-[32px] md:h-[300px]">
             <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
@@ -81,7 +81,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent"
               aria-hidden
             />
-            <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-8">
+            <div className="absolute bottom-0 left-0 z-10 w-full p-6 md:p-8">
               <h1
                 className="text-2xl font-bold tracking-tight text-white md:text-3xl"
                 style={{ textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}
@@ -105,17 +105,13 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               Schnellaktionen
             </h2>
 
-            <div
-              className="grid grid-cols-3 gap-2.5 md:grid-cols-4 md:gap-3"
-              role="toolbar"
-              aria-label="CookIQ Aktionen"
-            >
+            <div role="toolbar" aria-label="CookIQ Aktionen" className="space-y-3 md:space-y-4">
               <button
                 type="button"
                 onClick={() => onWochePlanen?.()}
-                className="col-span-3 flex cursor-pointer items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 transition-all hover:border-white/[0.12] hover:bg-white/[0.06] md:col-span-1"
+                className="flex w-full cursor-pointer items-center gap-3 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 backdrop-blur-xl transition-colors hover:bg-white/[0.06]"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-orange-400/[0.12] bg-orange-400/[0.1]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-400/20 bg-orange-400/10">
                   <CalendarDays className="h-5 w-5 text-orange-400/80" strokeWidth={1.75} aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1 text-left">
@@ -125,36 +121,38 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                 <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-white/20" aria-hidden />
               </button>
 
-              <button
-                type="button"
-                onClick={() => onMagicWunsch?.()}
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 transition-all hover:border-white/[0.09] hover:bg-white/[0.05]"
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/[0.08]">
-                  <Sparkles className="h-4 w-4 text-amber-400/70" strokeWidth={1.75} aria-hidden />
-                </div>
-                <span className="text-sm text-white/70">Wunschgericht</span>
-              </button>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+                <button
+                  type="button"
+                  onClick={() => onMagicWunsch?.()}
+                  className="flex min-h-[110px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 text-center transition-colors hover:bg-white/[0.06]"
+                >
+                  <div className="rounded-xl bg-amber-400/10 p-2 text-amber-400">
+                    <Sparkles className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  </div>
+                  <span className="text-xs font-semibold text-white/80">Wunschgericht</span>
+                </button>
 
-              <Link
-                href="/tools/recipe?tab=my-recipes"
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 transition-all hover:border-white/[0.09] hover:bg-white/[0.05]"
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-400/[0.08]">
-                  <BookOpen className="h-4 w-4 text-violet-400/70" strokeWidth={1.75} aria-hidden />
-                </div>
-                <span className="text-sm text-white/70">Sammlung</span>
-              </Link>
+                <Link
+                  href="/tools/recipe?tab=my-recipes"
+                  className="flex min-h-[110px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 text-center transition-colors hover:bg-white/[0.06]"
+                >
+                  <div className="rounded-xl bg-violet-400/10 p-2 text-violet-400">
+                    <BookOpen className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  </div>
+                  <span className="text-xs font-semibold text-white/80">Sammlung</span>
+                </Link>
 
-              <Link
-                href="/tools/shopping-list"
-                className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-3.5 transition-all hover:border-white/[0.09] hover:bg-white/[0.05] md:col-span-1"
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-pink-400/[0.08]">
-                  <ShoppingCart className="h-4 w-4 text-pink-400/70" strokeWidth={1.75} aria-hidden />
-                </div>
-                <span className="text-sm text-white/70">SmartCart</span>
-              </Link>
+                <Link
+                  href="/tools/shopping-list"
+                  className="col-span-2 flex min-h-[110px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 text-center transition-colors hover:bg-white/[0.06] md:col-span-1"
+                >
+                  <div className="rounded-xl bg-pink-400/10 p-2 text-pink-400">
+                    <ShoppingCart className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  </div>
+                  <span className="text-xs font-semibold text-white/80">SmartCart</span>
+                </Link>
+              </div>
             </div>
 
             {hasActiveWeek ? (
