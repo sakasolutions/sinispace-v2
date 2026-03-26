@@ -56,7 +56,7 @@ export default function RootLayout({
       }
     >
       <body
-        className={`min-h-[100dvh] font-sans antialiased tracking-tight text-white ${inter.className}`}
+        className={`flex min-h-[100dvh] flex-col font-sans antialiased tracking-tight text-white ${inter.className}`}
         style={
           {
             WebkitTapHighlightColor: 'transparent',
@@ -71,8 +71,8 @@ export default function RootLayout({
           } as React.CSSProperties
         }
       >
-        <div className="relative z-10 flex min-h-[100dvh] flex-col pt-[env(safe-area-inset-top)]">
-          <div className="min-h-0 flex-1">{children}</div>
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col pt-[env(safe-area-inset-top)]">
+          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         </div>
       </body>
     </html>

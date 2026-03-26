@@ -18,7 +18,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
   const pathname = usePathname();
 
   return (
-    <div className="relative flex h-full min-h-0 overflow-x-hidden bg-[#0F0914]">
+    <div className="relative flex min-h-0 flex-1 overflow-x-hidden bg-[#0F0914]">
       <AppBackground />
       <div
         className="pointer-events-none fixed bottom-0 left-0 right-0 -z-[1] h-[env(safe-area-inset-bottom)] bg-canvas md:hidden"
@@ -64,7 +64,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         style={
           {
             height: '100%',
-            maxHeight: '100dvh',
+            minHeight: 0,
             overflowY: 'hidden',
             overflowX: 'hidden',
           } as React.CSSProperties
