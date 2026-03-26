@@ -12,6 +12,8 @@ export type DashboardShellProps = {
   headerBackground: React.ReactNode;
   /** Tailwind height classes for layer 0 (e.g. recipe hero ~35vh). Default: h-[280px]. */
   layer0HeightClass?: string;
+  /** Border-radius classes for layer 0 wrapper. */
+  layer0RoundedClass?: string;
   /** Mindesthöhe des Headers, damit ein hohes Layer-0 (z. B. Rezept-Hero) nicht abgeschnitten wird. Default: min-h-[280px]. */
   headerMinHeightClass?: string;
   /** Main title (e.g. h1). */
@@ -24,6 +26,8 @@ export type DashboardShellProps = {
   headerPrimaryCTA?: React.ReactNode;
   /** Optional right-side actions (e.g. icon buttons). */
   headerActionsRight?: React.ReactNode;
+  /** Opt-in full-bleed mode: disables shell max-width + horizontal paddings. */
+  disablePadding?: boolean;
   /** Content below the overlap. Overlap (-mt-20 + h-5 mb-4) is applied once inside the shell. */
   children: React.ReactNode;
 };
@@ -35,7 +39,7 @@ const HEADER_WRAPPER_BASE = cn(
 );
 
 const LAYER0_WRAPPER_BASE =
-  'absolute top-0 left-0 w-full z-0 overflow-hidden rounded-b-[40px]';
+  'absolute top-0 left-0 w-full z-0 overflow-hidden';
 
 /**
  * Canonical dashboard layout: header (safe-area, consistent padding, optional CTA/actions)
@@ -46,12 +50,14 @@ export function DashboardShell({
   headerVariant,
   headerBackground,
   layer0HeightClass = 'h-[280px]',
+  layer0RoundedClass = 'rounded-b-[40px]',
   headerMinHeightClass = 'min-h-[280px]',
   title,
   subtitle,
   headerExtra,
   headerPrimaryCTA,
   headerActionsRight,
+  disablePadding = false,
   children,
 }: DashboardShellProps) {
   const layer1Pb = headerVariant === 'withCTA' ? 'pb-12' : 'pb-6';
@@ -66,7 +72,7 @@ export function DashboardShell({
   return (
     <>
       <header className={cn(HEADER_WRAPPER_BASE, headerMinHeightClass)}>
-        <div className={cn(LAYER0_WRAPPER_BASE, layer0HeightClass)} aria-hidden>
+        <div className={cn(LAYER0_WRAPPER_BASE, layer0HeightClass, layer0RoundedClass)} aria-hidden>
           {headerBackground}
         </div>
         {hasTitleRow ? (
@@ -76,7 +82,12 @@ export function DashboardShell({
               layer1Pb
             )}
           >
-            <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
+            <div
+              className={cn(
+                'w-full',
+                disablePadding ? '' : 'mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8'
+              )}
+            >
               {headerActionsRight != null ? (
                 <div className="mx-auto flex max-w-3xl items-start justify-between gap-4">
                   <div className="min-w-0 max-w-2xl">
@@ -100,7 +111,12 @@ export function DashboardShell({
         ) : null}
       </header>
 
-      <PageTransition className="relative z-10 mx-auto max-w-7xl w-full px-3 sm:px-4 md:px-6 lg:px-8 pb-32 md:pb-32 -mt-20 pt-9">
+      <PageTransition
+        className={cn(
+          'relative z-10 w-full pb-32 md:pb-32 -mt-20 pt-9',
+          disablePadding ? '' : 'mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8'
+        )}
+      >
         {children}
       </PageTransition>
     </>

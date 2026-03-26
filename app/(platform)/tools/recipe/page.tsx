@@ -905,11 +905,14 @@ export default function RecipePage() {
       ) : (
         /* Create / Meine Rezepte: DashboardShell für einheitliches Header/Overlap */
         <div
-          className="min-h-screen w-full bg-transparent"
+          data-no-padding
+          className="min-h-screen h-full w-full bg-transparent pb-20"
           style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
         >
           <DashboardShell
+            disablePadding
             headerVariant="default"
+            layer0RoundedClass="rounded-none md:rounded-b-[32px]"
             layer0HeightClass={
               activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl
                 ? 'h-[min(35vh,380px)] min-h-[220px]'
@@ -994,6 +997,7 @@ export default function RecipePage() {
               </>
             }
           >
+      <div className="px-4 md:px-8">
       {activeTab === 'create' ? (
         <React.Fragment>
         <form action={formAction} id="recipe-wizard-form" className="contents">
@@ -1342,6 +1346,7 @@ export default function RecipePage() {
           </div>
         )
       ) : null}
+      </div>
 
           </DashboardShell>
         </div>
