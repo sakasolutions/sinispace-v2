@@ -41,8 +41,7 @@ export type GourmetCockpitProps = {
 };
 
 /**
- * CookIQ nutzt kein DashboardShell-Header/Layer0 (kein rounded-b-[40px], kein -mt-20-Overlap).
- * Gleiche horizontale Paddings wie Shell-Children für optische Konsistenz.
+ * CookIQ Cockpit: schwebende Premium-Karte (Hero) + ausgerichteter Content – konsistent mit Dashboard.
  */
 export function GourmetCockpit(props: GourmetCockpitProps) {
   const {
@@ -67,14 +66,15 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
   );
 
   return (
-    <div className="w-full pb-24 overflow-x-hidden">
+    <div className="w-full h-full pb-40 overflow-y-auto overflow-x-hidden">
       <PageTransition className="w-full">
-        <div className="w-full pt-4 md:pt-6">
-          {/* Hero (mobile full-bleed) */}
-          <div className="relative w-full h-[260px] md:h-[300px] rounded-none md:rounded-b-[32px] overflow-hidden -mt-[calc(4rem+env(safe-area-inset-top))] md:mt-0 pt-[env(safe-area-inset-top)]">
-            <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
+        <div className="w-full">
+          {/* Hero: schwebende Premium-Karte (#0F0914 bleibt als Canvas sichtbar) */}
+          <div className="relative mx-4 md:mx-auto max-w-5xl h-[260px] md:h-[300px] rounded-[32px] overflow-hidden mt-4 shadow-2xl shadow-black/50 border border-white/[0.05]">
+            <img
+              src="/gourmet-header.webp"
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
               aria-hidden
             />
             <div
@@ -100,7 +100,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
             </div>
           </div>
 
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 mt-6">
+          <div className="mx-4 md:mx-auto max-w-5xl mt-6 space-y-6">
             <section aria-labelledby="gourmet-actions-heading">
               <h2 id="gourmet-actions-heading" className="sr-only">
                 Schnellaktionen
