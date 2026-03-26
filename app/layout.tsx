@@ -71,8 +71,8 @@ export default function RootLayout({
           } as React.CSSProperties
         }
       >
-        <div className="relative z-10 min-h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-          {children}
+        <div className="relative z-10 flex min-h-[100dvh] flex-col pt-[env(safe-area-inset-top)]">
+          <div className="min-h-0 flex-1">{children}</div>
         </div>
       </body>
     </html>
