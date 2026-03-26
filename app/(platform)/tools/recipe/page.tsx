@@ -879,7 +879,11 @@ export default function RecipePage() {
     <>
       {/* Cockpit (Landing) – Header bricht auf Desktop aus (data-header-full-bleed verhindert overflow-x-hidden im Layout) */}
       {showCockpit ? (
-        <div data-header-full-bleed className="relative w-full overflow-x-visible">
+        <div
+          data-no-padding
+          data-header-full-bleed
+          className="w-full min-h-full pb-20 overflow-x-hidden"
+        >
           <GourmetCockpit
             onVorschlagGenerieren={() => {
               setShowCockpit(false);
@@ -906,7 +910,7 @@ export default function RecipePage() {
         /* Create / Meine Rezepte: DashboardShell für einheitliches Header/Overlap */
         <div
           data-no-padding
-          className="min-h-screen h-full w-full bg-transparent pb-20"
+          className="w-full min-h-full pb-20 overflow-x-hidden"
           style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
         >
           <DashboardShell

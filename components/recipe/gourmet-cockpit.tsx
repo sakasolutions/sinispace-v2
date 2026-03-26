@@ -68,10 +68,12 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
 
   return (
     <div className="relative w-full overflow-x-visible bg-transparent">
-      <PageTransition className="relative z-10 mx-auto w-full max-w-7xl px-3 pb-32 sm:px-4 md:px-6 md:pb-32 lg:px-8">
+      <PageTransition className="relative z-10 w-full pb-32 md:pb-32">
         <div className="w-full space-y-0 pt-4 md:pt-6">
-          {/* Hero — normaler Fluss, kein Layer0 */}
-          <div className="relative mb-6 h-[260px] w-full overflow-hidden rounded-[32px] md:h-[300px]">
+          {/* Hero — FULL-BLEED mobile, contained desktop */}
+          <div
+            className="relative mb-6 h-[260px] w-full overflow-hidden rounded-none md:h-[300px] md:rounded-b-[32px] md:max-w-7xl md:mx-auto -mx-3 w-[calc(100%+1.5rem)] sm:-mx-4 sm:w-[calc(100%+2rem)]"
+          >
             <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
@@ -100,6 +102,8 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
             </div>
           </div>
 
+          {/* Content BELOW hero keeps padding */}
+          <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <section className="mt-4 md:mt-5" aria-labelledby="gourmet-actions-heading">
             <h2 id="gourmet-actions-heading" className="sr-only">
               Schnellaktionen
@@ -285,6 +289,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               </div>
             )}
           </section>
+          </div>
         </div>
       </PageTransition>
     </div>
