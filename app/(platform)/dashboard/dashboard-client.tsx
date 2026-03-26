@@ -697,6 +697,12 @@ export default function DashboardClient({
       };
     });
   }, []);
+  const formatDateParam = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
 
   const top4Tools = useMemo(() => sortedTools.slice(0, 4), [sortedTools]);
   const top4Ids = useMemo(() => new Set(top4Tools.map((t) => t.id)), [top4Tools]);
@@ -771,11 +777,11 @@ export default function DashboardClient({
               {weekDays.map((day) => {
                 if (day.isToday) {
                   return (
-                    <div
+                    <Link
                       key={day.date.toISOString()}
+                      href={`/calendar?date=${formatDateParam(day.date)}`}
                       className="flex cursor-pointer flex-col items-center gap-2"
                       aria-current="date"
-                      onClick={() => console.log('Clicked day:', day.date)}
                     >
                       <span className="text-xs font-bold text-white">{day.dayName}</span>
                       <div className="flex flex-col items-center gap-1">
@@ -784,15 +790,15 @@ export default function DashboardClient({
                         </div>
                         <div className="h-1 w-1 rounded-full bg-brand-orange" aria-hidden />
                       </div>
-                    </div>
+                    </Link>
                   );
                 }
 
                 return (
-                  <div
+                  <Link
                     key={day.date.toISOString()}
+                    href={`/calendar?date=${formatDateParam(day.date)}`}
                     className="group flex cursor-pointer flex-col items-center gap-2"
-                    onClick={() => console.log('Clicked day:', day.date)}
                   >
                     <span className="text-xs font-medium text-white/40 transition-colors group-hover:text-white/70">
                       {day.dayName}
@@ -800,7 +806,7 @@ export default function DashboardClient({
                     <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white/60 transition-colors group-hover:bg-white/[0.05]">
                       {day.dayNumber}
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

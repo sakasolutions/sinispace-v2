@@ -221,11 +221,11 @@ export function TodayZoneCards({
                   >
                     <ChefHat className="h-4 w-4 text-orange-400/70" strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-lg font-semibold tracking-tight text-white/90 md:text-xl">
+                  <h3 className="mb-1 mt-1 text-2xl font-extrabold text-white md:text-3xl">
                     {mealTitleDisplay}
                   </h3>
                   {mealSubtitlePlanned ? (
-                    <p className="mt-1 text-xs text-white/30">{mealSubtitlePlanned}</p>
+                    <p className="mb-4 text-sm font-medium text-brand-orange">{mealSubtitlePlanned}</p>
                   ) : null}
                 </div>
                 {mealThumbUrl ? (
@@ -242,9 +242,9 @@ export function TodayZoneCards({
                 ) : null}
               </div>
             </div>
-            <span className="mt-auto text-xs text-white/25 transition group-hover:text-white/50">
+            <div className="mt-auto inline-flex items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/[0.1]">
               Rezept ansehen →
-            </span>
+            </div>
           </Link>
         ) : (
           <Link
