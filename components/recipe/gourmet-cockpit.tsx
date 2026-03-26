@@ -71,7 +71,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
       <PageTransition className="w-full">
         <div className="w-full pt-4 md:pt-6">
           {/* Hero (mobile full-bleed) */}
-          <div className="relative w-full h-[260px] md:h-[300px] rounded-none md:rounded-b-[32px] overflow-hidden">
+          <div className="relative w-full h-[260px] md:h-[300px] rounded-none md:rounded-b-[32px] overflow-hidden -mt-[calc(4rem+env(safe-area-inset-top))] md:mt-0 pt-[env(safe-area-inset-top)]">
             <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
