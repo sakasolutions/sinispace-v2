@@ -67,13 +67,11 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
   );
 
   return (
-    <div className="relative w-full overflow-x-visible bg-transparent">
-      <PageTransition className="relative z-10 w-full pb-32 md:pb-32">
-        <div className="w-full space-y-0 pt-4 md:pt-6">
-          {/* Hero — FULL-BLEED mobile, contained desktop */}
-          <div
-            className="relative mb-6 h-[260px] w-full overflow-hidden rounded-none md:h-[300px] md:rounded-b-[32px] md:max-w-7xl md:mx-auto -mx-3 w-[calc(100%+1.5rem)] sm:-mx-4 sm:w-[calc(100%+2rem)]"
-          >
+    <div className="w-full pb-24 overflow-x-hidden">
+      <PageTransition className="w-full">
+        <div className="w-full pt-4 md:pt-6">
+          {/* Hero (mobile full-bleed) */}
+          <div className="relative w-full h-[260px] md:h-[300px] rounded-none md:rounded-b-[32px] overflow-hidden">
             <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: 'url(/gourmet-header.webp)' }}
@@ -102,28 +100,27 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
             </div>
           </div>
 
-          {/* Content BELOW hero keeps padding */}
-          <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
-          <section className="mt-4 md:mt-5" aria-labelledby="gourmet-actions-heading">
-            <h2 id="gourmet-actions-heading" className="sr-only">
-              Schnellaktionen
-            </h2>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 mt-6">
+            <section aria-labelledby="gourmet-actions-heading">
+              <h2 id="gourmet-actions-heading" className="sr-only">
+                Schnellaktionen
+              </h2>
 
-            <div role="toolbar" aria-label="CookIQ Aktionen" className="space-y-3 md:space-y-4">
-              <button
-                type="button"
-                onClick={() => onWochePlanen?.()}
-                className="flex w-full cursor-pointer items-center gap-3 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 backdrop-blur-xl transition-colors hover:bg-white/[0.06]"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-400/20 bg-orange-400/10">
-                  <CalendarDays className="h-5 w-5 text-orange-400/80" strokeWidth={1.75} aria-hidden />
-                </div>
-                <div className="min-w-0 flex-1 text-left">
-                  <div className="text-sm font-semibold text-white/90">Woche planen</div>
-                  <div className="text-xs text-white/35">Dein Essensplan</div>
-                </div>
-                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-white/20" aria-hidden />
-              </button>
+              <div role="toolbar" aria-label="CookIQ Aktionen" className="space-y-3 md:space-y-4">
+                <button
+                  type="button"
+                  onClick={() => onWochePlanen?.()}
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 backdrop-blur-xl transition-colors hover:bg-white/[0.06]"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-400/20 bg-orange-400/10">
+                    <CalendarDays className="h-5 w-5 text-orange-400/80" strokeWidth={1.75} aria-hidden />
+                  </div>
+                  <div className="min-w-0 flex-1 text-left">
+                    <div className="text-sm font-semibold text-white/90">Woche planen</div>
+                    <div className="text-xs text-white/35">Dein Essensplan</div>
+                  </div>
+                  <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-white/20" aria-hidden />
+                </button>
 
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
                 <button
@@ -159,136 +156,136 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               </div>
             </div>
 
-            {hasActiveWeek ? (
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => onAktiveWocheAnsehen?.()}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onAktiveWocheAnsehen?.();
-                  }
-                }}
-                className="group mt-5 w-full cursor-pointer overflow-hidden rounded-2xl border border-white/[0.06] shadow-lg shadow-black/30 transition-transform hover:-translate-y-0.5 md:mt-6"
-              >
-                <div className="relative aspect-video w-full min-h-[200px] md:h-[240px] md:min-h-[240px]">
-                  {activeMealImageUrl ? (
-                    <img
-                      src={activeMealImageUrl}
-                      alt=""
-                      className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+              {hasActiveWeek ? (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onAktiveWocheAnsehen?.()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onAktiveWocheAnsehen?.();
+                    }
+                  }}
+                  className="group mt-5 w-full cursor-pointer overflow-hidden rounded-2xl border border-white/[0.06] shadow-lg shadow-black/30 transition-transform hover:-translate-y-0.5 md:mt-6"
+                >
+                  <div className="relative aspect-video w-full min-h-[200px] md:h-[240px] md:min-h-[240px]">
+                    {activeMealImageUrl ? (
+                      <img
+                        src={activeMealImageUrl}
+                        alt=""
+                        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                        aria-hidden
+                      />
+                    ) : (
+                      <div className={`absolute inset-0 ${ACTIVE_WEEK_FALLBACK_BG_CLASS}`} aria-hidden />
+                    )}
+                    <div
+                      className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
                       aria-hidden
                     />
-                  ) : (
-                    <div className={`absolute inset-0 ${ACTIVE_WEEK_FALLBACK_BG_CLASS}`} aria-hidden />
-                  )}
-                  <div
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
-                    aria-hidden
-                  />
-                  <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 md:p-5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
-                        AKTIVE WOCHE
-                      </span>
-                      {todayMealSpotlight ? (
-                        <span className="text-xs text-white/60">
-                          {todayMealSpotlight.isTomorrow ? 'Morgen' : todayMealSpotlight.dayLabel} ·{' '}
-                          {todayMealSpotlight.mealTypeLabel}
+                    <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 md:p-5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
+                          AKTIVE WOCHE
                         </span>
-                      ) : (
-                        <span className="text-xs text-white/60">Diese Woche geplant</span>
-                      )}
-                    </div>
-                    <div className="mt-auto space-y-2">
-                      {todayMealSpotlight ? (
-                        <>
-                          <h2 className="line-clamp-2 text-lg font-semibold tracking-tight text-white drop-shadow-md md:text-xl">
-                            {todayMealSpotlight.title}
-                          </h2>
-                          {todayMealSpotlight.displayTime || todayMealSpotlight.displayCalories ? (
-                            <div className="flex flex-wrap items-center gap-2">
-                              {todayMealSpotlight.displayTime ? (
-                                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
-                                  <Clock className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
-                                  {todayMealSpotlight.displayTime}
-                                </span>
-                              ) : null}
-                              {todayMealSpotlight.displayCalories ? (
-                                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
-                                  <Flame className="h-3.5 w-3.5 shrink-0 text-amber-300" aria-hidden />
-                                  {todayMealSpotlight.displayCalories}
-                                </span>
-                              ) : null}
-                            </div>
-                          ) : todayMealSpotlight.subtext ? (
-                            <p className="line-clamp-2 text-sm font-medium text-white/85 drop-shadow-sm">
-                              {todayMealSpotlight.subtext}
+                        {todayMealSpotlight ? (
+                          <span className="text-xs text-white/60">
+                            {todayMealSpotlight.isTomorrow ? 'Morgen' : todayMealSpotlight.dayLabel} ·{' '}
+                            {todayMealSpotlight.mealTypeLabel}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-white/60">Diese Woche geplant</span>
+                        )}
+                      </div>
+                      <div className="mt-auto space-y-2">
+                        {todayMealSpotlight ? (
+                          <>
+                            <h2 className="line-clamp-2 text-lg font-semibold tracking-tight text-white drop-shadow-md md:text-xl">
+                              {todayMealSpotlight.title}
+                            </h2>
+                            {todayMealSpotlight.displayTime || todayMealSpotlight.displayCalories ? (
+                              <div className="flex flex-wrap items-center gap-2">
+                                {todayMealSpotlight.displayTime ? (
+                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                                    <Clock className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
+                                    {todayMealSpotlight.displayTime}
+                                  </span>
+                                ) : null}
+                                {todayMealSpotlight.displayCalories ? (
+                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                                    <Flame className="h-3.5 w-3.5 shrink-0 text-amber-300" aria-hidden />
+                                    {todayMealSpotlight.displayCalories}
+                                  </span>
+                                ) : null}
+                              </div>
+                            ) : todayMealSpotlight.subtext ? (
+                              <p className="line-clamp-2 text-sm font-medium text-white/85 drop-shadow-sm">
+                                {todayMealSpotlight.subtext}
+                              </p>
+                            ) : null}
+                          </>
+                        ) : (
+                          <>
+                            <h2 className="text-lg font-semibold tracking-tight text-white drop-shadow-md md:text-xl">
+                              Heute steht nichts auf dem Plan
+                            </h2>
+                            <p className="text-sm text-white/60">
+                              Klicke hier, um deine Woche zu sehen oder einen neuen Plan zu erstellen.
                             </p>
-                          ) : null}
-                        </>
-                      ) : (
-                        <>
-                          <h2 className="text-lg font-semibold tracking-tight text-white drop-shadow-md md:text-xl">
-                            Heute steht nichts auf dem Plan
-                          </h2>
-                          <p className="text-sm text-white/60">
-                            Klicke hier, um deine Woche zu sehen oder einen neuen Plan zu erstellen.
-                          </p>
-                        </>
-                      )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-3 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAktiveWocheAnsehen?.();
-                    }}
-                    className="flex flex-1 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] py-3 text-center text-sm font-medium text-white/70 transition hover:bg-white/[0.07]"
-                  >
-                    Jetzt kochen
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAktiveWocheAnsehen?.();
-                    }}
-                    className="flex shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-3 text-white/70 transition hover:bg-white/[0.07]"
-                    aria-label="Details ansehen"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
+                  <div className="mt-3 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAktiveWocheAnsehen?.();
+                      }}
+                      className="flex flex-1 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] py-3 text-center text-sm font-medium text-white/70 transition hover:bg-white/[0.07]"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
+                      Jetzt kochen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAktiveWocheAnsehen?.();
+                      }}
+                      className="flex shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-3 text-white/70 transition hover:bg-white/[0.07]"
+                      aria-label="Details ansehen"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-5 rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6 md:mt-6">
+                  <h3 className="text-lg font-semibold text-white/80">Starte deinen Wochenplan</h3>
+                  <p className="mt-1 text-sm text-white/35">Plane deine Mahlzeiten für die Woche</p>
+                  <button
+                    type="button"
+                    onClick={() => onWochePlanen?.()}
+                    className="mt-4 text-left text-sm text-white/30 transition-colors hover:text-white/50"
+                  >
+                    Jetzt planen →
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="mt-5 rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6 md:mt-6">
-                <h3 className="text-lg font-semibold text-white/80">Starte deinen Wochenplan</h3>
-                <p className="mt-1 text-sm text-white/35">Plane deine Mahlzeiten für die Woche</p>
-                <button
-                  type="button"
-                  onClick={() => onWochePlanen?.()}
-                  className="mt-4 text-left text-sm text-white/30 transition-colors hover:text-white/50"
-                >
-                  Jetzt planen →
-                </button>
-              </div>
-            )}
-          </section>
+              )}
+            </section>
           </div>
         </div>
       </PageTransition>
