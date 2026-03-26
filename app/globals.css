@@ -75,11 +75,6 @@
     -webkit-touch-callout: none;
     /* NATIVE APP: Smooth scroll behavior */
     scroll-behavior: smooth;
-    /* Safe Area Support */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
   }
   
   body {
@@ -103,11 +98,6 @@
     /* NATIVE APP: Smooth scroll behavior */
     scroll-behavior: smooth;
     position: relative;
-    /* Safe Area für iPhone Notch und Home-Balken */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
   }
   
   /* NATIVE APP: UI-Stabilisierung - Verhindert Text-Selektion auf interaktiven Elementen */
@@ -150,15 +140,6 @@
     -webkit-user-select: text;
   }
   
-  /* Safe Area Support für alle Elemente */
-  @supports (padding: max(0px)) {
-    html, body {
-      padding-top: max(0px, env(safe-area-inset-top));
-      padding-bottom: max(0px, env(safe-area-inset-bottom));
-      padding-left: max(0px, env(safe-area-inset-left));
-      padding-right: max(0px, env(safe-area-inset-right));
-    }
-  }
 }
 
 @layer utilities {

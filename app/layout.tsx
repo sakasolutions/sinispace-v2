@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default', // Light status bar für light theme
+    statusBarStyle: 'black-translucent',
     title: 'Sinispace',
   },
   formatDetection: {
@@ -23,13 +23,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  themeColor: '#0F0914',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, // App-feeling: kein Zoom
-  viewportFit: 'cover', // iPhone notches
-  height: 'device-height', // Full coverage
-  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#0f0914' }, { media: '(prefers-color-scheme: dark)', color: '#0f0914' }],
+  viewportFit: 'cover',
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -69,14 +68,12 @@ export default function RootLayout({
             margin: 0,
             padding: 0,
             height: '100%',
-            paddingTop: 0,
-            paddingBottom: 'env(safe-area-inset-bottom)',
-            paddingLeft: 'env(safe-area-inset-left)',
-            paddingRight: 'env(safe-area-inset-right)',
           } as React.CSSProperties
         }
       >
-        <div className="relative z-10">{children}</div>
+        <div className="relative z-10 min-h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+          {children}
+        </div>
       </body>
     </html>
   );
