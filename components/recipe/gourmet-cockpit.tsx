@@ -66,7 +66,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
   );
 
   return (
-    <div className="w-full h-full overflow-y-auto overflow-x-hidden pb-[calc(7rem+env(safe-area-inset-bottom))] [scrollbar-gutter:stable]">
+    <div className="w-full pb-32 md:pb-40">
       <PageTransition className="w-full">
         <div className="w-full">
           {/* Hero: schwebende Premium-Karte (#0F0914 bleibt als Canvas sichtbar) */}

@@ -74,8 +74,6 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
           <div
             className={cn(
               'min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden bg-transparent pb-24 scrollbar-hide md:pb-6',
-              'has-[>[data-no-padding]]:overflow-hidden',
-              '[&>[data-no-padding]]:flex [&>[data-no-padding]]:h-full [&>[data-no-padding]]:min-h-0 [&>[data-no-padding]]:flex-1',
               '[&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-8 [&>*:not([data-no-padding])]:lg:p-8',
               '[&>*:not([data-header-full-bleed])]:overflow-x-hidden'
             )}
