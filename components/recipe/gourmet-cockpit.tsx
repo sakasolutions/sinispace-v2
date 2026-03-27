@@ -8,7 +8,6 @@ import {
   ShoppingCart,
   Clock,
   Flame,
-  ChevronRight,
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
 
@@ -78,21 +77,26 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent"
+              className="pointer-events-none absolute inset-0 bg-[#0F0914]/80 backdrop-blur-[2px]"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(249,115,22,0.2),transparent_55%)]"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f0914]/85 via-[#0f0914]/25 to-transparent"
               aria-hidden
             />
             <div className="absolute bottom-0 left-0 z-10 w-full p-6 md:p-8">
-              <h1
-                className="text-2xl font-bold tracking-tight text-white md:text-3xl"
-                style={{ textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}
-              >
-                CookIQ
-              </h1>
-              <p className="mt-1 text-sm text-white/70 md:text-base">Was kochen wir heute?</p>
+              <h1 className="mb-2 text-3xl font-black tracking-tight text-white md:text-5xl">CookIQ</h1>
+              <p className="mb-8 text-sm font-medium text-white/60 md:text-base">
+                Dein intelligenter KI-Küchenchef.
+              </p>
               <button
                 type="button"
                 onClick={onVorschlagGenerieren}
-                className="mt-4 flex w-fit items-center gap-2 rounded-xl border border-orange-500/20 bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-orange-500/20 transition-all hover:from-orange-600 hover:to-amber-600"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-brand-orange px-6 py-3.5 font-bold text-white shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(249,115,22,0.5)]"
               >
                 <Sparkles className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
                 Vorschlag generieren
@@ -100,7 +104,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
             </div>
           </div>
 
-          <div className="mx-4 md:mx-auto max-w-5xl mt-6 space-y-6">
+          <div className="mx-auto mt-6 w-full max-w-5xl space-y-4 px-4 md:px-0">
             <section aria-labelledby="gourmet-actions-heading">
               <h2 id="gourmet-actions-heading" className="sr-only">
                 Schnellaktionen
@@ -110,51 +114,59 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                 <button
                   type="button"
                   onClick={() => onWochePlanen?.()}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 backdrop-blur-xl transition-colors hover:bg-white/[0.06]"
+                  className="flex h-[120px] w-full cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:bg-white/[0.06] md:p-5"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-400/20 bg-orange-400/10">
-                    <CalendarDays className="h-5 w-5 text-orange-400/80" strokeWidth={1.75} aria-hidden />
+                  <div className="rounded-xl bg-white/[0.05] p-2 text-white/80">
+                    <CalendarDays className="h-5 w-5" strokeWidth={1.75} aria-hidden />
                   </div>
-                  <div className="min-w-0 flex-1 text-left">
-                    <div className="text-sm font-semibold text-white/90">Woche planen</div>
-                    <div className="text-xs text-white/35">Dein Essensplan</div>
+                  <div className="mt-auto flex flex-col">
+                    <span className="text-sm font-bold text-white">Woche planen</span>
+                    <span className="text-xs font-medium text-white/40">3 von 7 Tagen geplant</span>
                   </div>
-                  <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-white/20" aria-hidden />
                 </button>
 
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
-                <button
-                  type="button"
-                  onClick={() => onMagicWunsch?.()}
-                  className="flex min-h-[110px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 text-center transition-colors hover:bg-white/[0.06]"
-                >
-                  <div className="rounded-xl bg-amber-400/10 p-2 text-amber-400">
-                    <Sparkles className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                  </div>
-                  <span className="text-xs font-semibold text-white/80">Wunschgericht</span>
-                </button>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+                  <button
+                    type="button"
+                    onClick={() => onMagicWunsch?.()}
+                    className="flex h-[120px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:bg-white/[0.06] md:p-5"
+                  >
+                    <div className="rounded-xl bg-white/[0.05] p-2 text-white/80">
+                      <Sparkles className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                    </div>
+                    <div className="mt-auto flex flex-col">
+                      <span className="text-sm font-bold text-white">Wunschgericht</span>
+                      <span className="text-xs font-medium text-white/40">KI-gesteuert</span>
+                    </div>
+                  </button>
 
-                <Link
-                  href="/tools/recipe?tab=my-recipes"
-                  className="flex min-h-[110px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 text-center transition-colors hover:bg-white/[0.06]"
-                >
-                  <div className="rounded-xl bg-violet-400/10 p-2 text-violet-400">
-                    <BookOpen className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                  </div>
-                  <span className="text-xs font-semibold text-white/80">Sammlung</span>
-                </Link>
+                  <Link
+                    href="/tools/recipe?tab=my-recipes"
+                    className="flex h-[120px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:bg-white/[0.06] md:p-5"
+                  >
+                    <div className="rounded-xl bg-brand-purple/10 p-2 text-brand-purple">
+                      <BookOpen className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                    </div>
+                    <div className="mt-auto flex flex-col">
+                      <span className="text-sm font-bold text-white">Sammlung</span>
+                      <span className="text-xs font-medium text-white/40">124 Rezepte</span>
+                    </div>
+                  </Link>
 
-                <Link
-                  href="/tools/shopping-list"
-                  className="col-span-2 flex min-h-[110px] cursor-pointer flex-col items-center justify-center gap-2 rounded-[20px] border border-white/[0.06] bg-white/[0.03] p-4 text-center transition-colors hover:bg-white/[0.06] md:col-span-1"
-                >
-                  <div className="rounded-xl bg-pink-400/10 p-2 text-pink-400">
-                    <ShoppingCart className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                  </div>
-                  <span className="text-xs font-semibold text-white/80">SmartCart</span>
-                </Link>
+                  <Link
+                    href="/tools/shopping-list"
+                    className="flex h-[120px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:bg-white/[0.06] md:col-span-1 md:p-5"
+                  >
+                    <div className="rounded-xl bg-brand-pink/10 p-2 text-brand-pink">
+                      <ShoppingCart className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                    </div>
+                    <div className="mt-auto flex flex-col">
+                      <span className="text-sm font-bold text-white">SmartCart</span>
+                      <span className="text-xs font-medium text-white/40">5 Artikel offen</span>
+                    </div>
+                  </Link>
+                </div>
               </div>
-            </div>
 
               {hasActiveWeek ? (
                 <div
@@ -181,61 +193,59 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                       <div className={`absolute inset-0 ${ACTIVE_WEEK_FALLBACK_BG_CLASS}`} aria-hidden />
                     )}
                     <div
-                      className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0F0914] via-[#0F0914]/80 to-transparent"
                       aria-hidden
                     />
-                    <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 md:p-5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
-                          AKTIVE WOCHE
+                    <div className="absolute left-0 right-0 top-0 z-10 flex flex-wrap items-center gap-2 p-6 md:p-8">
+                      <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
+                        AKTIVE WOCHE
+                      </span>
+                      {todayMealSpotlight ? (
+                        <span className="text-xs text-white/60">
+                          {todayMealSpotlight.isTomorrow ? 'Morgen' : todayMealSpotlight.dayLabel} ·{' '}
+                          {todayMealSpotlight.mealTypeLabel}
                         </span>
-                        {todayMealSpotlight ? (
-                          <span className="text-xs text-white/60">
-                            {todayMealSpotlight.isTomorrow ? 'Morgen' : todayMealSpotlight.dayLabel} ·{' '}
-                            {todayMealSpotlight.mealTypeLabel}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-white/60">Diese Woche geplant</span>
-                        )}
-                      </div>
-                      <div className="mt-auto space-y-2">
-                        {todayMealSpotlight ? (
-                          <>
-                            <h2 className="line-clamp-2 text-lg font-semibold tracking-tight text-white drop-shadow-md md:text-xl">
-                              {todayMealSpotlight.title}
-                            </h2>
-                            {todayMealSpotlight.displayTime || todayMealSpotlight.displayCalories ? (
-                              <div className="flex flex-wrap items-center gap-2">
-                                {todayMealSpotlight.displayTime ? (
-                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
-                                    <Clock className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
-                                    {todayMealSpotlight.displayTime}
-                                  </span>
-                                ) : null}
-                                {todayMealSpotlight.displayCalories ? (
-                                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
-                                    <Flame className="h-3.5 w-3.5 shrink-0 text-amber-300" aria-hidden />
-                                    {todayMealSpotlight.displayCalories}
-                                  </span>
-                                ) : null}
-                              </div>
-                            ) : todayMealSpotlight.subtext ? (
-                              <p className="line-clamp-2 text-sm font-medium text-white/85 drop-shadow-sm">
-                                {todayMealSpotlight.subtext}
-                              </p>
-                            ) : null}
-                          </>
-                        ) : (
-                          <>
-                            <h2 className="text-lg font-semibold tracking-tight text-white drop-shadow-md md:text-xl">
-                              Heute steht nichts auf dem Plan
-                            </h2>
-                            <p className="text-sm text-white/60">
-                              Klicke hier, um deine Woche zu sehen oder einen neuen Plan zu erstellen.
+                      ) : (
+                        <span className="text-xs text-white/60">Diese Woche geplant</span>
+                      )}
+                    </div>
+                    <div className="absolute bottom-0 left-0 z-10 flex w-full flex-col justify-end p-6 md:p-8">
+                      {todayMealSpotlight ? (
+                        <>
+                          <h2 className="mb-3 line-clamp-2 text-xl font-bold tracking-tight text-white drop-shadow-md md:text-2xl">
+                            {todayMealSpotlight.title}
+                          </h2>
+                          {todayMealSpotlight.displayTime || todayMealSpotlight.displayCalories ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                              {todayMealSpotlight.displayTime ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                                  <Clock className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
+                                  {todayMealSpotlight.displayTime}
+                                </span>
+                              ) : null}
+                              {todayMealSpotlight.displayCalories ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/35 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                                  <Flame className="h-3.5 w-3.5 shrink-0 text-amber-300" aria-hidden />
+                                  {todayMealSpotlight.displayCalories}
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : todayMealSpotlight.subtext ? (
+                            <p className="line-clamp-2 text-sm font-medium text-white/85 drop-shadow-sm">
+                              {todayMealSpotlight.subtext}
                             </p>
-                          </>
-                        )}
-                      </div>
+                          ) : null}
+                        </>
+                      ) : (
+                        <>
+                          <h2 className="mb-3 text-xl font-bold tracking-tight text-white drop-shadow-md md:text-2xl">
+                            Heute steht nichts auf dem Plan
+                          </h2>
+                          <p className="text-sm text-white/60">
+                            Klicke hier, um deine Woche zu sehen oder einen neuen Plan zu erstellen.
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
 
