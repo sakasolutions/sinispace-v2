@@ -105,56 +105,15 @@ function rebuildUnifiedRows(ingredients: string[], prev: IngredientRow[] | null)
 }
 
 /**
- * Nach dem Hero-Bild (z-0, separat): Dämmung, feines Grid, CookIQ-Orb-Glow, weicher Auslauf ins Tiefschwarz.
- * Wie Gourmet-Cockpit – Bild nur als Textur (~12 %), Glow dominiert.
+ * Weicher Übergang Bild → Canvas (#0F0914), keine harte Kante unten.
+ * Liegt über dem Bild (z-10); Bild bleibt z-0.
  */
 export function RecipeDetailHeroAtmosphere() {
   return (
-    <>
-      <div className="absolute inset-0 z-[1] bg-black/88" aria-hidden />
-      <div
-        className="pointer-events-none absolute inset-0 z-[1] opacity-[0.06]"
-        style={{
-          backgroundImage:
-            'linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-        aria-hidden
-      />
-      <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden" aria-hidden>
-        <div className="absolute -inset-x-[12%] -top-[38%] bottom-0">
-          <div
-            className="absolute -bottom-[14%] left-1/2 h-[min(165%,36rem)] w-[min(195%,48rem)] -translate-x-1/2 animate-cookiq-orb rounded-[50%] blur-3xl"
-            style={{
-              background:
-                'radial-gradient(ellipse 62% 52% at 50% 88%, rgba(249,115,22,0.62) 0%, rgba(236,72,153,0.42) 34%, rgba(168,85,247,0.3) 52%, rgba(168,85,247,0) 72%)',
-            }}
-          />
-          <div
-            className="absolute -bottom-[6%] left-1/2 h-[min(128%,28rem)] w-[min(152%,38rem)] -translate-x-1/2 animate-cookiq-orb-delay rounded-[50%] blur-2xl"
-            style={{
-              background:
-                'radial-gradient(ellipse 54% 44% at 50% 86%, rgba(249,115,22,0.48) 0%, rgba(236,72,153,0.3) 44%, rgba(168,85,247,0.2) 62%, rgba(168,85,247,0) 78%)',
-            }}
-          />
-          <div
-            className="absolute inset-x-0 -top-[2%] bottom-[-8%] opacity-[0.22]"
-            style={{
-              background:
-                'radial-gradient(ellipse 96% 80% at 50% 104%, rgba(249,115,22,0.52) 0%, rgba(236,72,153,0.34) 38%, rgba(168,85,247,0.2) 56%, transparent 74%)',
-            }}
-          />
-        </div>
-      </div>
-      <div
-        className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-b from-black from-0% via-black/50 via-[26%] to-transparent to-[54%]"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-[#0f0914] via-black/80 to-transparent"
-        aria-hidden
-      />
-    </>
+    <div
+      className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-[#0F0914] via-[#0F0914]/80 to-transparent"
+      aria-hidden
+    />
   );
 }
 
@@ -486,29 +445,26 @@ export function RecipeDetailView({
 
   return (
     <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out pb-44 md:pb-40">
-      {/* North Star: Edge-to-Edge Hero ~35vh (nur ohne embed – Wochenplan o. ä.) */}
+      {/* Edge-to-Edge Hero: Bild ~35 %, nahtloser Fade ins Canvas (nur ohne embed) */}
       {!embedHeroInParent && (
         <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 -mt-[max(0.5rem,env(safe-area-inset-top))] overflow-hidden md:-mt-6">
-          <div className="relative h-[35vh] min-h-[200px] max-h-[340px] w-full bg-[#0f0914]">
+          <div className="relative h-[50vh] min-h-[220px] max-h-[500px] w-full bg-[#0F0914]">
             {heroImageUrl ? (
               <>
                 <img
                   src={heroImageUrl}
                   alt={recipe.recipeName}
-                  className="absolute inset-0 z-0 h-full w-full object-cover opacity-[0.12]"
+                  className="absolute inset-x-0 top-0 z-0 h-full w-full object-cover opacity-[0.35]"
                 />
                 <RecipeDetailHeroAtmosphere />
               </>
             ) : (
-              <>
-                <RecipeDetailHeroAtmosphere />
-                <div
-                  className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center"
-                  aria-hidden
-                >
-                  <UtensilsCrossed className="h-24 w-24 text-orange-400/30" strokeWidth={1.5} />
-                </div>
-              </>
+              <div
+                className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center bg-[#0F0914]"
+                aria-hidden
+              >
+                <UtensilsCrossed className="h-24 w-24 text-orange-400/25" strokeWidth={1.5} />
+              </div>
             )}
             <div className="absolute left-4 right-4 top-[max(1rem,env(safe-area-inset-top))] z-20 flex items-start justify-between gap-3">
               {fromWeekPlan ? (
@@ -531,25 +487,15 @@ export function RecipeDetailView({
 
       <div
         className={cn(
-          'relative z-10 mx-auto w-full max-w-5xl',
-          embedHeroInParent ? '-mt-14 md:-mt-24 px-4 sm:px-4 md:px-6' : '-mt-12 md:-mt-16 px-4 md:px-6'
+          'relative z-20 mx-auto w-full max-w-5xl',
+          embedHeroInParent ? '-mt-14 md:-mt-24 px-4 sm:px-4 md:px-6' : '-mt-16 md:-mt-20 px-4 md:px-6'
         )}
       >
         {embedHeroInParent ? (
-          <>
-            <div
-              className="pointer-events-none absolute inset-x-[-18%] -top-36 z-0 h-64 opacity-[0.75] blur-3xl md:-top-44 md:h-80"
-              style={{
-                background:
-                  'radial-gradient(ellipse 72% 65% at 50% 100%, rgba(249,115,22,0.4) 0%, rgba(236,72,153,0.24) 42%, rgba(168,85,247,0.12) 58%, transparent 72%)',
-              }}
-              aria-hidden
-            />
-            <div className="relative z-10 mb-4 flex justify-end">{shareIconButton}</div>
-          </>
+          <div className="relative mb-4 flex justify-end">{shareIconButton}</div>
         ) : null}
 
-        <div className="relative z-10 pb-8 pt-2 md:pb-10">
+        <div className="relative pb-8 pt-2 md:pb-10">
           {fromWeekPlan && onSaveToCollection && (
             <div className="mb-6 flex justify-end">
               <button
@@ -562,9 +508,15 @@ export function RecipeDetailView({
               </button>
             </div>
           )}
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start gap-4">
+          <div className="relative">
+            {/* Dezenter Cockpit-Ring hinter Titel + CTA */}
+            <div
+              className="pointer-events-none absolute left-1/2 top-[42%] z-0 h-[min(19rem,88vw)] w-[min(19rem,88vw)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-500/30 shadow-[0_0_50px_rgba(249,115,22,0.12),0_0_60px_rgba(168,85,247,0.08)] md:top-[40%] md:h-[22rem] md:w-[22rem]"
+              aria-hidden
+            />
+            <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start gap-4">
                 {!embedHeroInParent && !heroImageUrl ? (
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-orange-400/15 bg-orange-400/[0.08]">
                     <UtensilsCrossed className="h-7 w-7 text-orange-400/70" strokeWidth={1.5} aria-hidden />
@@ -596,29 +548,18 @@ export function RecipeDetailView({
                     ) : null}
                   </div>
                 </div>
+                </div>
               </div>
-            </div>
-            <div className="relative isolate w-full shrink-0 lg:w-auto lg:min-w-[220px]">
-              <div
-                className="pointer-events-none absolute -inset-12 left-1/2 top-1/2 z-0 h-[min(300px,85vw)] w-[min(440px,130vw)] -translate-x-1/2 -translate-y-1/2 opacity-90 blur-3xl md:left-[72%] md:h-[340px] md:w-[min(520px,50vw)]"
-                style={{
-                  background:
-                    'radial-gradient(ellipse 58% 52% at 50% 50%, rgba(249,115,22,0.5) 0%, rgba(236,72,153,0.32) 40%, rgba(168,85,247,0.18) 62%, transparent 78%)',
-                }}
-                aria-hidden
-              />
-              <div
-                className="pointer-events-none absolute inset-0 -m-3 rounded-[2rem] bg-gradient-to-t from-brand-orange/28 via-brand-pink/14 to-transparent opacity-85 blur-2xl md:-m-5"
-                aria-hidden
-              />
-              <button
-                type="button"
-                onClick={() => setCookingMode(true)}
-                className="relative z-10 flex w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3.5 font-bold text-white shadow-[0_0_32px_rgba(249,115,22,0.5),0_0_64px_rgba(236,72,153,0.28),0_0_96px_rgba(168,85,247,0.14)] ring-2 ring-orange-400/35 transition-all hover:brightness-105 hover:shadow-[0_0_40px_rgba(249,115,22,0.58),0_0_80px_rgba(236,72,153,0.32)]"
-              >
-                <Play className="h-4 w-4 shrink-0" />
-                Zubereitung starten
-              </button>
+              <div className="w-full shrink-0 lg:w-auto lg:min-w-[220px]">
+                <button
+                  type="button"
+                  onClick={() => setCookingMode(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3.5 font-bold text-white shadow-[0_0_28px_rgba(249,115,22,0.28)] transition-all hover:brightness-105 hover:shadow-[0_0_36px_rgba(249,115,22,0.38)]"
+                >
+                  <Play className="h-4 w-4 shrink-0" />
+                  Zubereitung starten
+                </button>
+              </div>
             </div>
           </div>
         </div>
