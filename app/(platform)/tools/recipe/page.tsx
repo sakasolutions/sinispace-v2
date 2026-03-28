@@ -23,7 +23,11 @@ const DASHBOARD_CARD_STYLE: React.CSSProperties = {
 import { getWorkspaceResults, deleteResult, cleanupOldResults, getResultById } from '@/actions/workspace-actions';
 import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
-import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
+import {
+  RecipeDetailView,
+  RecipeDetailHeroAtmosphere,
+  type RecipeDetailRecipe,
+} from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
 import { CollectionView } from '@/components/recipe/collection-view';
 import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
@@ -1064,17 +1068,14 @@ export default function RecipePage() {
             }
             headerBackground={
               activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl ? (
-                <div className="relative w-full h-full bg-gray-900">
+                <div className="relative h-full w-full bg-[#0f0914]">
                   <img
                     src={recipeDetailHeroUrl}
                     alt=""
-                    className="absolute inset-0 h-full w-full object-cover"
+                    className="absolute inset-0 z-0 h-full w-full object-cover opacity-[0.12]"
                   />
-                  <div
-                    className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-black via-black/80 to-transparent"
-                    aria-hidden
-                  />
-              </div>
+                  <RecipeDetailHeroAtmosphere />
+                </div>
               ) : (
                 <div className="relative h-full w-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
                   <div className="absolute inset-x-0 bottom-0 z-0 h-[60%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent" aria-hidden />
