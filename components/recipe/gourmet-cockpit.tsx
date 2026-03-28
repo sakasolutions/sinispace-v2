@@ -40,7 +40,7 @@ export type GourmetCockpitProps = {
 };
 
 /**
- * CookIQ Cockpit: schwebende Premium-Karte (Hero) + ausgerichteter Content – konsistent mit Dashboard.
+ * CookIQ (GourmetCockpit): Tier-1 AI-Cockpit – dunkler Vault-Hero, Neon-Orb, Glass-Bento, Metrik-Karten.
  */
 export function GourmetCockpit(props: GourmetCockpitProps) {
   const {
@@ -68,39 +68,68 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
     <div className="w-full pb-32 md:pb-40">
       <PageTransition className="w-full">
         <div className="w-full">
-          {/* Hero: schwebende Premium-Karte (#0F0914 bleibt als Canvas sichtbar) */}
-          <div className="relative mx-4 md:mx-auto max-w-5xl h-[260px] md:h-[300px] rounded-[32px] overflow-hidden mt-4 shadow-2xl shadow-black/50 border border-white/[0.05]">
+          {/* Hero: AI Cockpit – subtile Foto-Textur, Tiefenschwarz, pulsierender Neon-Orb, CTA als Fokus */}
+          <div className="relative mx-4 mt-4 h-[280px] max-w-5xl overflow-hidden rounded-[32px] border border-white/[0.08] shadow-2xl shadow-black/60 md:mx-auto md:h-[320px]">
             <img
               src="/gourmet-header.webp"
               alt=""
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover opacity-[0.1]"
               aria-hidden
             />
+            <div className="absolute inset-0 bg-black/90" aria-hidden />
             <div
-              className="pointer-events-none absolute inset-0 bg-[#0F0914]/80 backdrop-blur-[2px]"
+              className="pointer-events-none absolute inset-0 opacity-[0.06]"
+              style={{
+                backgroundImage:
+                  'linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)',
+                backgroundSize: '24px 24px',
+              }}
               aria-hidden
             />
-            <div
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(249,115,22,0.2),transparent_55%)]"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f0914]/85 via-[#0f0914]/25 to-transparent"
-              aria-hidden
-            />
-            <div className="absolute bottom-0 left-0 z-10 w-full p-6 md:p-8">
-              <h1 className="mb-2 text-3xl font-black tracking-tight text-white md:text-5xl">CookIQ</h1>
-              <p className="mb-8 text-sm font-medium text-white/60 md:text-base">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+              <div
+                className="absolute -bottom-[20%] left-1/2 h-[min(140%,28rem)] w-[min(160%,36rem)] -translate-x-1/2 animate-cookiq-orb rounded-[50%] blur-2xl"
+                style={{
+                  background:
+                    'radial-gradient(ellipse 55% 45% at 50% 75%, rgba(249,115,22,0.55) 0%, rgba(236,72,153,0.35) 32%, rgba(168,85,247,0.28) 52%, transparent 72%)',
+                }}
+              />
+              <div
+                className="absolute -bottom-[8%] left-1/2 h-[min(100%,22rem)] w-[min(120%,28rem)] -translate-x-1/2 animate-cookiq-orb-delay rounded-[50%] blur-xl"
+                style={{
+                  background:
+                    'radial-gradient(ellipse 50% 40% at 50% 70%, rgba(249,115,22,0.4) 0%, rgba(236,72,153,0.22) 40%, rgba(168,85,247,0.18) 58%, transparent 75%)',
+                }}
+              />
+              <div
+                className="absolute inset-x-0 bottom-0 h-1/2 opacity-[0.12]"
+                style={{
+                  background:
+                    'conic-gradient(from 200deg at 50% 100%, rgba(249,115,22,0.5), rgba(236,72,153,0.35), rgba(168,85,247,0.4), rgba(249,115,22,0.5))',
+                }}
+              />
+            </div>
+            <div className="relative z-20 flex h-full flex-col justify-end p-6 md:p-8">
+              <h1 className="mb-2 text-3xl font-black tracking-tight text-white antialiased drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] md:text-5xl">
+                CookIQ
+              </h1>
+              <p className="mb-8 text-sm font-semibold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)] md:text-base">
                 Dein intelligenter KI-Küchenchef.
               </p>
-              <button
-                type="button"
-                onClick={onVorschlagGenerieren}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-brand-orange px-6 py-3.5 font-bold text-white shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(249,115,22,0.5)]"
-              >
-                <Sparkles className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
-                Vorschlag generieren
-              </button>
+              <div className="relative isolate">
+                <div
+                  className="pointer-events-none absolute inset-0 -m-3 rounded-2xl bg-gradient-to-t from-brand-orange/25 via-brand-pink/15 to-brand-purple/10 opacity-80 blur-xl"
+                  aria-hidden
+                />
+                <button
+                  type="button"
+                  onClick={onVorschlagGenerieren}
+                  className="relative z-10 inline-flex animate-glow-pulse items-center justify-center gap-2 rounded-xl border border-white/20 bg-brand-orange px-6 py-3.5 font-bold text-white shadow-[0_0_36px_rgba(249,115,22,0.45),0_0_72px_rgba(236,72,153,0.2)] ring-2 ring-brand-orange/50 transition-all hover:scale-[1.03] hover:shadow-[0_0_48px_rgba(249,115,22,0.55),0_0_96px_rgba(236,72,153,0.28)]"
+                >
+                  <Sparkles className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+                  Vorschlag generieren
+                </button>
+              </div>
             </div>
           </div>
 
@@ -111,61 +140,77 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               </h2>
 
               <div role="toolbar" aria-label="CookIQ Aktionen" className="space-y-3 md:space-y-4">
-                <button
-                  type="button"
-                  onClick={() => onWochePlanen?.()}
-                  className="flex h-[120px] w-full cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:bg-white/[0.06] md:p-5"
-                >
-                  <div className="rounded-xl bg-white/[0.05] p-2 text-white/80">
-                    <CalendarDays className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                  </div>
-                  <div className="mt-auto flex flex-col">
-                    <span className="text-sm font-bold text-white">Woche planen</span>
-                    <span className="text-xs font-medium text-white/40">3 von 7 Tagen geplant</span>
-                  </div>
-                </button>
-
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
                   <button
                     type="button"
-                    onClick={() => onMagicWunsch?.()}
-                    className="flex h-[120px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:bg-white/[0.06] md:p-5"
+                    onClick={() => onWochePlanen?.()}
+                    className="flex h-[132px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-brand-orange/35 hover:bg-white/[0.06] md:h-[140px] md:p-5"
                   >
-                    <div className="rounded-xl bg-white/[0.05] p-2 text-white/80">
-                      <Sparkles className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                    <div className="rounded-xl bg-brand-orange/15 p-2 text-brand-orange ring-1 ring-brand-orange/35">
+                      <CalendarDays className="h-5 w-5" strokeWidth={1.75} aria-hidden />
                     </div>
-                    <div className="mt-auto flex flex-col">
-                      <span className="text-sm font-bold text-white">Wunschgericht</span>
-                      <span className="text-xs font-medium text-white/40">KI-gesteuert</span>
+                    <div className="mt-auto flex w-full flex-col items-start">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
+                        Woche planen
+                      </span>
+                      <span className="mt-1 text-lg font-black leading-tight tracking-tight text-white md:text-xl">
+                        3 von 7 Tagen geplant
+                      </span>
                     </div>
                   </button>
 
                   <Link
-                    href="/tools/recipe?tab=my-recipes"
-                    className="flex h-[120px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:bg-white/[0.06] md:p-5"
-                  >
-                    <div className="rounded-xl bg-brand-purple/10 p-2 text-brand-purple">
-                      <BookOpen className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                    </div>
-                    <div className="mt-auto flex flex-col">
-                      <span className="text-sm font-bold text-white">Sammlung</span>
-                      <span className="text-xs font-medium text-white/40">124 Rezepte</span>
-                    </div>
-                  </Link>
-
-                  <Link
                     href="/tools/shopping-list"
-                    className="flex h-[120px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-4 text-left transition-colors hover:bg-white/[0.06] md:col-span-1 md:p-5"
+                    className="flex h-[132px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-brand-pink/40 hover:bg-white/[0.06] md:h-[140px] md:p-5"
                   >
-                    <div className="rounded-xl bg-brand-pink/10 p-2 text-brand-pink">
+                    <div className="rounded-xl bg-brand-pink/15 p-2 text-brand-pink ring-1 ring-brand-pink/40">
                       <ShoppingCart className="h-5 w-5" strokeWidth={1.75} aria-hidden />
                     </div>
-                    <div className="mt-auto flex flex-col">
-                      <span className="text-sm font-bold text-white">SmartCart</span>
-                      <span className="text-xs font-medium text-white/40">5 Artikel offen</span>
+                    <div className="mt-auto flex w-full flex-col items-start">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
+                        SmartCart
+                      </span>
+                      <span className="mt-1 text-lg font-black leading-tight tracking-tight text-white md:text-xl">
+                        5 Artikel offen
+                      </span>
                     </div>
                   </Link>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => onMagicWunsch?.()}
+                  className="flex h-[132px] w-full cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-amber-400/45 hover:bg-white/[0.06] md:h-[140px] md:p-5"
+                >
+                  <div className="rounded-xl bg-amber-400/15 p-2 text-amber-400 ring-1 ring-amber-400/45">
+                    <Sparkles className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  </div>
+                  <div className="mt-auto flex w-full flex-col items-start">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
+                      Wunschgericht
+                    </span>
+                    <span className="mt-1 text-lg font-black leading-tight tracking-tight text-white md:text-xl">
+                      KI-gesteuert
+                    </span>
+                  </div>
+                </button>
+
+                <Link
+                  href="/tools/recipe?tab=my-recipes"
+                  className="flex h-[132px] w-full cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-brand-purple/40 hover:bg-white/[0.06] md:h-[140px] md:p-5"
+                >
+                  <div className="rounded-xl bg-brand-purple/15 p-2 text-brand-purple ring-1 ring-brand-purple/40">
+                    <BookOpen className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  </div>
+                  <div className="mt-auto flex w-full flex-col items-start">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
+                      Sammlung
+                    </span>
+                    <span className="mt-1 text-lg font-black leading-tight tracking-tight text-white md:text-xl">
+                      124 Rezepte
+                    </span>
+                  </div>
+                </Link>
               </div>
 
               {hasActiveWeek ? (
@@ -193,11 +238,15 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                       <div className={`absolute inset-0 ${ACTIVE_WEEK_FALLBACK_BG_CLASS}`} aria-hidden />
                     )}
                     <div
-                      className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0F0914] via-[#0F0914]/80 to-transparent"
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-[88%] bg-gradient-to-t from-[#0F0914] via-[#0F0914]/95 to-transparent"
+                      aria-hidden
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/35 to-transparent"
                       aria-hidden
                     />
                     <div className="absolute left-0 right-0 top-0 z-10 flex flex-wrap items-center gap-2 p-6 md:p-8">
-                      <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
+                      <span className="rounded-lg border border-white/10 bg-black/40 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
                         AKTIVE WOCHE
                       </span>
                       {todayMealSpotlight ? (

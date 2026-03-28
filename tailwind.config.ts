@@ -69,6 +69,9 @@ const config: Config = {
         'slide-in': 'slide-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'bounce-subtle': 'bounce-subtle 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
         'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+        /** CookIQ Hero: zentraler KI-Orb (Orange/Pink/Purple) */
+        'cookiq-orb': 'cookiq-orb 5s ease-in-out infinite',
+        'cookiq-orb-delay': 'cookiq-orb 6.5s ease-in-out infinite 1.2s',
         'parallax-up': 'parallax-up 0.3s ease-out',
         'parallax-down': 'parallax-down 0.3s ease-out',
         'card-float': 'float 3.5s ease-in-out infinite alternate',
@@ -106,6 +109,10 @@ const config: Config = {
           '50%': { 
             boxShadow: '0 0 30px rgba(249, 115, 22, 0.4), 0 0 60px rgba(244, 114, 182, 0.2)' 
           },
+        },
+        'cookiq-orb': {
+          '0%, 100%': { opacity: '0.38' },
+          '50%': { opacity: '0.95' },
         },
         'parallax-up': {
           '0%': { transform: 'translateY(0)' },
