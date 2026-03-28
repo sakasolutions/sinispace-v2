@@ -18,15 +18,6 @@ export type RecipeCardTheme = {
   shadow: string;
 };
 
-/** Dark glass — CookIQ Sammlung */
-const GLASS_CARD_STYLE: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.05)',
-  boxShadow: 'none',
-  WebkitBackdropFilter: 'blur(12px)',
-  backdropFilter: 'blur(12px)',
-};
-
 type RecipeCardProps = {
   recipe: RecipeCardRecipe;
   theme: RecipeCardTheme;
@@ -72,7 +63,7 @@ export function RecipeCard({
   const menuDropdown = isMenuOpen ? (
     <>
       <div
-        className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-[#1a1025] py-1 shadow-lg backdrop-blur-sm"
+        className="absolute right-0 top-full z-30 mt-1 min-w-[140px] rounded-xl border border-white/[0.08] bg-[#1a1025] py-1 shadow-lg backdrop-blur-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -102,16 +93,97 @@ export function RecipeCard({
     </>
   ) : null;
 
+  /** Sammlung: Mobile = horizontale Liste (iOS-Style), ab md = klassische Kachel */
+  if (glass) {
+    return (
+      <div
+        data-result-id={resultId}
+        className={cn(
+          'group relative flex cursor-pointer flex-row items-center overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.03] p-3 backdrop-blur-md transition-all duration-300',
+          'md:flex-col md:items-stretch md:p-0 md:hover:-translate-y-1'
+        )}
+        onClick={onSelect}
+      >
+        <div
+          className={cn(
+            'relative h-24 w-24 shrink-0 overflow-hidden rounded-xl',
+            'md:h-48 md:w-full md:rounded-none md:rounded-t-2xl'
+          )}
+        >
+          {recipe.imageUrl ? (
+            <>
+              <img src={recipe.imageUrl} alt="" className="h-full w-full object-cover" />
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-[40%] bg-gradient-to-t from-black/30 to-transparent md:block"
+                aria-hidden
+              />
+            </>
+          ) : (
+            <>
+              <div className={cn('absolute inset-0', theme.gradient)} aria-hidden />
+              <div className="pointer-events-none absolute inset-0 bg-white/0 transition-colors group-hover:bg-white/10" aria-hidden />
+              <ThemeIcon
+                className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 text-white drop-shadow-md md:h-16 md:w-16"
+                strokeWidth={2}
+                aria-hidden
+              />
+            </>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col justify-center pl-4 pr-10 md:justify-start md:p-4 md:pl-0 md:pr-4">
+          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-white md:text-lg">
+            {recipe.recipeName || 'Rezept'}
+          </h3>
+          <div className="mt-2 flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
+            {recipe.stats?.time ? (
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+                {recipe.stats.time}
+              </span>
+            ) : null}
+            {recipe.stats?.calories != null ? (
+              <span className="inline-flex items-center gap-1">
+                <Flame className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+                {typeof recipe.stats.calories === 'number' ? `${recipe.stats.calories} kcal` : recipe.stats.calories}
+              </span>
+            ) : null}
+          </div>
+          {(showVeganBadge || showHighProteinBadge) && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {showVeganBadge && (
+                <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300/90">
+                  Veggie
+                </span>
+              )}
+              {showHighProteinBadge && (
+                <span className="rounded-md border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-200/90">
+                  Protein
+                </span>
+              )}
+            </div>
+          )}
+          {recipe.imageCredit ? (
+            <p className="mt-2 line-clamp-1 text-[9px] font-medium text-white/30">Photo: {recipe.imageCredit}</p>
+          ) : null}
+        </div>
+
+        <div className="absolute right-3 top-3 z-20 md:right-4 md:top-4">
+          {menuButton}
+          {menuDropdown}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       data-result-id={resultId}
       className={cn(
-        'group relative flex cursor-pointer flex-col overflow-hidden rounded-[24px] transition-all duration-300 hover:-translate-y-1',
-        glass
-          ? 'border border-white/[0.05]'
-          : cn('border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl', theme.shadow, 'hover:shadow-xl shadow-sm')
+        'group relative flex cursor-pointer flex-col overflow-hidden rounded-[24px] border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl',
+        theme.shadow,
+        'shadow-sm'
       )}
-      style={glass ? GLASS_CARD_STYLE : undefined}
       onClick={onSelect}
     >
       <div className="relative flex h-44 shrink-0 items-center justify-center overflow-hidden">
@@ -135,7 +207,7 @@ export function RecipeCard({
           {menuDropdown}
         </div>
       </div>
-      <div className={cn('flex min-h-0 flex-grow flex-col p-4 sm:p-5', glass && 'bg-white/[0.02]')}>
+      <div className="flex min-h-0 flex-grow flex-col p-4 sm:p-5">
         <h3 className="mb-3 line-clamp-2 text-lg font-bold leading-tight text-white">{recipe.recipeName || 'Rezept'}</h3>
         <div className="flex flex-wrap items-center gap-2">
           {recipe.stats?.time && (
