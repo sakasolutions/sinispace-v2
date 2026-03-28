@@ -1058,12 +1058,12 @@ export default function RecipePage() {
             layer0RoundedClass="rounded-none md:rounded-b-[32px]"
             layer0HeightClass={
               activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl
-                ? 'h-[min(50vh,440px)] min-h-[220px]'
+                ? 'h-[min(55vh,480px)] min-h-[220px]'
                 : undefined
             }
             headerMinHeightClass={
               activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl
-                ? 'min-h-[min(50vh,440px)]'
+                ? 'min-h-[min(55vh,480px)]'
                 : undefined
             }
             headerBackground={
@@ -1072,7 +1072,7 @@ export default function RecipePage() {
                   <img
                     src={recipeDetailHeroUrl}
                     alt=""
-                    className="absolute inset-x-0 top-0 z-0 h-full w-full object-cover opacity-[0.35]"
+                    className="absolute top-0 inset-x-0 z-0 h-full w-full object-cover"
                   />
                   <RecipeDetailHeroAtmosphere />
                 </div>

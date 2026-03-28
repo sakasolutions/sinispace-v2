@@ -105,13 +105,13 @@ function rebuildUnifiedRows(ingredients: string[], prev: IngredientRow[] | null)
 }
 
 /**
- * Weicher Übergang Bild → Canvas (#0F0914), keine harte Kante unten.
+ * Lesbarer Text über Hero: unten Canvas-Farbe, nach oben transparent.
  * Liegt über dem Bild (z-10); Bild bleibt z-0.
  */
 export function RecipeDetailHeroAtmosphere() {
   return (
     <div
-      className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-[#0F0914] via-[#0F0914]/80 to-transparent"
+      className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-[#0F0914] via-[#0F0914]/60 to-transparent"
       aria-hidden
     />
   );
@@ -443,30 +443,97 @@ export function RecipeDetailView({
     );
   }
 
+  const recipeHeroForeground = (
+    <>
+      {fromWeekPlan && onSaveToCollection && (
+        <div className="mb-6 flex justify-end">
+          <button
+            type="button"
+            onClick={onSaveToCollection}
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2.5 text-sm font-semibold text-white shadow-glow-orange"
+          >
+            <ChefHat className="h-4 w-4" />
+            In Meine Rezepte speichern
+          </button>
+        </div>
+      )}
+      <div className="relative z-20 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start gap-4">
+            {!embedHeroInParent && !heroImageUrl ? (
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-orange-400/15 bg-orange-400/[0.08]">
+                <UtensilsCrossed className="h-7 w-7 text-orange-400/70" strokeWidth={1.5} aria-hidden />
+              </div>
+            ) : null}
+            <div className="min-w-0 flex-1 space-y-4">
+              <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.92)] md:text-4xl">
+                {recipe.recipeName}
+              </h1>
+              <div className="flex flex-wrap gap-2">
+                {recipe.stats?.time ? (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white shadow-[0_2px_14px_rgba(0,0,0,0.55)] backdrop-blur-md">
+                    <Clock className="h-4 w-4 shrink-0 text-orange-400" strokeWidth={2} aria-hidden />
+                    {recipe.stats.time}
+                  </span>
+                ) : null}
+                {adjustedCalories ? (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white shadow-[0_2px_14px_rgba(0,0,0,0.55)] backdrop-blur-md">
+                    <Flame className="h-4 w-4 shrink-0 text-pink-400" strokeWidth={2} aria-hidden />
+                    {adjustedCalories}
+                    {servings !== originalServings ? ' / Portion' : ''}
+                  </span>
+                ) : null}
+                {recipe.stats?.difficulty ? (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white shadow-[0_2px_14px_rgba(0,0,0,0.55)] backdrop-blur-md">
+                    <ChefHat className="h-4 w-4 shrink-0 text-violet-400" strokeWidth={2} aria-hidden />
+                    {recipe.stats.difficulty}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="w-full shrink-0 lg:w-auto lg:min-w-[220px]">
+          <button
+            type="button"
+            onClick={() => setCookingMode(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3.5 font-bold text-white shadow-[0_0_28px_rgba(249,115,22,0.28)] transition-all hover:brightness-105 hover:shadow-[0_0_36px_rgba(249,115,22,0.38)]"
+          >
+            <Play className="h-4 w-4 shrink-0" />
+            Zubereitung starten
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out pb-44 md:pb-40">
-      {/* Edge-to-Edge Hero: Bild ~35 %, nahtloser Fade ins Canvas (nur ohne embed) */}
+      {/* Full-bleed Bild + Gradient; Titel überlappt unten (ohne embed) */}
       {!embedHeroInParent && (
         <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 -mt-[max(0.5rem,env(safe-area-inset-top))] overflow-hidden md:-mt-6">
-          <div className="relative h-[50vh] min-h-[220px] max-h-[500px] w-full bg-[#0F0914]">
+          <div className="relative w-full bg-[#0F0914]">
             {heroImageUrl ? (
               <>
                 <img
                   src={heroImageUrl}
                   alt={recipe.recipeName}
-                  className="absolute inset-x-0 top-0 z-0 h-full w-full object-cover opacity-[0.35]"
+                  className="absolute top-0 inset-x-0 z-0 h-[55vh] w-full object-cover"
                 />
-                <RecipeDetailHeroAtmosphere />
+                <div
+                  className="pointer-events-none absolute top-0 inset-x-0 z-10 h-[55vh] w-full bg-gradient-to-t from-[#0F0914] via-[#0F0914]/60 to-transparent"
+                  aria-hidden
+                />
               </>
             ) : (
               <div
-                className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center bg-[#0F0914]"
+                className="absolute top-0 inset-x-0 z-0 flex h-[55vh] w-full items-center justify-center bg-[#0F0914]"
                 aria-hidden
               >
                 <UtensilsCrossed className="h-24 w-24 text-orange-400/25" strokeWidth={1.5} />
               </div>
             )}
-            <div className="absolute left-4 right-4 top-[max(1rem,env(safe-area-inset-top))] z-20 flex items-start justify-between gap-3">
+            <div className="absolute left-4 right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 flex items-start justify-between gap-3">
               {fromWeekPlan ? (
                 <button
                   type="button"
@@ -481,93 +548,25 @@ export function RecipeDetailView({
               )}
               {shareIconButton}
             </div>
+            <div className="relative z-20 mx-auto w-full max-w-5xl px-4 pt-[min(40vh,26rem)] pb-8 md:px-6 md:pb-10">
+              {recipeHeroForeground}
+            </div>
           </div>
         </div>
       )}
 
-      <div
-        className={cn(
-          'relative z-20 mx-auto w-full max-w-5xl',
-          embedHeroInParent ? '-mt-14 md:-mt-24 px-4 sm:px-4 md:px-6' : '-mt-16 md:-mt-20 px-4 md:px-6'
-        )}
-      >
-        {embedHeroInParent ? (
-          <div className="relative mb-4 flex justify-end">{shareIconButton}</div>
-        ) : null}
-
-        <div className="relative pb-8 pt-2 md:pb-10">
-          {fromWeekPlan && onSaveToCollection && (
-            <div className="mb-6 flex justify-end">
-              <button
-                type="button"
-                onClick={onSaveToCollection}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2.5 text-sm font-semibold text-white shadow-glow-orange"
-              >
-                <ChefHat className="h-4 w-4" />
-                In Meine Rezepte speichern
-              </button>
-            </div>
+      {embedHeroInParent ? (
+        <div
+          className={cn(
+            'relative z-20 mx-auto w-full max-w-5xl px-4 sm:px-4 md:px-6',
+            '-mt-[min(46vh,420px)] md:-mt-[min(48vh,440px)]',
+            'pt-[min(38vh,360px)]'
           )}
-          <div className="relative">
-            {/* Diffuses Ambient-Licht (KI-Cockpit), keine harten Kanten */}
-            <div
-              className="pointer-events-none absolute left-1/2 top-[20%] z-0 h-64 w-[120%] -translate-x-1/2 rounded-[100%] bg-purple-600/15 blur-[100px]"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none absolute left-1/2 top-[50%] z-0 h-48 w-64 -translate-x-1/2 rounded-[100%] bg-orange-500/10 blur-[80px]"
-              aria-hidden
-            />
-            <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start gap-4">
-                {!embedHeroInParent && !heroImageUrl ? (
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-orange-400/15 bg-orange-400/[0.08]">
-                    <UtensilsCrossed className="h-7 w-7 text-orange-400/70" strokeWidth={1.5} aria-hidden />
-                  </div>
-                ) : null}
-                <div className="min-w-0 flex-1 space-y-4">
-                  <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.92)] md:text-4xl">
-                    {recipe.recipeName}
-                  </h1>
-                  <div className="flex flex-wrap gap-2">
-                    {recipe.stats?.time ? (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white shadow-[0_2px_14px_rgba(0,0,0,0.55)] backdrop-blur-md">
-                        <Clock className="h-4 w-4 shrink-0 text-orange-400" strokeWidth={2} aria-hidden />
-                        {recipe.stats.time}
-                      </span>
-                    ) : null}
-                    {adjustedCalories ? (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white shadow-[0_2px_14px_rgba(0,0,0,0.55)] backdrop-blur-md">
-                        <Flame className="h-4 w-4 shrink-0 text-pink-400" strokeWidth={2} aria-hidden />
-                        {adjustedCalories}
-                        {servings !== originalServings ? ' / Portion' : ''}
-                      </span>
-                    ) : null}
-                    {recipe.stats?.difficulty ? (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white shadow-[0_2px_14px_rgba(0,0,0,0.55)] backdrop-blur-md">
-                        <ChefHat className="h-4 w-4 shrink-0 text-violet-400" strokeWidth={2} aria-hidden />
-                        {recipe.stats.difficulty}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-                </div>
-              </div>
-              <div className="w-full shrink-0 lg:w-auto lg:min-w-[220px]">
-                <button
-                  type="button"
-                  onClick={() => setCookingMode(true)}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3.5 font-bold text-white shadow-[0_0_28px_rgba(249,115,22,0.28)] transition-all hover:brightness-105 hover:shadow-[0_0_36px_rgba(249,115,22,0.38)]"
-                >
-                  <Play className="h-4 w-4 shrink-0" />
-                  Zubereitung starten
-                </button>
-              </div>
-            </div>
-          </div>
+        >
+          <div className="relative z-20 mb-4 flex justify-end">{shareIconButton}</div>
+          <div className="relative z-20 pb-8 md:pb-10">{recipeHeroForeground}</div>
         </div>
-      </div>
+      ) : null}
 
       {/* Zutaten + Zubereitung – mehr Whitespace, FAB für Einkaufen/Kalender */}
       <div className="max-w-5xl mx-auto mt-10 md:mt-12 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 items-start px-4 sm:px-6 md:px-8">
