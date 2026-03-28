@@ -110,7 +110,7 @@ export function AddToShoppingListModal({
       >
         <div className="flex items-center justify-between border-b border-white/10 p-5">
           <h2 id="smartcart-modal-title" className="text-lg font-bold tracking-tight text-white">
-            Zutaten in den SmartCart
+            SmartCart befüllen
           </h2>
           <button
             type="button"
@@ -124,7 +124,7 @@ export function AddToShoppingListModal({
 
         <div className="space-y-4 p-5">
           <p className="text-sm text-white/55">
-            Zutaten auswählen (abwählen, wenn du sie schon hast):
+            Fehlende Zutaten für den Einkauf auswählen:
           </p>
 
           <div className="max-h-[45vh] space-y-0.5 overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.03] p-2 pr-1 scrollbar-thin">

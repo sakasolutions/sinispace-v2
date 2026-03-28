@@ -26,6 +26,7 @@ import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list
 import {
   RecipeDetailView,
   RecipeDetailHeroAtmosphere,
+  RecipeDetailHeroDesktopLayers,
   RecipeDetailShareHeaderButton,
   type RecipeDetailRecipe,
 } from '@/components/recipe/recipe-detail-view';
@@ -1056,7 +1057,11 @@ export default function RecipePage() {
           <DashboardShell
             disablePadding
             headerVariant="default"
-            layer0RoundedClass="rounded-none md:rounded-b-[32px]"
+            layer0RoundedClass={
+              activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl
+                ? 'rounded-none'
+                : 'rounded-none md:rounded-b-[32px]'
+            }
             layer0HeightClass={
               activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl
                 ? 'h-[min(55vh,480px)] min-h-[220px]'
@@ -1069,13 +1074,14 @@ export default function RecipePage() {
             }
             headerBackground={
               activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl ? (
-                <div className="relative h-full w-full bg-[#0F0914]">
+                <div className="relative h-full w-full bg-[#0F0914] md:bg-[#0F0914]">
                   <img
                     src={recipeDetailHeroUrl}
                     alt=""
-                    className="absolute top-0 inset-x-0 z-0 h-full w-full object-cover"
+                    className="absolute top-0 inset-x-0 z-0 h-full w-full object-cover md:opacity-10"
                   />
-                  <RecipeDetailHeroAtmosphere />
+                  <RecipeDetailHeroAtmosphere className="md:hidden" />
+                  <RecipeDetailHeroDesktopLayers />
                 </div>
               ) : (
                 <div className="relative h-full w-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
