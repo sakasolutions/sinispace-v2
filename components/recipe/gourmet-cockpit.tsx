@@ -102,28 +102,36 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               aria-hidden
             />
             <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-              <div
-                className="absolute -bottom-[20%] left-1/2 h-[min(140%,28rem)] w-[min(160%,36rem)] -translate-x-1/2 animate-cookiq-orb rounded-[50%] blur-2xl"
-                style={{
-                  background:
-                    'radial-gradient(ellipse 55% 45% at 50% 75%, rgba(249,115,22,0.55) 0%, rgba(236,72,153,0.35) 32%, rgba(168,85,247,0.28) 52%, transparent 72%)',
-                }}
-              />
-              <div
-                className="absolute -bottom-[8%] left-1/2 h-[min(100%,22rem)] w-[min(120%,28rem)] -translate-x-1/2 animate-cookiq-orb-delay rounded-[50%] blur-xl"
-                style={{
-                  background:
-                    'radial-gradient(ellipse 50% 40% at 50% 70%, rgba(249,115,22,0.4) 0%, rgba(236,72,153,0.22) 40%, rgba(168,85,247,0.18) 58%, transparent 75%)',
-                }}
-              />
-              <div
-                className="absolute inset-x-0 bottom-0 h-1/2 opacity-[0.12]"
-                style={{
-                  background:
-                    'conic-gradient(from 200deg at 50% 100%, rgba(249,115,22,0.5), rgba(236,72,153,0.35), rgba(168,85,247,0.4), rgba(249,115,22,0.5))',
-                }}
-              />
+              {/* Glow: nach oben verlängert, nur Radial – kein harter Schnitt wie bei halbhohem Conic */}
+              <div className="absolute -inset-x-[14%] -top-[38%] bottom-0">
+                <div
+                  className="absolute -bottom-[18%] left-1/2 h-[min(155%,32rem)] w-[min(185%,44rem)] -translate-x-1/2 animate-cookiq-orb rounded-[50%] blur-2xl"
+                  style={{
+                    background:
+                      'radial-gradient(ellipse 62% 52% at 50% 88%, rgba(249,115,22,0.5) 0%, rgba(236,72,153,0.32) 34%, rgba(168,85,247,0.22) 54%, rgba(168,85,247,0) 74%)',
+                  }}
+                />
+                <div
+                  className="absolute -bottom-[10%] left-1/2 h-[min(118%,26rem)] w-[min(140%,34rem)] -translate-x-1/2 animate-cookiq-orb-delay rounded-[50%] blur-xl"
+                  style={{
+                    background:
+                      'radial-gradient(ellipse 54% 44% at 50% 86%, rgba(249,115,22,0.36) 0%, rgba(236,72,153,0.2) 44%, rgba(168,85,247,0.12) 60%, rgba(168,85,247,0) 80%)',
+                  }}
+                />
+                <div
+                  className="absolute inset-x-0 -top-[5%] bottom-[-8%] opacity-[0.14]"
+                  style={{
+                    background:
+                      'radial-gradient(ellipse 92% 74% at 50% 106%, rgba(249,115,22,0.42) 0%, rgba(236,72,153,0.26) 40%, rgba(168,85,247,0.14) 58%, transparent 76%)',
+                  }}
+                />
+              </div>
             </div>
+            {/* Oben: weicher Auslauf in Tiefschwarz (keine sichtbare Glow-Kante) */}
+            <div
+              className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black from-0% via-black/35 via-[22%] to-transparent to-[52%]"
+              aria-hidden
+            />
             <div className="relative z-20 flex h-full flex-col justify-end p-6 md:p-8">
               <h1 className="mb-2 text-3xl font-black tracking-tight text-white antialiased drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] md:text-5xl">
                 CookIQ
@@ -133,7 +141,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
               </p>
               <div className="relative isolate">
                 <div
-                  className="pointer-events-none absolute inset-0 -m-3 rounded-2xl bg-gradient-to-t from-brand-orange/25 via-brand-pink/15 to-brand-purple/10 opacity-80 blur-xl"
+                  className="pointer-events-none absolute inset-0 -m-3 rounded-2xl bg-gradient-to-t from-brand-orange/25 via-brand-pink/12 to-transparent opacity-80 blur-xl"
                   aria-hidden
                 />
                 <button
