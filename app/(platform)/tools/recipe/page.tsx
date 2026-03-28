@@ -26,6 +26,7 @@ import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list
 import {
   RecipeDetailView,
   RecipeDetailHeroAtmosphere,
+  RecipeDetailShareHeaderButton,
   type RecipeDetailRecipe,
 } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
@@ -1084,7 +1085,13 @@ export default function RecipePage() {
               )
             }
             title={
-              <div className="px-4 md:px-6">
+              <div className="relative px-4 md:px-6">
+                {selectedRecipe ? (
+                  <RecipeDetailShareHeaderButton
+                    recipeName={selectedRecipe.recipe.recipeName}
+                    fixedToViewport
+                  />
+                ) : null}
                 <button
                   type="button"
                   onClick={() => {

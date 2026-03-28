@@ -105,15 +105,85 @@ function rebuildUnifiedRows(ingredients: string[], prev: IngredientRow[] | null)
 }
 
 /**
- * Lesbarer Text über Hero: unten Canvas-Farbe, nach oben transparent.
- * Liegt über dem Bild (z-10); Bild bleibt z-0.
+ * Lesbarer Text über Hero: dunkler Bereich zieht weiter nach oben (höher sitzender Titel).
  */
 export function RecipeDetailHeroAtmosphere() {
   return (
     <div
-      className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-[#0F0914] via-[#0F0914]/60 to-transparent"
+      className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_top,#0F0914_0%,rgba(15,9,20,0.72)_26%,rgba(15,9,20,0.4)_48%,transparent_82%)]"
       aria-hidden
     />
+  );
+}
+
+const RECIPE_SHARE_HEADER_BTN =
+  'inline-flex items-center justify-center rounded-full border border-white/10 bg-black/30 p-2 text-white backdrop-blur-md transition-colors hover:bg-black/40';
+
+/** Teilen oben rechts; `fixedToViewport` für DashboardShell (volle Viewport-Kante). */
+export function RecipeDetailShareHeaderButton({
+  recipeName,
+  fixedToViewport = false,
+}: {
+  recipeName: string;
+  fixedToViewport?: boolean;
+}) {
+  const [shareToast, setShareToast] = useState<{ message: string } | null>(null);
+
+  useEffect(() => {
+    if (!shareToast) return;
+    const t = setTimeout(() => setShareToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [shareToast]);
+
+  const handleShare = () => {
+    const text = `${recipeName} – ${typeof window !== 'undefined' ? window.location.href : ''}`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      navigator
+        .share({
+          title: recipeName,
+          text: recipeName,
+          url: typeof window !== 'undefined' ? window.location.href : undefined,
+        })
+        .catch(() => {
+          if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            navigator.clipboard.writeText(text);
+            setShareToast({ message: 'Link kopiert' });
+          }
+        });
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setShareToast({ message: 'Link kopiert' });
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleShare();
+        }}
+        className={cn(
+          RECIPE_SHARE_HEADER_BTN,
+          fixedToViewport
+            ? 'fixed top-[max(1rem,env(safe-area-inset-top))] right-4 z-50'
+            : 'absolute top-4 right-4 z-50'
+        )}
+        aria-label="Teilen"
+      >
+        <Share2 className="h-5 w-5 shrink-0" strokeWidth={2} />
+      </button>
+      {shareToast ? (
+        <div
+          className="fixed left-1/2 z-[90] max-w-[min(90%,24rem)] -translate-x-1/2 animate-in rounded-2xl bg-slate-900 px-4 py-3 text-center text-sm font-medium text-white shadow-lg fade-in duration-200"
+          style={{ bottom: 'max(6.5rem, calc(4.5rem + env(safe-area-inset-bottom, 0px)))' }}
+          role="status"
+        >
+          {shareToast.message}
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -240,41 +310,6 @@ export function RecipeDetailView({
   };
 
   const cookingTime = parseTime(recipe.stats?.time || '');
-
-  const handleShare = () => {
-    const text = `${recipe.recipeName} – ${typeof window !== 'undefined' ? window.location.href : ''}`;
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      navigator
-        .share({
-          title: recipe.recipeName,
-          text: recipe.recipeName,
-          url: typeof window !== 'undefined' ? window.location.href : undefined,
-        })
-        .catch(() => {
-          if (typeof navigator !== 'undefined' && navigator.clipboard) {
-            navigator.clipboard.writeText(text);
-            setToast({ message: 'Link kopiert' });
-          }
-        });
-    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(text);
-      setToast({ message: 'Link kopiert' });
-    }
-  };
-
-  const shareIconButton = (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        handleShare();
-      }}
-      className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.05] p-2 text-white shadow-[0_2px_16px_rgba(0,0,0,0.6)] backdrop-blur-md transition-colors hover:bg-white/[0.08]"
-      aria-label="Teilen"
-    >
-      <Share2 className="h-5 w-5 shrink-0" strokeWidth={2} />
-    </button>
-  );
 
   const portionsStepper = (
     <div className="flex flex-wrap items-center justify-end gap-2">
@@ -521,7 +556,7 @@ export function RecipeDetailView({
                   className="absolute top-0 inset-x-0 z-0 h-[55vh] w-full object-cover"
                 />
                 <div
-                  className="pointer-events-none absolute top-0 inset-x-0 z-10 h-[55vh] w-full bg-gradient-to-t from-[#0F0914] via-[#0F0914]/60 to-transparent"
+                  className="pointer-events-none absolute top-0 inset-x-0 z-10 h-[55vh] w-full bg-[linear-gradient(to_top,#0F0914_0%,rgba(15,9,20,0.72)_26%,rgba(15,9,20,0.4)_48%,transparent_82%)]"
                   aria-hidden
                 />
               </>
@@ -533,22 +568,18 @@ export function RecipeDetailView({
                 <UtensilsCrossed className="h-24 w-24 text-orange-400/25" strokeWidth={1.5} />
               </div>
             )}
-            <div className="absolute left-4 right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 flex items-start justify-between gap-3">
-              {fromWeekPlan ? (
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white shadow-[0_2px_16px_rgba(0,0,0,0.6)] backdrop-blur-md transition-colors hover:bg-white/[0.08]"
-                >
-                  <ArrowLeft className="h-4 w-4 shrink-0" />
-                  Zurück
-                </button>
-              ) : (
-                <span className="inline-block w-10 shrink-0" aria-hidden />
-              )}
-              {shareIconButton}
-            </div>
-            <div className="relative z-20 mx-auto w-full max-w-5xl px-4 pt-[min(40vh,26rem)] pb-8 md:px-6 md:pb-10">
+            {fromWeekPlan ? (
+              <button
+                type="button"
+                onClick={onBack}
+                className="absolute left-4 top-4 z-30 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/40"
+              >
+                <ArrowLeft className="h-4 w-4 shrink-0" />
+                Zurück
+              </button>
+            ) : null}
+            <RecipeDetailShareHeaderButton recipeName={recipe.recipeName} fixedToViewport={false} />
+            <div className="relative z-20 mx-auto w-full max-w-5xl px-4 pt-[min(25vh,18rem)] pb-8 md:px-6 md:pb-10">
               {recipeHeroForeground}
             </div>
           </div>
@@ -559,11 +590,10 @@ export function RecipeDetailView({
         <div
           className={cn(
             'relative z-20 mx-auto w-full max-w-5xl px-4 sm:px-4 md:px-6',
-            '-mt-[min(46vh,420px)] md:-mt-[min(48vh,440px)]',
-            'pt-[min(38vh,360px)]'
+            '-mt-[min(40vh,360px)] md:-mt-[min(42vh,380px)]',
+            'pt-[min(22vh,200px)] md:pt-[min(24vh,220px)]'
           )}
         >
-          <div className="relative z-20 mb-4 flex justify-end">{shareIconButton}</div>
           <div className="relative z-20 pb-8 md:pb-10">{recipeHeroForeground}</div>
         </div>
       ) : null}
