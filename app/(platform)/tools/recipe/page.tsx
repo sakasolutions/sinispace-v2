@@ -989,6 +989,32 @@ export default function RecipePage() {
                     aria-hidden
                   />
               </div>
+              ) : activeTab === 'my-recipes' && !selectedRecipe ? (
+                <div className="relative h-full w-full overflow-hidden bg-[#0A0A0A]">
+                  <div
+                    className="pointer-events-none absolute inset-0 bg-[#0A0A0A]"
+                    style={{
+                      backgroundImage: 'url(/assets/images/cooking-action.webp)',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      opacity: 0.06,
+                    }}
+                    aria-hidden
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-black/95" aria-hidden />
+                  <div
+                    className="pointer-events-none absolute -top-[28%] left-1/2 h-[min(120%,28rem)] w-[min(200%,48rem)] max-w-none -translate-x-1/2"
+                    style={{
+                      background:
+                        'radial-gradient(ellipse 75% 65% at 50% 12%, rgba(168,85,247,0.28) 0%, rgba(147,51,234,0.14) 38%, rgba(88,28,135,0.08) 58%, transparent 78%)',
+                    }}
+                    aria-hidden
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-x-0 top-[18%] bottom-0 bg-gradient-to-b from-transparent via-[#0A0A0A]/90 to-[#0A0A0A]"
+                    aria-hidden
+                  />
+                </div>
               ) : (
                 <div className="relative h-full w-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
                   <div className="absolute inset-x-0 bottom-0 z-0 h-[60%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent" aria-hidden />
@@ -997,7 +1023,7 @@ export default function RecipePage() {
               )
             }
             title={
-              <>
+              <div className="px-4 md:px-6">
                 <button
                   type="button"
                   onClick={() => {
@@ -1009,27 +1035,42 @@ export default function RecipePage() {
                     setActiveTab('create');
                     setWizardStep(1);
                   }}
-                  className="group inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full transition-all text-sm font-medium border border-white/10 mb-3"
+                  className={cn(
+                    'group mb-3 inline-flex items-center gap-2 rounded-full border text-sm font-medium text-white transition-all',
+                    activeTab === 'my-recipes' && !selectedRecipe
+                      ? 'border-white/10 bg-white/[0.05] px-3 py-1.5 backdrop-blur-md hover:bg-white/[0.08]'
+                      : 'border-white/10 bg-white/10 px-4 py-2 backdrop-blur-md hover:bg-white/20'
+                  )}
                 >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                  <ArrowLeft className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-1" />
                   {selectedRecipe ? 'Zurück zur Sammlung' : 'Zurück zur Übersicht'}
                 </button>
                 {selectedRecipe ? (
                   <h1 className="sr-only">{selectedRecipe.recipe.recipeName}</h1>
                 ) : (
                   <h1
-                    className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight text-white mb-1 mt-0 drop-shadow-md"
+                    className={cn(
+                      'mb-1 mt-0 tracking-tight text-white',
+                      activeTab === 'my-recipes'
+                        ? 'text-2xl font-bold drop-shadow-sm sm:text-3xl md:text-4xl'
+                        : 'text-2xl font-medium drop-shadow-md sm:text-3xl md:text-4xl'
+                    )}
                     style={{ letterSpacing: '-0.3px' }}
                   >
-                  {activeTab === 'my-recipes' ? 'Meine Sammlung' : 'Rezept Generator'}
-                </h1>
+                    {activeTab === 'my-recipes' ? 'Meine Sammlung' : 'Rezept Generator'}
+                  </h1>
                 )}
-              </>
+              </div>
             }
             subtitle={
-              <>
+              <div className="px-4 md:px-6">
                 {!selectedRecipe && (
-                <p className="text-white/90 text-lg md:text-xl drop-shadow-sm">
+                <p
+                  className={cn(
+                    'text-lg drop-shadow-sm md:text-xl',
+                    activeTab === 'my-recipes' ? 'text-gray-400' : 'text-white/90'
+                  )}
+                >
                   {activeTab === 'my-recipes'
                     ? 'Deine kulinarischen Schätze.'
                     : 'Dein Smart-Chef für den Kühlschrank.'}
@@ -1043,10 +1084,10 @@ export default function RecipePage() {
                     {wizardStep === 1 && <p className="text-white/90 text-sm font-bold mt-1">Gerichttyp wählen</p>}
                   </>
                 )}
-              </>
+              </div>
             }
           >
-      <div className="px-4 md:px-8">
+      <div className="px-4 md:px-6">
       {activeTab === 'create' ? (
         <React.Fragment>
         <form action={formAction} id="recipe-wizard-form" className="contents">
@@ -1292,12 +1333,11 @@ export default function RecipePage() {
             embedHeroInParent
           />
         ) : (
-          /* Meine Sammlung: Command Center (schwebende Karte) + Grid */
-          <div className="space-y-6">
-            {/* Schwebende Karte: ragt in den Header, Suche + Filter */}
-            <div className="relative z-20 -mt-8 mx-auto max-w-5xl px-4 sm:px-6">
-              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6 shadow-xl backdrop-blur-xl">
-                <div className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 shadow-sm transition-shadow focus-within:border-orange-500/40 focus-within:ring-2 focus-within:ring-orange-500/20">
+          /* Meine Sammlung: Header getrennt, Such-/Filter-Card darunter (Tier-1 Glass) */
+          <div className="mx-auto max-w-5xl space-y-6">
+            <div className="relative z-10 mt-6">
+              <div className="rounded-[32px] border border-white/[0.05] bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur-xl sm:p-6">
+                <div className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.04] px-4 py-3 transition-shadow focus-within:border-brand-purple/40 focus-within:ring-2 focus-within:ring-brand-purple/20">
                   <Search className="h-5 w-5 shrink-0 text-white/35" aria-hidden />
                   <input
                     type="search"
@@ -1317,10 +1357,10 @@ export default function RecipePage() {
                         type="button"
                         onClick={() => setCollectionCategory(cat.id)}
                         className={cn(
-                          'rounded-full border border-transparent px-4 py-1.5 text-sm font-medium transition-all',
+                          'rounded-full border px-4 py-1.5 text-sm font-semibold transition-all',
                           isActive
-                            ? 'bg-orange-500 text-white shadow-md'
-                            : 'bg-white/[0.06] text-white/50 hover:bg-white/[0.1]'
+                            ? 'border-brand-purple/50 bg-brand-purple/35 text-white shadow-[0_0_20px_-4px_rgba(168,85,247,0.45)]'
+                            : 'border-transparent bg-white/[0.05] text-gray-300 hover:bg-white/[0.08] hover:text-white'
                         )}
                       >
                         {cat.label}
