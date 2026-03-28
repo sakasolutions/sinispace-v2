@@ -629,7 +629,7 @@ export default function ShoppingListPage() {
 
   if (!hydrated) {
     return (
-      <div className="min-h-[100dvh] flex flex-col w-full relative bg-gray-50">
+      <div className="relative flex min-h-[100dvh] w-full flex-col bg-[#0A0A0A]">
         <header
           className={cn(
             'relative z-[1] min-h-[280px]',
@@ -637,27 +637,44 @@ export default function ShoppingListPage() {
             '-mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 lg:-mt-8'
           )}
         >
-          <div className="absolute top-0 left-0 w-full h-[280px] z-0 overflow-hidden rounded-b-[40px] bg-cover bg-center" style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }} aria-hidden />
-          <div className="absolute top-0 left-0 w-full h-[280px] rounded-b-[40px] bg-gradient-to-b from-[#1a1c2e]/90 via-[#1a1c2e]/60 to-[#1a1c2e]/90 z-0" aria-hidden />
-          <div className="pt-8 md:pt-12 relative z-10 w-full px-3 sm:px-6 md:px-8 pb-6">
-            <div className="h-8 w-48 bg-white/20 rounded-lg animate-pulse" />
-            <div className="h-4 w-64 mt-2 bg-white/10 rounded animate-pulse" />
+          <div
+            className="absolute top-0 left-0 z-0 h-[280px] w-full overflow-hidden rounded-b-[40px] bg-cover bg-center opacity-[0.15] md:opacity-[0.12]"
+            style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
+            aria-hidden
+          />
+          <div className="absolute top-0 left-0 z-0 h-[280px] w-full rounded-b-[40px] bg-black/85" aria-hidden />
+          <div
+            className="pointer-events-none absolute top-0 left-0 z-0 h-[280px] w-full rounded-b-[40px] bg-[radial-gradient(ellipse_70%_60%_at_50%_40%,rgba(99,102,241,0.18)_0%,rgba(168,85,247,0.1)_45%,transparent_72%)]"
+            aria-hidden
+          />
+          <div className="relative z-10 w-full px-3 pb-6 pt-8 sm:px-6 md:px-8 md:pt-12">
+            <div className="h-8 w-48 animate-pulse rounded-lg bg-white/10" />
+            <div className="mt-2 h-4 w-64 animate-pulse rounded bg-white/5" />
           </div>
         </header>
-        <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 pb-20 -mt-6">
-          <div className="animate-pulse rounded-3xl bg-white/60 h-[600px]" />
+        <div className="relative z-10 mx-auto max-w-5xl px-4 pb-20 sm:px-6 -mt-6">
+          <div className="h-[600px] animate-pulse rounded-3xl border border-white/10 bg-white/[0.04]" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col w-full relative bg-gray-50">
+    <div className="relative flex min-h-[100dvh] w-full flex-col bg-[#0A0A0A]">
       <DashboardShell
         headerVariant="withCTA"
         headerBackground={
-          <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-[#1a1c2e]/90 via-[#1a1c2e]/60 to-[#1a1c2e]/90 z-0" aria-hidden />
+          <div className="relative h-full w-full">
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-[0.15] md:opacity-[0.12]"
+              style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
+              aria-hidden
+            />
+            <div className="absolute inset-0 z-[1] bg-black/85" aria-hidden />
+            <div
+              className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_70%_60%_at_50%_40%,rgba(99,102,241,0.18)_0%,rgba(168,85,247,0.1)_45%,transparent_72%)]"
+              aria-hidden
+            />
           </div>
         }
         title={
@@ -665,16 +682,16 @@ export default function ShoppingListPage() {
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-medium tracking-tight mt-0 text-white" style={{ letterSpacing: '-0.3px' }}>
               {activeList?.name ?? 'SmartCart'}
             </h1>
-            <p className="text-sm sm:text-base mt-1 font-normal text-white/80" style={{ letterSpacing: '0.1px' }}>
+            <p className="mt-1 text-sm font-normal text-white sm:text-base" style={{ letterSpacing: '0.1px' }}>
               Dein intelligenter Begleiter
             </p>
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-medium">
-                <ShoppingCart className="w-3.5 h-3.5" />
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
+                <ShoppingCart className="h-3.5 w-3.5" />
                 {(activeList?.items.filter((i) => !i.checked).length ?? 0)} Offen
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-medium">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
+                <Sparkles className="h-3.5 w-3.5" />
                 Smart Liste
               </div>
             </div>
@@ -689,8 +706,8 @@ export default function ShoppingListPage() {
               <WhatIsThisModal
                 title="SmartCart"
                 content={
-                  <div className="space-y-4 text-sm text-gray-600">
-                    <p className="text-base font-medium text-gray-900">Dein SmartCart nimmt dir die Arbeit ab:</p>
+                  <div className="space-y-4 text-sm text-white/75">
+                    <p className="text-base font-medium text-white">Dein SmartCart nimmt dir die Arbeit ab:</p>
                     <ul className="space-y-3 mt-4">
                       <li className="flex items-center gap-3">
                         <Sparkles className="w-5 h-5 text-rose-500 shrink-0" />
@@ -712,8 +729,12 @@ export default function ShoppingListPage() {
                   </div>
                 }
                 trigger={
-                  <button type="button" aria-label="Was ist das?" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors">
-                    <HelpCircle className="w-4 h-4" />
+                  <button
+                    type="button"
+                    aria-label="Was ist das?"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition-colors hover:bg-white/20"
+                  >
+                    <HelpCircle className="h-4 w-4" />
                   </button>
                 }
               />
@@ -721,9 +742,9 @@ export default function ShoppingListPage() {
                 type="button"
                 onClick={shareList}
                 aria-label="Liste teilen"
-                className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition-colors hover:bg-white/20"
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="h-4 w-4" />
               </button>
               {activeList && !storeMode && (
                 <div className="relative">
@@ -731,20 +752,34 @@ export default function ShoppingListPage() {
                     type="button"
                     onClick={() => setHeaderMenuOpen((o) => !o)}
                     aria-label="Weitere Aktionen"
-                    className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition-colors hover:bg-white/20"
                   >
-                    <MoreVertical className="w-4 h-4" />
+                    <MoreVertical className="h-4 w-4" />
                   </button>
                   {headerMenuOpen && (
                     <>
                       <div className="fixed inset-0 z-40" aria-hidden onClick={() => setHeaderMenuOpen(false)} />
-                      <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
-                        <button type="button" onClick={() => { openRename(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                          <Pencil className="w-4 h-4" />
+                      <div className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-white/10 bg-[#0A0A0A]/95 py-1 shadow-xl backdrop-blur-xl">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            openRename(activeList);
+                            setHeaderMenuOpen(false);
+                          }}
+                          className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-white/90 hover:bg-white/10"
+                        >
+                          <Pencil className="h-4 w-4" />
                           Liste umbenennen
                         </button>
-                        <button type="button" onClick={() => { openDelete(activeList); setHeaderMenuOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
-                          <Trash2 className="w-4 h-4" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            openDelete(activeList);
+                            setHeaderMenuOpen(false);
+                          }}
+                          className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
                           Liste löschen
                         </button>
                       </div>
@@ -756,10 +791,13 @@ export default function ShoppingListPage() {
             {/* Untere Reihe: Button auf Höhe der linken Pills (symmetrisch) */}
             <button
               type="button"
-              onClick={() => { setPendingName(''); setModalNewList(true); }}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 border border-white/20 backdrop-blur-md text-white/90 hover:bg-white/20 transition-all mt-8 sm:mt-9 md:mt-7"
+              onClick={() => {
+                setPendingName('');
+                setModalNewList(true);
+              }}
+              className="mt-8 inline-flex items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md transition-all hover:bg-white/10 sm:mt-9 md:mt-7"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="h-3.5 w-3.5" />
               Neue Liste
             </button>
           </div>
@@ -767,11 +805,11 @@ export default function ShoppingListPage() {
       >
         {/* Master Card (Tier-1 Dashboard-Style): Overlap nur aus Shell (-mt-20), Breite aus Shell (max-w-7xl) */}
         <div className="relative z-10 w-full pb-20">
-          <div className="bg-white/60 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden min-h-[300px] pt-4 px-4 pb-4 sm:pt-6 sm:px-6 sm:pb-4 md:pt-8 md:px-8 md:pb-4">
+          <div className="min-h-[300px] overflow-hidden px-4 pb-4 pt-4 sm:px-6 sm:pb-4 sm:pt-6 md:px-8 md:pb-4 md:pt-8">
             {/* Listen-Navigation: Horizontaler Strip (volle Breite), weicher Fade-Out rechts */}
-            <div className="w-full mb-4">
+            <div className="mb-4 w-full">
               <div
-                className="w-full overflow-x-auto scrollbar-hide flex gap-2 min-h-0 pr-16 [mask-image:linear-gradient(to_right,white_85%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,white_85%,transparent_100%)]"
+                className="scrollbar-hide flex min-h-0 w-full gap-2 overflow-x-auto pr-16 [mask-image:linear-gradient(to_right,black_85%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,black_85%,transparent_100%)]"
               >
                 {lists.map((l) => {
                   const isActive = activeListId === l.id;
@@ -781,10 +819,10 @@ export default function ShoppingListPage() {
                       type="button"
                       onClick={() => setActiveListId(l.id)}
                       className={cn(
-                        'shrink-0 rounded-2xl border py-2 px-4 text-sm font-medium transition-all',
+                        'shrink-0 rounded-2xl border px-4 py-2 text-sm font-medium transition-all',
                         isActive
-                          ? 'bg-gradient-to-br from-orange-600 to-rose-600 text-white border-transparent shadow-md'
-                          : 'bg-white/60 text-gray-600 border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/80'
+                          ? 'border-white/20 bg-white/10 text-white shadow-[0_0_24px_rgba(249,115,22,0.12)]'
+                          : 'border-transparent bg-transparent text-gray-500 hover:text-white/70'
                       )}
                     >
                       {l.name}
@@ -799,7 +837,7 @@ export default function ShoppingListPage() {
               <div className="mb-6 w-full">
                 <FloatingQuickAddCard
                   inputSlot={
-                    <div className="flex items-center bg-white/40 backdrop-blur-md border border-white/60 rounded-full p-1 shadow-sm focus-within:ring-2 focus-within:ring-red-400/40 transition-all w-full">
+                    <div className="flex w-full items-center rounded-2xl border border-white/10 bg-white/[0.03] p-1 backdrop-blur-md transition-all focus-within:ring-2 focus-within:ring-fuchsia-500/30">
                       <div ref={inputContainerRef} className="relative flex-1 min-w-0">
                         <input
                           type="text"
@@ -832,19 +870,35 @@ export default function ShoppingListPage() {
                             }
                           }}
                           placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
-                          className="flex-1 w-full min-w-0 bg-transparent border-none outline-none focus:ring-0 px-4 py-2 text-gray-800 placeholder:text-gray-500"
+                          className="min-w-0 w-full flex-1 border-none bg-transparent px-4 py-2 text-white outline-none placeholder:text-gray-500 focus:ring-0"
                         />
                         {typeAheadOpen && typeAheadSuggestions.length > 0 && (
-                          <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
+                          <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-xl border border-white/10 bg-[#121212]/95 py-1 shadow-xl backdrop-blur-xl">
                             {typeAheadSuggestions.map((s) => (
-                              <button key={s.itemLabel} type="button" className="w-full text-left px-4 py-2.5 text-sm text-gray-800 hover:bg-orange-50 transition-colors" onMouseDown={(e) => { e.preventDefault(); processSmartInput(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); setNewItemInput(''); setTypeAheadOpen(false); }}>
+                              <button
+                                key={s.itemLabel}
+                                type="button"
+                                className="w-full px-4 py-2.5 text-left text-sm text-white/90 transition-colors hover:bg-white/10"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  processSmartInput(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t));
+                                  setNewItemInput('');
+                                  setTypeAheadOpen(false);
+                                }}
+                              >
                                 {capitalizeLabel(s.itemLabel)}
                               </button>
                             ))}
                           </div>
                         )}
                       </div>
-                      <button type="button" onClick={submitSmartInput} disabled={!newItemInput.trim()} className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center text-white bg-gradient-to-r from-orange-600 to-rose-500 hover:from-orange-700 hover:to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm" title="Hinzufügen">
+                      <button
+                        type="button"
+                        onClick={submitSmartInput}
+                        disabled={!newItemInput.trim()}
+                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-fuchsia-500 to-orange-500 text-white shadow-[0_0_20px_rgba(236,72,153,0.45)] transition-all hover:from-fuchsia-400 hover:to-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
+                        title="Hinzufügen"
+                      >
                         <Plus className="w-5 h-5" />
                       </button>
                     </div>
@@ -852,10 +906,18 @@ export default function ShoppingListPage() {
                   addButton={null}
                   frequentChips={inputFocused && !newItemInput.trim() && frequentItems.length > 0 ? (
                     <div className="mt-3">
-                      <p className="text-xs font-medium text-gray-500 mb-2">Oft gekauft</p>
+                      <p className="mb-2 text-xs font-medium text-white/50">Oft gekauft</p>
                       <div className="flex gap-2 overflow-x-auto pb-1">
                         {frequentItems.map((f) => (
-                          <button key={f.itemLabel} type="button" onClick={() => { processSmartInput(f.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)); loadFrequentItems(); }} className="shrink-0 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-700 text-sm font-medium transition-colors">
+                          <button
+                            key={f.itemLabel}
+                            type="button"
+                            onClick={() => {
+                              processSmartInput(f.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t));
+                              loadFrequentItems();
+                            }}
+                            className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-sm font-medium text-white/90 backdrop-blur-md transition-colors hover:border-white/20 hover:bg-white/10"
+                          >
                             {capitalizeLabel(f.itemLabel)}
                           </button>
                         ))}
@@ -867,12 +929,27 @@ export default function ShoppingListPage() {
             )}
 
         {saveErrorMessage && (
-          <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-sm shadow-sm">
-            <div className="font-medium mb-1">Sync fehlgeschlagen.</div>
-            <div className="text-red-700 mb-3">{saveErrorMessage}</div>
+          <div className="rounded-2xl border border-red-500/30 bg-red-950/40 p-4 text-sm text-red-200 shadow-sm backdrop-blur-md">
+            <div className="mb-1 font-medium text-red-100">Sync fehlgeschlagen.</div>
+            <div className="mb-3 text-red-300/90">{saveErrorMessage}</div>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={async () => { const { success, error } = await saveShoppingLists(lists); setSaveErrorMessage(success ? null : (error ?? 'Unbekannter Fehler')); }} className="px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-medium text-sm transition-colors">Erneut versuchen</button>
-              <button type="button" onClick={() => window.location.reload()} className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors">Seite neu laden</button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const { success, error } = await saveShoppingLists(lists);
+                  setSaveErrorMessage(success ? null : (error ?? 'Unbekannter Fehler'));
+                }}
+                className="rounded-xl bg-red-500/20 px-4 py-2 text-sm font-medium text-red-100 transition-colors hover:bg-red-500/30"
+              >
+                Erneut versuchen
+              </button>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/10"
+              >
+                Seite neu laden
+              </button>
             </div>
           </div>
         )}
@@ -880,10 +957,10 @@ export default function ShoppingListPage() {
         {activeList ? (
             <>
               {unchecked.length === 0 && checked.length === 0 ? (
-                <div className="mt-8 p-8 sm:p-12 text-center bg-white rounded-3xl shadow-xl border border-gray-100">
-                  <ShoppingCart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500 font-medium">Noch keine Einträge in deinem SmartCart.</p>
-                  <p className="text-sm text-gray-400 mt-1">
+                <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center shadow-xl backdrop-blur-md sm:p-12">
+                  <ShoppingCart className="mx-auto mb-3 h-12 w-12 text-white/25" />
+                  <p className="font-medium text-white/80">Noch keine Einträge in deinem SmartCart.</p>
+                  <p className="mt-1 text-sm text-white/45">
                     Tippe etwas ein oder füge eine Liste ein (z.B. aus WhatsApp).
                   </p>
                 </div>
@@ -926,9 +1003,33 @@ export default function ShoppingListPage() {
                                   showActions ? (
                                     <>
                                       {canEdit && (
-                                        <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, displayLabel); }} className="p-2 rounded-lg hover:bg-gray-100 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            startEditItem(item, displayLabel);
+                                          }}
+                                          className="shrink-0 rounded-lg p-2 text-gray-500 transition-colors hover:bg-white/10 hover:text-white"
+                                          title="Bearbeiten"
+                                          aria-label="Bearbeiten"
+                                        >
+                                          <Pencil className="h-4 w-4" />
+                                        </button>
                                       )}
-                                      <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList.id, item.id); }} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          deleteItem(activeList.id, item.id);
+                                        }}
+                                        className="shrink-0 rounded-lg p-2 text-gray-500 transition-colors hover:bg-red-500/15 hover:text-red-400"
+                                        title="Entfernen"
+                                        aria-label="Entfernen"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
                                     </>
                                   ) : null
                                 }
@@ -940,15 +1041,23 @@ export default function ShoppingListPage() {
                                       value={editingItemValue}
                                       onChange={(e) => setEditingItemValue(e.target.value)}
                                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); } if (e.key === 'Escape') cancelEditItem(); }}
-                                      className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                                      className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-1.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
                                       autoFocus
                                     />
-                                    <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
+                                    <button
+                                      type="button"
+                                      onClick={saveEditItem}
+                                      className="shrink-0 rounded-lg bg-gradient-to-r from-fuchsia-500/30 to-orange-500/30 p-1.5 text-fuchsia-200 transition-colors hover:from-fuchsia-500/50 hover:to-orange-500/50"
+                                      title="Speichern"
+                                      aria-label="Speichern"
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </button>
                                   </>
                                 ) : item.status === 'analyzing' ? (
-                                  <span className={cn('text-gray-500 italic', isStriking && 'line-through')}>Analysiere …</span>
+                                  <span className={cn('italic text-white/45', isStriking && 'line-through')}>Analysiere …</span>
                                 ) : item.status === 'error' ? (
-                                  <span className={cn('font-medium text-gray-900 capitalize', isStriking && 'line-through')}>{item.text}</span>
+                                  <span className={cn('font-medium capitalize text-white', isStriking && 'line-through')}>{item.text}</span>
                                 ) : isEditingQty ? (
                                   <>
                                     <input
@@ -961,10 +1070,10 @@ export default function ShoppingListPage() {
                                         if (e.key === 'Escape') { setEditingQtyItemId(null); setEditingQtyValue(''); }
                                       }}
                                       placeholder="z.B. 3 oder 500g"
-                                      className="w-24 rounded-lg border border-gray-200 px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                                      className="w-24 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
                                       autoFocus
                                     />
-                                    <span className={cn('font-medium text-gray-900 capitalize', isStriking && 'line-through')}>{item.text}</span>
+                                    <span className={cn('font-medium capitalize text-white', isStriking && 'line-through')}>{item.text}</span>
                                   </>
                                 ) : (
                                   <>
@@ -977,7 +1086,7 @@ export default function ShoppingListPage() {
                                     {!storeMode && !hasQty && (
                                       <UnifiedQuantityBadge label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
                                     )}
-                                    <span className={cn('font-medium text-gray-900 capitalize', isStriking && 'text-gray-400 line-through')}>
+                                    <span className={cn('font-medium capitalize text-white', isStriking && 'text-white/35 line-through')}>
                                       {storeMode ? displayLabel : (hasQty ? item.text : displayLabel)}
                                     </span>
                                   </>
@@ -992,10 +1101,10 @@ export default function ShoppingListPage() {
               )}
             </>
           ) : (
-            <div className="p-8 sm:p-12 text-center">
-              <ListChecks className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-500 font-medium">Keine Liste ausgewählt.</p>
-              <p className="text-sm text-gray-400 mt-1">
+            <div className="p-8 text-center sm:p-12">
+              <ListChecks className="mx-auto mb-3 h-12 w-12 text-white/25" />
+              <p className="font-medium text-white/80">Keine Liste ausgewählt.</p>
+              <p className="mt-1 text-sm text-white/45">
                 Erstelle eine neue Liste oder wähle eine vorhandene.
               </p>
             </div>
@@ -1009,7 +1118,7 @@ export default function ShoppingListPage() {
                 tabIndex={0}
                 onClick={() => setIsCompletedExpanded(!isCompletedExpanded)}
                 onKeyDown={(e) => e.key === 'Enter' && setIsCompletedExpanded((v) => !v)}
-                className="flex items-center justify-between w-full py-3 px-2 text-gray-500 hover:text-gray-700 transition-colors border-b border-gray-300/50 cursor-pointer"
+                className="flex w-full cursor-pointer items-center justify-between border-b border-white/10 px-2 py-3 text-white/50 transition-colors hover:text-white"
                 aria-expanded={isCompletedExpanded}
               >
                 <span className="text-sm font-semibold">Erledigt ({checked.length})</span>
@@ -1037,19 +1146,64 @@ export default function ShoppingListPage() {
                         actions={
                           showActions ? (
                             <>
-                              <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); startEditItem(item, erledigtLabel); }} className="p-2 rounded-lg hover:bg-gray-100 shrink-0" title="Bearbeiten" aria-label="Bearbeiten"><Pencil className="w-4 h-4" /></button>
-                              <button type="button" onClick={(e) => { e.stopPropagation(); e.preventDefault(); deleteItem(activeList!.id, item.id); }} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-500 shrink-0" title="Entfernen" aria-label="Entfernen"><Trash2 className="w-4 h-4" /></button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  startEditItem(item, erledigtLabel);
+                                }}
+                                className="shrink-0 rounded-lg p-2 text-gray-500 transition-colors hover:bg-white/10 hover:text-white"
+                                title="Bearbeiten"
+                                aria-label="Bearbeiten"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  deleteItem(activeList!.id, item.id);
+                                }}
+                                className="shrink-0 rounded-lg p-2 text-gray-500 transition-colors hover:bg-red-500/15 hover:text-red-400"
+                                title="Entfernen"
+                                aria-label="Entfernen"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </>
                           ) : null
                         }
                       >
                         {isEditingText ? (
                           <>
-                            <input type="text" value={editingItemValue} onChange={(e) => setEditingItemValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveEditItem(); } if (e.key === 'Escape') cancelEditItem(); }} className="flex-1 min-w-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-200" autoFocus />
-                            <button type="button" onClick={saveEditItem} className="p-1.5 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 shrink-0" title="Speichern" aria-label="Speichern"><Check className="w-4 h-4" /></button>
+                            <input
+                              type="text"
+                              value={editingItemValue}
+                              onChange={(e) => setEditingItemValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  saveEditItem();
+                                }
+                                if (e.key === 'Escape') cancelEditItem();
+                              }}
+                              className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={saveEditItem}
+                              className="shrink-0 rounded-lg bg-gradient-to-r from-fuchsia-500/30 to-orange-500/30 p-1.5 text-fuchsia-200 transition-colors hover:from-fuchsia-500/50 hover:to-orange-500/50"
+                              title="Speichern"
+                              aria-label="Speichern"
+                            >
+                              <Check className="h-4 w-4" />
+                            </button>
                           </>
                         ) : (
-                          <span className="text-gray-500 line-through capitalize">{erledigtLabel}</span>
+                          <span className="line-through capitalize text-white/40">{erledigtLabel}</span>
                         )}
                       </UnifiedItemRow>
                     );
@@ -1057,7 +1211,7 @@ export default function ShoppingListPage() {
                   <button
                     type="button"
                     onClick={() => activeListId && resetChecked(activeListId)}
-                    className="w-full py-3 mt-4 text-sm font-medium text-gray-500 bg-transparent border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:text-gray-700 hover:border-gray-400 transition-all flex items-center justify-center gap-2"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/15 bg-transparent py-3 text-sm font-medium text-white/45 transition-all hover:border-white/25 hover:bg-white/[0.04] hover:text-white/80"
                     title="Erledigte wiederherstellen"
                   >
                     <RotateCcw className="w-4 h-4" />
@@ -1103,14 +1257,14 @@ export default function ShoppingListPage() {
 
       {modalNewList && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           onClick={() => setModalNewList(false)}
         >
           <div
-            className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6"
+            className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#121212]/95 p-6 shadow-2xl backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Neue Liste</h3>
+            <h3 className="mb-4 text-lg font-bold text-white">Neue Liste</h3>
             <input
               type="text"
               value={pendingName}
@@ -1120,21 +1274,21 @@ export default function ShoppingListPage() {
                 if (e.key === 'Escape') setModalNewList(false);
               }}
               placeholder="z.B. Supermarkt, Drogerie…"
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 mb-4"
+              className="mb-4 w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-white placeholder:text-gray-500 focus:border-fuchsia-500/50 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/30"
               autoFocus
             />
-            <div className="flex gap-2 justify-end">
+            <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setModalNewList(false)}
-                className="px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
+                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10"
               >
                 Abbrechen
               </button>
               <button
                 type="button"
                 onClick={() => addList(pendingName)}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium text-sm hover:from-orange-600 hover:to-pink-600 transition-colors shadow-md shadow-orange-500/25"
+                className="rounded-xl bg-gradient-to-r from-fuchsia-500 to-orange-500 px-4 py-2.5 text-sm font-medium text-white shadow-[0_0_20px_rgba(236,72,153,0.35)] transition-colors hover:from-fuchsia-400 hover:to-orange-400"
               >
                 Erstellen
               </button>
@@ -1145,16 +1299,16 @@ export default function ShoppingListPage() {
 
       {modalRename && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
           onClick={() => setModalRename(null)}
         >
           <div
-            className="w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl border border-white/20 p-6 sm:p-8"
+            className="w-full max-w-sm rounded-[2rem] border border-white/10 bg-[#121212]/95 p-6 shadow-2xl backdrop-blur-2xl sm:p-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <Edit2 className="w-5 h-5 text-rose-500" />
-              <h3 className="text-xl font-semibold text-gray-900 tracking-tight">Liste umbenennen</h3>
+            <div className="mb-6 flex items-center gap-3">
+              <Edit2 className="h-5 w-5 text-fuchsia-400" />
+              <h3 className="text-xl font-semibold tracking-tight text-white">Liste umbenennen</h3>
             </div>
             <input
               type="text"
@@ -1166,21 +1320,21 @@ export default function ShoppingListPage() {
                 if (e.key === 'Escape') setModalRename(null);
               }}
               placeholder="Name der Liste"
-              className="w-full bg-gray-50/50 hover:bg-gray-50 focus:bg-white border border-gray-200/60 rounded-2xl px-4 py-3.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-400 transition-all mb-8"
+              className="mb-8 w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3.5 text-white placeholder:text-gray-500 transition-all focus:border-fuchsia-500/50 focus:outline-none focus:ring-4 focus:ring-fuchsia-500/15"
               autoFocus
             />
             <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setModalRename(null)}
-                className="px-5 py-2.5 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100/80 font-medium text-sm transition-all"
+                className="rounded-xl px-5 py-2.5 text-sm font-medium text-white/50 transition-all hover:bg-white/10 hover:text-white"
               >
                 Abbrechen
               </button>
               <button
                 type="button"
                 onClick={() => renameList(pendingName)}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-rose-500 text-white font-medium text-sm shadow-lg shadow-rose-500/20 hover:from-orange-700 hover:to-rose-600 transition-all"
+                className="rounded-xl bg-gradient-to-r from-fuchsia-500 to-orange-500 px-5 py-2.5 text-sm font-medium text-white shadow-[0_0_20px_rgba(236,72,153,0.35)] transition-all hover:from-fuchsia-400 hover:to-orange-400"
               >
                 Speichern
               </button>
@@ -1191,30 +1345,30 @@ export default function ShoppingListPage() {
 
       {modalDeleteList && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           onClick={() => setModalDeleteList(null)}
         >
           <div
-            className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6"
+            className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#121212]/95 p-6 shadow-2xl backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Liste löschen</h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <h3 className="mb-2 text-lg font-bold text-white">Liste löschen</h3>
+            <p className="mb-4 text-sm text-white/60">
               Möchtest du „{lists.find((l) => l.id === modalDeleteList)?.name}“ wirklich löschen?
               Alle Einträge gehen verloren.
             </p>
-            <div className="flex gap-2 justify-end">
+            <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setModalDeleteList(null)}
-                className="px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
+                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10"
               >
                 Abbrechen
               </button>
               <button
                 type="button"
                 onClick={() => deleteList(modalDeleteList)}
-                className="px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium text-sm transition-colors"
+                className="rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600"
               >
                 Löschen
               </button>

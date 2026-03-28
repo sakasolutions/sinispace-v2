@@ -62,18 +62,15 @@ export function SummaryCard({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl',
+        'flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.05] p-4 backdrop-blur-md',
         className
       )}
-      style={GLASS_CARD_STYLE}
     >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        <span className="text-sm font-medium text-gray-700 shrink-0">
-          {progressLabel}
-        </span>
-        <div className="flex-1 min-w-[80px] max-w-[140px] h-2 rounded-full bg-gray-100 overflow-hidden">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <span className="shrink-0 text-sm font-medium text-white/80">{progressLabel}</span>
+        <div className="h-2 min-w-[80px] max-w-[140px] flex-1 overflow-hidden rounded-full bg-white/10">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-orange-600 to-rose-500 transition-all duration-300"
+            className="h-full rounded-full bg-gradient-to-r from-orange-500 to-pink-500 transition-all duration-300"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -83,10 +80,10 @@ export function SummaryCard({
           type="button"
           onClick={onToggleStoreMode}
           className={cn(
-            'shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-all shadow-md',
+            'shrink-0 rounded-xl px-4 py-2 text-sm font-bold shadow-md transition-all',
             storeMode
-              ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              : 'bg-gradient-to-r from-orange-600 to-rose-500 text-white hover:from-orange-700 hover:to-rose-600 shadow-orange-500/25'
+              ? 'border border-white/15 bg-white/10 text-white hover:bg-white/15'
+              : 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-orange-500/30 hover:from-orange-600 hover:to-pink-600'
           )}
         >
           {storeMode ? 'Beenden' : 'Einkauf starten'}
@@ -289,18 +286,17 @@ export function StickyCategoryHeader({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 pt-3 pb-3 border-t border-b border-gray-100',
-        theme.headerTextColor,
+        'flex items-center gap-2 border-b border-t border-white/10 pt-3 pb-3',
         className
       )}
     >
       {theme.checkboxBg && (
-        <span className={cn('w-2 h-2 rounded-full shrink-0', theme.checkboxBg)} aria-hidden />
+        <span className={cn('h-2 w-2 shrink-0 rounded-full', theme.checkboxBg)} aria-hidden />
       )}
-      <span className="text-xs font-black tracking-widest uppercase">
+      <span className="text-xs font-black uppercase tracking-widest text-emerald-400">
         {title}
       </span>
-      <span className="text-xs opacity-80">{count}</span>
+      <span className="text-xs text-white/45">{count}</span>
     </div>
   );
 }
@@ -309,7 +305,7 @@ export function StickyCategoryHeader({
 export function UnifiedCheckbox({
   checked,
   onToggle,
-  theme,
+  theme: _theme,
   ariaLabel,
   disabled,
 }: {
@@ -326,13 +322,13 @@ export function UnifiedCheckbox({
       disabled={disabled}
       aria-label={ariaLabel}
       className={cn(
-        'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200',
+        'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
         checked
-          ? 'bg-gradient-to-r from-orange-600 to-rose-500 border-transparent text-white'
-          : 'bg-white border-gray-300/80 hover:border-gray-400'
+          ? 'border-transparent bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.45)]'
+          : 'border-white/20 bg-transparent hover:border-emerald-400/60'
       )}
     >
-      {checked && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+      {checked && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
     </button>
   );
 }
@@ -354,14 +350,14 @@ export function UnifiedItemRow({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 py-2.5 px-4 bg-transparent hover:bg-gray-100/50 transition-colors group last:border-b-0 last:pb-0',
+        'group flex items-center justify-between gap-3 bg-transparent px-4 py-2.5 transition-colors last:border-b-0 last:pb-0 hover:bg-white/[0.04]',
         isChecked && 'opacity-90',
         className
       )}
     >
       <div className="shrink-0">{checkbox}</div>
-      <div className="flex-1 min-w-0 flex items-center gap-2">{children}</div>
-      <div className="shrink-0 flex items-center gap-0.5 text-gray-300 group-hover:text-gray-500 transition-colors">
+      <div className="flex min-w-0 flex-1 items-center gap-2">{children}</div>
+      <div className="flex shrink-0 items-center gap-0.5 text-gray-500 transition-colors group-hover:text-white">
         {actions}
       </div>
     </div>
@@ -378,10 +374,15 @@ export function UnifiedQuantityBadge({
   onClick?: () => void;
   className?: string;
 }) {
-  const base = 'bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md shrink-0';
+  const base =
+    'shrink-0 rounded-md border border-white/5 bg-white/[0.05] px-2 py-1 text-xs text-gray-300';
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={cn(base, 'hover:bg-gray-200 transition-colors', className)}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(base, 'transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white', className)}
+      >
         {label}
       </button>
     );
@@ -411,7 +412,7 @@ export function FloatingQuickAddCard({
       </div>
       {frequentChips}
       {helperText && (
-        <p className="text-xs text-gray-500 mt-2 leading-relaxed px-1">
+        <p className="mt-2 px-1 text-xs leading-relaxed text-white/45">
           {helperText}
         </p>
       )}
