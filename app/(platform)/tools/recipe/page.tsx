@@ -25,6 +25,7 @@ import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
+import { CollectionView } from '@/components/recipe/collection-view';
 import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
 import {
   generateWeekDraft,
@@ -971,9 +972,85 @@ export default function RecipePage() {
           className="w-full min-h-full pb-20 overflow-x-hidden"
           style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
         >
+          {activeTab === 'my-recipes' && !selectedRecipe ? (
+            <CollectionView
+              onBack={() => {
+                setShowCockpit(true);
+                setActiveTab('create');
+                setWizardStep(1);
+              }}
+              onVorschlagGenerieren={() => {
+                setShowCockpit(false);
+                setActiveTab('create');
+                setIngredients('');
+              }}
+              collectionSearch={collectionSearch}
+              onCollectionSearchChange={setCollectionSearch}
+              collectionCategory={collectionCategory}
+              onCollectionCategoryChange={setCollectionCategory}
+              categories={COLLECTION_CATEGORIES}
+              categoryCounts={collectionCategoryCounts}
+            >
+              <div className="space-y-6">
+            {isLoadingRecipes ? (
+              <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-8 text-center shadow-sm backdrop-blur-xl">
+                <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-orange-400" />
+                <p className="font-semibold text-white/80">Lade Rezepte…</p>
+              </div>
+            ) : myRecipes.length === 0 ? (
+              <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-10 text-center shadow-sm backdrop-blur-xl">
+                <ChefHat className="mx-auto mb-4 h-14 w-14 text-white/40" />
+                <p className="font-semibold text-white/90">Noch keine Rezepte gespeichert.</p>
+                <p className="mt-2 text-sm font-medium text-white/50">Erstelle dein erstes Rezept in der Übersicht.</p>
+              </div>
+            ) : filteredCollectionRecipes.length === 0 ? (
+              <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-8 text-center shadow-sm backdrop-blur-xl">
+                <Search className="mx-auto mb-3 h-12 w-12 text-white/35" />
+                <p className="font-semibold text-white/90">Keine Rezepte passen zu Suche oder Filter.</p>
+                <p className="mt-1 text-sm text-white/50">Ändere die Suche oder wähle „Alle“.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+                {filteredCollectionRecipes.map((result: { id: string; recipe: Recipe; createdAt: string; metadata?: string | null }) => {
+                  const r = result.recipe as Recipe;
+                  const metaFilters = (() => {
+                    try {
+                      const meta = result.metadata ? JSON.parse(result.metadata) as { filters?: string[] } : {};
+                      return meta.filters || [];
+                    } catch { return []; }
+                  })();
+                  const theme = getRecipeTheme(r);
+                  const titleAndFilters = `${r.recipeName || ''} ${metaFilters.join(' ')}`.toLowerCase();
+                  const showVeganBadge = titleAndFilters.includes('vegan') || titleAndFilters.includes('vegetarisch');
+                  const showHighProteinBadge = titleAndFilters.includes('high protein');
+                  return (
+                    <RecipeCard
+                      key={result.id}
+                      recipe={r}
+                      theme={theme}
+                      resultId={result.id}
+                      isMenuOpen={collectionMenuOpen === result.id}
+                      onMenuToggle={() => setCollectionMenuOpen(collectionMenuOpen === result.id ? null : result.id)}
+                      onSelect={() => setSelectedRecipe({
+                        recipe: r,
+                        resultId: result.id,
+                        createdAt: new Date(result.createdAt)
+                      })}
+                      onDelete={() => handleDeleteRecipe(result.id)}
+                      showVeganBadge={showVeganBadge}
+                      showHighProteinBadge={showHighProteinBadge}
+                      glass
+                    />
+                  );
+                })}
+              </div>
+            )}
+              </div>
+            </CollectionView>
+          ) : (
           <DashboardShell
             disablePadding
-            headerVariant={activeTab === 'my-recipes' && !selectedRecipe ? 'withCTA' : 'default'}
+            headerVariant="default"
             layer0RoundedClass="rounded-none md:rounded-b-[32px]"
             layer0HeightClass={
               activeTab === 'my-recipes' && selectedRecipe && recipeDetailHeroUrl
@@ -1002,54 +1079,6 @@ export default function RecipePage() {
                     aria-hidden
                   />
               </div>
-              ) : activeTab === 'my-recipes' && !selectedRecipe ? (
-                <div className="relative h-full w-full overflow-hidden bg-black">
-                  <img
-                    src="/gourmet-header.webp"
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover opacity-[0.1]"
-                    aria-hidden
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-black/90" aria-hidden />
-                  <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.06]"
-                    style={{
-                      backgroundImage:
-                        'linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)',
-                      backgroundSize: '24px 24px',
-                    }}
-                    aria-hidden
-                  />
-                  <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-                    <div className="absolute -inset-x-[14%] -top-[38%] bottom-0">
-                      <div
-                        className="absolute -bottom-[18%] left-1/2 h-[min(155%,32rem)] w-[min(185%,44rem)] -translate-x-1/2 rounded-[50%] blur-2xl"
-                        style={{
-                          background:
-                            'radial-gradient(ellipse 62% 52% at 50% 88%, rgba(249,115,22,0.5) 0%, rgba(236,72,153,0.32) 34%, rgba(168,85,247,0.22) 54%, rgba(168,85,247,0) 74%)',
-                        }}
-                      />
-                      <div
-                        className="absolute -bottom-[10%] left-1/2 h-[min(118%,26rem)] w-[min(140%,34rem)] -translate-x-1/2 rounded-[50%] blur-xl"
-                        style={{
-                          background:
-                            'radial-gradient(ellipse 54% 44% at 50% 86%, rgba(249,115,22,0.36) 0%, rgba(236,72,153,0.2) 44%, rgba(168,85,247,0.12) 60%, rgba(168,85,247,0) 80%)',
-                        }}
-                      />
-                      <div
-                        className="absolute inset-x-0 -top-[5%] bottom-[-8%] opacity-[0.14]"
-                        style={{
-                          background:
-                            'radial-gradient(ellipse 92% 74% at 50% 106%, rgba(249,115,22,0.42) 0%, rgba(236,72,153,0.26) 40%, rgba(168,85,247,0.14) 58%, transparent 76%)',
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div
-                    className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black from-0% via-black/35 via-[22%] to-transparent to-[52%]"
-                    aria-hidden
-                  />
-                </div>
               ) : (
                 <div className="relative h-full w-full bg-cover bg-center" style={{ backgroundImage: 'url(/assets/images/cooking-action.webp)' }}>
                   <div className="absolute inset-x-0 bottom-0 z-0 h-[60%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent" aria-hidden />
@@ -1070,12 +1099,7 @@ export default function RecipePage() {
                     setActiveTab('create');
                     setWizardStep(1);
                   }}
-                  className={cn(
-                    'group mb-3 inline-flex items-center gap-2 rounded-full border text-sm font-medium text-white transition-all',
-                    activeTab === 'my-recipes' && !selectedRecipe
-                      ? 'border-white/10 bg-white/[0.05] px-3 py-1.5 backdrop-blur-md hover:bg-white/[0.08]'
-                      : 'border-white/10 bg-white/10 px-4 py-2 backdrop-blur-md hover:bg-white/20'
-                  )}
+                  className="group mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-md transition-all hover:bg-white/20"
                 >
                   <ArrowLeft className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-1" />
                   {selectedRecipe ? 'Zurück zur Sammlung' : 'Zurück zur Übersicht'}
@@ -1084,15 +1108,10 @@ export default function RecipePage() {
                   <h1 className="sr-only">{selectedRecipe.recipe.recipeName}</h1>
                 ) : (
                   <h1
-                    className={cn(
-                      'mb-1 mt-0 tracking-tight text-white',
-                      activeTab === 'my-recipes'
-                        ? 'text-2xl font-black drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] sm:text-3xl md:text-4xl'
-                        : 'text-2xl font-medium drop-shadow-md sm:text-3xl md:text-4xl'
-                    )}
+                    className="mb-1 mt-0 text-2xl font-medium tracking-tight text-white drop-shadow-md sm:text-3xl md:text-4xl"
                     style={{ letterSpacing: '-0.3px' }}
                   >
-                    {activeTab === 'my-recipes' ? 'Meine Sammlung' : 'Rezept Generator'}
+                    Rezept Generator
                   </h1>
                 )}
               </div>
@@ -1100,17 +1119,8 @@ export default function RecipePage() {
             subtitle={
               <div className="px-4 md:px-6">
                 {!selectedRecipe && (
-                <p
-                  className={cn(
-                    'text-lg md:text-xl',
-                    activeTab === 'my-recipes'
-                      ? 'font-medium text-gray-400 drop-shadow-[0_1px_8px_rgba(0,0,0,0.75)]'
-                      : 'text-white/90 drop-shadow-sm'
-                  )}
-                >
-                  {activeTab === 'my-recipes'
-                    ? 'Deine kulinarischen Schätze.'
-                    : 'Dein Smart-Chef für den Kühlschrank.'}
+                <p className="text-lg text-white/90 drop-shadow-sm md:text-xl">
+                  Dein Smart-Chef für den Kühlschrank.
                 </p>
                 )}
                 {activeTab === 'create' && (
@@ -1122,70 +1132,6 @@ export default function RecipePage() {
                   </>
                 )}
               </div>
-            }
-            headerTitleStackClassName={
-              activeTab === 'my-recipes' && !selectedRecipe ? 'max-w-5xl w-full' : 'max-w-2xl'
-            }
-            headerExtra={
-              activeTab === 'my-recipes' && !selectedRecipe ? (
-                <div className="mt-5 space-y-4 px-4 md:px-6 pb-1">
-                  <div
-                    className="rounded-[20px] border border-white/[0.05] bg-white/[0.03] p-3 backdrop-blur-xl"
-                    role="search"
-                  >
-                    <label className="sr-only" htmlFor="collection-search-input">
-                      Rezepte durchsuchen
-                    </label>
-                    <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.05] bg-black/45 px-3 py-2.5 backdrop-blur-md">
-                      <Search className="h-4 w-4 shrink-0 text-white/20" aria-hidden />
-                      <input
-                        id="collection-search-input"
-                        type="search"
-                        value={collectionSearch}
-                        onChange={(e) => setCollectionSearch(e.target.value)}
-                        placeholder="Suche in der Sammlung…"
-                        className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm font-medium text-white/65 placeholder:text-white/20 outline-none focus:ring-0"
-                        autoComplete="off"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2" role="toolbar" aria-label="Kategorie-Filter">
-                    {COLLECTION_CATEGORIES.map((cat) => {
-                      const isActive = collectionCategory === cat.id;
-                      const count = collectionCategoryCounts[cat.id] ?? 0;
-                      const countLabel =
-                        cat.id === 'Alle'
-                          ? count === 1
-                            ? '1 Rezept'
-                            : `${count} Rezepte`
-                          : `${count}`;
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setCollectionCategory(cat.id)}
-                          className={cn(
-                            'inline-flex max-w-full items-baseline gap-1.5 rounded-full border px-3.5 py-2 text-left text-sm transition-all',
-                            isActive
-                              ? 'border-white/20 bg-gradient-to-r from-brand-orange/90 via-brand-orange/75 to-brand-pink/80 font-semibold text-white shadow-[0_0_22px_-6px_rgba(249,115,22,0.55),0_0_28px_-8px_rgba(236,72,153,0.35)]'
-                              : 'border-white/[0.06] bg-white/[0.03] font-medium text-white/45 backdrop-blur-md hover:border-white/[0.1] hover:bg-white/[0.06] hover:text-white/75'
-                          )}
-                        >
-                          <span className="truncate">{cat.label}</span>
-                          <span
-                            className={cn(
-                              'shrink-0 tabular-nums text-xs',
-                              isActive ? 'font-bold text-white/90' : 'font-semibold text-white/35'
-                            )}
-                          >
-                            ({countLabel})
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : undefined
             }
           >
       <div className="px-4 md:px-6">
@@ -1424,8 +1370,7 @@ export default function RecipePage() {
         </div>
         )}
       </React.Fragment>
-      ) : activeTab === 'my-recipes' ? (
-        selectedRecipe ? (
+      ) : selectedRecipe ? (
           <RecipeDetailView
             recipe={selectedRecipe.recipe}
             resultId={selectedRecipe.resultId}
@@ -1433,70 +1378,11 @@ export default function RecipePage() {
             onBack={() => setSelectedRecipe(null)}
             embedHeroInParent
           />
-        ) : (
-          /* Meine Sammlung: Suche/Filter im Shell-Header (headerExtra), hier nur Grid */
-          <div className="mx-auto max-w-5xl space-y-6">
-            {/* Grid */}
-            {isLoadingRecipes ? (
-              <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-8 text-center shadow-sm backdrop-blur-xl">
-                <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-orange-400" />
-                <p className="font-semibold text-white/80">Lade Rezepte…</p>
-              </div>
-            ) : myRecipes.length === 0 ? (
-              <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-10 text-center shadow-sm backdrop-blur-xl">
-                <ChefHat className="mx-auto mb-4 h-14 w-14 text-white/40" />
-                <p className="font-semibold text-white/90">Noch keine Rezepte gespeichert.</p>
-                <p className="mt-2 text-sm font-medium text-white/50">Erstelle dein erstes Rezept in der Übersicht.</p>
-              </div>
-            ) : filteredCollectionRecipes.length === 0 ? (
-              <div className="rounded-3xl border border-white/[0.06] bg-white/[0.03] p-8 text-center shadow-sm backdrop-blur-xl">
-                <Search className="mx-auto mb-3 h-12 w-12 text-white/35" />
-                <p className="font-semibold text-white/90">Keine Rezepte passen zu Suche oder Filter.</p>
-                <p className="mt-1 text-sm text-white/50">Ändere die Suche oder wähle „Alle“.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {filteredCollectionRecipes.map((result: { id: string; recipe: Recipe; createdAt: string; metadata?: string | null }) => {
-                  const r = result.recipe as Recipe;
-                  const metaFilters = (() => {
-                    try {
-                      const meta = result.metadata ? JSON.parse(result.metadata) as { filters?: string[] } : {};
-                      return meta.filters || [];
-                    } catch { return []; }
-                  })();
-                  const theme = getRecipeTheme(r);
-                  const titleAndFilters = `${r.recipeName || ''} ${metaFilters.join(' ')}`.toLowerCase();
-                  const showVeganBadge = titleAndFilters.includes('vegan') || titleAndFilters.includes('vegetarisch');
-                  const showHighProteinBadge = titleAndFilters.includes('high protein');
-                  return (
-                    <RecipeCard
-                      key={result.id}
-                      recipe={r}
-                      theme={theme}
-                      resultId={result.id}
-                      isMenuOpen={collectionMenuOpen === result.id}
-                      onMenuToggle={() => setCollectionMenuOpen(collectionMenuOpen === result.id ? null : result.id)}
-                      onSelect={() => setSelectedRecipe({
-                        recipe: r,
-                        resultId: result.id,
-                        createdAt: new Date(result.createdAt)
-                      })}
-                      onDelete={() => handleDeleteRecipe(result.id)}
-                      showVeganBadge={showVeganBadge}
-                      showHighProteinBadge={showHighProteinBadge}
-                      glass
-                      cockpit
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )
       ) : null}
       </div>
 
           </DashboardShell>
+          )}
         </div>
       )}
 
