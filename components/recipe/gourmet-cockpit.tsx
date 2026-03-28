@@ -8,6 +8,7 @@ import {
   ShoppingCart,
   Clock,
   Flame,
+  ChevronRight,
 } from 'lucide-react';
 import { PageTransition } from '@/components/ui/PageTransition';
 
@@ -37,6 +38,14 @@ export type GourmetCockpitProps = {
   todayMealSpotlight?: TodayMealSpotlight | null;
   /** Klick auf die aktive-Woche-Karte: öffnet active-view. */
   onAktiveWocheAnsehen?: () => void;
+  /** Tage mit mindestens einer Mahlzeit (0–7). */
+  plannedDaysCount?: number;
+  /** Offene SmartCart-Positionen (unchecked). */
+  openCartItems?: number;
+  /** Anzahl gespeicherter Rezepte in der Sammlung. */
+  totalRecipes?: number;
+  /** Optional: kleines Badge rechts neben der Sammlung (z. B. „Neu“). */
+  sammlungBadgeText?: string | null;
 };
 
 /**
@@ -50,7 +59,13 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
     activeWeekPlan = null,
     todayMealSpotlight = null,
     onAktiveWocheAnsehen,
+    plannedDaysCount = 0,
+    openCartItems = 0,
+    totalRecipes = 0,
+    sammlungBadgeText = null,
   } = props;
+
+  const plannedDaysClamped = Math.min(7, Math.max(0, plannedDaysCount));
 
   const activeMealImageUrl =
     todayMealSpotlight?.imageUrl && String(todayMealSpotlight.imageUrl).trim().length > 0
@@ -144,7 +159,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                   <button
                     type="button"
                     onClick={() => onWochePlanen?.()}
-                    className="flex h-[132px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-brand-orange/35 hover:bg-white/[0.06] md:h-[140px] md:p-5"
+                    className="flex h-[132px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.05] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-brand-orange/35 hover:bg-white/[0.06] md:h-[140px] md:p-5"
                   >
                     <div className="rounded-xl bg-brand-orange/15 p-2 text-brand-orange ring-1 ring-brand-orange/35">
                       <CalendarDays className="h-5 w-5" strokeWidth={1.75} aria-hidden />
@@ -154,14 +169,14 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                         Woche planen
                       </span>
                       <span className="mt-1 text-lg font-black leading-tight tracking-tight text-white md:text-xl">
-                        3 von 7 Tagen geplant
+                        {plannedDaysClamped} von 7 Tagen geplant
                       </span>
                     </div>
                   </button>
 
                   <Link
                     href="/tools/shopping-list"
-                    className="flex h-[132px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-brand-pink/40 hover:bg-white/[0.06] md:h-[140px] md:p-5"
+                    className="flex h-[132px] cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.05] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-brand-pink/40 hover:bg-white/[0.06] md:h-[140px] md:p-5"
                   >
                     <div className="rounded-xl bg-brand-pink/15 p-2 text-brand-pink ring-1 ring-brand-pink/40">
                       <ShoppingCart className="h-5 w-5" strokeWidth={1.75} aria-hidden />
@@ -171,7 +186,7 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                         SmartCart
                       </span>
                       <span className="mt-1 text-lg font-black leading-tight tracking-tight text-white md:text-xl">
-                        5 Artikel offen
+                        {openCartItems} Artikel offen
                       </span>
                     </div>
                   </Link>
@@ -180,34 +195,57 @@ export function GourmetCockpit(props: GourmetCockpitProps) {
                 <button
                   type="button"
                   onClick={() => onMagicWunsch?.()}
-                  className="flex h-[132px] w-full cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-amber-400/45 hover:bg-white/[0.06] md:h-[140px] md:p-5"
+                  className="relative flex h-[132px] w-full cursor-pointer items-stretch justify-between gap-3 overflow-hidden rounded-[24px] border border-white/[0.05] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-amber-400/45 hover:bg-white/[0.06] md:h-[140px] md:p-5"
                 >
-                  <div className="rounded-xl bg-amber-400/15 p-2 text-amber-400 ring-1 ring-amber-400/45">
-                    <Sparkles className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  <div
+                    className="pointer-events-none absolute -right-4 top-1/2 h-36 w-36 -translate-y-1/2 rounded-full bg-gradient-to-br from-brand-orange/30 via-brand-pink/25 to-brand-purple/30 blur-3xl"
+                    aria-hidden
+                  />
+                  <div className="relative z-[1] flex min-w-0 flex-1 flex-col items-start justify-between">
+                    <div className="rounded-xl bg-amber-400/15 p-2 text-amber-400 ring-1 ring-amber-400/45">
+                      <Sparkles className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                    </div>
+                    <div className="mt-auto flex w-full flex-col items-start">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
+                        Wunschgericht
+                      </span>
+                      <span className="mt-1 text-base font-black leading-snug tracking-tight text-white md:text-lg">
+                        Lass dir was zaubern ✨
+                      </span>
+                    </div>
                   </div>
-                  <div className="mt-auto flex w-full flex-col items-start">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
-                      Wunschgericht
-                    </span>
-                    <span className="mt-1 text-lg font-black leading-tight tracking-tight text-white md:text-xl">
-                      KI-gesteuert
+                  <div className="relative z-[1] flex shrink-0 flex-col items-end justify-end self-stretch">
+                    <span className="rounded-full bg-white/[0.05] p-2 text-white/30">
+                      <ChevronRight className="h-5 w-5" strokeWidth={2} aria-hidden />
                     </span>
                   </div>
                 </button>
 
                 <Link
                   href="/tools/recipe?tab=my-recipes"
-                  className="flex h-[132px] w-full cursor-pointer flex-col items-start justify-between rounded-[24px] border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-brand-purple/40 hover:bg-white/[0.06] md:h-[140px] md:p-5"
+                  className="flex h-[132px] w-full cursor-pointer items-stretch justify-between gap-3 overflow-hidden rounded-[24px] border border-white/[0.05] bg-white/[0.03] p-4 text-left shadow-lg shadow-black/30 backdrop-blur-xl transition-all hover:border-brand-purple/40 hover:bg-white/[0.06] md:h-[140px] md:p-5"
                 >
-                  <div className="rounded-xl bg-brand-purple/15 p-2 text-brand-purple ring-1 ring-brand-purple/40">
-                    <BookOpen className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  <div className="flex min-w-0 flex-1 flex-col items-start justify-between">
+                    <div className="rounded-xl bg-brand-purple/15 p-2 text-brand-purple ring-1 ring-brand-purple/40">
+                      <BookOpen className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                    </div>
+                    <div className="mt-auto flex w-full flex-col items-start">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
+                        Sammlung
+                      </span>
+                      <span className="mt-1 text-lg font-black leading-tight tracking-tight text-white md:text-xl">
+                        {totalRecipes} Rezepte
+                      </span>
+                    </div>
                   </div>
-                  <div className="mt-auto flex w-full flex-col items-start">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45">
-                      Sammlung
-                    </span>
-                    <span className="mt-1 text-lg font-black leading-tight tracking-tight text-white md:text-xl">
-                      124 Rezepte
+                  <div className="flex shrink-0 flex-col items-end justify-end gap-2 self-stretch">
+                    {sammlungBadgeText ? (
+                      <span className="rounded-md bg-white/5 px-2 py-1 text-xs font-medium text-white/40">
+                        {sammlungBadgeText}
+                      </span>
+                    ) : null}
+                    <span className="rounded-full bg-white/[0.05] p-2 text-white/30">
+                      <ChevronRight className="h-5 w-5" strokeWidth={2} aria-hidden />
                     </span>
                   </div>
                 </Link>

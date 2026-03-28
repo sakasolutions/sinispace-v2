@@ -25,7 +25,7 @@ import { ShoppingListModal } from '@/components/ui/shopping-list-modal';
 import { AddToShoppingListModal } from '@/components/recipe/add-to-shopping-list-modal';
 import { RecipeDetailView, type RecipeDetailRecipe } from '@/components/recipe/recipe-detail-view';
 import { RecipeCard } from '@/components/recipe/recipe-card';
-import { GourmetCockpit, type GourmetCockpitProps } from '@/components/recipe/gourmet-cockpit';
+import { GourmetCockpit } from '@/components/recipe/gourmet-cockpit';
 import {
   generateWeekDraft,
   regenerateSingleMealDraft,
@@ -281,6 +281,10 @@ export default function RecipePage() {
   const [isActivatingWeeklyPlan, setIsActivatingWeeklyPlan] = useState(false);
   const [customWeekPrompt, setCustomWeekPrompt] = useState('');
   const [rollingMealId, setRollingMealId] = useState<string | null>(null);
+  /** CookIQ Bento: offene SmartCart-Positionen (unchecked), gefetcht wenn Cockpit sichtbar. */
+  const [cockpitOpenCartItems, setCockpitOpenCartItems] = useState(0);
+  /** CookIQ Bento: Anzahl Rezept-Results in der Sammlung (ungefähr wie Tab „Meine Rezepte“). */
+  const [cockpitRecipeTotal, setCockpitRecipeTotal] = useState(0);
   /** 3-Schritte-Assistent nur in Phase „setup“ des Wochenplan-Modals (nicht mit Rezept-Wizard `wizardStep` verwechseln). */
   const [weekPlannerSetupStep, setWeekPlannerSetupStep] = useState<1 | 2 | 3>(1);
   /** Schritt 1: Zeitpräferenz → wird mit `⏱️ Unter 30 Min` in die API-Filter gemerged. */
@@ -321,6 +325,14 @@ export default function RecipePage() {
     );
     return hasMeals ? plan : null;
   }, [weekDraft, activeWeekPlan]);
+
+  /** Tage mit mindestens einer Mahlzeit im aktiven Wochenplan (0–7). */
+  const plannedDaysCount = useMemo(() => {
+    if (!activeWeekPlan || !Array.isArray(activeWeekPlan)) return 0;
+    return activeWeekPlan.filter(
+      (d: { meals?: unknown[] }) => Array.isArray(d?.meals) && d.meals.length > 0
+    ).length;
+  }, [activeWeekPlan]);
 
   /** SmartCart-Listen laden, sobald das Pantry-Modal geöffnet wird (für Ziel-Dropdown). */
   useEffect(() => {
@@ -387,6 +399,40 @@ export default function RecipePage() {
       }
       setActiveWeekPlan(plan);
     });
+    return () => {
+      cancelled = true;
+    };
+  }, [showCockpit]);
+
+  /** Cockpit sichtbar: SmartCart + Sammlungs-Count für Bento-Metriken. */
+  useEffect(() => {
+    if (!showCockpit) return;
+    let cancelled = false;
+    getShoppingLists()
+      .then((lists) => {
+        if (cancelled) return;
+        let n = 0;
+        for (const list of lists) {
+          const items = list.items;
+          if (!Array.isArray(items)) continue;
+          for (const item of items) {
+            if (item && item.checked === false) n += 1;
+          }
+        }
+        setCockpitOpenCartItems(n);
+      })
+      .catch(() => {
+        if (!cancelled) setCockpitOpenCartItems(0);
+      });
+    getWorkspaceResults(undefined, 200)
+      .then((result) => {
+        if (cancelled || !result.success || !result.results) return;
+        const n = result.results.filter((r: { toolId: string }) => r.toolId === 'recipe').length;
+        setCockpitRecipeTotal(n);
+      })
+      .catch(() => {
+        if (!cancelled) setCockpitRecipeTotal(0);
+      });
     return () => {
       cancelled = true;
     };
@@ -900,6 +946,9 @@ export default function RecipePage() {
                 setIsWeekPlannerOpen(true);
               }
             }}
+            plannedDaysCount={plannedDaysCount}
+            openCartItems={cockpitOpenCartItems}
+            totalRecipes={cockpitRecipeTotal}
           />
         </div>
       ) : (
