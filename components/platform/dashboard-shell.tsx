@@ -28,6 +28,8 @@ export type DashboardShellProps = {
   headerActionsRight?: React.ReactNode;
   /** Opt-in full-bleed mode: disables shell max-width + horizontal paddings. */
   disablePadding?: boolean;
+  /** Breite für Titel + Subtitle + headerExtra (Standard: max-w-2xl). z. B. max-w-5xl für CookIQ-Sammlung. */
+  headerTitleStackClassName?: string;
   /** Content below the overlap. Overlap (-mt-20 + h-5 mb-4) is applied once inside the shell. */
   children: React.ReactNode;
 };
@@ -58,6 +60,7 @@ export function DashboardShell({
   headerPrimaryCTA,
   headerActionsRight,
   disablePadding = false,
+  headerTitleStackClassName = 'max-w-2xl',
   children,
 }: DashboardShellProps) {
   const layer1Pb = headerVariant === 'withCTA' ? 'pb-12' : 'pb-6';
@@ -90,7 +93,7 @@ export function DashboardShell({
             >
               {headerActionsRight != null ? (
                 <div className="mx-auto flex max-w-3xl items-start justify-between gap-4">
-                  <div className="min-w-0 max-w-2xl">
+                  <div className={cn('min-w-0', headerTitleStackClassName)}>
                     {title}
                     {subtitle}
                     {headerExtra}
@@ -99,7 +102,7 @@ export function DashboardShell({
                   <div className="shrink-0">{headerActionsRight}</div>
                 </div>
               ) : (
-                <div className="max-w-2xl">
+                <div className={headerTitleStackClassName}>
                   {title}
                   {subtitle}
                   {headerExtra}
