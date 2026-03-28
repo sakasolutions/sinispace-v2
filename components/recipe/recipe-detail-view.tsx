@@ -431,7 +431,7 @@ export function RecipeDetailView({
   }
 
   return (
-    <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out pb-40 md:pb-44">
+    <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out pb-44 md:pb-40">
       {/* North Star: Edge-to-Edge Hero ~35vh (nur ohne embed – Wochenplan o. ä.) */}
       {!embedHeroInParent && (
         <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 -mt-[max(0.5rem,env(safe-area-inset-top))] overflow-hidden md:-mt-6">
@@ -673,10 +673,13 @@ export function RecipeDetailView({
         </div>
       )}
 
-      {/* Floating Action Bar – Glass, Daumenzone (Einkaufen + Kalender) */}
+      {/* Floating Action Bar – über Mobile-Nav (z-50), nicht am Viewport-Boden */}
       <div
-        className="fixed left-1/2 z-50 flex w-[90%] max-w-md -translate-x-1/2 items-center gap-2 rounded-[32px] border border-white/[0.1] bg-white/[0.08] p-2 shadow-2xl backdrop-blur-xl"
-        style={{ bottom: 'max(1.5rem, calc(0.5rem + env(safe-area-inset-bottom, 0px)))' }}
+        className={cn(
+          'fixed left-1/2 flex w-[90%] max-w-md -translate-x-1/2 items-center gap-2 rounded-[32px] border border-white/[0.1] bg-white/[0.08] p-2 shadow-2xl backdrop-blur-xl',
+          'z-[60] max-md:bottom-[max(6rem,calc(4.5rem+env(safe-area-inset-bottom,0px)))]',
+          'md:bottom-8 md:z-50'
+        )}
       >
         <button
           type="button"

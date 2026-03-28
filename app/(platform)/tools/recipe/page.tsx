@@ -969,7 +969,7 @@ export default function RecipePage() {
         /* Create / Meine Rezepte: DashboardShell für einheitliches Header/Overlap */
         <div
           data-no-padding
-          className="w-full min-h-full pb-20 overflow-x-hidden"
+          className="w-full min-h-full pb-32 overflow-x-hidden"
           style={{ fontFamily: 'var(--font-plus-jakarta-sans), sans-serif' }}
         >
           {activeTab === 'my-recipes' && !selectedRecipe ? (

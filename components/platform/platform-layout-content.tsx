@@ -73,7 +73,7 @@ export function PlatformLayoutContent({ children }: PlatformLayoutContentProps) 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden" data-scroll-container>
           <div
             className={cn(
-              'min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden bg-transparent pb-24 scrollbar-hide md:pb-6',
+              'min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden bg-transparent pb-32 scrollbar-hide md:pb-6',
               '[&>*:not([data-no-padding])]:min-h-full [&>*:not([data-no-padding])]:px-0 [&>*:not([data-no-padding])]:py-3 [&>*:not([data-no-padding])]:sm:p-4 [&>*:not([data-no-padding])]:md:p-8 [&>*:not([data-no-padding])]:lg:p-8',
               '[&>*:not([data-header-full-bleed])]:overflow-x-hidden'
             )}
