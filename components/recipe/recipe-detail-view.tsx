@@ -509,9 +509,13 @@ export function RecipeDetailView({
             </div>
           )}
           <div className="relative">
-            {/* Dezenter Cockpit-Ring hinter Titel + CTA */}
+            {/* Diffuses Ambient-Licht (KI-Cockpit), keine harten Kanten */}
             <div
-              className="pointer-events-none absolute left-1/2 top-[42%] z-0 h-[min(19rem,88vw)] w-[min(19rem,88vw)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-500/30 shadow-[0_0_50px_rgba(249,115,22,0.12),0_0_60px_rgba(168,85,247,0.08)] md:top-[40%] md:h-[22rem] md:w-[22rem]"
+              className="pointer-events-none absolute left-1/2 top-[20%] z-0 h-64 w-[120%] -translate-x-1/2 rounded-[100%] bg-purple-600/15 blur-[100px]"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute left-1/2 top-[50%] z-0 h-48 w-64 -translate-x-1/2 rounded-[100%] bg-orange-500/10 blur-[80px]"
               aria-hidden
             />
             <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
