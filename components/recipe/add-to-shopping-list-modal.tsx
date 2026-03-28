@@ -39,6 +39,7 @@ export function AddToShoppingListModal({
 
   useEffect(() => {
     if (!isOpen) return;
+    // „Fehlt noch“-Zutaten: alle standardmäßig angehakt
     setSelected(new Set(ingredients));
     setNewListName('');
     setLoading(true);
@@ -96,50 +97,59 @@ export function AddToShoppingListModal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[75] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
       onClick={onClose}
+      role="presentation"
     >
       <div
-        className="max-h-[90vh] w-full max-w-md overflow-hidden rounded-2xl border border-white/[0.08] bg-[#1a1025] shadow-2xl"
+        className="max-h-[90vh] w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#0A0A0A]/80 shadow-2xl backdrop-blur-2xl"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="smartcart-modal-title"
       >
-        <div className="flex items-center justify-between border-b border-white/[0.06] p-4">
-          <h2 className="text-lg font-bold text-white">Zutaten in den SmartCart</h2>
+        <div className="flex items-center justify-between border-b border-white/10 p-5">
+          <h2 id="smartcart-modal-title" className="text-lg font-bold tracking-tight text-white">
+            Zutaten in den SmartCart
+          </h2>
           <button
+            type="button"
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.06] text-white/50 transition-colors hover:bg-white/[0.1] hover:text-white/80"
+            className="rounded-full bg-white/5 p-2 text-white transition-colors hover:bg-white/10"
+            aria-label="Schließen"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" strokeWidth={2} />
           </button>
         </div>
 
-        <div className="space-y-4 p-4">
-          <p className="text-sm text-white/60">
+        <div className="space-y-4 p-5">
+          <p className="text-sm text-white/55">
             Zutaten auswählen (abwählen, wenn du sie schon hast):
           </p>
 
-          <div className="max-h-[45vh] divide-y divide-white/[0.06] overflow-y-auto rounded-xl border border-white/[0.06] bg-white/[0.02] pr-2 scrollbar-thin">
-            {ingredients.map((ing, i) => {
-              const isSelected = selected.has(ing);
+          <div className="max-h-[45vh] space-y-0.5 overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.03] p-2 pr-1 scrollbar-thin">
+            {ingredients.map((ing, idx) => {
+              const isChecked = selected.has(ing);
               return (
                 <button
-                  key={i}
+                  key={`${ing}-${idx}`}
                   type="button"
                   onClick={() => toggle(ing)}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-white/[0.06]"
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-white/[0.06]"
                 >
-                  <div
-                    className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
-                      isSelected
-                        ? 'bg-gradient-to-r from-orange-500 to-amber-500'
-                        : 'border-2 border-white/25 bg-white/[0.04]'
+                  <span
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-shadow ${
+                      isChecked
+                        ? 'border-transparent bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]'
+                        : 'border border-white/20 bg-white/5'
                     }`}
+                    aria-hidden
                   >
-                    {isSelected && <Check className="h-4 w-4 text-white" strokeWidth={2.5} />}
-                  </div>
+                    {isChecked ? <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} /> : null}
+                  </span>
                   <span
                     className={`min-w-0 flex-1 text-sm ${
-                      isSelected ? 'font-medium text-white/90' : 'text-white/35 line-through'
+                      isChecked ? 'font-medium text-white' : 'text-gray-400'
                     }`}
                   >
                     {formatIngredientDisplay(ing)}
@@ -154,7 +164,7 @@ export function AddToShoppingListModal({
               Zu welcher Liste hinzufügen?
             </label>
             {loading ? (
-              <div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-white/50">
+              <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white/50">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm">Listen laden …</span>
               </div>
@@ -168,7 +178,7 @@ export function AddToShoppingListModal({
                 variant="dropdown"
                 dropdownInPortal
                 icon={ListChecks}
-                triggerClassName="!border-white/[0.08] !bg-white/[0.04] pl-10 focus:!border-orange-400/50 focus:!ring-orange-500/20"
+                triggerClassName="!rounded-xl !border-white/10 !bg-white/[0.03] !pl-10 !text-white focus:!border-orange-400/40 focus:!ring-orange-500/25"
               />
             )}
             {!loading && isNewList && (
@@ -177,17 +187,18 @@ export function AddToShoppingListModal({
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
                 placeholder="Name der neuen Liste (z.B. Party, Wochenende)"
-                className="mt-2 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-white placeholder:text-white/25 transition-all focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white placeholder:text-white/30 transition-all focus:border-orange-400/40 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
               />
             )}
           </div>
         </div>
 
-        <div className="border-t border-white/[0.06] p-4">
+        <div className="border-t border-white/10 p-5">
           <button
+            type="button"
             onClick={() => handleSubmit()}
             disabled={selectedCount === 0 || saving || loading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-3 font-semibold text-white shadow-md shadow-orange-500/25 transition-all hover:from-orange-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-3.5 font-semibold text-white shadow-[0_0_20px_rgba(236,72,153,0.3)] transition-all hover:from-orange-600 hover:to-pink-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
           >
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin" />

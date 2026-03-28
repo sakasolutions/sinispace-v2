@@ -69,11 +69,11 @@ const RECIPE_GLASS_STYLE: React.CSSProperties = {
 };
 
 export type IngredientRow = {
-  /** Stabil über Portionen (p-0, s-1, u-2), damit isAvailable erhalten bleibt. */
+  /** Stabil über Portionen (p-0, s-1, u-2), damit Zustand erhalten bleibt. */
   id: string;
   /** Angezeigter / für SmartCart genutzter Text (portionsskalierter String). */
   name: string;
-  /** true = „Vorhanden“, false = „Fehlt noch“. */
+  /** true = „Vorhanden“; false = „Fehlt noch“ (entspricht `isMissing === true`). */
   isAvailable: boolean;
 };
 
@@ -201,7 +201,7 @@ export function RecipeDetailView({
   const [isAddToListOpen, setIsAddToListOpen] = useState(false);
   /** Welche Zutaten im „Einkaufen“-Modal angezeigt werden: alle (vom Einkaufen-Button) oder nur fehlende (vom Auf Einkaufsliste-Button). */
   const [addToListIngredients, setAddToListIngredients] = useState<string[]>([]);
-  /** Single source of truth für Vorhanden / Fehlt noch + SmartCart-Vorauswahl. */
+  /** Alle Zutaten mit `isAvailable` (true = Vorhanden, false = Fehlt noch / isMissing); SmartCart nutzt nur „Fehlt noch“. */
   const [ingredientRows, setIngredientRows] = useState<IngredientRow[]>([]);
   const [toast, setToast] = useState<{ message: string } | null>(null);
   const [cookingMode, setCookingMode] = useState(false);
@@ -358,10 +358,10 @@ export function RecipeDetailView({
     [ingredientRows]
   );
 
-  function toggleIngredient(ingredientName: string) {
+  function toggleIngredient(rowId: string) {
     setIngredientRows((prev) =>
       prev.map((row) =>
-        row.name === ingredientName ? { ...row, isAvailable: !row.isAvailable } : row
+        row.id === rowId ? { ...row, isAvailable: !row.isAvailable } : row
       )
     );
   }
@@ -610,14 +610,14 @@ export function RecipeDetailView({
                     {portionsStepper}
                   </div>
                   <p className="mb-6 text-sm text-white/45">
-                    für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umsortieren
+                    für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umschalten
                   </p>
                   <div className="mb-8 flex flex-col gap-3">
                     {availableIngredients.map((row) => (
                       <button
                         key={row.id}
                         type="button"
-                        onClick={() => toggleIngredient(row.name)}
+                        onClick={() => toggleIngredient(row.id)}
                         className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-sm transition-all hover:border-orange-400/25 hover:bg-white/[0.05] active:scale-[0.99]"
                       >
                         <span className="flex min-w-0 items-center gap-3">
@@ -646,14 +646,14 @@ export function RecipeDetailView({
                     {availableIngredients.length === 0 ? portionsStepper : null}
                   </div>
                   <p className="mb-6 text-sm text-white/45">
-                    für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umsortieren
+                    für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umschalten
                   </p>
                   <div className="flex flex-col gap-3">
                     {missingIngredients.map((row) => (
                       <button
                         key={row.id}
                         type="button"
-                        onClick={() => toggleIngredient(row.name)}
+                        onClick={() => toggleIngredient(row.id)}
                         className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-left shadow-sm transition-all hover:border-amber-400/30 hover:bg-white/[0.05] active:scale-[0.99]"
                       >
                         <span className="flex min-w-0 items-center gap-3">
