@@ -1071,11 +1071,7 @@ export default function RecipePage() {
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                   <div
-                    className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[55%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/55 to-transparent"
-                    aria-hidden
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/35 via-transparent to-transparent"
+                    className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-black via-black/80 to-transparent"
                     aria-hidden
                   />
               </div>

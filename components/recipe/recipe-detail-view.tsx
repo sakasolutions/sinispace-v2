@@ -107,7 +107,6 @@ function rebuildUnifiedRows(ingredients: string[], prev: IngredientRow[] | null)
 export function RecipeDetailView({
   recipe,
   resultId,
-  createdAt,
   onBack,
   fromWeekPlan = false,
   onSaveToCollection,
@@ -228,6 +227,79 @@ export function RecipeDetailView({
   };
 
   const cookingTime = parseTime(recipe.stats?.time || '');
+
+  const handleShare = () => {
+    const text = `${recipe.recipeName} – ${typeof window !== 'undefined' ? window.location.href : ''}`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      navigator
+        .share({
+          title: recipe.recipeName,
+          text: recipe.recipeName,
+          url: typeof window !== 'undefined' ? window.location.href : undefined,
+        })
+        .catch(() => {
+          if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            navigator.clipboard.writeText(text);
+            setToast({ message: 'Link kopiert' });
+          }
+        });
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setToast({ message: 'Link kopiert' });
+    }
+  };
+
+  const shareIconButton = (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleShare();
+      }}
+      className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.05] p-2 text-white backdrop-blur-md transition-colors hover:bg-white/[0.08]"
+      aria-label="Teilen"
+    >
+      <Share2 className="h-5 w-5 shrink-0" strokeWidth={2} />
+    </button>
+  );
+
+  const portionsStepper = (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 backdrop-blur-md">
+        <button
+          type="button"
+          onClick={() => setServings(Math.max(1, servings - 1))}
+          disabled={servings <= 1}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.08] text-white/80 transition-all hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="Weniger Portionen"
+        >
+          <Minus className="h-4 w-4" />
+        </button>
+        <span className="min-w-[5.5ch] text-center text-sm font-bold tabular-nums text-white">
+          {servings} Pers.
+        </span>
+        <button
+          type="button"
+          onClick={() => setServings(Math.min(8, servings + 1))}
+          disabled={servings >= 8}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.08] text-white/80 transition-all hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="Mehr Portionen"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+      {servings !== originalServings ? (
+        <button
+          type="button"
+          onClick={() => setServings(originalServings)}
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white/80"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+          Original
+        </button>
+      ) : null}
+    </div>
+  );
 
   const availableIngredients = useMemo(
     () => ingredientRows.filter((r) => r.isAvailable),
@@ -362,7 +434,7 @@ export function RecipeDetailView({
     <div className="animate-in slide-in-from-bottom-10 fade-in duration-700 ease-out pb-40 md:pb-44">
       {/* North Star: Edge-to-Edge Hero ~35vh (nur ohne embed – Wochenplan o. ä.) */}
       {!embedHeroInParent && (
-        <div className="w-screen max-w-[100vw] relative left-1/2 -translate-x-1/2 -mt-[max(0.5rem,env(safe-area-inset-top))] md:-mt-6 overflow-hidden">
+        <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 -mt-[max(0.5rem,env(safe-area-inset-top))] overflow-hidden md:-mt-6">
           <div className="relative h-[35vh] min-h-[200px] max-h-[340px] w-full bg-gray-900">
             {heroImageUrl ? (
               <img
@@ -371,93 +443,86 @@ export function RecipeDetailView({
                 className="absolute inset-0 h-full w-full object-cover"
               />
             ) : (
-            <div
-              className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1a1025] via-[#0f0914] to-[#0f0914]"
-              aria-hidden
-            >
-              <UtensilsCrossed className="h-24 w-24 text-orange-400/40" strokeWidth={1.5} />
-            </div>
+              <div
+                className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1a1025] via-[#0f0914] to-[#0f0914]"
+                aria-hidden
+              >
+                <UtensilsCrossed className="h-24 w-24 text-orange-400/40" strokeWidth={1.5} />
+              </div>
             )}
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-[#0f0914] via-[#0f0914]/60 to-transparent"
+              className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-black via-black/80 to-transparent"
               aria-hidden
             />
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-black/30 to-transparent"
-              aria-hidden
-            />
-            {fromWeekPlan && (
-              <div className="absolute top-4 left-4 right-4 z-10 flex justify-start">
+            <div className="absolute left-4 right-4 top-[max(1rem,env(safe-area-inset-top))] z-10 flex items-start justify-between gap-3">
+              {fromWeekPlan ? (
                 <button
                   type="button"
                   onClick={onBack}
-                  className="inline-flex items-center gap-2 rounded-full bg-black/40 hover:bg-black/55 backdrop-blur-md text-white px-4 py-2 text-sm font-semibold border border-white/20 shadow-lg"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/[0.08]"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="h-4 w-4 shrink-0" />
                   Zurück
                 </button>
-              </div>
-            )}
+              ) : (
+                <span className="inline-block w-10 shrink-0" aria-hidden />
+              )}
+              {shareIconButton}
+            </div>
           </div>
         </div>
       )}
 
       <div
         className={cn(
-          'relative z-10 w-full max-w-5xl mx-auto',
-          embedHeroInParent ? '-mt-14 md:-mt-24 px-0 sm:px-4 md:px-6' : '-mt-12 md:-mt-16 px-4 md:px-6'
+          'relative z-10 mx-auto w-full max-w-5xl',
+          embedHeroInParent ? '-mt-14 md:-mt-24 px-4 sm:px-4 md:px-6' : '-mt-12 md:-mt-16 px-4 md:px-6'
         )}
       >
-        <div className="rounded-t-[40px] border border-white/[0.08] bg-white/[0.03] px-6 pb-8 pt-8 shadow-xl backdrop-blur-xl md:px-8 md:pb-10">
+        {embedHeroInParent ? <div className="mb-4 flex justify-end">{shareIconButton}</div> : null}
+
+        <div className="pb-8 pt-2 md:pb-10">
           {fromWeekPlan && onSaveToCollection && (
-            <div className="flex justify-end mb-6">
+            <div className="mb-6 flex justify-end">
               <button
                 type="button"
                 onClick={onSaveToCollection}
-                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold shadow-glow-orange flex items-center gap-2"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2.5 text-sm font-semibold text-white shadow-glow-orange"
               >
-                <ChefHat className="w-4 h-4" />
+                <ChefHat className="h-4 w-4" />
                 In Meine Rezepte speichern
               </button>
             </div>
           )}
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-            <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0 flex-1">
               <div className="flex items-start gap-4">
                 {!embedHeroInParent && !heroImageUrl ? (
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-orange-400/15 bg-orange-400/[0.08]">
                     <UtensilsCrossed className="h-7 w-7 text-orange-400/70" strokeWidth={1.5} aria-hidden />
                   </div>
                 ) : null}
-                <div className="min-w-0 flex-1 space-y-3">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/35">
-                    Generiert am{' '}
-                    {new Date(createdAt).toLocaleDateString('de-DE', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                    })}
-                  </p>
-                  <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white">
+                <div className="min-w-0 flex-1 space-y-4">
+                  <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-white md:text-4xl">
                     {recipe.recipeName}
                   </h1>
                   <div className="flex flex-wrap gap-2">
                     {recipe.stats?.time ? (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/15 bg-orange-400/[0.08] px-3 py-1.5 text-sm font-medium text-orange-300/90">
-                        <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                      <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white backdrop-blur-md">
+                        <Clock className="h-4 w-4 shrink-0 text-orange-400" strokeWidth={2} aria-hidden />
                         {recipe.stats.time}
                       </span>
                     ) : null}
                     {adjustedCalories ? (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-rose-400/15 bg-rose-400/[0.08] px-3 py-1.5 text-sm font-medium text-rose-300/90">
-                        <Flame className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                      <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white backdrop-blur-md">
+                        <Flame className="h-4 w-4 shrink-0 text-pink-400" strokeWidth={2} aria-hidden />
                         {adjustedCalories}
                         {servings !== originalServings ? ' / Portion' : ''}
                       </span>
                     ) : null}
                     {recipe.stats?.difficulty ? (
-                      <span className="inline-flex items-center gap-2 rounded-full border border-violet-400/15 bg-violet-400/[0.08] px-3 py-1.5 text-sm font-medium text-violet-300/90">
-                        <ChefHat className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                      <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white backdrop-blur-md">
+                        <ChefHat className="h-4 w-4 shrink-0 text-violet-400" strokeWidth={2} aria-hidden />
                         {recipe.stats.difficulty}
                       </span>
                     ) : null}
@@ -465,75 +530,15 @@ export function RecipeDetailView({
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-4 shrink-0 w-full md:w-auto md:min-w-[240px]">
-              <div className="flex flex-col sm:flex-row md:flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={() => setCookingMode(true)}
-                  className="w-full px-6 py-3.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-glow-orange hover:brightness-105 transition-all flex items-center justify-center gap-2"
-                >
-                  <Play className="w-4 h-4 shrink-0" />
-                  Zubereitung starten
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const text = `${recipe.recipeName} – ${window.location.href}`;
-                    if (navigator.share) {
-                      navigator
-                        .share({
-                          title: recipe.recipeName,
-                          text: recipe.recipeName,
-                          url: window.location.href,
-                        })
-                        .catch(() => {
-                          navigator.clipboard.writeText(text);
-                          setToast({ message: 'Link kopiert' });
-                        });
-                    } else {
-                      navigator.clipboard.writeText(text);
-                      setToast({ message: 'Link kopiert' });
-                    }
-                  }}
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.06] px-5 py-3.5 font-semibold text-white/70 shadow-sm backdrop-blur-sm transition-colors hover:bg-white/[0.1]"
-                >
-                  <Share2 className="w-4 h-4 shrink-0" />
-                  Teilen
-                </button>
-              </div>
-              <div className="flex flex-wrap items-center gap-4 justify-start">
-                <div className="inline-flex items-center gap-4 rounded-full border border-white/[0.08] bg-white/[0.04] px-5 py-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setServings(Math.max(1, servings - 1))}
-                    disabled={servings <= 1}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.08] text-white/70 shadow-sm transition-all hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="min-w-[6ch] text-center text-sm font-bold tabular-nums text-white">
-                    {servings} Pers.
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setServings(Math.min(8, servings + 1))}
-                    disabled={servings >= 8}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.08] text-white/70 shadow-sm transition-all hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                {servings !== originalServings && (
-                  <button
-                    type="button"
-                    onClick={() => setServings(originalServings)}
-                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white/80"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    Original
-                  </button>
-                )}
-              </div>
+            <div className="w-full shrink-0 lg:w-auto lg:min-w-[220px]">
+              <button
+                type="button"
+                onClick={() => setCookingMode(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3.5 font-bold text-white shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all hover:brightness-105"
+              >
+                <Play className="h-4 w-4 shrink-0" />
+                Zubereitung starten
+              </button>
             </div>
           </div>
         </div>
@@ -546,7 +551,10 @@ export function RecipeDetailView({
             <>
               {availableIngredients.length > 0 && (
                 <>
-                  <h2 className="mb-2 text-lg font-bold text-white">Zutaten (Vorhanden)</h2>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <h2 className="text-lg font-bold text-white">Zutaten (Vorhanden)</h2>
+                    {portionsStepper}
+                  </div>
                   <p className="mb-6 text-sm text-white/45">
                     für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umsortieren
                   </p>
@@ -574,12 +582,15 @@ export function RecipeDetailView({
               )}
               {missingIngredients.length > 0 ? (
                 <>
-                  <h2 className="mb-2 flex items-center gap-2 text-lg font-bold text-white">
-                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-amber-400/[0.12]">
-                      <AlertCircle className="h-5 w-5 shrink-0 text-amber-400/80" aria-hidden />
-                    </span>
-                    Fehlt noch
-                  </h2>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <h2 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-bold text-white">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-400/[0.12]">
+                        <AlertCircle className="h-5 w-5 shrink-0 text-amber-400/80" aria-hidden />
+                      </span>
+                      Fehlt noch
+                    </h2>
+                    {availableIngredients.length === 0 ? portionsStepper : null}
+                  </div>
                   <p className="mb-6 text-sm text-white/45">
                     für {servings} {servings === 1 ? 'Person' : 'Personen'} · Tippen zum Umsortieren
                   </p>
