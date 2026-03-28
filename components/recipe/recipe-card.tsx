@@ -93,37 +93,23 @@ export function RecipeCard({
     </>
   ) : null;
 
-  /** Sammlung: Mobile = horizontale Liste (iOS-Style), ab md = klassische Kachel */
+  /** Sammlung: Split-List-View — immer horizontal (Thumbnail links, Text rechts) */
   if (glass) {
     return (
       <div
         data-result-id={resultId}
-        className={cn(
-          'group relative flex cursor-pointer flex-row items-center overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.03] p-3 backdrop-blur-md transition-all duration-300',
-          'md:flex-col md:items-stretch md:p-0 md:hover:-translate-y-1'
-        )}
+        className="group relative flex cursor-pointer flex-row items-center overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.03] p-3 backdrop-blur-md transition-all duration-300 hover:border-white/[0.09]"
         onClick={onSelect}
       >
-        <div
-          className={cn(
-            'relative h-24 w-24 shrink-0 overflow-hidden rounded-xl',
-            'md:h-48 md:w-full md:rounded-none md:rounded-t-2xl'
-          )}
-        >
+        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl md:h-32 md:w-32">
           {recipe.imageUrl ? (
-            <>
-              <img src={recipe.imageUrl} alt="" className="h-full w-full object-cover" />
-              <div
-                className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-[40%] bg-gradient-to-t from-black/30 to-transparent md:block"
-                aria-hidden
-              />
-            </>
+            <img src={recipe.imageUrl} alt="" className="h-full w-full rounded-xl object-cover" />
           ) : (
             <>
-              <div className={cn('absolute inset-0', theme.gradient)} aria-hidden />
-              <div className="pointer-events-none absolute inset-0 bg-white/0 transition-colors group-hover:bg-white/10" aria-hidden />
+              <div className={cn('absolute inset-0 rounded-xl', theme.gradient)} aria-hidden />
+              <div className="pointer-events-none absolute inset-0 rounded-xl bg-white/0 transition-colors group-hover:bg-white/10" aria-hidden />
               <ThemeIcon
-                className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 text-white drop-shadow-md md:h-16 md:w-16"
+                className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 text-white drop-shadow-md md:h-12 md:w-12"
                 strokeWidth={2}
                 aria-hidden
               />
@@ -131,7 +117,7 @@ export function RecipeCard({
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col justify-center pl-4 pr-10 md:justify-start md:p-4 md:pl-0 md:pr-4">
+        <div className="flex min-w-0 flex-1 flex-col justify-center pl-4 pr-10">
           <h3 className="line-clamp-2 text-base font-semibold leading-snug text-white md:text-lg">
             {recipe.recipeName || 'Rezept'}
           </h3>
@@ -168,7 +154,7 @@ export function RecipeCard({
           ) : null}
         </div>
 
-        <div className="absolute right-3 top-3 z-20 md:right-4 md:top-4">
+        <div className="absolute right-3 top-3 z-20">
           {menuButton}
           {menuDropdown}
         </div>

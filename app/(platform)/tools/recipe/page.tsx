@@ -1010,7 +1010,7 @@ export default function RecipePage() {
                 <p className="mt-1 text-sm text-white/50">Ändere die Suche oder wähle „Alle“.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
                 {filteredCollectionRecipes.map((result: { id: string; recipe: Recipe; createdAt: string; metadata?: string | null }) => {
                   const r = result.recipe as Recipe;
                   const metaFilters = (() => {
