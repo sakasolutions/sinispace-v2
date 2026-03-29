@@ -242,14 +242,17 @@ function ShoppingItemNameStack({
   subLineClassName?: string;
 }) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col justify-center">
-      <span className={nameClassName}>{name}</span>
+    <div className="flex min-w-0 flex-1 flex-col justify-center overflow-hidden">
+      <span className={cn('block min-w-0 truncate', nameClassName)} title={name}>
+        {name}
+      </span>
       {subLine ? (
         <span
           className={cn(
-            'mt-0.5 text-[11px] leading-tight text-gray-500',
+            'mt-0.5 block min-w-0 truncate text-[11px] leading-tight text-gray-500',
             subLineClassName
           )}
+          title={subLine}
         >
           {subLine}
         </span>
