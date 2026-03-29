@@ -56,7 +56,7 @@ import {
   parseQtyInputForShopping,
 } from '@/lib/shopping-piece-quantity';
 import { parseIngredient } from '@/lib/ingredient-parser';
-import { analyzeShoppingItems } from '@/actions/shopping-list-ai';
+import { analyzeShoppingItems, optimizeSmartCartListWithAi } from '@/actions/shopping-list-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import {
@@ -287,6 +287,7 @@ export default function ShoppingListPage() {
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(false);
   const [isSmartMergeProcessing, setIsSmartMergeProcessing] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
   const smartMergeInflightRef = useRef(0);
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -653,6 +654,79 @@ export default function ShoppingListPage() {
     );
   };
 
+  const handleSmartListOptimize = useCallback(async () => {
+    if (!activeListId || !activeList || isOptimizing || isSmartMergeProcessing || storeMode) return;
+    const openItems = activeList.items.filter((i) => !i.checked);
+    const toOptimize = openItems.filter((i) => i.status !== 'analyzing');
+    if (toOptimize.length === 0) {
+      setToast('Keine offenen Artikel zum Optimieren.');
+      if (toastRef.current) clearTimeout(toastRef.current);
+      toastRef.current = setTimeout(() => {
+        toastRef.current = null;
+        setToast(null);
+      }, 2800);
+      return;
+    }
+
+    setIsOptimizing(true);
+    const payload = toOptimize.map((i) => ({
+      text: i.text,
+      quantity: i.quantity ?? null,
+      unit: i.unit ?? null,
+      category: i.category,
+      subtext: i.recipeSubtext ?? null,
+    }));
+
+    const res = await optimizeSmartCartListWithAi(payload);
+    setIsOptimizing(false);
+
+    if (res.error) {
+      const msg =
+        res.error === 'PREMIUM_REQUIRED'
+          ? 'Smart Liste ist ein Premium-Feature.'
+          : res.error;
+      setToast(msg);
+      if (toastRef.current) clearTimeout(toastRef.current);
+      toastRef.current = setTimeout(() => {
+        toastRef.current = null;
+        setToast(null);
+      }, 4000);
+      return;
+    }
+
+    const lines = res.data!;
+    setLists((prev) =>
+      prev.map((l) => {
+        if (l.id !== activeListId) return l;
+        const checked = l.items.filter((i) => i.checked);
+        const analyzing = l.items.filter((i) => !i.checked && i.status === 'analyzing');
+        const newOpen: ShoppingItem[] = lines.map((line) => ({
+          id: generateId(),
+          text: line.name,
+          checked: false,
+          category: line.category,
+          quantity: line.quantity,
+          unit: line.unit,
+          status: 'done' as const,
+          ...(line.recipeSubtext ? { recipeSubtext: line.recipeSubtext } : {}),
+        }));
+        return { ...l, items: [...newOpen, ...analyzing, ...checked] };
+      })
+    );
+    setToast('Liste mit KI optimiert.');
+    if (toastRef.current) clearTimeout(toastRef.current);
+    toastRef.current = setTimeout(() => {
+      toastRef.current = null;
+      setToast(null);
+    }, 2200);
+  }, [
+    activeList,
+    activeListId,
+    isOptimizing,
+    isSmartMergeProcessing,
+    storeMode,
+  ]);
+
   const shareList = useCallback(async () => {
     if (!activeList) return;
     const items = activeList.items.filter((i) => !i.checked);
@@ -763,10 +837,31 @@ export default function ShoppingListPage() {
                 <ShoppingCart className="h-3.5 w-3.5" />
                 {(activeList?.items.filter((i) => !i.checked).length ?? 0)} Offen
               </div>
-              <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
-                <Sparkles className="h-3.5 w-3.5" />
-                Smart Liste
-              </div>
+              <button
+                type="button"
+                onClick={() => void handleSmartListOptimize()}
+                disabled={
+                  isOptimizing ||
+                  isSmartMergeProcessing ||
+                  storeMode ||
+                  !activeList ||
+                  activeList.items.filter((i) => !i.checked && i.status !== 'analyzing').length === 0
+                }
+                aria-busy={isOptimizing}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all',
+                  isOptimizing
+                    ? 'border-fuchsia-500/40 bg-fuchsia-500/15 text-white shadow-[0_0_16px_rgba(217,70,239,0.25)]'
+                    : 'border-white/10 bg-white/[0.05] text-white hover:border-white/20 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45'
+                )}
+              >
+                {isOptimizing ? (
+                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-fuchsia-200" aria-hidden />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                )}
+                {isOptimizing ? 'Optimiere…' : 'Smart Liste'}
+              </button>
             </div>
           </div>
         }
