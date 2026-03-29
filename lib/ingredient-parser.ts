@@ -20,6 +20,50 @@ export type IngredientQuantityFields = {
   name: string;
 };
 
+function normalizedUnitKey(unit: string | null | undefined): string | null {
+  if (unit == null) return null;
+  const t = unit.trim().toLowerCase().replace(/\.+$/g, '');
+  return t || null;
+}
+
+/**
+ * Grobe Durchschnittsumrechnung Rezept-Volumen → Gramm/Milliliter (vor Merge im SmartCart).
+ * Keys lowercase, ohne trailing Punkt (Abgleich über normalisierten Einheits-String).
+ */
+export const UNIT_CONVERSIONS: Record<string, { multiplier: number; baseUnit: 'g' | 'ml' }> = {
+  el: { multiplier: 15, baseUnit: 'g' },
+  esslöffel: { multiplier: 15, baseUnit: 'g' },
+  essloeffel: { multiplier: 15, baseUnit: 'g' },
+  tl: { multiplier: 5, baseUnit: 'g' },
+  teelöffel: { multiplier: 5, baseUnit: 'g' },
+  teeloeffel: { multiplier: 5, baseUnit: 'g' },
+  tasse: { multiplier: 200, baseUnit: 'g' },
+  tassen: { multiplier: 200, baseUnit: 'g' },
+  prise: { multiplier: 1, baseUnit: 'g' },
+  prisen: { multiplier: 1, baseUnit: 'g' },
+  schuss: { multiplier: 20, baseUnit: 'ml' },
+  spritzer: { multiplier: 20, baseUnit: 'ml' },
+};
+
+/**
+ * Wandelt EL/TL/Tasse/… in Gramm bzw. Milliliter um. Unbekannte Einheiten (g, kg, ml, x, …) bleiben unverändert.
+ */
+export function normalizeToBaseUnit(fields: IngredientQuantityFields): IngredientQuantityFields {
+  const key = normalizedUnitKey(fields.unit);
+  if (key == null) return fields;
+  const rule = UNIT_CONVERSIONS[key];
+  if (!rule) return fields;
+  const amount = fields.amount;
+  if (amount == null || !Number.isFinite(amount)) return fields;
+
+  const newAmount = amount * rule.multiplier;
+  return {
+    ...fields,
+    amount: newAmount,
+    unit: rule.baseUnit,
+  };
+}
+
 /** Koch-/Rezept-Einheiten → vor dem Schreiben in den SmartCart zu Einkaufs-Logik normieren. */
 const CULINARY_UNIT_KEYS = new Set([
   'el',
@@ -31,12 +75,6 @@ const CULINARY_UNIT_KEYS = new Set([
   'zehe',
   'zehen',
 ]);
-
-function normalizedUnitKey(unit: string | null | undefined): string | null {
-  if (unit == null) return null;
-  const t = unit.trim().toLowerCase().replace(/\.+$/g, '');
-  return t || null;
-}
 
 /**
  * Rezept-Zutaten für den Supermarkt: Koch-Einheiten (EL, TL, Tasse, …) werden auf ein kaufbares
@@ -57,6 +95,14 @@ export function convertToShoppingUnit(parsed: IngredientQuantityFields): Ingredi
   }
 
   return { amount: 1, unit: 'x', name: name || parsed.name };
+}
+
+/**
+ * Rezept → SmartCart: zuerst Volumen in g/ml, dann {@link convertToShoppingUnit} (Koch-Einheiten → x/Knolle).
+ * So können Merge und spätere KI auf vergleichbaren Basiseinheiten arbeiten.
+ */
+export function prepareRecipeIngredientForSmartCart(fields: IngredientQuantityFields): IngredientQuantityFields {
+  return convertToShoppingUnit(normalizeToBaseUnit(fields));
 }
 
 /**
