@@ -1,13 +1,15 @@
 /**
- * SmartCart: Mengen parsen und anzeigen — Stück ("x"), Gramm, Kilogramm.
- * Gewichts-Parsing läuft vor Stück-Fallback, damit z. B. "500 g Mehl" nicht als Stückzahl gilt.
+ * SmartCart: Mengen parsen und anzeigen — Gewicht (g, kg), Volumen/Gebinde/Rezept-Einheiten, Stück ("x").
+ * Reihenfolge Fallback: kg → g → ml/l/Pck./… → Stück.
  */
 
 const NUM = String.raw`(\d+(?:[.,]\d+)?)`;
 
-/** Erstes Wort des Namens darf keine Massen-/Volumen-Einheit sein (Inferenz unit "x"). */
+/**
+ * Erstes Wort des Namens darf keine Maß-/Gebinde-Einheit sein (Inferenz unit "x" bei fehlender Einheit).
+ */
 const UNIT_LIKE_NAME_START =
-  /^(el|tl|g|kg|mg|ml|cl|dl|l|liter|l\.|prise|kilo|kilogramm|gramm|gram|gr|pfund|dkg|dag)\b/i;
+  /^(el|tl|g|kg|mg|ml|cl|dl|l|liter|milliliter|l\.|prise|kilo|kilogramm|gramm|gram|gr|pfund|dkg|dag|packung|packungen|päckchen|pck\.?|flasche|flaschen|fl\.?|dose|dosen|glas|gläser|glaser|esslöffel|essloeffel|bünde|bunde|bund|zehe|zehen|knoblauchzehe|knoblauchzehen)\b/i;
 
 function isPieceUnitToken(raw: string | null | undefined): boolean {
   if (raw == null) return false;
@@ -24,6 +26,60 @@ export function normalizeWeightUnitSynonym(raw: string | null | undefined): 'g' 
   return null;
 }
 
+/** Volumen, Gebinde, Rezept-Einheiten → kanonische Schreibweise (für Speicherung & Pille). */
+export function normalizeVolumePackagingCulinaryUnit(raw: string | null | undefined): string | null {
+  if (raw == null) return null;
+  const l = raw.trim().toLowerCase().replace(/\.+$/g, '');
+  const map = new Map<string, string>([
+    ['milliliter', 'ml'],
+    ['ml', 'ml'],
+    ['liter', 'l'],
+    ['l', 'l'],
+    ['päckchen', 'Pck.'],
+    ['packungen', 'Pck.'],
+    ['packung', 'Pck.'],
+    ['pck', 'Pck.'],
+    ['flaschen', 'Fl.'],
+    ['flasche', 'Fl.'],
+    ['fl', 'Fl.'],
+    ['dosen', 'Dose'],
+    ['dose', 'Dose'],
+    ['gläser', 'Glas'],
+    ['glaser', 'Glas'],
+    ['glas', 'Glas'],
+    ['esslöffel', 'EL'],
+    ['essloeffel', 'EL'],
+    ['el', 'EL'],
+    ['teelöffel', 'TL'],
+    ['tl', 'TL'],
+    ['bünde', 'Bund'],
+    ['bunde', 'Bund'],
+    ['bund', 'Bund'],
+    ['knoblauchzehen', 'Zehe'],
+    ['knoblauchzehe', 'Zehe'],
+    ['zehen', 'Zehe'],
+    ['zehe', 'Zehe'],
+  ]);
+  return map.get(l) ?? null;
+}
+
+/** Regex-Fragment (längere Token zuerst) + kanonische Einheit für Zeilen-Parsing. */
+const VPC_LINE_RULES: { pattern: string; unit: string }[] = [
+  { pattern: String.raw`(?:milliliter|ml)`, unit: 'ml' },
+  { pattern: String.raw`(?:liter|l)`, unit: 'l' },
+  { pattern: String.raw`(?:päckchen|packungen|packung|pck)`, unit: 'Pck.' },
+  { pattern: String.raw`(?:flaschen|flasche|fl)`, unit: 'Fl.' },
+  { pattern: String.raw`(?:dosen|dose)`, unit: 'Dose' },
+  { pattern: String.raw`(?:gläser|glaser|glas)`, unit: 'Glas' },
+  { pattern: String.raw`(?:esslöffel|essloeffel|el)`, unit: 'EL' },
+  { pattern: String.raw`(?:teelöffel|tl)`, unit: 'TL' },
+  { pattern: String.raw`(?:bünde|bunde|bund)`, unit: 'Bund' },
+  {
+    pattern: String.raw`(?:knoblauchzehen|knoblauchzehe|zehen|zehe)`,
+    unit: 'Zehe',
+  },
+];
+
 const deQtyFormatter = new Intl.NumberFormat('de-DE', {
   maximumFractionDigits: 10,
   useGrouping: false,
@@ -35,7 +91,7 @@ export function formatQuantityGerman(n: number): string {
 }
 
 /**
- * Label für Badge / Export: Stück als "Nx", Gewichte als "N g" / "N,5 kg" (mit Leerzeichen).
+ * Label für Badge / Export: Stück als "Nx" ohne Leerzeichen; alle anderen Einheiten mit Leerzeichen.
  */
 export function formatShoppingQtyLabel(
   quantity: number | null | undefined,
@@ -46,7 +102,6 @@ export function formatShoppingQtyLabel(
   if (q != null && Number.isFinite(q)) {
     const qStr = formatQuantityGerman(q);
     if (u == null || u === 'x') return `${qStr}x`;
-    if (u === 'g' || u === 'kg') return `${qStr} ${u}`;
     return `${qStr} ${u}`;
   }
   if (u) return u;
@@ -85,8 +140,31 @@ export function parseWeightQuantityFromLine(line: string): {
 }
 
 /**
+ * Volumen, typische Gebinde, EL/TL, Bund, Zehe — vor Stück-Fallback.
+ */
+export function parseVolumePackagingCulinaryFromLine(line: string): {
+  quantity: number;
+  unit: string;
+  name: string;
+} | null {
+  const s = line.trim();
+  if (!s) return null;
+
+  for (const { pattern, unit } of VPC_LINE_RULES) {
+    const re = new RegExp(`^${NUM}\\s*${pattern}\\b\\s*(.+)$`, 'i');
+    const m = re.exec(s);
+    if (m) {
+      const q = parseFloat(m[1]!.replace(',', '.'));
+      const name = m[2]!.trim();
+      if (!Number.isNaN(q) && name.length > 0) return { quantity: q, unit, name };
+    }
+  }
+  return null;
+}
+
+/**
  * Zerlegt eine Zeile in Menge (Stück), Einheit "x" und Produktname.
- * Nur Stück-Fälle; Gewicht zuerst über parseWeightQuantityFromLine.
+ * Nur Stück-Fälle; Gewicht & VPC zuerst über parseShoppingFallbackLine.
  */
 export function parsePieceQuantityFromLine(line: string): {
   quantity: number;
@@ -120,20 +198,23 @@ export function parsePieceQuantityFromLine(line: string): {
   return null;
 }
 
-export type ParsedFallbackShoppingLine =
-  | { quantity: number; unit: 'g' | 'kg'; name: string }
-  | { quantity: number; unit: 'x'; name: string };
+export type ParsedFallbackShoppingLine = {
+  quantity: number;
+  unit: string;
+  name: string;
+};
 
-/** Fallback-Zeile: zuerst Gewicht, dann Stück (Schritt 1 + 2). */
+/** Fallback-Zeile: Gewicht → Volumen/Gebinde/Rezept → Stück. */
 export function parseShoppingFallbackLine(line: string): ParsedFallbackShoppingLine | null {
   const w = parseWeightQuantityFromLine(line);
   if (w) return w;
+  const v = parseVolumePackagingCulinaryFromLine(line);
+  if (v) return v;
   return parsePieceQuantityFromLine(line);
 }
 
 /**
- * Nach KI-Analyse: Gewichts-Synonyme → "g"/"kg"; Stück-Synonyme → "x";
- * bei fehlender Einheit weiterhin "x", wenn der Name nicht wie Maßeinheit beginnt.
+ * Nach KI-Analyse: kanonische Einheiten; bei fehlender Einheit ggf. "x".
  */
 export function normalizeShoppingQuantityFields(item: {
   name: string;
@@ -147,8 +228,13 @@ export function normalizeShoppingQuantityFields(item: {
     const w = normalizeWeightUnitSynonym(unit);
     if (w) {
       unit = w;
-    } else if (isPieceUnitToken(unit)) {
-      unit = 'x';
+    } else {
+      const v = normalizeVolumePackagingCulinaryUnit(unit);
+      if (v) {
+        unit = v;
+      } else if (isPieceUnitToken(unit)) {
+        unit = 'x';
+      }
     }
   }
 
@@ -162,8 +248,14 @@ export function normalizeShoppingQuantityFields(item: {
   return { name, quantity, unit };
 }
 
+/** Nur-Einheit-Zeilen fürs Mengen-Badge (Reihenfolge wie VPC_LINE_RULES, ml vor l). */
+const VPC_QTY_ONLY_RULES: { pattern: string; unit: string }[] = VPC_LINE_RULES.map(({ pattern, unit }) => ({
+  pattern,
+  unit,
+}));
+
 /**
- * Freitext im Mengen-Badge: Gewicht, dann Stück, dann generisch (Einheit normalisieren).
+ * Freitext im Mengen-Badge: Gewicht, Volumen/Gebinde, Stück, dann generisch.
  */
 export function parseQtyInputForShopping(raw: string): { quantity: number | null; unit: string | null } {
   const s = raw.trim();
@@ -182,6 +274,15 @@ export function parseQtyInputForShopping(raw: string): { quantity: number | null
     if (!Number.isNaN(q)) return { quantity: q, unit: 'g' };
   }
 
+  for (const { pattern, unit } of VPC_QTY_ONLY_RULES) {
+    const re = new RegExp(`^${NUM}\\s*${pattern}\\s*$`, 'i');
+    const m = re.exec(s);
+    if (m) {
+      const q = parseFloat(m[1]!.replace(',', '.'));
+      if (!Number.isNaN(q)) return { quantity: q, unit };
+    }
+  }
+
   const pieceSuffix = new RegExp(`^${NUM}\\s*(?:x|stk\\.?|stück|st)\\s*$`, 'i');
   const loneNum = new RegExp(`^${NUM}\\s*$`);
   if (pieceSuffix.test(s) || loneNum.test(s)) {
@@ -195,7 +296,7 @@ export function parseQtyInputForShopping(raw: string): { quantity: number | null
   const m = s.match(/^(\d+(?:[.,]\d+)?)\s*(\S*)$/);
   if (!m) return { quantity: null, unit: null };
   const q = parseFloat(m[1]!.replace(',', '.'));
-  let uRaw = m[2]?.trim() || null;
+  const uRaw = m[2]?.trim() || null;
   if (Number.isNaN(q)) return { quantity: null, unit: null };
 
   if (uRaw && isPieceUnitToken(uRaw)) {
@@ -204,6 +305,9 @@ export function parseQtyInputForShopping(raw: string): { quantity: number | null
 
   const w = normalizeWeightUnitSynonym(uRaw);
   if (w) return { quantity: q, unit: w };
+
+  const v = normalizeVolumePackagingCulinaryUnit(uRaw);
+  if (v) return { quantity: q, unit: v };
 
   return { quantity: q, unit: uRaw || null };
 }
