@@ -63,6 +63,35 @@ export function normalizeVolumePackagingCulinaryUnit(raw: string | null | undefi
   return map.get(l) ?? null;
 }
 
+/**
+ * Plural/Singular für Dose, Zehe, Glas abhängig von der Menge (z. B. 2 → Dosen, 1 → Dose; 1,5 zählt als > 1).
+ * Vor dem Schreiben in den State / nach dem Parsen anwenden.
+ */
+export function applyShoppingUnitPlural(quantity: number | null, unit: string | null): string | null {
+  if (unit == null) return null;
+  const formattedUnit = unit.trim();
+  if (formattedUnit === '' || formattedUnit === 'x') return formattedUnit;
+
+  if (quantity == null || !Number.isFinite(quantity)) return unit;
+
+  const numericMenge = Number(quantity);
+  if (Number.isNaN(numericMenge)) return unit;
+
+  const unitLower = formattedUnit.toLowerCase().replace(/\.+$/g, '');
+
+  if (numericMenge > 1) {
+    if (unitLower === 'dose' || unitLower === 'dosen') return 'Dosen';
+    if (unitLower === 'zehe' || unitLower === 'zehen') return 'Zehen';
+    if (unitLower === 'glas' || unitLower === 'gläser' || unitLower === 'glaser') return 'Gläser';
+    return unit;
+  }
+
+  if (unitLower === 'dosen' || unitLower === 'dose') return 'Dose';
+  if (unitLower === 'zehen' || unitLower === 'zehe') return 'Zehe';
+  if (unitLower === 'gläser' || unitLower === 'glaser' || unitLower === 'glas') return 'Glas';
+  return unit;
+}
+
 /** Regex-Fragment (längere Token zuerst) + kanonische Einheit für Zeilen-Parsing. */
 const VPC_LINE_RULES: { pattern: string; unit: string }[] = [
   { pattern: String.raw`(?:milliliter|ml)`, unit: 'ml' },
@@ -102,7 +131,8 @@ export function formatShoppingQtyLabel(
   if (q != null && Number.isFinite(q)) {
     const qStr = formatQuantityGerman(q);
     if (u == null || u === 'x') return `${qStr}x`;
-    return `${qStr} ${u}`;
+    const displayUnit = applyShoppingUnitPlural(q, u) ?? u;
+    return `${qStr} ${displayUnit}`;
   }
   if (u) return u;
   return '';
@@ -156,7 +186,10 @@ export function parseVolumePackagingCulinaryFromLine(line: string): {
     if (m) {
       const q = parseFloat(m[1]!.replace(',', '.'));
       const name = m[2]!.trim();
-      if (!Number.isNaN(q) && name.length > 0) return { quantity: q, unit, name };
+      if (!Number.isNaN(q) && name.length > 0) {
+        const pluralUnit = applyShoppingUnitPlural(q, unit) ?? unit;
+        return { quantity: q, unit: pluralUnit, name };
+      }
     }
   }
   return null;
@@ -245,7 +278,7 @@ export function normalizeShoppingQuantityFields(item: {
     }
   }
 
-  return { name, quantity, unit };
+  return { name, quantity, unit: applyShoppingUnitPlural(quantity, unit) };
 }
 
 /** Nur-Einheit-Zeilen fürs Mengen-Badge (Reihenfolge wie VPC_LINE_RULES, ml vor l). */
@@ -266,12 +299,12 @@ export function parseQtyInputForShopping(raw: string): { quantity: number | null
   const kgOnlyMatch = kgOnly.exec(s);
   if (kgOnlyMatch) {
     const q = parseFloat(kgOnlyMatch[1]!.replace(',', '.'));
-    if (!Number.isNaN(q)) return { quantity: q, unit: 'kg' };
+    if (!Number.isNaN(q)) return { quantity: q, unit: applyShoppingUnitPlural(q, 'kg') ?? 'kg' };
   }
   const gOnlyMatch = gOnly.exec(s);
   if (gOnlyMatch) {
     const q = parseFloat(gOnlyMatch[1]!.replace(',', '.'));
-    if (!Number.isNaN(q)) return { quantity: q, unit: 'g' };
+    if (!Number.isNaN(q)) return { quantity: q, unit: applyShoppingUnitPlural(q, 'g') ?? 'g' };
   }
 
   for (const { pattern, unit } of VPC_QTY_ONLY_RULES) {
@@ -279,7 +312,7 @@ export function parseQtyInputForShopping(raw: string): { quantity: number | null
     const m = re.exec(s);
     if (m) {
       const q = parseFloat(m[1]!.replace(',', '.'));
-      if (!Number.isNaN(q)) return { quantity: q, unit };
+      if (!Number.isNaN(q)) return { quantity: q, unit: applyShoppingUnitPlural(q, unit) ?? unit };
     }
   }
 
@@ -304,10 +337,11 @@ export function parseQtyInputForShopping(raw: string): { quantity: number | null
   }
 
   const w = normalizeWeightUnitSynonym(uRaw);
-  if (w) return { quantity: q, unit: w };
+  if (w) return { quantity: q, unit: applyShoppingUnitPlural(q, w) ?? w };
 
   const v = normalizeVolumePackagingCulinaryUnit(uRaw);
-  if (v) return { quantity: q, unit: v };
+  if (v) return { quantity: q, unit: applyShoppingUnitPlural(q, v) ?? v };
 
-  return { quantity: q, unit: uRaw || null };
+  const rawUnit = uRaw || null;
+  return { quantity: q, unit: applyShoppingUnitPlural(q, rawUnit) ?? rawUnit };
 }

@@ -4,6 +4,7 @@
  */
 
 import { normalizeSmartCartCategory } from '@/lib/shopping-list-categories';
+import { applyShoppingUnitPlural } from '@/lib/shopping-piece-quantity';
 
 export const SHOPPING_LISTS_STORAGE_KEY = 'sinispace-shopping-lists';
 
@@ -127,14 +128,18 @@ export function appendStructuredItemsToList(
   if (valid.length === 0) return { lists, listName: '', appendedCount: 0 };
 
   const buildShoppingItems = (): ShoppingItem[] =>
-    valid.map((i) => ({
-      id: generateId(),
-      text: i.text,
-      checked: false,
-      category: normalizeSmartCartCategory(i.category ?? undefined),
-      quantity: i.quantity ?? null,
-      unit: i.unit != null && String(i.unit).trim() ? String(i.unit).trim() : null,
-    }));
+    valid.map((i) => {
+      const q = i.quantity ?? null;
+      const rawU = i.unit != null && String(i.unit).trim() ? String(i.unit).trim() : null;
+      return {
+        id: generateId(),
+        text: i.text,
+        checked: false,
+        category: normalizeSmartCartCategory(i.category ?? undefined),
+        quantity: q,
+        unit: applyShoppingUnitPlural(q, rawU),
+      };
+    });
 
   let next = [...lists];
   let listName: string;

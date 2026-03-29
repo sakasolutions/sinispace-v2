@@ -51,6 +51,7 @@ import {
   sortCategoriesBySupermarktRoute,
 } from '@/lib/shopping-list-categories';
 import {
+  applyShoppingUnitPlural,
   formatShoppingQtyLabel,
   parseQtyInputForShopping,
   parseShoppingFallbackLine,
@@ -165,20 +166,24 @@ function processSmartInput(
               (i) => !i.checked && i.status === 'done' && normalizeItemName(i.text) === norm
             );
             if (existing && data.quantity != null && existing.quantity != null) {
+              const mergedQty = existing.quantity + data.quantity;
+              const mergedUnit = existing.unit ?? data.unit ?? null;
               const updated: ShoppingItem = {
                 ...existing,
-                quantity: existing.quantity + data.quantity,
-                unit: existing.unit ?? data.unit ?? null,
+                quantity: mergedQty,
+                unit: applyShoppingUnitPlural(mergedQty, mergedUnit),
               };
               currentItems = currentItems.map((it) => (it.id === existing.id ? updated : it));
               onItemDone?.(updated.text);
             } else {
+              const q = data.quantity ?? null;
+              const u = data.unit ?? null;
               const newItem: ShoppingItem = {
                 id: generateId(),
                 text: data.name,
                 category: data.category,
-                quantity: data.quantity ?? null,
-                unit: data.unit ?? null,
+                quantity: q,
+                unit: applyShoppingUnitPlural(q, u),
                 status: 'done',
                 rawInput: trimmed,
                 checked: false,
@@ -553,6 +558,7 @@ export default function ShoppingListPage() {
     quantity: number | null,
     unit: string | null
   ) => {
+    const finalUnit = applyShoppingUnitPlural(quantity, unit);
     setLists((prev) =>
       prev.map((l) =>
         l.id !== listId
@@ -560,7 +566,7 @@ export default function ShoppingListPage() {
           : {
               ...l,
               items: l.items.map((i) =>
-                i.id !== itemId ? i : { ...i, quantity, unit }
+                i.id !== itemId ? i : { ...i, quantity, unit: finalUnit }
               ),
             }
       )
