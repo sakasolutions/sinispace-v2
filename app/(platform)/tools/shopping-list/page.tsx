@@ -216,6 +216,40 @@ function formatItemExport(item: ShoppingItem): string {
   return item.text;
 }
 
+/** UI-Vorschau für Smart-Merge-Herkunft (später aus Daten); Dummy z. B. für „Tomaten“. */
+function getRecipeSourcePreviewLine(item: ShoppingItem): string | null {
+  if (/tomaten/i.test(item.text)) return 'Für Bolognese, Lasagne';
+  return null;
+}
+
+function ShoppingItemNameStack({
+  name,
+  nameClassName,
+  subLine,
+  subLineClassName,
+}: {
+  name: string;
+  nameClassName: string;
+  subLine: string | null;
+  subLineClassName?: string;
+}) {
+  return (
+    <div className="flex min-w-0 flex-1 flex-col justify-center">
+      <span className={nameClassName}>{name}</span>
+      {subLine ? (
+        <span
+          className={cn(
+            'mt-0.5 text-[11px] leading-tight text-gray-500',
+            subLineClassName
+          )}
+        >
+          {subLine}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 export default function ShoppingListPage() {
   const searchParams = useSearchParams();
   const [lists, setLists] = useState<ShoppingList[]>([]);
@@ -1000,6 +1034,7 @@ export default function ShoppingListPage() {
                             const displayLabel = hasQty
                               ? `${qtyDisplay} ${item.text}`.trim()
                               : item.text;
+                            const recipeSub = getRecipeSourcePreviewLine(item);
                             const isStriking = checkingId === item.id;
                             const showActions = !storeMode && !isEditingText;
                             const canEdit = item.status !== 'analyzing';
@@ -1097,25 +1132,25 @@ export default function ShoppingListPage() {
                                     </button>
                                   </>
                                 ) : item.status === 'analyzing' ? (
-                                  <span
-                                    className={cn(
+                                  <ShoppingItemNameStack
+                                    name="Analysiere …"
+                                    nameClassName={cn(
                                       'italic text-white/45',
                                       isStriking && 'line-through',
                                       useStoreRow && 'text-lg'
                                     )}
-                                  >
-                                    Analysiere …
-                                  </span>
+                                    subLine={null}
+                                  />
                                 ) : item.status === 'error' ? (
-                                  <span
-                                    className={cn(
+                                  <ShoppingItemNameStack
+                                    name={item.text}
+                                    nameClassName={cn(
                                       'font-medium capitalize text-white',
                                       isStriking && 'line-through',
                                       useStoreRow && 'text-lg'
                                     )}
-                                  >
-                                    {item.text}
-                                  </span>
+                                    subLine={recipeSub}
+                                  />
                                 ) : isEditingQty ? (
                                   <>
                                     <input
@@ -1128,22 +1163,26 @@ export default function ShoppingListPage() {
                                         if (e.key === 'Escape') { setEditingQtyItemId(null); setEditingQtyValue(''); }
                                       }}
                                       placeholder="z.B. 3 oder 500g"
-                                      className="w-24 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
+                                      className="w-24 shrink-0 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
                                       autoFocus
                                     />
-                                    <span className={cn('font-medium capitalize text-white', isStriking && 'line-through')}>{item.text}</span>
+                                    <ShoppingItemNameStack
+                                      name={item.text}
+                                      nameClassName={cn('font-medium capitalize text-white', isStriking && 'line-through')}
+                                      subLine={recipeSub}
+                                    />
                                   </>
                                 ) : storeMode ? (
                                   <>
                                     {hasQty && <StoreQtyPill label={qtyDisplay} />}
-                                    <span
-                                      className={cn(
-                                        'min-w-0 flex-1 text-lg font-medium capitalize text-white',
+                                    <ShoppingItemNameStack
+                                      name={item.text}
+                                      nameClassName={cn(
+                                        'text-lg font-medium capitalize text-white',
                                         isStriking && 'text-white/35 line-through'
                                       )}
-                                    >
-                                      {item.text}
-                                    </span>
+                                      subLine={recipeSub}
+                                    />
                                   </>
                                 ) : (
                                   <>
@@ -1156,9 +1195,11 @@ export default function ShoppingListPage() {
                                     {!hasQty && (
                                       <UnifiedQuantityBadge label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
                                     )}
-                                    <span className={cn('font-medium capitalize text-white', isStriking && 'text-white/35 line-through')}>
-                                      {hasQty ? item.text : displayLabel}
-                                    </span>
+                                    <ShoppingItemNameStack
+                                      name={hasQty ? item.text : displayLabel}
+                                      nameClassName={cn('font-medium capitalize text-white', isStriking && 'text-white/35 line-through')}
+                                      subLine={recipeSub}
+                                    />
                                   </>
                                 )}
                               </UnifiedItemRow>
@@ -1200,6 +1241,7 @@ export default function ShoppingListPage() {
                     const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                     const qtyD = formatQtyDisplay(item);
                     const erledigtLabel = hasQty ? `${qtyD} ${item.text}`.trim() : item.text;
+                    const recipeSubDone = getRecipeSourcePreviewLine(item);
                     const isEditingText = editingItemId === item.id;
                     const showActions = !storeMode && !isEditingText;
                     const theme = getCategoryTheme('sonstiges');
@@ -1297,12 +1339,20 @@ export default function ShoppingListPage() {
                         ) : storeMode ? (
                           <>
                             {hasQty && <StoreQtyPill label={qtyD} dimmed />}
-                            <span className="min-w-0 flex-1 text-lg font-medium capitalize text-gray-600 line-through">
-                              {item.text}
-                            </span>
+                            <ShoppingItemNameStack
+                              name={item.text}
+                              nameClassName="text-lg font-medium capitalize text-gray-600 line-through"
+                              subLine={recipeSubDone}
+                              subLineClassName="opacity-40"
+                            />
                           </>
                         ) : (
-                          <span className="line-through capitalize text-white/40">{erledigtLabel}</span>
+                          <ShoppingItemNameStack
+                            name={erledigtLabel}
+                            nameClassName="line-through capitalize text-white/40"
+                            subLine={recipeSubDone}
+                            subLineClassName="text-gray-500/45"
+                          />
                         )}
                       </UnifiedItemRow>
                     );
