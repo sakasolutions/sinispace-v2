@@ -810,6 +810,7 @@ export function RecipeDetailView({
           isOpen={isAddToListOpen}
           onClose={() => setIsAddToListOpen(false)}
           ingredients={addToListIngredients}
+          recipeName={recipe.recipeName}
           onAdded={handleAddToListSuccess}
         />
 

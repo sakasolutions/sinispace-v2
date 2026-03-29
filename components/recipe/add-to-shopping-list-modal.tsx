@@ -26,6 +26,8 @@ export interface AddToShoppingListModalProps {
   isOpen: boolean;
   onClose: () => void;
   ingredients: string[];
+  /** Für Subtext „Für …“ und Merge über mehrere Übertragungen */
+  recipeName?: string;
   onAdded?: (payload: AddToShoppingListSuccessPayload) => void;
 }
 
@@ -33,6 +35,7 @@ export function AddToShoppingListModal({
   isOpen,
   onClose,
   ingredients,
+  recipeName,
   onAdded,
 }: AddToShoppingListModalProps) {
   const [lists, setLists] = useState<ShoppingList[]>([]);
@@ -85,6 +88,7 @@ export function AddToShoppingListModal({
         text: shop.name,
         quantity: shop.amount,
         unit: shop.unit,
+        ...(recipeName?.trim() ? { recipeName: recipeName.trim() } : {}),
       };
     });
     if (structured.length === 0) return;

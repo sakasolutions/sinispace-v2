@@ -222,8 +222,10 @@ function formatItemExport(item: ShoppingItem): string {
   return item.text;
 }
 
-/** UI-Vorschau für Smart-Merge-Herkunft (später aus Daten); Dummy z. B. für „Tomaten“. */
+/** UI-Vorschau für Smart-Merge-Herkunft (Rezept-Subtext aus Daten). */
 function getRecipeSourcePreviewLine(item: ShoppingItem): string | null {
+  const sub = item.recipeSubtext?.trim();
+  if (sub) return sub;
   if (/tomaten/i.test(item.text)) return 'Für Bolognese, Lasagne';
   return null;
 }

@@ -14,6 +14,10 @@ export type StructuredShoppingAppendItem = {
   category?: string | null;
   quantity?: number | null;
   unit?: string | null;
+  /** Anzeige „Für …“ beim Merge mehrerer Rezepte; alternativ {@link recipeName}. */
+  recipeSubtext?: string | null;
+  /** Wird zu „Für {Name}“, wenn `recipeSubtext` nicht gesetzt ist. */
+  recipeName?: string | null;
 };
 
 export type ShoppingItem = {
@@ -24,11 +28,109 @@ export type ShoppingItem = {
   category?: string;
   quantity?: number | null;
   unit?: string | null;
+  /** Herkunft aus Rezept(en), z. B. „Für Lasagne, Chili“ */
+  recipeSubtext?: string;
   /** Status bei Smart-Input: analyzing → done | error */
   status?: 'idle' | 'analyzing' | 'done' | 'error';
   /** Original-Input vor AI-Verarbeitung */
   rawInput?: string;
 };
+
+/**
+ * Entfernt Klammerzusätze (z. B. „Nüsse (Walnuss oder Mandeln)“ → „Nüsse“) für Merge-Keys & Anzeige.
+ */
+export function cleanIngredientNameForMerge(name: string): string {
+  let s = name.trim();
+  let prev = '';
+  while (prev !== s) {
+    prev = s;
+    s = s.replace(/\s*\([^()]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  return s;
+}
+
+function resolveAppendRecipeSubtext(i: StructuredShoppingAppendItem): string | undefined {
+  const direct = i.recipeSubtext?.trim();
+  if (direct) return direct;
+  const rn = i.recipeName?.trim();
+  if (rn) return `Für ${rn}`;
+  return undefined;
+}
+
+/**
+ * Kombiniert „Für …“-Zeilen ohne doppelte Rezeptnamen (Vergleich case-insensitive).
+ */
+export function mergeRecipeSourceSubtext(
+  existing: string | undefined,
+  incoming: string | undefined
+): string | undefined {
+  const labels = new Map<string, string>();
+
+  const ingest = (s: string | undefined) => {
+    if (!s?.trim()) return;
+    const t = s.trim();
+    const body = /^für\s+/i.test(t) ? t.replace(/^für\s+/i, '').trim() : t;
+    for (const part of body.split(',')) {
+      const p = part.trim();
+      if (p) labels.set(p.toLowerCase(), p);
+    }
+  };
+
+  ingest(existing);
+  ingest(incoming);
+  if (labels.size === 0) return undefined;
+  return `Für ${[...labels.values()].join(', ')}`;
+}
+
+function unitsMatchForMerge(a: string | null | undefined, b: string | null | undefined): boolean {
+  return (a ?? '').trim() === (b ?? '').trim();
+}
+
+/**
+ * Verschmilzt neue strukturierte Items mit offenen Listenzeilen (gleicher bereinigter Name + gleiche Einheit).
+ */
+export function mergeStructuredShoppingItemsIntoList(
+  existingItems: ShoppingItem[],
+  incoming: ShoppingItem[]
+): ShoppingItem[] {
+  const result = existingItems.map((it) => ({ ...it }));
+
+  for (const inc of incoming) {
+    const incKey = cleanIngredientNameForMerge(inc.text).toLowerCase();
+
+    const matchIdx = result.findIndex(
+      (e) =>
+        !e.checked &&
+        cleanIngredientNameForMerge(e.text).toLowerCase() === incKey &&
+        unitsMatchForMerge(e.unit, inc.unit)
+    );
+
+    if (matchIdx >= 0) {
+      const e = result[matchIdx]!;
+      const qE = e.quantity;
+      const qI = inc.quantity;
+      const mergedQ =
+        qE == null && qI == null ? null : (Number(qE) || 0) + (Number(qI) || 0);
+      const baseUnit = (e.unit ?? inc.unit ?? '').trim() || null;
+      const mergedUnit = applyShoppingUnitPlural(mergedQ, baseUnit);
+
+      result[matchIdx] = {
+        ...e,
+        text: cleanIngredientNameForMerge(e.text),
+        quantity: mergedQ,
+        unit: mergedUnit,
+        recipeSubtext: mergeRecipeSourceSubtext(e.recipeSubtext, inc.recipeSubtext),
+      };
+    } else {
+      result.push({
+        ...inc,
+        text: cleanIngredientNameForMerge(inc.text),
+      });
+    }
+  }
+
+  return result;
+}
 export type ShoppingList = { id: string; name: string; items: ShoppingItem[] };
 
 export function generateId(): string {
@@ -131,6 +233,7 @@ export function appendStructuredItemsToList(
     valid.map((i) => {
       const q = i.quantity ?? null;
       const rawU = i.unit != null && String(i.unit).trim() ? String(i.unit).trim() : null;
+      const recipeSubtext = resolveAppendRecipeSubtext(i);
       return {
         id: generateId(),
         text: i.text,
@@ -138,6 +241,7 @@ export function appendStructuredItemsToList(
         category: normalizeSmartCartCategory(i.category ?? undefined),
         quantity: q,
         unit: applyShoppingUnitPlural(q, rawU),
+        ...(recipeSubtext ? { recipeSubtext } : {}),
       };
     });
 
@@ -146,10 +250,11 @@ export function appendStructuredItemsToList(
 
   if (listId === '__new__') {
     const name = (newListName?.trim() || 'Neue Liste').slice(0, 80);
+    const batch = buildShoppingItems();
     const created: ShoppingList = {
       id: generateId(),
       name,
-      items: buildShoppingItems(),
+      items: mergeStructuredShoppingItemsIntoList([], batch),
     };
     next = [...next, created];
     listName = name;
@@ -160,7 +265,8 @@ export function appendStructuredItemsToList(
   if (idx < 0) return { lists, listName: '', appendedCount: 0 };
 
   listName = next[idx].name;
-  const newItems = buildShoppingItems();
-  next = next.map((l, i) => (i === idx ? { ...l, items: [...l.items, ...newItems] } : l));
+  const batch = buildShoppingItems();
+  const mergedItems = mergeStructuredShoppingItemsIntoList(next[idx].items, batch);
+  next = next.map((l, i) => (i === idx ? { ...l, items: mergedItems } : l));
   return { lists: next, listName, appendedCount: valid.length };
 }

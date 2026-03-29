@@ -1412,6 +1412,7 @@ export default function RecipePage() {
           isOpen={isAddToListOpen}
           onClose={() => setIsAddToListOpen(false)}
           ingredients={recipe.shoppingList}
+          recipeName={recipe.recipeName}
           onAdded={({ count, listName }) => {
             setAddToListToast({
               message: `${count} ${count === 1 ? 'Zutat' : 'Zutaten'} zu „${listName}“ hinzugefügt`,
@@ -2297,6 +2298,11 @@ export default function RecipePage() {
                   onClick={async () => {
                     const checked = groceryList.filter((g) => g.checked);
                     if (checked.length === 0) return;
+                    const mealTitles = collectMealTitlesForPantry();
+                    const pantryRecipeLabel =
+                      mealTitles.length > 0
+                        ? mealTitles.join(', ').slice(0, 200)
+                        : 'Wochenplan';
                     const structured = checked.map((g) => {
                       const a = g.amount.trim();
                       const n = g.item.trim();
@@ -2312,6 +2318,7 @@ export default function RecipePage() {
                         category: normalizeSmartCartCategory(g.category),
                         quantity: shop.amount,
                         unit: shop.unit,
+                        recipeName: pantryRecipeLabel,
                       };
                     });
                     setIsSavingPantryToSmartCart(true);
