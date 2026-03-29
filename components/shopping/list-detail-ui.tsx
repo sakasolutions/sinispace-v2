@@ -265,7 +265,7 @@ export function UnifiedListSheet({
   className?: string;
 }) {
   return (
-    <div className={cn('mt-6 flex flex-col gap-0', className)}>
+    <div className={cn('mt-6 flex flex-col gap-3', className)}>
       {children}
     </div>
   );
@@ -286,7 +286,7 @@ export function StickyCategoryHeader({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 border-b border-t border-white/10 pt-3 pb-3',
+        'flex items-center gap-2 py-2',
         className
       )}
     >
@@ -350,7 +350,7 @@ export function UnifiedItemRow({
   return (
     <div
       className={cn(
-        'group flex items-center justify-between gap-3 bg-transparent px-4 py-2.5 transition-colors last:border-b-0 last:pb-0 hover:bg-white/[0.04]',
+        'group flex items-center justify-between gap-3 rounded-xl bg-transparent px-4 py-2 transition-colors hover:bg-white/[0.04]',
         isChecked && 'opacity-90',
         className
       )}

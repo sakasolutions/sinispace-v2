@@ -638,13 +638,11 @@ export default function ShoppingListPage() {
           )}
         >
           <div
-            className="absolute top-0 left-0 z-0 h-[280px] w-full overflow-hidden rounded-b-[40px] bg-cover bg-center opacity-[0.15] md:opacity-[0.12]"
-            style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
+            className="absolute top-0 left-0 z-0 h-[280px] w-full rounded-b-[40px] bg-[#050508]"
             aria-hidden
           />
-          <div className="absolute top-0 left-0 z-0 h-[280px] w-full rounded-b-[40px] bg-black/85" aria-hidden />
           <div
-            className="pointer-events-none absolute top-0 left-0 z-0 h-[280px] w-full rounded-b-[40px] bg-[radial-gradient(ellipse_70%_60%_at_50%_40%,rgba(99,102,241,0.18)_0%,rgba(168,85,247,0.1)_45%,transparent_72%)]"
+            className="pointer-events-none absolute top-0 left-0 z-0 h-[280px] w-full rounded-b-[40px] bg-[radial-gradient(ellipse_90%_65%_at_50%_-8%,rgba(79,70,229,0.42)_0%,rgba(124,58,237,0.22)_38%,rgba(30,27,75,0.12)_55%,transparent_72%)]"
             aria-hidden
           />
           <div className="relative z-10 w-full px-3 pb-6 pt-8 sm:px-6 md:px-8 md:pt-12">
@@ -664,15 +662,9 @@ export default function ShoppingListPage() {
       <DashboardShell
         headerVariant="withCTA"
         headerBackground={
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full bg-[#050508]">
             <div
-              className="absolute inset-0 bg-cover bg-center opacity-[0.15] md:opacity-[0.12]"
-              style={{ backgroundImage: "url('/assets/images/einkaufsliste.webp')" }}
-              aria-hidden
-            />
-            <div className="absolute inset-0 z-[1] bg-black/85" aria-hidden />
-            <div
-              className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_70%_60%_at_50%_40%,rgba(99,102,241,0.18)_0%,rgba(168,85,247,0.1)_45%,transparent_72%)]"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_65%_at_50%_-8%,rgba(79,70,229,0.42)_0%,rgba(124,58,237,0.22)_38%,rgba(30,27,75,0.12)_55%,transparent_72%)]"
               aria-hidden
             />
           </div>
@@ -723,7 +715,7 @@ export default function ShoppingListPage() {
                       </li>
                       <li className="flex items-center gap-3 mt-2">
                         <ShoppingCart className="w-5 h-5 text-blue-500 shrink-0" />
-                        <span><strong>Einkaufs-Modus:</strong> Der blaue Button unten rechts blendet alles Unnötige aus – für den perfekten Überblick im Supermarkt.</span>
+                        <span><strong>Einkaufs-Modus:</strong> Der leuchtende Button unten rechts blendet alles Unnötige aus – für den perfekten Überblick im Supermarkt.</span>
                       </li>
                     </ul>
                   </div>
@@ -896,7 +888,7 @@ export default function ShoppingListPage() {
                         type="button"
                         onClick={submitSmartInput}
                         disabled={!newItemInput.trim()}
-                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-fuchsia-500 to-orange-500 text-white shadow-[0_0_20px_rgba(236,72,153,0.45)] transition-all hover:from-fuchsia-400 hover:to-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
                         title="Hinzufügen"
                       >
                         <Plus className="w-5 h-5" />
@@ -972,7 +964,7 @@ export default function ShoppingListPage() {
                       const theme = getCategoryTheme(cat);
                       return (
                         <Fragment key={cat}>
-                          <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} className={index === 0 ? 'border-t-0 pt-0' : undefined} />
+                          <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} className={index === 0 ? 'pt-0' : undefined} />
                           {items.map((item) => {
                             const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                             const isEditingQty = !storeMode && editingQtyItemId === item.id;
@@ -1118,14 +1110,14 @@ export default function ShoppingListPage() {
                 tabIndex={0}
                 onClick={() => setIsCompletedExpanded(!isCompletedExpanded)}
                 onKeyDown={(e) => e.key === 'Enter' && setIsCompletedExpanded((v) => !v)}
-                className="flex w-full cursor-pointer items-center justify-between border-b border-white/10 px-2 py-3 text-white/50 transition-colors hover:text-white"
+                className="flex w-full cursor-pointer items-center justify-between px-2 py-3 text-white/50 transition-colors hover:text-white"
                 aria-expanded={isCompletedExpanded}
               >
                 <span className="text-sm font-semibold">Erledigt ({checked.length})</span>
                 {isCompletedExpanded ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
               </div>
               {isCompletedExpanded && (
-                <div className="px-2 pb-4 pt-2">
+                <div className="flex flex-col gap-2 px-2 pb-4 pt-2">
                   {checked.map((item) => {
                     const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                     const qtyD = formatQtyDisplay(item);
@@ -1234,8 +1226,8 @@ export default function ShoppingListPage() {
                 'fixed z-[60] w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all',
                 'bottom-[calc(115px+env(safe-area-inset-bottom))] right-4 md:bottom-8 md:right-8',
                 storeMode
-                  ? 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700'
-                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-[0_0_18px_rgba(239,68,68,0.35)] hover:from-red-600 hover:to-red-700'
+                  : 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:from-orange-600 hover:to-pink-600'
               )}
               aria-label={storeMode ? 'Einkauf beenden' : 'Einkauf starten'}
               title={storeMode ? 'Beenden' : 'Einkauf starten'}
