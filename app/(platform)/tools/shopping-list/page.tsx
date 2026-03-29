@@ -49,6 +49,10 @@ import {
   normalizeItemName,
   sortCategoriesBySupermarktRoute,
 } from '@/lib/shopping-list-categories';
+import {
+  parsePieceQuantityFromLine,
+  parseQtyInputForShopping,
+} from '@/lib/shopping-piece-quantity';
 import { analyzeShoppingItems } from '@/actions/shopping-list-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
@@ -84,21 +88,10 @@ function splitInput(raw: string): string[] {
 function formatQtyDisplay(item: ShoppingItem): string {
   const q = item.quantity;
   const u = item.unit?.trim() || null;
+  if (q != null && (u == null || u === 'x')) return `${q}x`;
   if (q != null && u) return `${q} ${u}`;
-  if (q != null) return `${q}`;
   if (u) return u;
   return '';
-}
-
-function parseQtyInput(raw: string): { quantity: number | null; unit: string | null } {
-  const s = raw.trim();
-  if (!s) return { quantity: null, unit: null };
-  const m = s.match(/^(\d+(?:[.,]\d+)?)\s*(\S*)$/);
-  if (!m) return { quantity: null, unit: null };
-  const q = parseFloat(m[1]!.replace(',', '.'));
-  const u = m[2]?.trim() || null;
-  if (Number.isNaN(q)) return { quantity: null, unit: null };
-  return { quantity: q, unit: u || null };
 }
 
 /** Fallback: Bei KI-Fehler oder leerer Antwort Items lokal splitten und als 'sonstiges' einfügen (kein Datenverlust). */
@@ -119,6 +112,20 @@ function addFallbackItems(
             items: [
               ...l.items,
               ...chunks.map((text): ShoppingItem => {
+                const parsed = parsePieceQuantityFromLine(text);
+                if (parsed) {
+                  onItemDone?.(parsed.name);
+                  return {
+                    id: generateId(),
+                    text: parsed.name,
+                    category: 'sonstiges',
+                    quantity: parsed.quantity,
+                    unit: 'x',
+                    status: 'done',
+                    rawInput: text,
+                    checked: false,
+                  };
+                }
                 onItemDone?.(text);
                 return {
                   id: generateId(),
@@ -200,8 +207,6 @@ function capitalizeLabel(s: string): string {
 function formatItemExport(item: ShoppingItem): string {
   const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
   const qtyD = formatQtyDisplay(item);
-  if (item.quantity != null && !(item.unit?.trim()))
-    return `${item.quantity}x ${item.text}`;
   if (hasQty) return `${qtyD} ${item.text}`.trim();
   return item.text;
 }
@@ -970,12 +975,9 @@ export default function ShoppingListPage() {
                             const isEditingQty = !storeMode && editingQtyItemId === item.id;
                             const isEditingText = editingItemId === item.id;
                             const qtyDisplay = formatQtyDisplay(item);
-                            const displayLabel =
-                              item.quantity != null && !(item.unit?.trim())
-                                ? `${item.quantity}x ${item.text}`
-                                : hasQty
-                                  ? `${qtyDisplay} ${item.text}`.trim()
-                                  : item.text;
+                            const displayLabel = hasQty
+                              ? `${qtyDisplay} ${item.text}`.trim()
+                              : item.text;
                             const isStriking = checkingId === item.id;
                             const showActions = !storeMode && !isEditingText;
                             const canEdit = item.status !== 'analyzing';
@@ -1056,9 +1058,9 @@ export default function ShoppingListPage() {
                                       type="text"
                                       value={editingQtyValue}
                                       onChange={(e) => setEditingQtyValue(e.target.value)}
-                                      onBlur={() => { const { quantity, unit } = parseQtyInput(editingQtyValue); updateItemQty(activeList.id, item.id, quantity, unit); }}
+                                      onBlur={() => { const { quantity, unit } = parseQtyInputForShopping(editingQtyValue); updateItemQty(activeList.id, item.id, quantity, unit); }}
                                       onKeyDown={(e) => {
-                                        if (e.key === 'Enter') { e.preventDefault(); const { quantity, unit } = parseQtyInput(editingQtyValue); updateItemQty(activeList.id, item.id, quantity, unit); }
+                                        if (e.key === 'Enter') { e.preventDefault(); const { quantity, unit } = parseQtyInputForShopping(editingQtyValue); updateItemQty(activeList.id, item.id, quantity, unit); }
                                         if (e.key === 'Escape') { setEditingQtyItemId(null); setEditingQtyValue(''); }
                                       }}
                                       placeholder="z.B. 3 oder 500g"
@@ -1071,7 +1073,7 @@ export default function ShoppingListPage() {
                                   <>
                                     {!storeMode && hasQty && (
                                       <UnifiedQuantityBadge
-                                        label={item.quantity != null && !(item.unit?.trim()) ? `${item.quantity}x` : qtyDisplay}
+                                        label={qtyDisplay}
                                         onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(qtyDisplay); }}
                                       />
                                     )}
@@ -1121,9 +1123,7 @@ export default function ShoppingListPage() {
                   {checked.map((item) => {
                     const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                     const qtyD = formatQtyDisplay(item);
-                    const erledigtLabel = hasQty
-                      ? (item.quantity != null && !(item.unit?.trim()) ? `${item.quantity}x ${item.text}` : `${qtyD} ${item.text}`.trim())
-                      : item.text;
+                    const erledigtLabel = hasQty ? `${qtyD} ${item.text}`.trim() : item.text;
                     const isEditingText = editingItemId === item.id;
                     const showActions = !storeMode && !isEditingText;
                     const theme = getCategoryTheme('sonstiges');

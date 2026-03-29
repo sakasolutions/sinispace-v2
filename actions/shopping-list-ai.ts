@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { createChatCompletion } from '@/lib/openai-wrapper';
+import { normalizeShoppingQuantityFields } from '@/lib/shopping-piece-quantity';
 import { isUserPremium } from '@/lib/subscription';
 
 const CATEGORIES = [
@@ -40,7 +41,12 @@ REGELN:
 
 ABSOLUTE REGEL: Erstelle für JEDEN eindeutigen Artikel im Text EXAKT EIN EINZIGES JSON-Objekt. Keine Duplikate! Wenn der User 'Spüli, Eier' schreibt, darf das Array EXAKT ZWEI Objekte enthalten.
 
-Mengen-Zusammenfassung: Wenn der User schreibt 'Bier, Bier, Bier', gib EIN Objekt mit name: 'Bier', quantity: 3, unit: 'Stk' zurück.
+Mengen-Zusammenfassung: Wenn der User schreibt 'Bier, Bier, Bier', gib EIN Objekt mit name: 'Bier', quantity: 3, unit: 'x' zurück (Stückzahl immer unit exakt 'x', nie 'Stk' oder 'Stück').
+
+Stückzahlen (zwingend unit 'x'):
+- Schreibweisen wie '2x Tomaten', '2 x Tomaten', '2 stk …', '2 Stück …', '2 st …' (nach der Zahl) sind Stückzahlen: quantity = Zahl, unit = 'x', name = Produktname ohne Mengen-Präfix.
+- Steht nur eine Zahl vor dem Namen und es handelt sich NICHT um Gewicht oder Volumen (kein g, kg, mg, ml, l, cl, dl, EL, TL, Liter, Prise direkt nach der Zahl bzw. als Einheit), dann ist das Stückzahl: quantity = Zahl, unit = 'x', name = Produktname.
+- Gewicht (g, kg, …) und Volumen (ml, l, EL, TL, …) bleiben unverändert mit der genannten Einheit in 'unit' (niemals durch 'x' ersetzen).
 
 Rechtschreibung: Korrigiere Tippfehler NUR, wenn du dir zu 99% sicher bist. Exoten (wie Sucuk, Pak Choi) nicht eindeutschen.
 
@@ -104,12 +110,15 @@ export async function analyzeShoppingItems(
       return { error: 'KI-Antwort hat falsches Format.' };
     }
 
-    const items: ShoppingItemAnalysis[] = parsed.data.items.map((item) => ({
-      name: item.name.trim(),
-      quantity: item.quantity ?? null,
-      unit: item.unit ?? null,
-      category: normalizeCategory(item.category),
-    }));
+    const items: ShoppingItemAnalysis[] = parsed.data.items.map((item) => {
+      const category = normalizeCategory(item.category);
+      const norm = normalizeShoppingQuantityFields({
+        name: item.name.trim(),
+        quantity: item.quantity ?? null,
+        unit: item.unit ?? null,
+      });
+      return { ...norm, category };
+    });
 
     if (items.length === 0) {
       return { error: 'KI hat keine Artikel zurückgegeben.' };
