@@ -11,7 +11,7 @@ import {
 } from '@/lib/shopping-lists-storage';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import { formatIngredientDisplay } from '@/lib/format-ingredient';
-import { parseIngredient } from '@/lib/ingredient-parser';
+import { convertToShoppingUnit, parseIngredient } from '@/lib/ingredient-parser';
 
 const NEW_LIST_VALUE = '__new__';
 
@@ -76,10 +76,15 @@ export function AddToShoppingListModal({
   const handleSubmit = async () => {
     const structured = Array.from(selected).map((ing) => {
       const p = parseIngredient(ing.trim());
-      return {
-        text: p.name,
-        quantity: p.amount,
+      const shop = convertToShoppingUnit({
+        amount: p.amount,
         unit: p.unit,
+        name: p.name,
+      });
+      return {
+        text: shop.name,
+        quantity: shop.amount,
+        unit: shop.unit,
       };
     });
     if (structured.length === 0) return;
