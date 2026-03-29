@@ -40,6 +40,32 @@ export function defaultList(): ShoppingList {
 }
 
 /**
+ * Server-Refetch mit lokalem Merge: behält Items, die auf dem Server (noch) nicht vorkommen
+ * (z. B. bevor saveShoppingLists fertig ist), damit frisch hinzugefügte Zeilen nicht verschwinden.
+ */
+export function mergeShoppingListsFromServer(
+  server: ShoppingList[],
+  local: ShoppingList[]
+): ShoppingList[] {
+  const localByListId = new Map(local.map((l) => [l.id, l]));
+  const merged: ShoppingList[] = server.map((srv) => {
+    const loc = localByListId.get(srv.id);
+    if (!loc) return srv;
+    const serverIds = new Set(srv.items.map((i) => i.id));
+    const onlyLocal = loc.items.filter((i) => !serverIds.has(i.id));
+    if (onlyLocal.length === 0) return srv;
+    return { ...srv, items: [...srv.items, ...onlyLocal] };
+  });
+  const serverListIds = new Set(server.map((l) => l.id));
+  for (const loc of local) {
+    if (!serverListIds.has(loc.id)) {
+      merged.push(loc);
+    }
+  }
+  return merged;
+}
+
+/**
  * Append text items to a list (by id). Creates the list if it doesn't exist.
  * If listId is '__new__', creates a new list with `newListName` and appends there.
  * Returns { listName, appendedCount }.

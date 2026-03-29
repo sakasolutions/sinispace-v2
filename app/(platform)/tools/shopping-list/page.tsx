@@ -34,6 +34,7 @@ import { cn } from '@/lib/utils';
 import {
   generateId,
   defaultList,
+  mergeShoppingListsFromServer,
   type ShoppingItem,
   type ShoppingList,
 } from '@/lib/shopping-lists-storage';
@@ -146,53 +147,55 @@ function processSmartInput(
   listId: string,
   setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>,
   onItemDone?: (displayText: string) => void
-) {
+): Promise<void> {
   const trimmed = rawInput.trim();
-  if (!trimmed || !listId) return;
+  if (!trimmed || !listId) return Promise.resolve();
 
-  analyzeShoppingItems(trimmed).then((res) => {
-    if (res.data && res.data.length > 0) {
-      setLists((prev) => {
-        const list = prev.find((l) => l.id === listId);
-        if (!list) return prev;
-        let currentItems = [...list.items];
-        for (const data of res.data!) {
-          const norm = normalizeItemName(data.name);
-          const existing = currentItems.find(
-            (i) => !i.checked && i.status === 'done' && normalizeItemName(i.text) === norm
-          );
-          if (existing && data.quantity != null && existing.quantity != null) {
-            const updated: ShoppingItem = {
-              ...existing,
-              quantity: existing.quantity + data.quantity,
-              unit: existing.unit ?? data.unit ?? null,
-            };
-            currentItems = currentItems.map((it) => (it.id === existing.id ? updated : it));
-            onItemDone?.(updated.text);
-          } else {
-            const newItem: ShoppingItem = {
-              id: generateId(),
-              text: data.name,
-              category: data.category,
-              quantity: data.quantity ?? null,
-              unit: data.unit ?? null,
-              status: 'done',
-              rawInput: trimmed,
-              checked: false,
-            };
-            currentItems = [...currentItems, newItem];
-            onItemDone?.(newItem.text);
+  return analyzeShoppingItems(trimmed)
+    .then((res) => {
+      if (res.data && res.data.length > 0) {
+        setLists((prev) => {
+          const list = prev.find((l) => l.id === listId);
+          if (!list) return prev;
+          let currentItems = [...list.items];
+          for (const data of res.data!) {
+            const norm = normalizeItemName(data.name);
+            const existing = currentItems.find(
+              (i) => !i.checked && i.status === 'done' && normalizeItemName(i.text) === norm
+            );
+            if (existing && data.quantity != null && existing.quantity != null) {
+              const updated: ShoppingItem = {
+                ...existing,
+                quantity: existing.quantity + data.quantity,
+                unit: existing.unit ?? data.unit ?? null,
+              };
+              currentItems = currentItems.map((it) => (it.id === existing.id ? updated : it));
+              onItemDone?.(updated.text);
+            } else {
+              const newItem: ShoppingItem = {
+                id: generateId(),
+                text: data.name,
+                category: data.category,
+                quantity: data.quantity ?? null,
+                unit: data.unit ?? null,
+                status: 'done',
+                rawInput: trimmed,
+                checked: false,
+              };
+              currentItems = [...currentItems, newItem];
+              onItemDone?.(newItem.text);
+            }
           }
-        }
-        return prev.map((l) => (l.id !== listId ? l : { ...l, items: currentItems }));
-      });
-    } else {
+          return prev.map((l) => (l.id !== listId ? l : { ...l, items: currentItems }));
+        });
+      } else {
+        addFallbackItems(trimmed, listId, setLists, onItemDone);
+      }
+    })
+    .catch((error) => {
+      console.warn('Netzwerkfehler oder Action-Crash abgefangen. Nutze Fallback:', error);
       addFallbackItems(trimmed, listId, setLists, onItemDone);
-    }
-  }).catch((error) => {
-    console.warn('Netzwerkfehler oder Action-Crash abgefangen. Nutze Fallback:', error);
-    addFallbackItems(trimmed, listId, setLists, onItemDone);
-  });
+    });
 }
 
 function capitalizeLabel(s: string): string {
@@ -249,6 +252,9 @@ export default function ShoppingListPage() {
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasInitiallyLoaded = useRef(false);
+  const refetchGenRef = useRef(0);
+  const listsRef = useRef<ShoppingList[]>([]);
+  listsRef.current = lists;
   const activeListIdRef = useRef<string | null>(null);
   const typeAheadDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
@@ -311,12 +317,16 @@ export default function ShoppingListPage() {
 
   const refetchFromServer = useCallback(async () => {
     if (!hasInitiallyLoaded.current) return;
+    const gen = ++refetchGenRef.current;
     const loaded = await getShoppingLists();
-    if (loaded.length === 0) return;
+    if (gen !== refetchGenRef.current) return;
+    if (!loaded || loaded.length === 0) return;
+    const prev = listsRef.current;
+    const merged = mergeShoppingListsFromServer(loaded, prev);
     const cur = activeListIdRef.current;
-    const keep = cur && loaded.some((l) => l.id === cur);
-    setLists(loaded);
-    setActiveListId(keep ? cur! : loaded[0]!.id);
+    const keep = cur && merged.some((l) => l.id === cur);
+    setLists(merged);
+    setActiveListId(keep ? cur! : merged[0]!.id);
   }, []);
 
   useEffect(() => {
@@ -412,24 +422,28 @@ export default function ShoppingListPage() {
   };
 
   const deleteList = (id: string) => {
-    const next = lists.filter((l) => l.id !== id);
-    if (next.length === 0) {
-      const def = defaultList();
-      setLists([def]);
-      setActiveListId(def.id);
-    } else {
-      if (activeListId === id) setActiveListId(next[0]!.id);
-      setLists(next);
-    }
+    setLists((prev) => {
+      const next = prev.filter((l) => l.id !== id);
+      if (next.length === 0) {
+        const def = defaultList();
+        queueMicrotask(() => setActiveListId(def.id));
+        return [def];
+      }
+      queueMicrotask(() => {
+        setActiveListId((cur) => (cur === id ? next[0]!.id : cur));
+      });
+      return next;
+    });
     setModalDeleteList(null);
   };
 
   const submitSmartInput = useCallback(() => {
     const raw = newItemInput.trim();
     if (!raw || !activeListId) return;
-    setNewItemInput('');
     setTypeAheadOpen(false);
-    processSmartInput(raw, activeListId, setLists, (text) => recordFrequentItem(text));
+    void processSmartInput(raw, activeListId, setLists, (text) => recordFrequentItem(text)).finally(() => {
+      setNewItemInput('');
+    });
   }, [newItemInput, activeListId]);
 
   const toggleItem = (listId: string, itemId: string) => {
@@ -843,9 +857,10 @@ export default function ShoppingListPage() {
                               e.preventDefault();
                               if (typeAheadOpen && typeAheadSuggestions.length > 0) {
                                 const first = typeAheadSuggestions[0]!.itemLabel;
-                                processSmartInput(first, activeList.id, setLists, (t) => recordFrequentItem(t));
-                                setNewItemInput('');
                                 setTypeAheadOpen(false);
+                                void processSmartInput(first, activeList.id, setLists, (t) => recordFrequentItem(t)).finally(
+                                  () => setNewItemInput('')
+                                );
                                 return;
                               }
                               submitSmartInput();
@@ -857,9 +872,10 @@ export default function ShoppingListPage() {
                             if (pasted && activeListId) {
                               e.preventDefault();
                               e.stopPropagation();
-                              processSmartInput(pasted, activeListId, setLists, (text) => recordFrequentItem(text));
-                              setNewItemInput('');
                               setTypeAheadOpen(false);
+                              void processSmartInput(pasted, activeListId, setLists, (text) => recordFrequentItem(text)).finally(
+                                () => setNewItemInput('')
+                              );
                             }
                           }}
                           placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
@@ -874,9 +890,10 @@ export default function ShoppingListPage() {
                                 className="w-full px-4 py-2.5 text-left text-sm text-white/90 transition-colors hover:bg-white/10"
                                 onMouseDown={(e) => {
                                   e.preventDefault();
-                                  processSmartInput(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t));
-                                  setNewItemInput('');
                                   setTypeAheadOpen(false);
+                                  void processSmartInput(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)).finally(
+                                    () => setNewItemInput('')
+                                  );
                                 }}
                               >
                                 {capitalizeLabel(s.itemLabel)}
@@ -906,7 +923,9 @@ export default function ShoppingListPage() {
                             key={f.itemLabel}
                             type="button"
                             onClick={() => {
-                              processSmartInput(f.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t));
+                              void processSmartInput(f.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)).finally(
+                                () => setNewItemInput('')
+                              );
                               loadFrequentItems();
                             }}
                             className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-sm font-medium text-white/90 backdrop-blur-md transition-colors hover:border-white/20 hover:bg-white/10"
