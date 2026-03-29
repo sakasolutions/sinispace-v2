@@ -56,7 +56,8 @@ import {
   parseQtyInputForShopping,
 } from '@/lib/shopping-piece-quantity';
 import { parseIngredient } from '@/lib/ingredient-parser';
-import { analyzeShoppingItems, optimizeSmartCartListWithAi } from '@/actions/shopping-list-ai';
+import { analyzeShoppingItems } from '@/actions/shopping-list-ai';
+import { optimizeSmartCart } from '@/actions/smartList';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import {
@@ -677,7 +678,7 @@ export default function ShoppingListPage() {
       subtext: i.recipeSubtext ?? null,
     }));
 
-    const res = await optimizeSmartCartListWithAi(payload);
+    const res = await optimizeSmartCart(payload);
     setIsOptimizing(false);
 
     if (res.error) {
@@ -860,7 +861,7 @@ export default function ShoppingListPage() {
                 ) : (
                   <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 )}
-                {isOptimizing ? 'Optimiere…' : 'Smart Liste'}
+                {isOptimizing ? 'Optimierung läuft…' : 'Smart Liste'}
               </button>
             </div>
           </div>
