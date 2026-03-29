@@ -68,6 +68,7 @@ import {
   UnifiedQuantityBadge,
   StoreQtyPill,
 } from '@/components/shopping/list-detail-ui';
+import { SmartMergeAiLoader } from '@/components/shopping/smart-merge-ai-loader';
 
 const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   Leaf,
@@ -148,11 +149,13 @@ function processSmartInput(
   rawInput: string,
   listId: string,
   setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>,
-  onItemDone?: (displayText: string) => void
+  onItemDone?: (displayText: string) => void,
+  onAiProcessing?: (loading: boolean) => void
 ): Promise<void> {
   const trimmed = rawInput.trim();
   if (!trimmed || !listId) return Promise.resolve();
 
+  onAiProcessing?.(true);
   return analyzeShoppingItems(trimmed)
     .then((res) => {
       if (res.data && res.data.length > 0) {
@@ -201,6 +204,9 @@ function processSmartInput(
     .catch((error) => {
       console.warn('Netzwerkfehler oder Action-Crash abgefangen. Nutze Fallback:', error);
       addFallbackItems(trimmed, listId, setLists, onItemDone);
+    })
+    .finally(() => {
+      onAiProcessing?.(false);
     });
 }
 
@@ -275,7 +281,19 @@ export default function ShoppingListPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(false);
+  const [isSmartMergeProcessing, setIsSmartMergeProcessing] = useState(false);
+  const smartMergeInflightRef = useRef(0);
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const setSmartMergeProcessingGate = useCallback((loading: boolean) => {
+    if (loading) {
+      smartMergeInflightRef.current += 1;
+      if (smartMergeInflightRef.current === 1) setIsSmartMergeProcessing(true);
+    } else {
+      smartMergeInflightRef.current = Math.max(0, smartMergeInflightRef.current - 1);
+      if (smartMergeInflightRef.current === 0) setIsSmartMergeProcessing(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (modalRename) {
@@ -479,12 +497,14 @@ export default function ShoppingListPage() {
 
   const submitSmartInput = useCallback(() => {
     const raw = newItemInput.trim();
-    if (!raw || !activeListId) return;
+    if (!raw || !activeListId || isSmartMergeProcessing) return;
     setTypeAheadOpen(false);
-    void processSmartInput(raw, activeListId, setLists, (text) => recordFrequentItem(text)).finally(() => {
-      setNewItemInput('');
-    });
-  }, [newItemInput, activeListId]);
+    void processSmartInput(raw, activeListId, setLists, (text) => recordFrequentItem(text), setSmartMergeProcessingGate).finally(
+      () => {
+        setNewItemInput('');
+      }
+    );
+  }, [newItemInput, activeListId, isSmartMergeProcessing, setSmartMergeProcessingGate]);
 
   const toggleItem = (listId: string, itemId: string) => {
     setLists((prev) =>
@@ -899,9 +919,13 @@ export default function ShoppingListPage() {
                               if (typeAheadOpen && typeAheadSuggestions.length > 0) {
                                 const first = typeAheadSuggestions[0]!.itemLabel;
                                 setTypeAheadOpen(false);
-                                void processSmartInput(first, activeList.id, setLists, (t) => recordFrequentItem(t)).finally(
-                                  () => setNewItemInput('')
-                                );
+                                void processSmartInput(
+                                  first,
+                                  activeList.id,
+                                  setLists,
+                                  (t) => recordFrequentItem(t),
+                                  setSmartMergeProcessingGate
+                                ).finally(() => setNewItemInput(''));
                                 return;
                               }
                               submitSmartInput();
@@ -914,9 +938,13 @@ export default function ShoppingListPage() {
                               e.preventDefault();
                               e.stopPropagation();
                               setTypeAheadOpen(false);
-                              void processSmartInput(pasted, activeListId, setLists, (text) => recordFrequentItem(text)).finally(
-                                () => setNewItemInput('')
-                              );
+                              void processSmartInput(
+                                pasted,
+                                activeListId,
+                                setLists,
+                                (text) => recordFrequentItem(text),
+                                setSmartMergeProcessingGate
+                              ).finally(() => setNewItemInput(''));
                             }
                           }}
                           placeholder="Was brauchst du? (Einzel-Item oder Liste…)"
@@ -932,9 +960,13 @@ export default function ShoppingListPage() {
                                 onMouseDown={(e) => {
                                   e.preventDefault();
                                   setTypeAheadOpen(false);
-                                  void processSmartInput(s.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)).finally(
-                                    () => setNewItemInput('')
-                                  );
+                                  void processSmartInput(
+                                    s.itemLabel,
+                                    activeList.id,
+                                    setLists,
+                                    (t) => recordFrequentItem(t),
+                                    setSmartMergeProcessingGate
+                                  ).finally(() => setNewItemInput(''));
                                 }}
                               >
                                 {capitalizeLabel(s.itemLabel)}
@@ -946,7 +978,7 @@ export default function ShoppingListPage() {
                       <button
                         type="button"
                         onClick={submitSmartInput}
-                        disabled={!newItemInput.trim()}
+                        disabled={!newItemInput.trim() || isSmartMergeProcessing}
                         className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
                         title="Hinzufügen"
                       >
@@ -964,9 +996,13 @@ export default function ShoppingListPage() {
                             key={f.itemLabel}
                             type="button"
                             onClick={() => {
-                              void processSmartInput(f.itemLabel, activeList.id, setLists, (t) => recordFrequentItem(t)).finally(
-                                () => setNewItemInput('')
-                              );
+                              void processSmartInput(
+                                f.itemLabel,
+                                activeList.id,
+                                setLists,
+                                (t) => recordFrequentItem(t),
+                                setSmartMergeProcessingGate
+                              ).finally(() => setNewItemInput(''));
                               loadFrequentItems();
                             }}
                             className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-sm font-medium text-white/90 backdrop-blur-md transition-colors hover:border-white/20 hover:bg-white/10"
@@ -1009,7 +1045,9 @@ export default function ShoppingListPage() {
 
         {activeList ? (
             <>
-              {unchecked.length === 0 && checked.length === 0 ? (
+              {isSmartMergeProcessing ? (
+                <SmartMergeAiLoader />
+              ) : unchecked.length === 0 && checked.length === 0 ? (
                 <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center shadow-xl backdrop-blur-md sm:p-12">
                   <ShoppingCart className="mx-auto mb-3 h-12 w-12 text-white/25" />
                   <p className="font-medium text-white/80">Noch keine Einträge in deinem SmartCart.</p>
