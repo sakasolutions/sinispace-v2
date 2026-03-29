@@ -65,6 +65,7 @@ import {
   UnifiedItemRow,
   UnifiedCheckbox,
   UnifiedQuantityBadge,
+  StoreQtyPill,
 } from '@/components/shopping/list-detail-ui';
 
 const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
@@ -977,7 +978,7 @@ export default function ShoppingListPage() {
                   </p>
                 </div>
               ) : (
-                <UnifiedListSheet>
+                <UnifiedListSheet className={storeMode ? 'mt-4 gap-0' : undefined}>
                     {sortedCategories.map((cat, index) => {
                       const items = grouped[cat] ?? [];
                       if (items.length === 0) return null;
@@ -996,17 +997,43 @@ export default function ShoppingListPage() {
                             const isStriking = checkingId === item.id;
                             const showActions = !storeMode && !isEditingText;
                             const canEdit = item.status !== 'analyzing';
+                            const useStoreRow = storeMode && !isEditingText;
+                            const storeRowDisabled = storeMode && item.status === 'analyzing';
                             return (
                               <UnifiedItemRow
                                 key={item.id}
+                                storeShopping={useStoreRow}
+                                onStoreRowClick={
+                                  useStoreRow && !storeRowDisabled
+                                    ? () => handleToggleItem(activeList.id, item.id)
+                                    : undefined
+                                }
+                                storeRowDisabled={useStoreRow ? storeRowDisabled : undefined}
+                                storeAriaLabel={
+                                  useStoreRow
+                                    ? `${displayLabel} – tippen zum Abhaken`
+                                    : undefined
+                                }
                                 checkbox={
-                                  <UnifiedCheckbox
-                                    checked={false}
-                                    onToggle={() => handleToggleItem(activeList.id, item.id)}
-                                    theme={theme}
-                                    ariaLabel="Abhaken"
-                                    disabled={item.status === 'analyzing'}
-                                  />
+                                  useStoreRow ? (
+                                    <UnifiedCheckbox
+                                      variant="store"
+                                      decorative
+                                      checked={false}
+                                      onToggle={() => {}}
+                                      theme={theme}
+                                      ariaLabel="Abhaken"
+                                      disabled={false}
+                                    />
+                                  ) : (
+                                    <UnifiedCheckbox
+                                      checked={false}
+                                      onToggle={() => handleToggleItem(activeList.id, item.id)}
+                                      theme={theme}
+                                      ariaLabel="Abhaken"
+                                      disabled={item.status === 'analyzing'}
+                                    />
+                                  )
                                 }
                                 actions={
                                   showActions ? (
@@ -1064,9 +1091,25 @@ export default function ShoppingListPage() {
                                     </button>
                                   </>
                                 ) : item.status === 'analyzing' ? (
-                                  <span className={cn('italic text-white/45', isStriking && 'line-through')}>Analysiere …</span>
+                                  <span
+                                    className={cn(
+                                      'italic text-white/45',
+                                      isStriking && 'line-through',
+                                      useStoreRow && 'text-lg'
+                                    )}
+                                  >
+                                    Analysiere …
+                                  </span>
                                 ) : item.status === 'error' ? (
-                                  <span className={cn('font-medium capitalize text-white', isStriking && 'line-through')}>{item.text}</span>
+                                  <span
+                                    className={cn(
+                                      'font-medium capitalize text-white',
+                                      isStriking && 'line-through',
+                                      useStoreRow && 'text-lg'
+                                    )}
+                                  >
+                                    {item.text}
+                                  </span>
                                 ) : isEditingQty ? (
                                   <>
                                     <input
@@ -1084,19 +1127,31 @@ export default function ShoppingListPage() {
                                     />
                                     <span className={cn('font-medium capitalize text-white', isStriking && 'line-through')}>{item.text}</span>
                                   </>
+                                ) : storeMode ? (
+                                  <>
+                                    {hasQty && <StoreQtyPill label={qtyDisplay} />}
+                                    <span
+                                      className={cn(
+                                        'min-w-0 flex-1 text-lg font-medium capitalize text-white',
+                                        isStriking && 'text-white/35 line-through'
+                                      )}
+                                    >
+                                      {item.text}
+                                    </span>
+                                  </>
                                 ) : (
                                   <>
-                                    {!storeMode && hasQty && (
+                                    {hasQty && (
                                       <UnifiedQuantityBadge
                                         label={qtyDisplay}
                                         onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(qtyDisplay); }}
                                       />
                                     )}
-                                    {!storeMode && !hasQty && (
+                                    {!hasQty && (
                                       <UnifiedQuantityBadge label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
                                     )}
                                     <span className={cn('font-medium capitalize text-white', isStriking && 'text-white/35 line-through')}>
-                                      {storeMode ? displayLabel : (hasQty ? item.text : displayLabel)}
+                                      {hasQty ? item.text : displayLabel}
                                     </span>
                                   </>
                                 )}
@@ -1134,7 +1189,7 @@ export default function ShoppingListPage() {
                 {isCompletedExpanded ? <ChevronUp className="w-5 h-5 shrink-0" /> : <ChevronDown className="w-5 h-5 shrink-0" />}
               </div>
               {isCompletedExpanded && (
-                <div className="flex flex-col gap-2 px-2 pb-4 pt-2">
+                <div className={cn('flex flex-col gap-2 px-2 pb-4 pt-2', storeMode && 'gap-0 px-0')}>
                   {checked.map((item) => {
                     const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
                     const qtyD = formatQtyDisplay(item);
@@ -1142,13 +1197,37 @@ export default function ShoppingListPage() {
                     const isEditingText = editingItemId === item.id;
                     const showActions = !storeMode && !isEditingText;
                     const theme = getCategoryTheme('sonstiges');
+                    const useStoreRow = storeMode && !isEditingText;
                     return (
                       <UnifiedItemRow
                         key={item.id}
-                        isChecked
-                        className="bg-transparent opacity-90 hover:opacity-100"
+                        isChecked={!useStoreRow}
+                        className={useStoreRow ? undefined : 'bg-transparent opacity-90 hover:opacity-100'}
+                        storeShopping={useStoreRow}
+                        onStoreRowClick={
+                          useStoreRow ? () => handleToggleItem(activeList!.id, item.id) : undefined
+                        }
+                        storeAriaLabel={
+                          useStoreRow ? `${erledigtLabel} – tippen zum Zurücknehmen` : undefined
+                        }
                         checkbox={
-                          <UnifiedCheckbox checked onToggle={() => handleToggleItem(activeList!.id, item.id)} theme={theme} ariaLabel="Rückgängig" />
+                          useStoreRow ? (
+                            <UnifiedCheckbox
+                              variant="store"
+                              decorative
+                              checked
+                              onToggle={() => {}}
+                              theme={theme}
+                              ariaLabel="Rückgängig"
+                            />
+                          ) : (
+                            <UnifiedCheckbox
+                              checked
+                              onToggle={() => handleToggleItem(activeList!.id, item.id)}
+                              theme={theme}
+                              ariaLabel="Rückgängig"
+                            />
+                          )
                         }
                         actions={
                           showActions ? (
@@ -1208,6 +1287,13 @@ export default function ShoppingListPage() {
                             >
                               <Check className="h-4 w-4" />
                             </button>
+                          </>
+                        ) : storeMode ? (
+                          <>
+                            {hasQty && <StoreQtyPill label={qtyD} dimmed />}
+                            <span className="min-w-0 flex-1 text-lg font-medium capitalize text-gray-600 line-through">
+                              {item.text}
+                            </span>
                           </>
                         ) : (
                           <span className="line-through capitalize text-white/40">{erledigtLabel}</span>

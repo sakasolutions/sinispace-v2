@@ -301,52 +301,133 @@ export function StickyCategoryHeader({
   );
 }
 
-/** Circular checkbox: Gourmet-Gradient when checked, clear circle when unchecked */
+/** Circular checkbox: Cocktail-Modus (emerald) oder Einkaufs-Modus (neon-grün / leerer Ring). */
 export function UnifiedCheckbox({
   checked,
   onToggle,
   theme: _theme,
   ariaLabel,
   disabled,
+  variant = 'cockpit',
+  decorative = false,
 }: {
   checked: boolean;
   onToggle: () => void;
   theme: { checkboxBorder: string; checkboxBg: string };
   ariaLabel: string;
   disabled?: boolean;
+  /** `store` = große Tap-Ziele / Einkaufsliste (grün abgehakt, Ring offen). */
+  variant?: 'cockpit' | 'store';
+  /** Nur Anzeige (z. B. in voller Zeilen-Zeile mit role=button), kein verschachteltes button. */
+  decorative?: boolean;
 }) {
+  const isStore = variant === 'store';
+  const className = cn(
+    'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
+    isStore &&
+      checked &&
+      'border-transparent bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.4)]',
+    isStore && !checked && 'border-white/20 bg-transparent',
+    !isStore &&
+      checked &&
+      'border-transparent bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.45)]',
+    !isStore && !checked && 'border-white/20 bg-transparent hover:border-emerald-400/60'
+  );
+
+  const icon = checked ? (
+    <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+  ) : null;
+
+  if (decorative) {
+    return (
+      <span className={className} aria-hidden>
+        {icon}
+      </span>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={onToggle}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={cn(
-        'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
-        checked
-          ? 'border-transparent bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.45)]'
-          : 'border-white/20 bg-transparent hover:border-emerald-400/60'
-      )}
+      className={className}
     >
-      {checked && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+      {icon}
     </button>
   );
 }
 
-/** Single list row: clean, tactile, actions on hover */
+/** Mengen-Pille nur Anzeige (Einkaufs-Modus), Glass-Style. */
+export function StoreQtyPill({ label, dimmed }: { label: string; dimmed?: boolean }) {
+  return (
+    <span
+      className={cn(
+        'shrink-0 rounded-lg border border-white/5 bg-white/[0.05] px-3 py-1.5 text-sm font-medium text-gray-300',
+        dimmed && 'opacity-30'
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
+/** Single list row: Cockpit (kompakt) oder Einkaufs-Modus (volle Zeile tappbar). */
 export function UnifiedItemRow({
   checkbox,
   children,
   actions,
   isChecked,
   className,
+  storeShopping,
+  onStoreRowClick,
+  storeRowDisabled,
+  storeAriaLabel,
 }: {
   checkbox: React.ReactNode;
   children: React.ReactNode;
   actions: React.ReactNode;
   isChecked?: boolean;
   className?: string;
+  storeShopping?: boolean;
+  onStoreRowClick?: () => void;
+  storeRowDisabled?: boolean;
+  storeAriaLabel?: string;
 }) {
+  if (storeShopping) {
+    return (
+      <div
+        role="button"
+        tabIndex={storeRowDisabled ? -1 : 0}
+        className={cn(
+          'flex w-full touch-manipulation items-center gap-4 border-b border-white/[0.05] py-4 px-2 text-left transition-colors',
+          !storeRowDisabled && 'cursor-pointer hover:bg-white/[0.02] active:bg-white/[0.04]',
+          storeRowDisabled && 'cursor-default opacity-70',
+          className
+        )}
+        onClick={storeRowDisabled ? undefined : onStoreRowClick}
+        onKeyDown={
+          storeRowDisabled
+            ? undefined
+            : (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onStoreRowClick?.();
+                }
+              }
+        }
+        aria-label={storeAriaLabel}
+      >
+        <div className="pointer-events-none shrink-0">{checkbox}</div>
+        <div className="flex min-w-0 flex-1 items-center gap-4">{children}</div>
+        {actions ? (
+          <div className="flex shrink-0 items-center gap-0.5">{actions}</div>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
