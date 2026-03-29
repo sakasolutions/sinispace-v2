@@ -50,8 +50,9 @@ import {
   sortCategoriesBySupermarktRoute,
 } from '@/lib/shopping-list-categories';
 import {
-  parsePieceQuantityFromLine,
+  formatShoppingQtyLabel,
   parseQtyInputForShopping,
+  parseShoppingFallbackLine,
 } from '@/lib/shopping-piece-quantity';
 import { analyzeShoppingItems } from '@/actions/shopping-list-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
@@ -86,12 +87,7 @@ function splitInput(raw: string): string[] {
 }
 
 function formatQtyDisplay(item: ShoppingItem): string {
-  const q = item.quantity;
-  const u = item.unit?.trim() || null;
-  if (q != null && (u == null || u === 'x')) return `${q}x`;
-  if (q != null && u) return `${q} ${u}`;
-  if (u) return u;
-  return '';
+  return formatShoppingQtyLabel(item.quantity ?? null, item.unit ?? null);
 }
 
 /** Fallback: Bei KI-Fehler oder leerer Antwort Items lokal splitten und als 'sonstiges' einfügen (kein Datenverlust). */
@@ -112,7 +108,7 @@ function addFallbackItems(
             items: [
               ...l.items,
               ...chunks.map((text): ShoppingItem => {
-                const parsed = parsePieceQuantityFromLine(text);
+                const parsed = parseShoppingFallbackLine(text);
                 if (parsed) {
                   onItemDone?.(parsed.name);
                   return {
@@ -120,7 +116,7 @@ function addFallbackItems(
                     text: parsed.name,
                     category: 'sonstiges',
                     quantity: parsed.quantity,
-                    unit: 'x',
+                    unit: parsed.unit,
                     status: 'done',
                     rawInput: text,
                     checked: false,

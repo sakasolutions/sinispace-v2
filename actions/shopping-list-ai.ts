@@ -46,7 +46,8 @@ Mengen-Zusammenfassung: Wenn der User schreibt 'Bier, Bier, Bier', gib EIN Objek
 Stückzahlen (zwingend unit 'x'):
 - Schreibweisen wie '2x Tomaten', '2 x Tomaten', '2 stk …', '2 Stück …', '2 st …' (nach der Zahl) sind Stückzahlen: quantity = Zahl, unit = 'x', name = Produktname ohne Mengen-Präfix.
 - Steht nur eine Zahl vor dem Namen und es handelt sich NICHT um Gewicht oder Volumen (kein g, kg, mg, ml, l, cl, dl, EL, TL, Liter, Prise direkt nach der Zahl bzw. als Einheit), dann ist das Stückzahl: quantity = Zahl, unit = 'x', name = Produktname.
-- Gewicht (g, kg, …) und Volumen (ml, l, EL, TL, …) bleiben unverändert mit der genannten Einheit in 'unit' (niemals durch 'x' ersetzen).
+- Gewicht: Gramm immer unit exakt 'g' (Synonyme gr, gramm, gram nur mappen), Kilogramm immer unit exakt 'kg' (Synonyme kilo, kilogramm, kilogram nur mappen). quantity als Zahl (Dezimal mit Punkt in JSON ist ok).
+- Volumen (ml, l, EL, TL, …) bleiben unverändert mit der genannten Einheit in 'unit' (niemals durch 'x' oder 'g'/'kg' ersetzen).
 
 Rechtschreibung: Korrigiere Tippfehler NUR, wenn du dir zu 99% sicher bist. Exoten (wie Sucuk, Pak Choi) nicht eindeutschen.
 
