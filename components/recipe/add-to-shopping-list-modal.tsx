@@ -4,9 +4,14 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Check, ListChecks, Loader2 } from 'lucide-react';
 import { CustomSelect } from '@/components/ui/custom-select';
-import { appendToList, defaultList, type ShoppingList } from '@/lib/shopping-lists-storage';
+import {
+  appendStructuredItemsToList,
+  defaultList,
+  type ShoppingList,
+} from '@/lib/shopping-lists-storage';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import { formatIngredientDisplay } from '@/lib/format-ingredient';
+import { parseIngredient } from '@/lib/ingredient-parser';
 
 const NEW_LIST_VALUE = '__new__';
 
@@ -69,14 +74,21 @@ export function AddToShoppingListModal({
   };
 
   const handleSubmit = async () => {
-    const toAdd = Array.from(selected).map((ing) => formatIngredientDisplay(ing.trim()));
-    if (toAdd.length === 0) return;
+    const structured = Array.from(selected).map((ing) => {
+      const p = parseIngredient(ing.trim());
+      return {
+        text: p.name,
+        quantity: p.amount,
+        unit: p.unit,
+      };
+    });
+    if (structured.length === 0) return;
 
     const listId = selectedListId === NEW_LIST_VALUE ? NEW_LIST_VALUE : selectedListId;
-    const { lists: next, listName, appendedCount } = appendToList(
+    const { lists: next, listName, appendedCount } = appendStructuredItemsToList(
       lists,
       listId,
-      toAdd,
+      structured,
       selectedListId === NEW_LIST_VALUE ? newListName || undefined : undefined
     );
     setSaving(true);

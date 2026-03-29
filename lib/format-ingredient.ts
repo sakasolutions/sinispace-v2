@@ -1,24 +1,21 @@
-/**
- * Parst einen Zutaten-String in Menge, Einheit und Name.
- * g wird nur als Einheit erkannt, wenn nicht Teil eines Wortes (z.B. "große").
- */
-const INGREDIENT_REGEX =
-  /^(\d+(?:[.,]\d+)?)\s*(g(?!\w)|kg|ml|l|Stk|Stück|EL|TL|Prise|Tasse|Tassen|Glas|Bund|Packung)?\s*(.*)$/i;
+import { parseIngredient as parseIngredientSmartCart } from '@/lib/ingredient-parser';
 
+/**
+ * Parst einen Zutaten-String (Rezept-Anzeige, Portionsskalierung) — gleiche Logik wie SmartCart.
+ */
 export function parseIngredient(ingredient: string): {
   amount: number | null;
   unit: string;
   name: string;
   original: string;
 } {
-  const match = ingredient.trim().match(INGREDIENT_REGEX);
-  if (match) {
-    const amount = parseFloat(match[1].replace(',', '.'));
-    const unit = match[2] || '';
-    const name = match[3].trim();
-    return { amount, unit, name, original: ingredient };
-  }
-  return { amount: null, unit: '', name: ingredient, original: ingredient };
+  const p = parseIngredientSmartCart(ingredient);
+  return {
+    amount: p.amount,
+    unit: p.unit ?? '',
+    name: p.name || ingredient.trim(),
+    original: ingredient,
+  };
 }
 
 /** Gängige Dezimalzahlen → Bruch (für Anzeige); 1.5, 2.5 etc. entstehen über wholePart + 0.5 */

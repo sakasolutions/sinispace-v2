@@ -3,13 +3,30 @@
  * Reihenfolge Fallback: kg → g → ml/l/Pck./… → Stück.
  */
 
-const NUM = String.raw`(\d+(?:[.,]\d+)?)`;
+/** Ganze Zahl, Dezimal oder Bruch (z. B. 1/4, 3 / 4). Eine Capture-Gruppe. */
+const QTY = String.raw`((?:\d+\s*/\s*\d+)|(?:\d+(?:[.,]\d+)?))`;
+
+/**
+ * Parst die Menge aus der ersten Capture-Gruppe von {@link QTY}.
+ */
+export function parseShoppingQuantityCapture(group: string): number | null {
+  const s = group.trim();
+  const slash = s.indexOf('/');
+  if (slash >= 0) {
+    const num = parseInt(s.slice(0, slash).replace(/\s/g, ''), 10);
+    const den = parseInt(s.slice(slash + 1).replace(/\s/g, ''), 10);
+    if (!Number.isFinite(num) || !Number.isFinite(den) || den === 0) return null;
+    return num / den;
+  }
+  const q = parseFloat(s.replace(',', '.'));
+  return Number.isNaN(q) ? null : q;
+}
 
 /**
  * Erstes Wort des Namens darf keine Maß-/Gebinde-Einheit sein (Inferenz unit "x" bei fehlender Einheit).
  */
 const UNIT_LIKE_NAME_START =
-  /^(el|tl|g|kg|mg|ml|cl|dl|l|liter|milliliter|l\.|prise|kilo|kilogramm|gramm|gram|gr|pfund|dkg|dag|packung|packungen|päckchen|pck\.?|flasche|flaschen|fl\.?|dose|dosen|glas|gläser|glaser|esslöffel|essloeffel|bünde|bunde|bund|zehe|zehen|knoblauchzehe|knoblauchzehen)\b/i;
+  /^(el|tl|g|kg|mg|ml|cl|dl|l|liter|milliliter|l\.|prise|kilo|kilogramm|gramm|gram|gr|pfund|dkg|dag|packung|packungen|päckchen|pck\.?|flasche|flaschen|fl\.?|dose|dosen|glas|gläser|glaser|esslöffel|essloeffel|teelöffel|teeloeffel|tasse|tassen|bünde|bunde|bund|zehe|zehen|knoblauchzehe|knoblauchzehen)\b/i;
 
 function isPieceUnitToken(raw: string | null | undefined): boolean {
   if (raw == null) return false;
@@ -51,7 +68,10 @@ export function normalizeVolumePackagingCulinaryUnit(raw: string | null | undefi
     ['essloeffel', 'EL'],
     ['el', 'EL'],
     ['teelöffel', 'TL'],
+    ['teeloeffel', 'TL'],
     ['tl', 'TL'],
+    ['tassen', 'Tasse'],
+    ['tasse', 'Tasse'],
     ['bünde', 'Bund'],
     ['bunde', 'Bund'],
     ['bund', 'Bund'],
@@ -83,12 +103,14 @@ export function applyShoppingUnitPlural(quantity: number | null, unit: string | 
     if (unitLower === 'dose' || unitLower === 'dosen') return 'Dosen';
     if (unitLower === 'zehe' || unitLower === 'zehen') return 'Zehen';
     if (unitLower === 'glas' || unitLower === 'gläser' || unitLower === 'glaser') return 'Gläser';
+    if (unitLower === 'tasse' || unitLower === 'tassen') return 'Tassen';
     return unit;
   }
 
   if (unitLower === 'dosen' || unitLower === 'dose') return 'Dose';
   if (unitLower === 'zehen' || unitLower === 'zehe') return 'Zehe';
   if (unitLower === 'gläser' || unitLower === 'glaser' || unitLower === 'glas') return 'Glas';
+  if (unitLower === 'tassen' || unitLower === 'tasse') return 'Tasse';
   return unit;
 }
 
@@ -101,7 +123,8 @@ const VPC_LINE_RULES: { pattern: string; unit: string }[] = [
   { pattern: String.raw`(?:dosen|dose)`, unit: 'Dose' },
   { pattern: String.raw`(?:gläser|glaser|glas)`, unit: 'Glas' },
   { pattern: String.raw`(?:esslöffel|essloeffel|el)`, unit: 'EL' },
-  { pattern: String.raw`(?:teelöffel|tl)`, unit: 'TL' },
+  { pattern: String.raw`(?:teelöffel|teeloeffel|tl)`, unit: 'TL' },
+  { pattern: String.raw`(?:tassen|tasse)`, unit: 'Tasse' },
   { pattern: String.raw`(?:bünde|bunde|bund)`, unit: 'Bund' },
   {
     pattern: String.raw`(?:knoblauchzehen|knoblauchzehe|zehen|zehe)`,
@@ -150,20 +173,20 @@ export function parseWeightQuantityFromLine(line: string): {
   const s = line.trim();
   if (!s) return null;
 
-  const kgRe = new RegExp(`^${NUM}\\s*(?:kilogramm|kilogram|kilo|kg)\\b\\s*(.+)$`, 'i');
+  const kgRe = new RegExp(`^${QTY}\\s*(?:kilogramm|kilogram|kilo|kg)\\b\\s*(.+)$`, 'i');
   const kgMatch = kgRe.exec(s);
   if (kgMatch) {
-    const q = parseFloat(kgMatch[1]!.replace(',', '.'));
+    const q = parseShoppingQuantityCapture(kgMatch[1]!);
     const name = kgMatch[2]!.trim();
-    if (!Number.isNaN(q) && name.length > 0) return { quantity: q, unit: 'kg', name };
+    if (q != null && name.length > 0) return { quantity: q, unit: 'kg', name };
   }
 
-  const gRe = new RegExp(`^${NUM}\\s*(?:gramm|gram|gr|g)\\b\\s*(.+)$`, 'i');
+  const gRe = new RegExp(`^${QTY}\\s*(?:gramm|gram|gr|g)\\b\\s*(.+)$`, 'i');
   const gMatch = gRe.exec(s);
   if (gMatch) {
-    const q = parseFloat(gMatch[1]!.replace(',', '.'));
+    const q = parseShoppingQuantityCapture(gMatch[1]!);
     const name = gMatch[2]!.trim();
-    if (!Number.isNaN(q) && name.length > 0) return { quantity: q, unit: 'g', name };
+    if (q != null && name.length > 0) return { quantity: q, unit: 'g', name };
   }
 
   return null;
@@ -181,12 +204,12 @@ export function parseVolumePackagingCulinaryFromLine(line: string): {
   if (!s) return null;
 
   for (const { pattern, unit } of VPC_LINE_RULES) {
-    const re = new RegExp(`^${NUM}\\s*${pattern}\\b\\s*(.+)$`, 'i');
+    const re = new RegExp(`^${QTY}\\s*${pattern}\\b\\s*(.+)$`, 'i');
     const m = re.exec(s);
     if (m) {
-      const q = parseFloat(m[1]!.replace(',', '.'));
+      const q = parseShoppingQuantityCapture(m[1]!);
       const name = m[2]!.trim();
-      if (!Number.isNaN(q) && name.length > 0) {
+      if (q != null && name.length > 0) {
         const pluralUnit = applyShoppingUnitPlural(q, unit) ?? unit;
         return { quantity: q, unit: pluralUnit, name };
       }
@@ -207,24 +230,24 @@ export function parsePieceQuantityFromLine(line: string): {
   const s = line.trim();
   if (!s) return null;
 
-  const withX = new RegExp(`^${NUM}\\s*x\\s+(.+)$`, 'i').exec(s);
+  const withX = new RegExp(`^${QTY}\\s*x\\s+(.+)$`, 'i').exec(s);
   if (withX) {
-    const q = parseFloat(withX[1]!.replace(',', '.'));
-    if (!Number.isNaN(q)) return { quantity: q, unit: 'x', name: withX[2]!.trim() };
+    const q = parseShoppingQuantityCapture(withX[1]!);
+    if (q != null) return { quantity: q, unit: 'x', name: withX[2]!.trim() };
   }
 
-  const withStück = new RegExp(`^${NUM}\\s*(?:stk\\.?|stück|st)\\s+(.+)$`, 'i').exec(s);
+  const withStück = new RegExp(`^${QTY}\\s*(?:stk\\.?|stück|st)\\s+(.+)$`, 'i').exec(s);
   if (withStück) {
-    const q = parseFloat(withStück[1]!.replace(',', '.'));
-    if (!Number.isNaN(q)) return { quantity: q, unit: 'x', name: withStück[2]!.trim() };
+    const q = parseShoppingQuantityCapture(withStück[1]!);
+    if (q != null) return { quantity: q, unit: 'x', name: withStück[2]!.trim() };
   }
 
-  const bare = new RegExp(`^${NUM}\\s+(.+)$`).exec(s);
+  const bare = new RegExp(`^${QTY}\\s+(.+)$`).exec(s);
   if (bare) {
     const rest = bare[2]!.trim();
     if (rest && !UNIT_LIKE_NAME_START.test(rest)) {
-      const q = parseFloat(bare[1]!.replace(',', '.'));
-      if (!Number.isNaN(q)) return { quantity: q, unit: 'x', name: rest };
+      const q = parseShoppingQuantityCapture(bare[1]!);
+      if (q != null) return { quantity: q, unit: 'x', name: rest };
     }
   }
 
@@ -294,43 +317,43 @@ export function parseQtyInputForShopping(raw: string): { quantity: number | null
   const s = raw.trim();
   if (!s) return { quantity: null, unit: null };
 
-  const kgOnly = new RegExp(`^${NUM}\\s*(?:kilogramm|kilogram|kilo|kg)\\s*$`, 'i');
-  const gOnly = new RegExp(`^${NUM}\\s*(?:gramm|gram|gr|g)\\s*$`, 'i');
+  const kgOnly = new RegExp(`^${QTY}\\s*(?:kilogramm|kilogram|kilo|kg)\\s*$`, 'i');
+  const gOnly = new RegExp(`^${QTY}\\s*(?:gramm|gram|gr|g)\\s*$`, 'i');
   const kgOnlyMatch = kgOnly.exec(s);
   if (kgOnlyMatch) {
-    const q = parseFloat(kgOnlyMatch[1]!.replace(',', '.'));
-    if (!Number.isNaN(q)) return { quantity: q, unit: applyShoppingUnitPlural(q, 'kg') ?? 'kg' };
+    const q = parseShoppingQuantityCapture(kgOnlyMatch[1]!);
+    if (q != null) return { quantity: q, unit: applyShoppingUnitPlural(q, 'kg') ?? 'kg' };
   }
   const gOnlyMatch = gOnly.exec(s);
   if (gOnlyMatch) {
-    const q = parseFloat(gOnlyMatch[1]!.replace(',', '.'));
-    if (!Number.isNaN(q)) return { quantity: q, unit: applyShoppingUnitPlural(q, 'g') ?? 'g' };
+    const q = parseShoppingQuantityCapture(gOnlyMatch[1]!);
+    if (q != null) return { quantity: q, unit: applyShoppingUnitPlural(q, 'g') ?? 'g' };
   }
 
   for (const { pattern, unit } of VPC_QTY_ONLY_RULES) {
-    const re = new RegExp(`^${NUM}\\s*${pattern}\\s*$`, 'i');
+    const re = new RegExp(`^${QTY}\\s*${pattern}\\s*$`, 'i');
     const m = re.exec(s);
     if (m) {
-      const q = parseFloat(m[1]!.replace(',', '.'));
-      if (!Number.isNaN(q)) return { quantity: q, unit: applyShoppingUnitPlural(q, unit) ?? unit };
+      const q = parseShoppingQuantityCapture(m[1]!);
+      if (q != null) return { quantity: q, unit: applyShoppingUnitPlural(q, unit) ?? unit };
     }
   }
 
-  const pieceSuffix = new RegExp(`^${NUM}\\s*(?:x|stk\\.?|stück|st)\\s*$`, 'i');
-  const loneNum = new RegExp(`^${NUM}\\s*$`);
+  const pieceSuffix = new RegExp(`^${QTY}\\s*(?:x|stk\\.?|stück|st)\\s*$`, 'i');
+  const loneNum = new RegExp(`^${QTY}\\s*$`);
   if (pieceSuffix.test(s) || loneNum.test(s)) {
-    const mNum = s.match(new RegExp(`^${NUM}`));
+    const mNum = s.match(new RegExp(`^${QTY}`));
     if (mNum) {
-      const q = parseFloat(mNum[1]!.replace(',', '.'));
-      if (!Number.isNaN(q)) return { quantity: q, unit: 'x' };
+      const q = parseShoppingQuantityCapture(mNum[1]!);
+      if (q != null) return { quantity: q, unit: 'x' };
     }
   }
 
-  const m = s.match(/^(\d+(?:[.,]\d+)?)\s*(\S*)$/);
+  const m = s.match(new RegExp(`^${QTY}\\s*(\\S*)$`));
   if (!m) return { quantity: null, unit: null };
-  const q = parseFloat(m[1]!.replace(',', '.'));
+  const q = parseShoppingQuantityCapture(m[1]!);
   const uRaw = m[2]?.trim() || null;
-  if (Number.isNaN(q)) return { quantity: null, unit: null };
+  if (q == null) return { quantity: null, unit: null };
 
   if (uRaw && isPieceUnitToken(uRaw)) {
     return { quantity: q, unit: 'x' };

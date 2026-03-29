@@ -44,7 +44,7 @@ import {
 import { getCurrentWeekMeals } from '@/actions/calendar-actions';
 import { getShoppingLists, saveShoppingLists } from '@/actions/shopping-list-actions';
 import { appendStructuredItemsToList, defaultList, type ShoppingList } from '@/lib/shopping-lists-storage';
-import { parseIngredient, formatIngredientDisplay } from '@/lib/format-ingredient';
+import { parseIngredient } from '@/lib/ingredient-parser';
 import { getCategoryLabel, normalizeSmartCartCategory, sortCategoriesBySupermarktRoute } from '@/lib/shopping-list-categories';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 
@@ -2303,10 +2303,10 @@ export default function RecipePage() {
                       const line = a ? `${a} ${n}`.replace(/\s+/g, ' ').trim() : n;
                       const parsed = parseIngredient(line);
                       return {
-                        text: formatIngredientDisplay(line),
+                        text: parsed.name,
                         category: normalizeSmartCartCategory(g.category),
                         quantity: parsed.amount,
-                        unit: parsed.unit ? parsed.unit.trim() || null : null,
+                        unit: parsed.unit,
                       };
                     });
                     setIsSavingPantryToSmartCart(true);

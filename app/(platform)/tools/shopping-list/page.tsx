@@ -54,8 +54,8 @@ import {
   applyShoppingUnitPlural,
   formatShoppingQtyLabel,
   parseQtyInputForShopping,
-  parseShoppingFallbackLine,
 } from '@/lib/shopping-piece-quantity';
+import { parseIngredient } from '@/lib/ingredient-parser';
 import { analyzeShoppingItems } from '@/actions/shopping-list-ai';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
@@ -111,14 +111,14 @@ function addFallbackItems(
             items: [
               ...l.items,
               ...chunks.map((text): ShoppingItem => {
-                const parsed = parseShoppingFallbackLine(text);
-                if (parsed) {
+                const parsed = parseIngredient(text);
+                if (parsed.amount != null) {
                   onItemDone?.(parsed.name);
                   return {
                     id: generateId(),
                     text: parsed.name,
                     category: 'sonstiges',
-                    quantity: parsed.quantity,
+                    quantity: parsed.amount,
                     unit: parsed.unit,
                     status: 'done',
                     rawInput: text,
