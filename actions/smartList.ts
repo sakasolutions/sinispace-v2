@@ -86,7 +86,11 @@ function sanitizeCartItems(items: unknown[]) {
 export async function optimizeSmartCart(
   items: unknown[]
 ): Promise<{ data?: OptimizedCartLine[]; error?: string }> {
+  console.log('[smartList] optimizeSmartCart aufgerufen, Roh-Items:', Array.isArray(items) ? items.length : 'kein Array');
+
   const sanitized = sanitizeCartItems(items);
+  console.log('[smartList] sanitizeCartItems →', sanitized.length, 'Zeilen');
+
   if (sanitized.length === 0) {
     return { error: 'Keine Artikel zum Optimieren.' };
   }
@@ -155,6 +159,7 @@ export async function optimizeSmartCart(
       return { error: 'KI hat keine optimierte Liste zurückgegeben.' };
     }
 
+    console.log('[smartList] optimizeSmartCart OK, ausgehende Zeilen:', out.length);
     return { data: out };
   } catch (e) {
     console.error('[smartList] optimizeSmartCart', e);

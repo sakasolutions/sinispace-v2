@@ -656,10 +656,26 @@ export default function ShoppingListPage() {
   };
 
   const handleSmartListOptimize = useCallback(async () => {
-    if (!activeListId || !activeList || isOptimizing || isSmartMergeProcessing || storeMode) return;
+    console.log('🚀 1. Smart Liste Button geklickt!');
+
+    if (!activeListId || !activeList || isOptimizing || isSmartMergeProcessing || storeMode) {
+      console.warn('[Smart Liste] Abbruch – Voraussetzungen nicht erfüllt', {
+        activeListId,
+        hasActiveList: !!activeList,
+        isOptimizing,
+        isSmartMergeProcessing,
+        storeMode,
+      });
+      return;
+    }
+
     const openItems = activeList.items.filter((i) => !i.checked);
     const toOptimize = openItems.filter((i) => i.status !== 'analyzing');
     if (toOptimize.length === 0) {
+      console.warn('[Smart Liste] Abbruch – keine optimierbaren offenen Artikel', {
+        offenGesamt: openItems.length,
+        listId: activeListId,
+      });
       setToast('Keine offenen Artikel zum Optimieren.');
       if (toastRef.current) clearTimeout(toastRef.current);
       toastRef.current = setTimeout(() => {
@@ -669,7 +685,6 @@ export default function ShoppingListPage() {
       return;
     }
 
-    setIsOptimizing(true);
     const payload = toOptimize.map((i) => ({
       text: i.text,
       quantity: i.quantity ?? null,
@@ -678,48 +693,68 @@ export default function ShoppingListPage() {
       subtext: i.recipeSubtext ?? null,
     }));
 
-    const res = await optimizeSmartCart(payload);
-    setIsOptimizing(false);
+    console.log('📦 2. Sende folgende Items an API (lists / optimizeSmartCart):', payload);
 
-    if (res.error) {
-      const msg =
-        res.error === 'PREMIUM_REQUIRED'
-          ? 'Smart Liste ist ein Premium-Feature.'
-          : res.error;
-      setToast(msg);
+    setIsOptimizing(true);
+    try {
+      const res = await optimizeSmartCart(payload);
+      console.log('✅ 3. API Antwort erhalten:', res);
+
+      if (res.error) {
+        const msg =
+          res.error === 'PREMIUM_REQUIRED'
+            ? 'Smart Liste ist ein Premium-Feature.'
+            : res.error;
+        setToast(msg);
+        if (toastRef.current) clearTimeout(toastRef.current);
+        toastRef.current = setTimeout(() => {
+          toastRef.current = null;
+          setToast(null);
+        }, 4000);
+        return;
+      }
+
+      const lines = res.data!;
+      console.log('✅ 3b. Überschreibe offene Items mit optimierter Liste:', lines);
+
+      setLists((prev) =>
+        prev.map((l) => {
+          if (l.id !== activeListId) return l;
+          const checked = l.items.filter((i) => i.checked);
+          const analyzing = l.items.filter((i) => !i.checked && i.status === 'analyzing');
+          const newOpen: ShoppingItem[] = lines.map((line) => ({
+            id: generateId(),
+            text: line.name,
+            checked: false,
+            category: line.category,
+            quantity: line.quantity,
+            unit: line.unit,
+            status: 'done' as const,
+            ...(line.recipeSubtext ? { recipeSubtext: line.recipeSubtext } : {}),
+          }));
+          return { ...l, items: [...newOpen, ...analyzing, ...checked] };
+        })
+      );
+
+      setToast('Liste mit KI optimiert.');
+      if (toastRef.current) clearTimeout(toastRef.current);
+      toastRef.current = setTimeout(() => {
+        toastRef.current = null;
+        setToast(null);
+      }, 2200);
+    } catch (error) {
+      console.error('❌ 4. API Call fehlgeschlagen:', error);
+      setToast(
+        error instanceof Error ? error.message : 'Smart Liste: unbekannter Fehler.'
+      );
       if (toastRef.current) clearTimeout(toastRef.current);
       toastRef.current = setTimeout(() => {
         toastRef.current = null;
         setToast(null);
       }, 4000);
-      return;
+    } finally {
+      setIsOptimizing(false);
     }
-
-    const lines = res.data!;
-    setLists((prev) =>
-      prev.map((l) => {
-        if (l.id !== activeListId) return l;
-        const checked = l.items.filter((i) => i.checked);
-        const analyzing = l.items.filter((i) => !i.checked && i.status === 'analyzing');
-        const newOpen: ShoppingItem[] = lines.map((line) => ({
-          id: generateId(),
-          text: line.name,
-          checked: false,
-          category: line.category,
-          quantity: line.quantity,
-          unit: line.unit,
-          status: 'done' as const,
-          ...(line.recipeSubtext ? { recipeSubtext: line.recipeSubtext } : {}),
-        }));
-        return { ...l, items: [...newOpen, ...analyzing, ...checked] };
-      })
-    );
-    setToast('Liste mit KI optimiert.');
-    if (toastRef.current) clearTimeout(toastRef.current);
-    toastRef.current = setTimeout(() => {
-      toastRef.current = null;
-      setToast(null);
-    }, 2200);
   }, [
     activeList,
     activeListId,
@@ -833,14 +868,18 @@ export default function ShoppingListPage() {
             <p className="mt-1 text-sm font-normal text-white sm:text-base" style={{ letterSpacing: '0.1px' }}>
               Dein intelligenter Begleiter
             </p>
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="pointer-events-auto relative z-[25] mt-4 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
                 <ShoppingCart className="h-3.5 w-3.5" />
                 {(activeList?.items.filter((i) => !i.checked).length ?? 0)} Offen
               </div>
               <button
                 type="button"
-                onClick={() => void handleSmartListOptimize()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  void handleSmartListOptimize();
+                }}
                 disabled={
                   isOptimizing ||
                   isSmartMergeProcessing ||
@@ -848,9 +887,23 @@ export default function ShoppingListPage() {
                   !activeList ||
                   activeList.items.filter((i) => !i.checked && i.status !== 'analyzing').length === 0
                 }
+                title={
+                  !activeList
+                    ? 'Keine aktive Liste'
+                    : storeMode
+                      ? 'Im Einkaufsmodus nicht verfügbar'
+                      : isSmartMergeProcessing
+                        ? 'Warte, bis die Smart-Eingabe fertig ist'
+                        : isOptimizing
+                          ? 'Optimierung läuft …'
+                          : activeList.items.filter((i) => !i.checked && i.status !== 'analyzing')
+                                .length === 0
+                            ? 'Keine offenen Artikel (nur erledigt oder „Analysiere …“)'
+                            : 'Liste mit KI zusammenfassen (Gebinde & Einheiten)'
+                }
                 aria-busy={isOptimizing}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all',
+                  'relative flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all',
                   isOptimizing
                     ? 'border-fuchsia-500/40 bg-fuchsia-500/15 text-white shadow-[0_0_16px_rgba(217,70,239,0.25)]'
                     : 'border-white/10 bg-white/[0.05] text-white hover:border-white/20 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45'
