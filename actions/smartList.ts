@@ -7,37 +7,25 @@ import { normalizeSmartCartCategory, type ShoppingCategory } from '@/lib/shoppin
 import { isUserPremium } from '@/lib/subscription';
 
 const SMART_LIST_SYSTEM = `Du bist 'SiniSpace', eine smarte KI für Supermarkt-Einkaufslisten. 
-Der User übergibt dir ein JSON-Array mit seinen aktuellen Zutaten.
+Du erhältst ein Array mit Zutaten, deren Mengen bereits mathematisch perfekt berechnet wurden (oft in g oder ml).
 
-DEINE REGELN FÜR DIE OPTIMIERUNG:
-1. AGGREGIEREN & GEBINDE: Fasse gleiche Zutaten zusammen. Wandle reine Gewichte (g, ml) in realistische deutsche Supermarkt-Gebinde um (z.B. Becher, Pck., Glas, Dose, Fl., x).
-2. DER MATHE-ZWANG (x/Pck vs. g/ml):
-   - Du hast bisher Fehler gemacht wie "2 Pck + 200g = 202g". DAS IST VERBOTEN!
-   - Du MUSST zwingend Schritt-für-Schritt rechnen. 
-   - Rechne Schritt für Schritt im Feld "reasoning".
-   - SUPERMARKT-RUNDUNG (WICHTIG): Du MUSST IMMER AUFRUNDEN (Ceiling), sobald der Bedarf die Gebindegröße auch nur minimal übersteigt! 
-   - Beispiel: Bedarf = 1200g. Angenommen 1 Pck = 500g. Rechnung: 1200 / 500 = 2.4. 
-   - ERGEBNIS MUSS 3 SEIN! (2 Packungen = 1000g reichen NICHT für 1200g Bedarf. Es MÜSSEN 3 Packungen gekauft werden).
-   - Beispiel-Rechnung im Kopf für 2 Pck Haferflocken + 200g Haferflocken: 
-     a) Annahme: 1 Pck = 500g. 
-     b) Umrechnung: 2 Pck = 1000g. 
-     c) Addition: 1000g + 200g = 1200g. 
-     d) Ergebnis: 1200g / 500g = 2.4 -> Aufgerundet 3 Pck. Haferflocken.
-3. ABSURDE MENGEN: 3000g Rinderhackfleisch MÜSSEN in Gebinde umgerechnet werden (z.B. 6 Pck à 500g). Lass keine absurden Gramm-Zahlen stehen!
-4. TRANSPARENZ: Hänge deine angenommene Gebindegröße an den Subtext an (z.B. "Für Porridge (Angenommen: 500g / Pck.)").
+DEINE AUFGABE (DIE SUPERMARKT-ÜBERSETZUNG):
+1. GEBINDE SCHNÜREN: Wandle nackte Gewichte (g, ml) in realistische deutsche Supermarkt-Gebinde um (z.B. Becher, Pck., Glas, Dose, Fl., x). 
+   - Beispiel: 700g Haferflocken -> Angenommen 1 Pck = 500g -> Es MÜSSEN 2 Pck. gekauft werden (immer aufrunden!).
+2. UX-TRANSPARENZ IM SUBTEXT (WICHTIG!): Der User muss wissen, wie viel er eigentlich für das Rezept braucht. Wenn du eine Gramm/ml-Zahl in ein Gebinde umwandelst, schreibe den ursprünglichen Bedarf VORNE in den Subtext.
+   - Format: "Bedarf: [Ursprüngliche Menge] | [Bisheriger Subtext]"
+   - Beispiel: Aus {amount: 700, unit: "g", name: "Haferflocken", subtext: "Für Porridge"} WIRD {amount: 2, unit: "Pck.", name: "Haferflocken", subtext: "Bedarf: 700g | Für Porridge"}
+3. AUSNAHMEN: Frisches Gemüse/Obst (z.B. 3 Tomaten) oder simple Stückzahlen lässt du einfach so, wie sie sind.
+4. NAMEN BEREINIGEN: Halte die Namen sauber und generisch (Aus "Nüsse (z.B. Walnüsse)" wird "Walnüsse").
 
-WICHTIG: Damit du keine Rechenfehler machst, MUSST du deine mathematischen Schritte im Feld "reasoning" erklären, BEVOR du das "items" Array ausgibst.
-
-Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt in EXAKT diesem Format:
+Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt, das ein Array namens "items" enthält:
 {
-  "reasoning": "Erkläre hier kurz deine Umrechnungen, z.B.: Haferflocken: 2 Pck (1000g) + 200g = 1200g -> 3 Pck.",
   "items": [
-    { "amount": 3, "unit": "Pck.", "name": "Haferflocken", "subtext": "Für Porridge (Angenommen: 500g / Pck.)" }
+    { "amount": 2, "unit": "Pck.", "name": "Haferflocken", "subtext": "Bedarf: 700g | Für Porridge" }
   ]
 }`;
 
 const OptimizeOutputSchema = z.object({
-  reasoning: z.string().min(1),
   items: z.array(
     z.object({
       amount: z.coerce.number().nullable().optional(),
@@ -92,7 +80,7 @@ function sanitizeCartItems(items: unknown[]) {
 }
 
 /**
- * Smart Liste: Einkaufsliste per KI optimieren (Gebinde, CoT reasoning, Pck./g, Subtext).
+ * Smart Liste: Supermarkt-Gebinde aus voraggregierten g/ml; Subtext mit Bedarf-Transparenz.
  */
 export async function optimizeSmartCart(
   items: unknown[]
@@ -170,7 +158,6 @@ export async function optimizeSmartCart(
       return { error: 'KI hat keine optimierte Liste zurückgegeben.' };
     }
 
-    console.log('[smartList] reasoning:', parsed.data.reasoning);
     console.log('[smartList] optimizeSmartCart OK, ausgehende Zeilen:', out.length);
     return { data: out };
   } catch (e) {
