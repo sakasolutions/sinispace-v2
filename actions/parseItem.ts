@@ -5,21 +5,31 @@ import { createChatCompletion } from '@/lib/openai-wrapper';
 import { normalizeSmartCartCategory, type ShoppingCategory } from '@/lib/shopping-list-categories';
 import { isUserPremium } from '@/lib/subscription';
 
-const PARSE_SINGLE_SYSTEM = `Du bist ein Converter für Einkaufslisten. Der User gibt EINE Zutat als Text ein (z.B. "2 Pck. Haferflocken" oder "500g Tomaten").
-DEINE EINZIGE AUFGABE: Wandle diese Eingabe in eine der drei Basiseinheiten (g, ml, x) um. 
-- Wenn es Masse ist (z.B. Pck, Becher, Glas, kg), wandle in "g" um. (Annahmen: 1 Pck = 500g, 1 Becher = 200g, 1 Glas = 300g, 1 Dose = 400g).
-- Wenn es Volumen ist (z.B. Liter, Flasche), wandle in "ml" um (1 L / 1 Flasche = 1000ml).
-- Wenn es zählbar ist (Stück, Eier, Äpfel), nutze "x".
-- Halte den Namen sauber (z.B. "Haferflocken").
-- Weise eine Standard-Kategorie zu (Kühlregal, Obst & Gemüse, Vorratsschrank etc.).
-Antworte AUSSCHLIESSLICH als JSON:
-{ "name": "Haferflocken", "amount": 1000, "unit": "g", "category": "Vorratsschrank" }`;
+const PARSE_SINGLE_SYSTEM = `Du bist ein präziser Converter für Supermarkt-Eingaben. Der User gibt EINE Zutat ein.
+DEINE AUFGABEN:
+1. BASISEINHEIT: Wandle in (g, ml, x) um. (1 Pck=500g, 1 Becher=200g, 1 L=1000ml).
+2. KEINE HALLUZINATIONEN: Erfinde NIEMALS Rezepte oder Verwendungszwecke! Das Feld "subtext" MUSS zwingend leer ("") bleiben.
+3. KATEGORIEN: Du MUSST das Item in exakt EINE dieser fixen Kategorien einordnen:
+   "Obst & Gemüse", "Kühlregal", "Fleisch & Fisch", "Vorratsschrank", "Backwaren", "Getränke", "Haushalt", "Sonstiges".
+   (Beispiel: Haferflocken = Vorratsschrank, NICHT Haushalt!).
+4. NAME: Sauber und generisch (Aus "2x frische Tomaten" wird "Tomaten").
+
+Antworte AUSSCHLIESSLICH als JSON-Objekt:
+{
+  "name": "Tomaten",
+  "amount": 2,
+  "unit": "x",
+  "category": "Obst & Gemüse",
+  "subtext": ""
+}`;
 
 const OutputSchema = z.object({
   name: z.string().min(1),
   amount: z.coerce.number(),
   unit: z.enum(['g', 'ml', 'x']),
   category: z.string(),
+  /** Modell darf nur "" liefern; alles andere wird serverseitig verworfen. */
+  subtext: z.string().optional().transform(() => ''),
 });
 
 export type ParsedSingleItem = {
