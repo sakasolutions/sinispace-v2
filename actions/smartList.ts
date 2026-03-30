@@ -5,25 +5,29 @@ import { createChatCompletion } from '@/lib/openai-wrapper';
 import { normalizeShoppingQuantityFields } from '@/lib/shopping-piece-quantity';
 import { normalizeSmartCartCategory, type ShoppingCategory } from '@/lib/shopping-list-categories';
 import { isUserPremium } from '@/lib/subscription';
+import { preProcessItems, type RawItem } from '@/lib/smartList/preProcessor';
 
-const SMART_LIST_SYSTEM = `Du bist 'SiniSpace', eine smarte KI für Supermarkt-Einkaufslisten. 
-Du erhältst ein Array mit Zutaten, deren Mengen bereits mathematisch perfekt berechnet wurden (oft in g oder ml).
+const SMART_LIST_SYSTEM = `Du bist 'SiniSpace', eine KI für Supermarkt-Einkaufslisten.
 
-DEINE AUFGABE (DIE SUPERMARKT-ÜBERSETZUNG):
-1. GEBINDE SCHNÜREN: Wandle nackte Gewichte (g, ml) in realistische deutsche Supermarkt-Gebinde um (z.B. Becher, Pck., Glas, Dose, Fl., x). 
-   - Beispiel: 700g Haferflocken -> Angenommen 1 Pck = 500g -> Es MÜSSEN 2 Pck. gekauft werden (immer aufrunden!).
-2. UX-TRANSPARENZ IM SUBTEXT (WICHTIG!): Der User muss wissen, wie viel er eigentlich für das Rezept braucht. Wenn du eine Gramm/ml-Zahl in ein Gebinde umwandelst, schreibe den ursprünglichen Bedarf VORNE in den Subtext.
-   - Format: "Bedarf: [Ursprüngliche Menge] | [Bisheriger Subtext]"
-   - Beispiel: Aus {amount: 700, unit: "g", name: "Haferflocken", subtext: "Für Porridge"} WIRD {amount: 2, unit: "Pck.", name: "Haferflocken", subtext: "Bedarf: 700g | Für Porridge"}
-3. AUSNAHMEN: Frisches Gemüse/Obst (z.B. 3 Tomaten) oder simple Stückzahlen lässt du einfach so, wie sie sind.
-4. NAMEN BEREINIGEN: Halte die Namen sauber und generisch (Aus "Nüsse (z.B. Walnüsse)" wird "Walnüsse").
+WICHTIG — KEINE MATHEMATIK:
+Die Mengen wurden bereits serverseitig korrekt addiert und in Basiseinheiten überführt. Jedes Listenelement enthält:
+- basis: "g" (Gramm), "ml" (Milliliter) oder "x" (Stück)
+- amount: die ENDGÜLTIGE Summe in genau dieser Einheit
+Du darfst KEINE Addition, Subtraktion, Multiplikation oder Division durchführen und keine Zahlen aus verschiedenen Zeilen oder Einheiten kombinieren. Vertraue ausschließlich den übergebenen amount-Werten.
 
-Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt, das ein Array namens "items" enthält:
+DEINE AUFGABE (NUR ÜBERSETZUNG & UX):
+1. SUPERMARKT-GEBINDE: Für basis "g" oder "ml" übersetze den Bedarf in realistische deutsche Gebinde (z. B. Pck., Becher, Dose, Glas, Fl.). Wähle eine plausible Standard-Gebindegröße und rechne nur so um, dass die KAUfmenge mindestens den angegebenen Bedarf deckt — immer AUFRUNDEN (Ceiling), nie abrunden.
+2. SUBTEXT: Bei basis "g" oder "ml" beginne den Subtext mit dem echten Rezeptbedarf, z. B. "Bedarf: 700g | …" bzw. "Bedarf: 500ml | …", gefolgt vom bisherigen Kontext aus dem Feld subtext (Rezepte), getrennt mit " | ".
+3. BASIS "x": Stückzahlen (z. B. Tomaten) unverändert lassen; nur Namen bereinigen und Subtext sinnvoll übernehmen.
+4. NAMEN: Kurz, generisch, ohne Zusatzklammern wo möglich (z. B. "Walnüsse" statt "Nüsse (z. B. Walnüsse)").
+
+Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt mit einem Array "items":
 {
   "items": [
-    { "amount": 2, "unit": "Pck.", "name": "Haferflocken", "subtext": "Bedarf: 700g | Für Porridge" }
+    { "amount": 2, "unit": "Pck.", "name": "Haferflocken", "subtext": "Bedarf: 700g | Für Porridge", "category": "haushalt" }
   ]
-}`;
+}
+Nutze pro Zeile die passende category aus der Eingabe (oder sinnvoll ableiten).`;
 
 const OptimizeOutputSchema = z.object({
   items: z.array(
@@ -80,7 +84,7 @@ function sanitizeCartItems(items: unknown[]) {
 }
 
 /**
- * Smart Liste: Supermarkt-Gebinde aus voraggregierten g/ml; Subtext mit Bedarf-Transparenz.
+ * Smart Liste: Hybrid — `preProcessItems` aggregiert Mengen deterministisch; die KI übersetzt nur in Gebinde.
  */
 export async function optimizeSmartCart(
   items: unknown[]
@@ -99,7 +103,27 @@ export async function optimizeSmartCart(
     return { error: 'PREMIUM_REQUIRED' };
   }
 
-  const userPayload = JSON.stringify(sanitized);
+  const rawItems: RawItem[] = sanitized.map((i) => ({
+    text: i.text,
+    quantity: i.quantity,
+    unit: i.unit,
+    category: i.category,
+    subtext: i.subtext,
+  }));
+
+  const processedItems = preProcessItems(rawItems);
+  if (processedItems.length === 0) {
+    return { error: 'Keine Artikel zum Optimieren.' };
+  }
+
+  const llmPayload = processedItems.map(({ name, category, basis, amount, subtext }) => ({
+    name,
+    category,
+    basis,
+    amount,
+    subtext,
+  }));
+  const userPayload = JSON.stringify(llmPayload);
 
   try {
     const response = await createChatCompletion(
@@ -109,7 +133,7 @@ export async function optimizeSmartCart(
           { role: 'system', content: SMART_LIST_SYSTEM },
           {
             role: 'user',
-            content: `Hier ist die Einkaufsliste als JSON-Array (Felder: text, quantity, unit, category optional, subtext optional):\n\n${userPayload}`,
+            content: `Hier ist die voraggregierte Einkaufsliste (JSON). Jedes Objekt hat: name, category, basis ("g" | "ml" | "x"), amount (bereits summiert — NICHT neu berechnen oder mit anderen Zeilen verknüpfen), subtext (optional, Rezeptkontext).\n\n${userPayload}`,
           },
         ],
         response_format: { type: 'json_object' },
