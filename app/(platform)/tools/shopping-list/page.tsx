@@ -96,6 +96,26 @@ function formatQtyDisplay(item: ShoppingItem): string {
   return formatContainerTotalLabel(item);
 }
 
+/** Lokaler Fallback-Chunk → Items (für `workingItems`-Sync in `processSmartInput`). */
+function mergeFallbackChunkIntoItems(
+  existing: ShoppingItem[],
+  rawInput: string,
+  onItemDone?: (displayText: string) => void
+): ShoppingItem[] {
+  const chunks = splitInput(rawInput);
+  if (chunks.length === 0) return existing;
+  const incoming: ShoppingItem[] = chunks.map((text) => {
+    const parsed = parseIngredient(text);
+    if (parsed.amount != null) {
+      onItemDone?.(parsed.name);
+      return createManualShoppingItemFromParts(parsed.name, parsed.amount, parsed.unit, 'sonstiges');
+    }
+    onItemDone?.(text);
+    return createManualShoppingItemFromParts(text, null, null, 'sonstiges');
+  });
+  return mergeShoppingItemContainers(existing, incoming);
+}
+
 /** Fallback: Bei KI-Fehler oder leerer Antwort Items lokal splitten und als 'sonstiges' einfügen (kein Datenverlust). */
 function addFallbackItems(
   rawInput: string,
@@ -108,27 +128,19 @@ function addFallbackItems(
   setLists((prev) =>
     prev.map((l) => {
       if (l.id !== listId) return l;
-      const incoming: ShoppingItem[] = chunks.map((text) => {
-        const parsed = parseIngredient(text);
-        if (parsed.amount != null) {
-          onItemDone?.(parsed.name);
-          return createManualShoppingItemFromParts(parsed.name, parsed.amount, parsed.unit, 'sonstiges');
-        }
-        onItemDone?.(text);
-        return createManualShoppingItemFromParts(text, null, null, 'sonstiges');
-      });
-      return { ...l, items: mergeShoppingItemContainers(l.items, incoming) };
+      return { ...l, items: mergeFallbackChunkIntoItems(l.items, rawInput, onItemDone) };
     })
   );
 }
 
-/** Echtzeit: `parseSingleItem` → Container-Merge (Name + Kategorie + Basiseinheit). */
+/** Echtzeit: `parseSingleItem` → Container-Merge (nur gleicher Name). */
 async function processSmartInput(
   rawInput: string,
   listId: string,
   setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>,
   onItemDone?: (displayText: string) => void,
-  onAiProcessing?: (loading: boolean) => void
+  onAiProcessing?: (loading: boolean) => void,
+  initialItems: ShoppingItem[] = []
 ): Promise<void> {
   const trimmed = rawInput.trim();
   if (!trimmed || !listId) return;
@@ -136,18 +148,34 @@ async function processSmartInput(
   const chunks = splitInput(trimmed);
   if (chunks.length === 0) return;
 
+  let workingItems = initialItems.map((it) => ({
+    ...it,
+    sources: [...it.sources],
+  }));
+
   onAiProcessing?.(true);
   try {
     for (const chunk of chunks) {
       const c = chunk.trim();
       if (!c) continue;
       try {
-        const res = await parseSingleItem(c);
+        const existingNames = workingItems.map((i) => i.name);
+        const res = await parseSingleItem(c, existingNames);
         if (res.data) {
-          const { name, amount, unit, category } = res.data;
+          const { name, amount, unit, category, suggestedMergeTarget: rawSuggestion } = res.data;
+          const nameTrim = name.trim();
+          const suggestion = (rawSuggestion ?? '').trim();
+          const suggestionMatchesExisting =
+            suggestion.length > 0 &&
+            workingItems.some((i) => normalizeItemName(i.name) === normalizeItemName(suggestion));
+          const suggestionDiffersFromNew =
+            suggestion.length > 0 && normalizeItemName(suggestion) !== normalizeItemName(nameTrim);
+          const suggestedMergeTarget =
+            suggestionMatchesExisting && suggestionDiffersFromNew ? suggestion : undefined;
+
           const inc: ShoppingItem = {
             id: generateId(),
-            name: name.trim(),
+            name: nameTrim,
             totalAmount: amount,
             baseUnit: unit,
             category,
@@ -160,21 +188,28 @@ async function processSmartInput(
                 originalUnit: unit,
               },
             ],
+            ...(suggestedMergeTarget ? { suggestedMergeTarget } : {}),
           };
+          workingItems = mergeShoppingItemContainers(workingItems, [inc]);
           setLists((prev) =>
             prev.map((l) => {
               if (l.id !== listId) return l;
-              const next = mergeShoppingItemContainers(l.items, [inc]);
               onItemDone?.(inc.name);
-              return { ...l, items: next };
+              return { ...l, items: workingItems };
             })
           );
         } else {
-          addFallbackItems(c, listId, setLists, onItemDone);
+          workingItems = mergeFallbackChunkIntoItems(workingItems, c, onItemDone);
+          setLists((prev) =>
+            prev.map((l) => (l.id === listId ? { ...l, items: workingItems } : l))
+          );
         }
       } catch (error) {
         console.warn('parseSingleItem abgebrochen, Fallback:', error);
-        addFallbackItems(c, listId, setLists, onItemDone);
+        workingItems = mergeFallbackChunkIntoItems(workingItems, c, onItemDone);
+        setLists((prev) =>
+          prev.map((l) => (l.id === listId ? { ...l, items: workingItems } : l))
+        );
       }
     }
   } finally {
@@ -234,6 +269,24 @@ function ShoppingItemSourcesSublist({ sources }: { sources: ItemSource[] }) {
         </div>
       ))}
     </div>
+  );
+}
+
+function SmartMergeSuggestionButton({
+  targetLabel,
+  onMerge,
+}: {
+  targetLabel: string;
+  onMerge: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onMerge}
+      className="mt-1.5 w-full rounded-lg border border-amber-400/40 bg-amber-500/15 px-2 py-1 text-left text-[11px] font-medium text-amber-100 transition-colors hover:bg-amber-500/25"
+    >
+      ✨ Mit &apos;{targetLabel}&apos; zusammenfassen?
+    </button>
   );
 }
 
@@ -480,12 +533,18 @@ export default function ShoppingListPage() {
     const raw = newItemInput.trim();
     if (!raw || !activeListId || isSmartMergeProcessing) return;
     setTypeAheadOpen(false);
-    void processSmartInput(raw, activeListId, setLists, (text) => recordFrequentItem(text), setSmartMergeProcessingGate).finally(
-      () => {
-        setNewItemInput('');
-      }
-    );
-  }, [newItemInput, activeListId, isSmartMergeProcessing, setSmartMergeProcessingGate]);
+    const list = lists.find((l) => l.id === activeListId);
+    void processSmartInput(
+      raw,
+      activeListId,
+      setLists,
+      (text) => recordFrequentItem(text),
+      setSmartMergeProcessingGate,
+      list?.items ?? []
+    ).finally(() => {
+      setNewItemInput('');
+    });
+  }, [newItemInput, activeListId, isSmartMergeProcessing, setSmartMergeProcessingGate, lists]);
 
   const toggleItem = (listId: string, itemId: string) => {
     setLists((prev) =>
@@ -533,6 +592,33 @@ export default function ShoppingListPage() {
     );
   };
 
+  const handleSmartMerge = useCallback((listId: string, sourceItemId: string, targetName: string) => {
+    setLists((prev) =>
+      prev.map((l) => {
+        if (l.id !== listId) return l;
+        const source = l.items.find((i) => i.id === sourceItemId);
+        const target = l.items.find(
+          (i) => normalizeItemName(i.name) === normalizeItemName(targetName)
+        );
+        if (!source || !target || source.id === target.id) return l;
+        const mergedSources = [...target.sources, ...source.sources];
+        const sameBase = target.baseUnit === source.baseUnit;
+        const newTarget: ShoppingItem = {
+          ...target,
+          totalAmount: sameBase ? target.totalAmount + source.totalAmount : target.totalAmount,
+          sources: mergedSources,
+          suggestedMergeTarget: undefined,
+        };
+        return {
+          ...l,
+          items: l.items
+            .filter((i) => i.id !== sourceItemId)
+            .map((i) => (i.id === target.id ? newTarget : i)),
+        };
+      })
+    );
+  }, []);
+
   const updateItemText = (listId: string, itemId: string, newText: string) => {
     const t = newText.trim();
     if (!t) return;
@@ -543,9 +629,7 @@ export default function ShoppingListPage() {
           : {
               ...l,
               items: l.items.map((i) =>
-                i.id !== itemId
-                  ? i
-                  : { ...i, name: t }
+                i.id !== itemId ? i : { ...i, name: t, suggestedMergeTarget: undefined }
               ),
             }
       )
@@ -596,14 +680,19 @@ export default function ShoppingListPage() {
     setLists((prev) =>
       prev.map((l) => {
         if (l.id !== listId) return l;
-        return {
-          ...l,
-          items: l.items.map((i) => {
-            if (i.id !== itemId) return i;
-            const rebuilt = createManualShoppingItemFromParts(i.name, quantity, unit, i.category);
-            return { ...rebuilt, id: i.id, isChecked: i.isChecked };
-          }),
-        };
+            return {
+              ...l,
+              items: l.items.map((i) => {
+                if (i.id !== itemId) return i;
+                const rebuilt = createManualShoppingItemFromParts(i.name, quantity, unit, i.category);
+                return {
+                  ...rebuilt,
+                  id: i.id,
+                  isChecked: i.isChecked,
+                  suggestedMergeTarget: i.suggestedMergeTarget,
+                };
+              }),
+            };
       })
     );
     setEditingQtyItemId(null);
@@ -1175,6 +1264,14 @@ export default function ShoppingListPage() {
                                         subLine={null}
                                       />
                                       <ShoppingItemSourcesSublist sources={item.sources} />
+                                      {item.suggestedMergeTarget ? (
+                                        <SmartMergeSuggestionButton
+                                          targetLabel={item.suggestedMergeTarget}
+                                          onMerge={() =>
+                                            handleSmartMerge(activeList.id, item.id, item.suggestedMergeTarget!)
+                                          }
+                                        />
+                                      ) : null}
                                     </div>
                                   </>
                                 ) : storeMode ? (
@@ -1190,6 +1287,14 @@ export default function ShoppingListPage() {
                                         subLine={null}
                                       />
                                       <ShoppingItemSourcesSublist sources={item.sources} />
+                                      {item.suggestedMergeTarget ? (
+                                        <SmartMergeSuggestionButton
+                                          targetLabel={item.suggestedMergeTarget}
+                                          onMerge={() =>
+                                            handleSmartMerge(activeList.id, item.id, item.suggestedMergeTarget!)
+                                          }
+                                        />
+                                      ) : null}
                                     </div>
                                   </>
                                 ) : (
@@ -1210,6 +1315,14 @@ export default function ShoppingListPage() {
                                         subLine={null}
                                       />
                                       <ShoppingItemSourcesSublist sources={item.sources} />
+                                      {item.suggestedMergeTarget ? (
+                                        <SmartMergeSuggestionButton
+                                          targetLabel={item.suggestedMergeTarget}
+                                          onMerge={() =>
+                                            handleSmartMerge(activeList.id, item.id, item.suggestedMergeTarget!)
+                                          }
+                                        />
+                                      ) : null}
                                     </div>
                                   </>
                                 )}

@@ -5,7 +5,9 @@ import { createChatCompletion } from '@/lib/openai-wrapper';
 import { normalizeSmartCartCategory, type ShoppingCategory } from '@/lib/shopping-list-categories';
 import { isUserPremium } from '@/lib/subscription';
 
-const PARSE_SINGLE_SYSTEM = `Du bist ein dummer, aber präziser Einheiten-Konverter. Der User gibt eine Zutat ein (z.B. "2 Pck. Haferflocken" oder "Tomaten").
+function buildParseSingleSystemPrompt(existingNames: string[]): string {
+  const namesList = existingNames.length === 0 ? '(keine)' : existingNames.join(', ');
+  return `Du bist ein dummer, aber präziser Einheiten-Konverter. Der User gibt eine Zutat ein (z.B. "2 Pck. Haferflocken" oder "Tomaten").
 DEINE EINZIGE AUFGABE: Wandle die Eingabe in Basiseinheiten (g, ml, x) um.
 
 Masse (Pck, Becher, Glas) -> in "g" umwandeln (1 Pck=500g, 1 Becher=200g).
@@ -16,14 +18,23 @@ Zählbares -> "x".
 
 Kategorie: Ordne es in exakt eine dieser Supermarkt-Kategorien ein: "Obst & Gemüse", "Kühlregal", "Fleisch & Fisch", "Vorratsschrank", "Backwaren", "Getränke", "Haushalt", "Sonstiges".
 ERFINDE NIEMALS REZEPTE.
+
+Du erhältst als Kontext eine Liste von Zutaten, die BEREITS auf der Liste stehen: [${namesList}].
+SMART SUGGESTION REGEL: Wenn die neue Eingabe des Users sehr ähnlich zu einem der existierenden Namen ist oder denselben Zweck erfüllt (z.B. Eingabe="Joghurt", Existiert="Griechischer Joghurt"), dann MUSST du den exakten existierenden Namen in das Feld "suggestedMergeTarget" schreiben. Wenn es keine Ähnlichkeit gibt, lass das Feld leer ("").
+
 Antworte AUSSCHLIESSLICH als JSON:
-{ "name": "Haferflocken", "amount": 1000, "unit": "g", "category": "Vorratsschrank" }`;
+{ "name": "Joghurt", "amount": 2, "unit": "x", "category": "Kühlregal", "suggestedMergeTarget": "Griechischer Joghurt" }`;
+}
 
 const OutputSchema = z.object({
   name: z.string().min(1),
   amount: z.coerce.number(),
   unit: z.enum(['g', 'ml', 'x']),
   category: z.string(),
+  suggestedMergeTarget: z
+    .string()
+    .optional()
+    .transform((s) => (s == null ? '' : String(s).trim())),
 });
 
 export type ParsedSingleItem = {
@@ -31,6 +42,7 @@ export type ParsedSingleItem = {
   amount: number;
   unit: 'g' | 'ml' | 'x';
   category: ShoppingCategory;
+  suggestedMergeTarget?: string;
 };
 
 function stripMarkdownCodeFence(content: string): string {
@@ -42,9 +54,11 @@ function stripMarkdownCodeFence(content: string): string {
 
 /**
  * Parst eine einzelne Einkaufszeile in Basiseinheiten (g, ml, x) per gpt-4o-mini.
+ * @param existingNames Namen der aktuell auf der Liste (für Smart-Suggestion-Vorschläge).
  */
 export async function parseSingleItem(
-  inputString: string
+  inputString: string,
+  existingNames: string[] = []
 ): Promise<{ data?: ParsedSingleItem; error?: string }> {
   const trimmed = (inputString ?? '').trim().slice(0, 800);
   if (!trimmed) {
@@ -57,11 +71,12 @@ export async function parseSingleItem(
   }
 
   try {
+    const systemPrompt = buildParseSingleSystemPrompt(existingNames);
     const response = await createChatCompletion(
       {
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: PARSE_SINGLE_SYSTEM },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: trimmed },
         ],
         response_format: { type: 'json_object' },
@@ -95,15 +110,19 @@ export async function parseSingleItem(
     }
 
     const category = normalizeSmartCartCategory(parsed.data.category);
+    const suggestion = parsed.data.suggestedMergeTarget;
 
-    return {
-      data: {
-        name: parsed.data.name.trim(),
-        amount: parsed.data.amount,
-        unit: parsed.data.unit,
-        category,
-      },
+    const out: ParsedSingleItem = {
+      name: parsed.data.name.trim(),
+      amount: parsed.data.amount,
+      unit: parsed.data.unit,
+      category,
     };
+    if (suggestion) {
+      out.suggestedMergeTarget = suggestion;
+    }
+
+    return { data: out };
   } catch (e) {
     console.error('[parseSingleItem]', e);
     return {

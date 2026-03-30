@@ -27,6 +27,8 @@ export type ShoppingItem = {
   category: string;
   isChecked: boolean;
   sources: ItemSource[];
+  /** KI-Vorschlag: mit diesem bestehenden Listennamen zusammenfassen (optional). */
+  suggestedMergeTarget?: string;
 };
 
 /** Eintrag für Pantry → SmartCart (Text + Kategorie + optionale Mengenfelder). */
@@ -125,6 +127,7 @@ export function mergeShoppingItemContainers(existingItems: ShoppingItem[], incom
         ...e,
         totalAmount: sameBase ? e.totalAmount + inc.totalAmount : e.totalAmount,
         sources: mergedSources,
+        suggestedMergeTarget: undefined,
       };
     } else {
       result.push({
