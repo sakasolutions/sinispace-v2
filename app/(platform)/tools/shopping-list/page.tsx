@@ -230,7 +230,7 @@ function ShoppingItemSourcesSublist({ sources }: { sources: ItemSource[] }) {
       {sources.map((s) => (
         <div key={s.id} className="text-[11px] leading-snug text-gray-500">
           ↳ {formatItemSourceLine(s)} (
-          {s.type === 'manual' ? 'Manuell' : s.recipeName ? `Für ${s.recipeName}` : 'Rezept'})
+          {s.type === 'manual' ? 'Zusätzlich' : s.recipeName ? `Für ${s.recipeName}` : 'Rezept'})
         </div>
       ))}
     </div>

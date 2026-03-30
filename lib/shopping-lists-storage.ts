@@ -86,13 +86,13 @@ function originalUnitSuffixForDisplay(q: number | null, u: string | null, baseUn
 function mergeKeysMatch(a: ShoppingItem, b: ShoppingItem): boolean {
   return (
     normalizeItemName(a.name) === normalizeItemName(b.name) &&
-    (a.category || 'sonstiges') === (b.category || 'sonstiges') &&
     a.baseUnit === b.baseUnit
   );
 }
 
 /**
- * Verschmilzt neue Container-Items mit offenen Zeilen (gleicher Name + Kategorie + Basiseinheit).
+ * Verschmilzt neue Container-Items mit offenen Zeilen (gleicher Name + Basiseinheit).
+ * Kategorie des bestehenden Items bleibt erhalten; unterschiedliche Kategorien beim Eingang werden ignoriert.
  */
 export function mergeShoppingItemContainers(existingItems: ShoppingItem[], incoming: ShoppingItem[]): ShoppingItem[] {
   const result = existingItems.map((it) => ({
