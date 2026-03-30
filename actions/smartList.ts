@@ -14,6 +14,10 @@ DEINE REGELN FÜR DIE OPTIMIERUNG:
 2. DER MATHE-ZWANG (x/Pck vs. g/ml):
    - Du hast bisher Fehler gemacht wie "2 Pck + 200g = 202g". DAS IST VERBOTEN!
    - Du MUSST zwingend Schritt-für-Schritt rechnen. 
+   - Rechne Schritt für Schritt im Feld "reasoning".
+   - SUPERMARKT-RUNDUNG (WICHTIG): Du MUSST IMMER AUFRUNDEN (Ceiling), sobald der Bedarf die Gebindegröße auch nur minimal übersteigt! 
+   - Beispiel: Bedarf = 1200g. Angenommen 1 Pck = 500g. Rechnung: 1200 / 500 = 2.4. 
+   - ERGEBNIS MUSS 3 SEIN! (2 Packungen = 1000g reichen NICHT für 1200g Bedarf. Es MÜSSEN 3 Packungen gekauft werden).
    - Beispiel-Rechnung im Kopf für 2 Pck Haferflocken + 200g Haferflocken: 
      a) Annahme: 1 Pck = 500g. 
      b) Umrechnung: 2 Pck = 1000g. 
