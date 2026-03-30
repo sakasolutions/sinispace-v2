@@ -33,7 +33,9 @@ function countOpenShoppingItems(listsJson: string | null | undefined): number {
       const items = list?.items;
       if (!Array.isArray(items)) continue;
       for (const item of items) {
-        if (item && item.checked === false) n += 1;
+        const it = item as { isChecked?: boolean; checked?: boolean };
+        const open = it.isChecked === false || (it.isChecked === undefined && it.checked === false);
+        if (item && open) n += 1;
       }
     }
     return n;

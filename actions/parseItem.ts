@@ -5,31 +5,25 @@ import { createChatCompletion } from '@/lib/openai-wrapper';
 import { normalizeSmartCartCategory, type ShoppingCategory } from '@/lib/shopping-list-categories';
 import { isUserPremium } from '@/lib/subscription';
 
-const PARSE_SINGLE_SYSTEM = `Du bist ein präziser Converter für Supermarkt-Eingaben. Der User gibt EINE Zutat ein.
-DEINE AUFGABEN:
-1. BASISEINHEIT: Wandle in (g, ml, x) um. (1 Pck=500g, 1 Becher=200g, 1 L=1000ml).
-2. KEINE HALLUZINATIONEN: Erfinde NIEMALS Rezepte oder Verwendungszwecke! Das Feld "subtext" MUSS zwingend leer ("") bleiben.
-3. KATEGORIEN: Du MUSST das Item in exakt EINE dieser fixen Kategorien einordnen:
-   "Obst & Gemüse", "Kühlregal", "Fleisch & Fisch", "Vorratsschrank", "Backwaren", "Getränke", "Haushalt", "Sonstiges".
-   (Beispiel: Haferflocken = Vorratsschrank, NICHT Haushalt!).
-4. NAME: Sauber und generisch (Aus "2x frische Tomaten" wird "Tomaten").
+const PARSE_SINGLE_SYSTEM = `Du bist ein dummer, aber präziser Einheiten-Konverter. Der User gibt eine Zutat ein (z.B. "2 Pck. Haferflocken" oder "Tomaten").
+DEINE EINZIGE AUFGABE: Wandle die Eingabe in Basiseinheiten (g, ml, x) um.
 
-Antworte AUSSCHLIESSLICH als JSON-Objekt:
-{
-  "name": "Tomaten",
-  "amount": 2,
-  "unit": "x",
-  "category": "Obst & Gemüse",
-  "subtext": ""
-}`;
+Masse (Pck, Becher, Glas) -> in "g" umwandeln (1 Pck=500g, 1 Becher=200g).
+
+Volumen (Liter, Flasche) -> in "ml" umwandeln (1 L=1000ml).
+
+Zählbares -> "x".
+
+Kategorie: Ordne es in exakt eine dieser Supermarkt-Kategorien ein: "Obst & Gemüse", "Kühlregal", "Fleisch & Fisch", "Vorratsschrank", "Backwaren", "Getränke", "Haushalt", "Sonstiges".
+ERFINDE NIEMALS REZEPTE.
+Antworte AUSSCHLIESSLICH als JSON:
+{ "name": "Haferflocken", "amount": 1000, "unit": "g", "category": "Vorratsschrank" }`;
 
 const OutputSchema = z.object({
   name: z.string().min(1),
   amount: z.coerce.number(),
   unit: z.enum(['g', 'ml', 'x']),
   category: z.string(),
-  /** Modell darf nur "" liefern; alles andere wird serverseitig verworfen. */
-  subtext: z.string().optional().transform(() => ''),
 });
 
 export type ParsedSingleItem = {
@@ -87,6 +81,12 @@ export async function parseSingleItem(
       raw = JSON.parse(stripMarkdownCodeFence(content));
     } catch {
       return { error: 'Ungültiges JSON von der KI.' };
+    }
+
+    if (raw && typeof raw === 'object' && raw !== null) {
+      const o = raw as Record<string, unknown>;
+      delete o.subtext;
+      delete o.recipeSubtext;
     }
 
     const parsed = OutputSchema.safeParse(raw);

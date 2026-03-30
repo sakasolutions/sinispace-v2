@@ -234,6 +234,22 @@ function accumulate(acc: GroupAcc, c: Contribution, sub: string | null | undefin
 /**
  * Normalisiert Rohzeilen, gruppiert nach `name::category`, addiert in g / ml / x.
  */
+/**
+ * Eine Rohzeile → Totals in Basiseinheit (ohne Gruppierung mit anderen Zeilen).
+ * Nutzt dieselbe Umrechnungslogik wie {@link preProcessItems}.
+ */
+export function singleRawItemToBase(raw: RawItem): { totalAmount: number; baseUnit: 'g' | 'ml' | 'x' } {
+  const out = preProcessItems([raw]);
+  if (out.length === 0) return { totalAmount: 1, baseUnit: 'x' };
+  const g = out.find((o) => o.basis === 'g');
+  const ml = out.find((o) => o.basis === 'ml');
+  const x = out.find((o) => o.basis === 'x');
+  if (g) return { totalAmount: g.amount, baseUnit: 'g' };
+  if (ml) return { totalAmount: ml.amount, baseUnit: 'ml' };
+  if (x) return { totalAmount: x.amount, baseUnit: 'x' };
+  return { totalAmount: 1, baseUnit: 'x' };
+}
+
 export function preProcessItems(items: RawItem[]): ProcessedItem[] {
   const groups = new Map<string, GroupAcc>();
 

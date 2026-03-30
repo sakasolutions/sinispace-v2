@@ -72,8 +72,8 @@ function collectOpenItemLabels(lists: ShoppingList[]): string[] {
   const out: string[] = [];
   for (const list of lists) {
     for (const item of list.items) {
-      if (!item.checked) {
-        const t = item.text?.trim();
+      if (!item.isChecked) {
+        const t = item.name?.trim();
         if (t) out.push(t);
       }
     }

@@ -2,7 +2,7 @@
 
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
-import type { ShoppingList } from '@/lib/shopping-lists-storage';
+import { migrateShoppingLists, type ShoppingList } from '@/lib/shopping-lists-storage';
 import { normalizeItemName } from '@/lib/shopping-list-categories';
 
 export async function getShoppingLists(): Promise<ShoppingList[]> {
@@ -15,7 +15,7 @@ export async function getShoppingLists(): Promise<ShoppingList[]> {
     if (!row?.listsJson) return [];
     const parsed = JSON.parse(row.listsJson) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed as ShoppingList[];
+    return migrateShoppingLists(parsed);
   } catch (e) {
     console.error('[shopping-list-actions] getShoppingLists', e);
     return [];

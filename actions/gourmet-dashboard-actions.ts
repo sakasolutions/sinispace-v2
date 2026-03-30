@@ -66,7 +66,7 @@ export async function getGourmetDashboardData(): Promise<GourmetDashboardData> {
   ]);
 
   const shoppingCount = lists.reduce(
-    (sum, list) => sum + (list.items?.filter((i) => !i.checked).length ?? 0),
+    (sum, list) => sum + (list.items?.filter((i) => !i.isChecked).length ?? 0),
     0
   );
 

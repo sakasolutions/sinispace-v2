@@ -423,7 +423,7 @@ export default function RecipePage() {
           const items = list.items;
           if (!Array.isArray(items)) continue;
           for (const item of items) {
-            if (item && item.checked === false) n += 1;
+            if (item && item.isChecked === false) n += 1;
           }
         }
         setCockpitOpenCartItems(n);

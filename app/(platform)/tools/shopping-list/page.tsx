@@ -35,6 +35,12 @@ import {
   generateId,
   defaultList,
   mergeShoppingListsFromServer,
+  mergeShoppingItemContainers,
+  formatContainerTotalLabel,
+  formatItemSourceLine,
+  createManualShoppingItemFromParts,
+  migrateShoppingLists,
+  type ItemSource,
   type ShoppingItem,
   type ShoppingList,
 } from '@/lib/shopping-lists-storage';
@@ -50,11 +56,7 @@ import {
   normalizeItemName,
   sortCategoriesBySupermarktRoute,
 } from '@/lib/shopping-list-categories';
-import {
-  applyShoppingUnitPlural,
-  formatShoppingQtyLabel,
-  parseQtyInputForShopping,
-} from '@/lib/shopping-piece-quantity';
+import { parseQtyInputForShopping } from '@/lib/shopping-piece-quantity';
 import { parseIngredient } from '@/lib/ingredient-parser';
 import { parseSingleItem } from '@/actions/parseItem';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
@@ -91,7 +93,7 @@ function splitInput(raw: string): string[] {
 }
 
 function formatQtyDisplay(item: ShoppingItem): string {
-  return formatShoppingQtyLabel(item.quantity ?? null, item.unit ?? null);
+  return formatContainerTotalLabel(item);
 }
 
 /** Fallback: Bei KI-Fehler oder leerer Antwort Items lokal splitten und als 'sonstiges' einfügen (kein Datenverlust). */
@@ -104,47 +106,23 @@ function addFallbackItems(
   const chunks = splitInput(rawInput);
   if (chunks.length === 0) return;
   setLists((prev) =>
-    prev.map((l) =>
-      l.id !== listId
-        ? l
-        : {
-            ...l,
-            items: [
-              ...l.items,
-              ...chunks.map((text): ShoppingItem => {
-                const parsed = parseIngredient(text);
-                if (parsed.amount != null) {
-                  onItemDone?.(parsed.name);
-                  return {
-                    id: generateId(),
-                    text: parsed.name,
-                    category: 'sonstiges',
-                    quantity: parsed.amount,
-                    unit: parsed.unit,
-                    status: 'done',
-                    rawInput: text,
-                    checked: false,
-                  };
-                }
-                onItemDone?.(text);
-                return {
-                  id: generateId(),
-                  text,
-                  category: 'sonstiges',
-                  quantity: null,
-                  unit: null,
-                  status: 'done',
-                  rawInput: text,
-                  checked: false,
-                };
-              }),
-            ],
-          }
-    )
+    prev.map((l) => {
+      if (l.id !== listId) return l;
+      const incoming: ShoppingItem[] = chunks.map((text) => {
+        const parsed = parseIngredient(text);
+        if (parsed.amount != null) {
+          onItemDone?.(parsed.name);
+          return createManualShoppingItemFromParts(parsed.name, parsed.amount, parsed.unit, 'sonstiges');
+        }
+        onItemDone?.(text);
+        return createManualShoppingItemFromParts(text, null, null, 'sonstiges');
+      });
+      return { ...l, items: mergeShoppingItemContainers(l.items, incoming) };
+    })
   );
 }
 
-/** Echtzeit: Pro Chunk eine `parseSingleItem`-Anfrage; Merge nach Name (case-insensitive) + gleicher Basiseinheit (g/ml/x). */
+/** Echtzeit: `parseSingleItem` → Container-Merge (Name + Kategorie + Basiseinheit). */
 async function processSmartInput(
   rawInput: string,
   listId: string,
@@ -167,44 +145,30 @@ async function processSmartInput(
         const res = await parseSingleItem(c);
         if (res.data) {
           const { name, amount, unit, category } = res.data;
-          const unitKey = unit;
-          setLists((prev) => {
-            const list = prev.find((l) => l.id === listId);
-            if (!list) return prev;
-            let currentItems = [...list.items];
-            const normName = normalizeItemName(name);
-            const existing = currentItems.find(
-              (i) =>
-                !i.checked &&
-                i.status === 'done' &&
-                normalizeItemName(i.text) === normName &&
-                (i.unit ?? '').trim().toLowerCase() === unitKey
-            );
-            if (existing) {
-              const mergedQty = (existing.quantity ?? 0) + amount;
-              const updated: ShoppingItem = {
-                ...existing,
-                quantity: mergedQty,
-                unit: applyShoppingUnitPlural(mergedQty, unitKey),
-              };
-              currentItems = currentItems.map((it) => (it.id === existing.id ? updated : it));
-              onItemDone?.(updated.text);
-            } else {
-              const newItem: ShoppingItem = {
+          const inc: ShoppingItem = {
+            id: generateId(),
+            name: name.trim(),
+            totalAmount: amount,
+            baseUnit: unit,
+            category,
+            isChecked: false,
+            sources: [
+              {
                 id: generateId(),
-                text: name,
-                category,
-                quantity: amount,
-                unit: applyShoppingUnitPlural(amount, unitKey),
-                status: 'done',
-                rawInput: trimmed,
-                checked: false,
-              };
-              currentItems = [...currentItems, newItem];
-              onItemDone?.(newItem.text);
-            }
-            return prev.map((l) => (l.id !== listId ? l : { ...l, items: currentItems }));
-          });
+                type: 'manual',
+                amount,
+                originalUnit: unit,
+              },
+            ],
+          };
+          setLists((prev) =>
+            prev.map((l) => {
+              if (l.id !== listId) return l;
+              const next = mergeShoppingItemContainers(l.items, [inc]);
+              onItemDone?.(inc.name);
+              return { ...l, items: next };
+            })
+          );
         } else {
           addFallbackItems(c, listId, setLists, onItemDone);
         }
@@ -224,18 +188,8 @@ function capitalizeLabel(s: string): string {
 }
 
 function formatItemExport(item: ShoppingItem): string {
-  const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
   const qtyD = formatQtyDisplay(item);
-  if (hasQty) return `${qtyD} ${item.text}`.trim();
-  return item.text;
-}
-
-/** UI-Vorschau für Smart-Merge-Herkunft (Rezept-Subtext aus Daten). */
-function getRecipeSourcePreviewLine(item: ShoppingItem): string | null {
-  const sub = item.recipeSubtext?.trim();
-  if (sub) return sub;
-  if (/tomaten/i.test(item.text)) return 'Für Bolognese, Lasagne';
-  return null;
+  return `${qtyD} ${item.name}`.trim();
 }
 
 function ShoppingItemNameStack({
@@ -265,6 +219,20 @@ function ShoppingItemNameStack({
           {subLine}
         </span>
       ) : null}
+    </div>
+  );
+}
+
+function ShoppingItemSourcesSublist({ sources }: { sources: ItemSource[] }) {
+  if (!sources.length) return null;
+  return (
+    <div className="mt-1 space-y-0.5 pl-2">
+      {sources.map((s) => (
+        <div key={s.id} className="text-[11px] leading-snug text-gray-500">
+          ↳ {formatItemSourceLine(s)} (
+          {s.type === 'manual' ? 'Manuell' : s.recipeName ? `Für ${s.recipeName}` : 'Rezept'})
+        </div>
+      ))}
     </div>
   );
 }
@@ -338,7 +306,7 @@ export default function ShoppingListPage() {
         hasInitiallyLoaded.current = true;
         const listIdFromUrl = searchParams.get('listId');
         if (loaded && loaded.length > 0) {
-          setLists(loaded);
+          setLists(migrateShoppingLists(loaded));
           const preferredId = listIdFromUrl && loaded.some((l) => l.id === listIdFromUrl) ? listIdFromUrl : loaded[0]!.id;
           setActiveListId(preferredId);
           if (typeof window !== 'undefined') localStorage.setItem('shopping_lists_backup', JSON.stringify(loaded));
@@ -358,8 +326,8 @@ export default function ShoppingListPage() {
           if (backup) {
             try {
               const parsed = JSON.parse(backup);
-              setLists(parsed);
-              if (parsed.length > 0) setActiveListId(parsed[0].id);
+              setLists(migrateShoppingLists(parsed));
+              if (Array.isArray(parsed) && parsed.length > 0) setActiveListId(parsed[0].id);
             } catch {
               const def = defaultList();
               setLists([def]);
@@ -524,9 +492,9 @@ export default function ShoppingListPage() {
       prev.map((l) => {
         if (l.id !== listId) return l;
         const items = l.items.map((i) =>
-          i.id === itemId ? { ...i, checked: !i.checked } : i
+          i.id === itemId ? { ...i, isChecked: !i.isChecked } : i
         );
-        const sorted = [...items].sort((a, b) => (a.checked ? 1 : 0) - (b.checked ? 1 : 0));
+        const sorted = [...items].sort((a, b) => (a.isChecked ? 1 : 0) - (b.isChecked ? 1 : 0));
         return { ...l, items: sorted };
       })
     );
@@ -534,9 +502,9 @@ export default function ShoppingListPage() {
 
   const handleToggleItem = (listId: string, itemId: string) => {
     const item = activeList?.items.find((i) => i.id === itemId);
-    const willCheck = item && !item.checked;
+    const willCheck = item && !item.isChecked;
     if (willCheck) {
-      recordFrequentItem(item.text);
+      recordFrequentItem(item.name);
       setCheckingId(itemId);
       setTimeout(() => {
         toggleItem(listId, itemId);
@@ -577,7 +545,7 @@ export default function ShoppingListPage() {
               items: l.items.map((i) =>
                 i.id !== itemId
                   ? i
-                  : { ...i, text: t, rawInput: t, quantity: null, unit: null }
+                  : { ...i, name: t }
               ),
             }
       )
@@ -625,18 +593,18 @@ export default function ShoppingListPage() {
     quantity: number | null,
     unit: string | null
   ) => {
-    const finalUnit = applyShoppingUnitPlural(quantity, unit);
     setLists((prev) =>
-      prev.map((l) =>
-        l.id !== listId
-          ? l
-          : {
-              ...l,
-              items: l.items.map((i) =>
-                i.id !== itemId ? i : { ...i, quantity, unit: finalUnit }
-              ),
-            }
-      )
+      prev.map((l) => {
+        if (l.id !== listId) return l;
+        return {
+          ...l,
+          items: l.items.map((i) => {
+            if (i.id !== itemId) return i;
+            const rebuilt = createManualShoppingItemFromParts(i.name, quantity, unit, i.category);
+            return { ...rebuilt, id: i.id, isChecked: i.isChecked };
+          }),
+        };
+      })
     );
     setEditingQtyItemId(null);
     setEditingQtyValue('');
@@ -656,14 +624,14 @@ export default function ShoppingListPage() {
       prev.map((l) =>
         l.id !== listId
           ? l
-          : { ...l, items: l.items.map((i) => ({ ...i, checked: false })) }
+          : { ...l, items: l.items.map((i) => ({ ...i, isChecked: false })) }
       )
     );
   };
 
   const shareList = useCallback(async () => {
     if (!activeList) return;
-    const items = activeList.items.filter((i) => !i.checked);
+    const items = activeList.items.filter((i) => !i.isChecked);
     const lines = items.length
       ? items.map((i) => `• ${formatItemExport(i)}`)
       : ['Keine offenen Einträge.'];
@@ -704,8 +672,8 @@ export default function ShoppingListPage() {
     }
   }, [activeList]);
 
-  const unchecked = activeList?.items.filter((i) => !i.checked) ?? [];
-  const checked = activeList?.items.filter((i) => i.checked) ?? [];
+  const unchecked = activeList?.items.filter((i) => !i.isChecked) ?? [];
+  const checked = activeList?.items.filter((i) => i.isChecked) ?? [];
 
   const grouped = unchecked.reduce<Record<string, ShoppingItem[]>>((acc, it) => {
     const cat = it.category ?? 'sonstiges';
@@ -769,7 +737,7 @@ export default function ShoppingListPage() {
             <div className="pointer-events-auto relative z-50 mt-4 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
                 <ShoppingCart className="h-3.5 w-3.5" />
-                {(activeList?.items.filter((i) => !i.checked).length ?? 0)} Offen
+                {(activeList?.items.filter((i) => !i.isChecked).length ?? 0)} Offen
               </div>
               {/* Smart Liste (Batch-Optimierung) vorübergehend deaktiviert — Echtzeit-Parser ersetzt die alte Pipeline */}
               {/*
@@ -1091,29 +1059,21 @@ export default function ShoppingListPage() {
                         <Fragment key={cat}>
                           <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} className={index === 0 ? 'pt-0' : undefined} />
                           {items.map((item) => {
-                            const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
+                            const hasQty = item.totalAmount > 0;
                             const isEditingQty = !storeMode && editingQtyItemId === item.id;
                             const isEditingText = editingItemId === item.id;
                             const qtyDisplay = formatQtyDisplay(item);
-                            const displayLabel = hasQty
-                              ? `${qtyDisplay} ${item.text}`.trim()
-                              : item.text;
-                            const recipeSub = getRecipeSourcePreviewLine(item);
+                            const displayLabel = `${item.name} (${qtyDisplay})`;
                             const isStriking = checkingId === item.id;
                             const showActions = !storeMode && !isEditingText;
-                            const canEdit = item.status !== 'analyzing';
                             const useStoreRow = storeMode && !isEditingText;
-                            const storeRowDisabled = storeMode && item.status === 'analyzing';
                             return (
                               <UnifiedItemRow
                                 key={item.id}
                                 storeShopping={useStoreRow}
                                 onStoreRowClick={
-                                  useStoreRow && !storeRowDisabled
-                                    ? () => handleToggleItem(activeList.id, item.id)
-                                    : undefined
+                                  useStoreRow ? () => handleToggleItem(activeList.id, item.id) : undefined
                                 }
-                                storeRowDisabled={useStoreRow ? storeRowDisabled : undefined}
                                 storeAriaLabel={
                                   useStoreRow
                                     ? `${displayLabel} – tippen zum Abhaken`
@@ -1136,28 +1096,26 @@ export default function ShoppingListPage() {
                                       onToggle={() => handleToggleItem(activeList.id, item.id)}
                                       theme={theme}
                                       ariaLabel="Abhaken"
-                                      disabled={item.status === 'analyzing'}
+                                      disabled={false}
                                     />
                                   )
                                 }
                                 actions={
                                   showActions ? (
                                     <>
-                                      {canEdit && (
-                                        <button
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            startEditItem(item, displayLabel);
-                                          }}
-                                          className="shrink-0 rounded-lg p-2 text-gray-500 transition-colors hover:bg-white/10 hover:text-white"
-                                          title="Bearbeiten"
-                                          aria-label="Bearbeiten"
-                                        >
-                                          <Pencil className="h-4 w-4" />
-                                        </button>
-                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          startEditItem(item, item.name);
+                                        }}
+                                        className="shrink-0 rounded-lg p-2 text-gray-500 transition-colors hover:bg-white/10 hover:text-white"
+                                        title="Bearbeiten"
+                                        aria-label="Bearbeiten"
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </button>
                                       <button
                                         type="button"
                                         onClick={(e) => {
@@ -1195,26 +1153,6 @@ export default function ShoppingListPage() {
                                       <Check className="h-4 w-4" />
                                     </button>
                                   </>
-                                ) : item.status === 'analyzing' ? (
-                                  <ShoppingItemNameStack
-                                    name="Analysiere …"
-                                    nameClassName={cn(
-                                      'italic text-white/45',
-                                      isStriking && 'line-through',
-                                      useStoreRow && 'text-lg'
-                                    )}
-                                    subLine={null}
-                                  />
-                                ) : item.status === 'error' ? (
-                                  <ShoppingItemNameStack
-                                    name={item.text}
-                                    nameClassName={cn(
-                                      'font-medium capitalize text-white',
-                                      isStriking && 'line-through',
-                                      useStoreRow && 'text-lg'
-                                    )}
-                                    subLine={recipeSub}
-                                  />
                                 ) : isEditingQty ? (
                                   <>
                                     <input
@@ -1230,23 +1168,29 @@ export default function ShoppingListPage() {
                                       className="w-24 shrink-0 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
                                       autoFocus
                                     />
-                                    <ShoppingItemNameStack
-                                      name={item.text}
-                                      nameClassName={cn('font-medium capitalize text-white', isStriking && 'line-through')}
-                                      subLine={recipeSub}
-                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <ShoppingItemNameStack
+                                        name={item.name}
+                                        nameClassName={cn('font-medium capitalize text-white', isStriking && 'line-through')}
+                                        subLine={null}
+                                      />
+                                      <ShoppingItemSourcesSublist sources={item.sources} />
+                                    </div>
                                   </>
                                 ) : storeMode ? (
                                   <>
                                     {hasQty && <StoreQtyPill label={qtyDisplay} />}
-                                    <ShoppingItemNameStack
-                                      name={item.text}
-                                      nameClassName={cn(
-                                        'text-lg font-medium capitalize text-white',
-                                        isStriking && 'text-white/35 line-through'
-                                      )}
-                                      subLine={recipeSub}
-                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <ShoppingItemNameStack
+                                        name={item.name}
+                                        nameClassName={cn(
+                                          'text-lg font-medium capitalize text-white',
+                                          isStriking && 'text-white/35 line-through'
+                                        )}
+                                        subLine={null}
+                                      />
+                                      <ShoppingItemSourcesSublist sources={item.sources} />
+                                    </div>
                                   </>
                                 ) : (
                                   <>
@@ -1259,11 +1203,14 @@ export default function ShoppingListPage() {
                                     {!hasQty && (
                                       <UnifiedQuantityBadge label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
                                     )}
-                                    <ShoppingItemNameStack
-                                      name={hasQty ? item.text : displayLabel}
-                                      nameClassName={cn('font-medium capitalize text-white', isStriking && 'text-white/35 line-through')}
-                                      subLine={recipeSub}
-                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <ShoppingItemNameStack
+                                        name={item.name}
+                                        nameClassName={cn('font-medium capitalize text-white', isStriking && 'text-white/35 line-through')}
+                                        subLine={null}
+                                      />
+                                      <ShoppingItemSourcesSublist sources={item.sources} />
+                                    </div>
                                   </>
                                 )}
                               </UnifiedItemRow>
@@ -1302,10 +1249,9 @@ export default function ShoppingListPage() {
               {isCompletedExpanded && (
                 <div className={cn('flex flex-col gap-2 px-2 pb-4 pt-2', storeMode && 'gap-0 px-0')}>
                   {checked.map((item) => {
-                    const hasQty = item.quantity != null || (item.unit?.trim() ?? '') !== '';
+                    const hasQty = item.totalAmount > 0;
                     const qtyD = formatQtyDisplay(item);
-                    const erledigtLabel = hasQty ? `${qtyD} ${item.text}`.trim() : item.text;
-                    const recipeSubDone = getRecipeSourcePreviewLine(item);
+                    const erledigtLabel = `${qtyD} ${item.name}`.trim();
                     const isEditingText = editingItemId === item.id;
                     const showActions = !storeMode && !isEditingText;
                     const theme = getCategoryTheme('sonstiges');
@@ -1349,7 +1295,7 @@ export default function ShoppingListPage() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   e.preventDefault();
-                                  startEditItem(item, erledigtLabel);
+                                  startEditItem(item, item.name);
                                 }}
                                 className="shrink-0 rounded-lg p-2 text-gray-500 transition-colors hover:bg-white/10 hover:text-white"
                                 title="Bearbeiten"
@@ -1403,20 +1349,24 @@ export default function ShoppingListPage() {
                         ) : storeMode ? (
                           <>
                             {hasQty && <StoreQtyPill label={qtyD} dimmed />}
-                            <ShoppingItemNameStack
-                              name={item.text}
-                              nameClassName="text-lg font-medium capitalize text-gray-600 line-through"
-                              subLine={recipeSubDone}
-                              subLineClassName="opacity-40"
-                            />
+                            <div className="min-w-0 flex-1">
+                              <ShoppingItemNameStack
+                                name={item.name}
+                                nameClassName="text-lg font-medium capitalize text-gray-600 line-through"
+                                subLine={null}
+                              />
+                              <ShoppingItemSourcesSublist sources={item.sources} />
+                            </div>
                           </>
                         ) : (
-                          <ShoppingItemNameStack
-                            name={erledigtLabel}
-                            nameClassName="line-through capitalize text-white/40"
-                            subLine={recipeSubDone}
-                            subLineClassName="text-gray-500/45"
-                          />
+                          <div className="min-w-0 flex-1">
+                            <ShoppingItemNameStack
+                              name={erledigtLabel}
+                              nameClassName="line-through capitalize text-white/40"
+                              subLine={null}
+                            />
+                            <ShoppingItemSourcesSublist sources={item.sources} />
+                          </div>
                         )}
                       </UnifiedItemRow>
                     );
