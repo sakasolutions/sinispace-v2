@@ -11,23 +11,29 @@ Der User übergibt dir ein JSON-Array mit seinen aktuellen Zutaten.
 
 DEINE REGELN FÜR DIE OPTIMIERUNG:
 1. AGGREGIEREN & GEBINDE: Fasse gleiche Zutaten zusammen. Wandle reine Gewichte (g, ml) in realistische deutsche Supermarkt-Gebinde um (z.B. Becher, Pck., Glas, Dose, Fl., x).
-2. DER IDIOTENSICHERE MATHE-SCHUTZ (WICHTIG!): 
-   - ADDIERE NIEMALS stumpf Zahlen aus unterschiedlichen Einheiten! (1 Pck + 200g ist NICHT 201 Pck!).
-   - Wenn du Gebinde (Pck, Becher, x) und Gewichte (g, ml) derselben Zutat hast, wandle im Kopf ERST ALLES in Gramm um. 
-   - Beispiel: 1 Pck Haferflocken + 200g Haferflocken -> Nimm an, 1 Pck hat 500g. Rechne: 500g + 200g = 700g. 
-   - Danach teilst du die Summe durch die angenommene Gebindegröße und rundest auf ganze Gebinde auf (700g / 500g = 1.4 -> entspricht 2 Pck. Haferflocken).
-3. EXTREME MENGEN: Wenn der User absurde Mengen eingibt (z.B. 3000g Rinderhackfleisch), behalte NICHT die Grammzahl bei, sondern rechne es zwingend in realistische Gebinde um (z.B. 6 Pck. (à 500g) Rinderhackfleisch).
-4. TRANSPARENZ IM SUBTEXT: Kombiniere die 'subtext' Felder (Rezepte). WENN du eine Annahme zur Gebindegröße getroffen hast, füge das zwingend am Ende des Subtexts in Klammern hinzu.
-5. NAMEN BEREINIGEN: Halte die Namen sauber und generisch (Aus "Nüsse (z.B. Walnüsse)" wird "Walnüsse").
+2. DER MATHE-ZWANG (x/Pck vs. g/ml):
+   - Du hast bisher Fehler gemacht wie "2 Pck + 200g = 202g". DAS IST VERBOTEN!
+   - Du MUSST zwingend Schritt-für-Schritt rechnen. 
+   - Beispiel-Rechnung im Kopf für 2 Pck Haferflocken + 200g Haferflocken: 
+     a) Annahme: 1 Pck = 500g. 
+     b) Umrechnung: 2 Pck = 1000g. 
+     c) Addition: 1000g + 200g = 1200g. 
+     d) Ergebnis: 1200g / 500g = 2.4 -> Aufgerundet 3 Pck. Haferflocken.
+3. ABSURDE MENGEN: 3000g Rinderhackfleisch MÜSSEN in Gebinde umgerechnet werden (z.B. 6 Pck à 500g). Lass keine absurden Gramm-Zahlen stehen!
+4. TRANSPARENZ: Hänge deine angenommene Gebindegröße an den Subtext an (z.B. "Für Porridge (Angenommen: 500g / Pck.)").
 
-Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt, das ein Array namens "items" enthält:
+WICHTIG: Damit du keine Rechenfehler machst, MUSST du deine mathematischen Schritte im Feld "reasoning" erklären, BEVOR du das "items" Array ausgibst.
+
+Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt in EXAKT diesem Format:
 {
+  "reasoning": "Erkläre hier kurz deine Umrechnungen, z.B.: Haferflocken: 2 Pck (1000g) + 200g = 1200g -> 3 Pck.",
   "items": [
-    { "amount": 2, "unit": "Pck.", "name": "Haferflocken", "subtext": "Für Porridge (Angenommen: 500g / Pck.)" }
+    { "amount": 3, "unit": "Pck.", "name": "Haferflocken", "subtext": "Für Porridge (Angenommen: 500g / Pck.)" }
   ]
 }`;
 
 const OptimizeOutputSchema = z.object({
+  reasoning: z.string().min(1),
   items: z.array(
     z.object({
       amount: z.coerce.number().nullable().optional(),
@@ -82,7 +88,7 @@ function sanitizeCartItems(items: unknown[]) {
 }
 
 /**
- * Smart Liste: Einkaufsliste per KI optimieren (Gebinde, Mathe-Schutz Pck./g, extreme Mengen, Subtext).
+ * Smart Liste: Einkaufsliste per KI optimieren (Gebinde, CoT reasoning, Pck./g, Subtext).
  */
 export async function optimizeSmartCart(
   items: unknown[]
@@ -160,6 +166,7 @@ export async function optimizeSmartCart(
       return { error: 'KI hat keine optimierte Liste zurückgegeben.' };
     }
 
+    console.log('[smartList] reasoning:', parsed.data.reasoning);
     console.log('[smartList] optimizeSmartCart OK, ausgehende Zeilen:', out.length);
     return { data: out };
   } catch (e) {
