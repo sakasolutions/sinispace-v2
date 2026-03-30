@@ -868,45 +868,26 @@ export default function ShoppingListPage() {
             <p className="mt-1 text-sm font-normal text-white sm:text-base" style={{ letterSpacing: '0.1px' }}>
               Dein intelligenter Begleiter
             </p>
-            <div className="pointer-events-auto relative z-[25] mt-4 flex flex-wrap items-center gap-2">
+            <div className="pointer-events-auto relative z-50 mt-4 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
                 <ShoppingCart className="h-3.5 w-3.5" />
                 {(activeList?.items.filter((i) => !i.checked).length ?? 0)} Offen
               </div>
+              {/* TEMP Hardcore-Test: alert + kein disabled – nach Verifikation wieder disabled + handleSmartListOptimize */}
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  void handleSmartListOptimize();
+                disabled={false}
+                onClick={() => {
+                  alert('Button lebt!');
+                  console.log('Button lebt!');
                 }}
-                disabled={
-                  isOptimizing ||
-                  isSmartMergeProcessing ||
-                  storeMode ||
-                  !activeList ||
-                  activeList.items.filter((i) => !i.checked && i.status !== 'analyzing').length === 0
-                }
-                title={
-                  !activeList
-                    ? 'Keine aktive Liste'
-                    : storeMode
-                      ? 'Im Einkaufsmodus nicht verfügbar'
-                      : isSmartMergeProcessing
-                        ? 'Warte, bis die Smart-Eingabe fertig ist'
-                        : isOptimizing
-                          ? 'Optimierung läuft …'
-                          : activeList.items.filter((i) => !i.checked && i.status !== 'analyzing')
-                                .length === 0
-                            ? 'Keine offenen Artikel (nur erledigt oder „Analysiere …“)'
-                            : 'Liste mit KI zusammenfassen (Gebinde & Einheiten)'
-                }
+                title="TEMP: Hardcore-Klicktest (Smart Liste)"
                 aria-busy={isOptimizing}
                 className={cn(
-                  'relative flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all',
+                  'relative z-50 pointer-events-auto flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all',
                   isOptimizing
                     ? 'border-fuchsia-500/40 bg-fuchsia-500/15 text-white shadow-[0_0_16px_rgba(217,70,239,0.25)]'
-                    : 'border-white/10 bg-white/[0.05] text-white hover:border-white/20 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45'
+                    : 'border-white/10 bg-white/[0.05] text-white hover:border-white/20 hover:bg-white/[0.08]'
                 )}
               >
                 {isOptimizing ? (
