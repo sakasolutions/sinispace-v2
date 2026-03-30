@@ -1,6 +1,6 @@
 /**
  * Shared storage for SiniSpace Einkaufslisten.
- * Zutaten-Container-Modell: gleiche Zutat (Name + Kategorie + Basiseinheit) → ein Item mit totalAmount + sources[].
+ * Zutaten-Container-Modell: gleicher Name → ein Item; Anzeige-Menge aus sources (gemischte Einheiten möglich).
  */
 
 import { normalizeSmartCartCategory, normalizeItemName } from '@/lib/shopping-list-categories';
@@ -43,8 +43,23 @@ export function formatItemSourceLine(s: ItemSource): string {
   return `${formatQuantityGerman(s.amount)}${s.originalUnit}`;
 }
 
+/**
+ * Badge-Text aus allen Quellen (z. B. "200g + 4x"), gruppiert nach `originalUnit`.
+ */
+export function getDynamicTotal(sources: ItemSource[]): string {
+  if (!sources.length) return '';
+  const totalsByUnit: Record<string, number> = {};
+  for (const s of sources) {
+    const unit = s.originalUnit ?? '';
+    totalsByUnit[unit] = (totalsByUnit[unit] ?? 0) + s.amount;
+  }
+  return Object.entries(totalsByUnit)
+    .map(([unit, amount]) => `${formatQuantityGerman(amount)}${unit}`)
+    .join(' + ');
+}
+
 export function formatContainerTotalLabel(item: ShoppingItem): string {
-  return `${formatQuantityGerman(item.totalAmount)}${item.baseUnit}`;
+  return getDynamicTotal(item.sources);
 }
 
 /**
@@ -84,15 +99,12 @@ function originalUnitSuffixForDisplay(q: number | null, u: string | null, baseUn
 }
 
 function mergeKeysMatch(a: ShoppingItem, b: ShoppingItem): boolean {
-  return (
-    normalizeItemName(a.name) === normalizeItemName(b.name) &&
-    a.baseUnit === b.baseUnit
-  );
+  return normalizeItemName(a.name) === normalizeItemName(b.name);
 }
 
 /**
- * Verschmilzt neue Container-Items mit offenen Zeilen (gleicher Name + Basiseinheit).
- * Kategorie des bestehenden Items bleibt erhalten; unterschiedliche Kategorien beim Eingang werden ignoriert.
+ * Verschmilzt neue Container-Items mit offenen Zeilen (nur gleicher Name, case-insensitive).
+ * Kategorie und Basiseinheit des bestehenden Containers bleiben erhalten; neue Quellen werden angehängt.
  */
 export function mergeShoppingItemContainers(existingItems: ShoppingItem[], incoming: ShoppingItem[]): ShoppingItem[] {
   const result = existingItems.map((it) => ({
@@ -107,10 +119,12 @@ export function mergeShoppingItemContainers(existingItems: ShoppingItem[], incom
 
     if (matchIdx >= 0) {
       const e = result[matchIdx]!;
+      const mergedSources = [...e.sources, ...inc.sources];
+      const sameBase = e.baseUnit === inc.baseUnit;
       result[matchIdx] = {
         ...e,
-        totalAmount: e.totalAmount + inc.totalAmount,
-        sources: [...e.sources, ...inc.sources],
+        totalAmount: sameBase ? e.totalAmount + inc.totalAmount : e.totalAmount,
+        sources: mergedSources,
       };
     } else {
       result.push({

@@ -1059,10 +1059,10 @@ export default function ShoppingListPage() {
                         <Fragment key={cat}>
                           <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} className={index === 0 ? 'pt-0' : undefined} />
                           {items.map((item) => {
-                            const hasQty = item.totalAmount > 0;
+                            const qtyDisplay = formatQtyDisplay(item);
+                            const hasQty = qtyDisplay.length > 0;
                             const isEditingQty = !storeMode && editingQtyItemId === item.id;
                             const isEditingText = editingItemId === item.id;
-                            const qtyDisplay = formatQtyDisplay(item);
                             const displayLabel = `${item.name} (${qtyDisplay})`;
                             const isStriking = checkingId === item.id;
                             const showActions = !storeMode && !isEditingText;
@@ -1249,8 +1249,8 @@ export default function ShoppingListPage() {
               {isCompletedExpanded && (
                 <div className={cn('flex flex-col gap-2 px-2 pb-4 pt-2', storeMode && 'gap-0 px-0')}>
                   {checked.map((item) => {
-                    const hasQty = item.totalAmount > 0;
                     const qtyD = formatQtyDisplay(item);
+                    const hasQty = qtyD.length > 0;
                     const erledigtLabel = `${qtyD} ${item.name}`.trim();
                     const isEditingText = editingItemId === item.id;
                     const showActions = !storeMode && !isEditingText;
