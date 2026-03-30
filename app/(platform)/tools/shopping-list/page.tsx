@@ -655,9 +655,8 @@ export default function ShoppingListPage() {
     );
   };
 
-  const handleSmartListOptimize = useCallback(async () => {
-    console.log('🚀 1. Smart Liste Button geklickt!');
-
+  /** Smart Liste: Server Action `optimizeSmartCart` (OpenAI / gpt-4o-mini), kein separater REST-Pfad. */
+  const handleOptimizeList = useCallback(async () => {
     if (!activeListId || !activeList || isOptimizing || isSmartMergeProcessing || storeMode) {
       console.warn('[Smart Liste] Abbruch – Voraussetzungen nicht erfüllt', {
         activeListId,
@@ -693,12 +692,12 @@ export default function ShoppingListPage() {
       subtext: i.recipeSubtext ?? null,
     }));
 
-    console.log('📦 2. Sende folgende Items an API (lists / optimizeSmartCart):', payload);
-
     setIsOptimizing(true);
     try {
+      console.log('🚀 Starte KI-Optimierung für Items:', payload);
+
       const res = await optimizeSmartCart(payload);
-      console.log('✅ 3. API Antwort erhalten:', res);
+      console.log('✅ KI hat geantwortet:', res);
 
       if (res.error) {
         const msg =
@@ -715,7 +714,6 @@ export default function ShoppingListPage() {
       }
 
       const lines = res.data!;
-      console.log('✅ 3b. Überschreibe offene Items mit optimierter Liste:', lines);
 
       setLists((prev) =>
         prev.map((l) => {
@@ -743,7 +741,7 @@ export default function ShoppingListPage() {
         setToast(null);
       }, 2200);
     } catch (error) {
-      console.error('❌ 4. API Call fehlgeschlagen:', error);
+      console.error('❌ Optimierung fehlgeschlagen:', error);
       setToast(
         error instanceof Error ? error.message : 'Smart Liste: unbekannter Fehler.'
       );
@@ -873,21 +871,36 @@ export default function ShoppingListPage() {
                 <ShoppingCart className="h-3.5 w-3.5" />
                 {(activeList?.items.filter((i) => !i.checked).length ?? 0)} Offen
               </div>
-              {/* TEMP Hardcore-Test: alert + kein disabled – nach Verifikation wieder disabled + handleSmartListOptimize */}
               <button
                 type="button"
-                disabled={false}
-                onClick={() => {
-                  alert('Button lebt!');
-                  console.log('Button lebt!');
-                }}
-                title="TEMP: Hardcore-Klicktest (Smart Liste)"
+                onClick={() => void handleOptimizeList()}
+                disabled={
+                  isOptimizing ||
+                  isSmartMergeProcessing ||
+                  storeMode ||
+                  !activeList ||
+                  activeList.items.filter((i) => !i.checked && i.status !== 'analyzing').length === 0
+                }
+                title={
+                  !activeList
+                    ? 'Keine aktive Liste'
+                    : storeMode
+                      ? 'Im Einkaufsmodus nicht verfügbar'
+                      : isSmartMergeProcessing
+                        ? 'Warte, bis die Smart-Eingabe fertig ist'
+                        : isOptimizing
+                          ? 'Optimiere …'
+                          : activeList.items.filter((i) => !i.checked && i.status !== 'analyzing')
+                                .length === 0
+                            ? 'Keine offenen Artikel (nur erledigt oder „Analysiere …“)'
+                            : 'Liste mit KI zusammenfassen (Gebinde & Einheiten)'
+                }
                 aria-busy={isOptimizing}
                 className={cn(
                   'relative z-50 pointer-events-auto flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all',
                   isOptimizing
                     ? 'border-fuchsia-500/40 bg-fuchsia-500/15 text-white shadow-[0_0_16px_rgba(217,70,239,0.25)]'
-                    : 'border-white/10 bg-white/[0.05] text-white hover:border-white/20 hover:bg-white/[0.08]'
+                    : 'border-white/10 bg-white/[0.05] text-white hover:border-white/20 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45'
                 )}
               >
                 {isOptimizing ? (
@@ -895,7 +908,7 @@ export default function ShoppingListPage() {
                 ) : (
                   <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 )}
-                {isOptimizing ? 'Optimierung läuft…' : 'Smart Liste'}
+                {isOptimizing ? 'Optimiere...' : '✨ Smart Liste'}
               </button>
             </div>
           </div>
