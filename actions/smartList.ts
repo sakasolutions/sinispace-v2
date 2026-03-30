@@ -11,18 +11,19 @@ Der User übergibt dir ein JSON-Array mit seinen aktuellen Zutaten.
 
 DEINE REGELN FÜR DIE OPTIMIERUNG:
 1. AGGREGIEREN & GEBINDE: Fasse gleiche Zutaten zusammen. Wandle reine Gewichte (g, ml) in realistische deutsche Supermarkt-Gebinde um (z.B. Becher, Pck., Glas, Dose, Fl., x).
-2. DER KONFLIKT-LÖSER (x vs. g/ml): Wenn eine Zutat sowohl als Stückzahl ("x") als auch als Gewicht vorkommt (z.B. "2x Joghurt" und "400g Joghurt"), MUSST du eine Standard-Gebindegröße annehmen (z.B. 1 Becher = 200g oder 500g, 1 Pck. = 200g). 
-   - Rechne die benötigten Gramm in Stückzahlen um und addiere sie zu den manuellen Stückzahlen.
-   - Beispiel: 2x Joghurt + 400g Joghurt -> Angenommen 1 Becher = 200g -> 400g sind 2 Becher. Gesamt: 4 Becher Joghurt.
-3. TRANSPARENZ IM SUBTEXT: Kombiniere die 'subtext' Felder (Rezepte). WENN du eine Annahme zur Gebindegröße getroffen hast, füge das zwingend am Ende des Subtexts in Klammern hinzu!
-   - Beispiel-Subtext: "Für Porridge, Lasagne (Angenommen: 200g / Becher)"
-4. NAMEN BEREINIGEN: Halte die Namen sauber und generisch (Aus "Nüsse (z.B. Walnüsse)" wird "Walnüsse").
+2. DER IDIOTENSICHERE MATHE-SCHUTZ (WICHTIG!): 
+   - ADDIERE NIEMALS stumpf Zahlen aus unterschiedlichen Einheiten! (1 Pck + 200g ist NICHT 201 Pck!).
+   - Wenn du Gebinde (Pck, Becher, x) und Gewichte (g, ml) derselben Zutat hast, wandle im Kopf ERST ALLES in Gramm um. 
+   - Beispiel: 1 Pck Haferflocken + 200g Haferflocken -> Nimm an, 1 Pck hat 500g. Rechne: 500g + 200g = 700g. 
+   - Danach teilst du die Summe durch die angenommene Gebindegröße und rundest auf ganze Gebinde auf (700g / 500g = 1.4 -> entspricht 2 Pck. Haferflocken).
+3. EXTREME MENGEN: Wenn der User absurde Mengen eingibt (z.B. 3000g Rinderhackfleisch), behalte NICHT die Grammzahl bei, sondern rechne es zwingend in realistische Gebinde um (z.B. 6 Pck. (à 500g) Rinderhackfleisch).
+4. TRANSPARENZ IM SUBTEXT: Kombiniere die 'subtext' Felder (Rezepte). WENN du eine Annahme zur Gebindegröße getroffen hast, füge das zwingend am Ende des Subtexts in Klammern hinzu.
+5. NAMEN BEREINIGEN: Halte die Namen sauber und generisch (Aus "Nüsse (z.B. Walnüsse)" wird "Walnüsse").
 
 Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt, das ein Array namens "items" enthält:
 {
   "items": [
-    { "amount": 4, "unit": "Becher", "name": "Griechischer Joghurt", "subtext": "Für Rezept A (Angenommen: 200g / Becher)" },
-    { "amount": 1, "unit": "Pck.", "name": "Walnüsse", "subtext": "Für Rezept B (Angenommen: 200g / Pck.)" }
+    { "amount": 2, "unit": "Pck.", "name": "Haferflocken", "subtext": "Für Porridge (Angenommen: 500g / Pck.)" }
   ]
 }`;
 
@@ -81,7 +82,7 @@ function sanitizeCartItems(items: unknown[]) {
 }
 
 /**
- * Smart Liste: Einkaufsliste per KI optimieren (Gebinde, x vs. g/ml, Subtext).
+ * Smart Liste: Einkaufsliste per KI optimieren (Gebinde, Mathe-Schutz Pck./g, extreme Mengen, Subtext).
  */
 export async function optimizeSmartCart(
   items: unknown[]
