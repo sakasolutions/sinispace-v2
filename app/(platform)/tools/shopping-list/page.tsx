@@ -56,8 +56,7 @@ import {
   parseQtyInputForShopping,
 } from '@/lib/shopping-piece-quantity';
 import { parseIngredient } from '@/lib/ingredient-parser';
-import { analyzeShoppingItems } from '@/actions/shopping-list-ai';
-import { optimizeSmartCart } from '@/actions/smartList';
+import { parseSingleItem } from '@/actions/parseItem';
 import { DashboardShell } from '@/components/platform/dashboard-shell';
 import { WhatIsThisModal } from '@/components/ui/what-is-this-modal';
 import {
@@ -145,8 +144,8 @@ function addFallbackItems(
   );
 }
 
-/** Batch: Gesamten Input einmal an KI senden; bei Erfolg alle Items einfügen (mit Merge), bei Fehler Fallback (lokal splitten, sonstiges). */
-function processSmartInput(
+/** Echtzeit: Pro Chunk eine `parseSingleItem`-Anfrage; Merge nach Name (case-insensitive) + gleicher Basiseinheit (g/ml/x). */
+async function processSmartInput(
   rawInput: string,
   listId: string,
   setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>,
@@ -154,40 +153,49 @@ function processSmartInput(
   onAiProcessing?: (loading: boolean) => void
 ): Promise<void> {
   const trimmed = rawInput.trim();
-  if (!trimmed || !listId) return Promise.resolve();
+  if (!trimmed || !listId) return;
+
+  const chunks = splitInput(trimmed);
+  if (chunks.length === 0) return;
 
   onAiProcessing?.(true);
-  return analyzeShoppingItems(trimmed)
-    .then((res) => {
-      if (res.data && res.data.length > 0) {
-        setLists((prev) => {
-          const list = prev.find((l) => l.id === listId);
-          if (!list) return prev;
-          let currentItems = [...list.items];
-          for (const data of res.data!) {
-            const norm = normalizeItemName(data.name);
+  try {
+    for (const chunk of chunks) {
+      const c = chunk.trim();
+      if (!c) continue;
+      try {
+        const res = await parseSingleItem(c);
+        if (res.data) {
+          const { name, amount, unit, category } = res.data;
+          const unitKey = unit;
+          setLists((prev) => {
+            const list = prev.find((l) => l.id === listId);
+            if (!list) return prev;
+            let currentItems = [...list.items];
+            const normName = normalizeItemName(name);
             const existing = currentItems.find(
-              (i) => !i.checked && i.status === 'done' && normalizeItemName(i.text) === norm
+              (i) =>
+                !i.checked &&
+                i.status === 'done' &&
+                normalizeItemName(i.text) === normName &&
+                (i.unit ?? '').trim().toLowerCase() === unitKey
             );
-            if (existing && data.quantity != null && existing.quantity != null) {
-              const mergedQty = existing.quantity + data.quantity;
-              const mergedUnit = existing.unit ?? data.unit ?? null;
+            if (existing) {
+              const mergedQty = (existing.quantity ?? 0) + amount;
               const updated: ShoppingItem = {
                 ...existing,
                 quantity: mergedQty,
-                unit: applyShoppingUnitPlural(mergedQty, mergedUnit),
+                unit: applyShoppingUnitPlural(mergedQty, unitKey),
               };
               currentItems = currentItems.map((it) => (it.id === existing.id ? updated : it));
               onItemDone?.(updated.text);
             } else {
-              const q = data.quantity ?? null;
-              const u = data.unit ?? null;
               const newItem: ShoppingItem = {
                 id: generateId(),
-                text: data.name,
-                category: data.category,
-                quantity: q,
-                unit: applyShoppingUnitPlural(q, u),
+                text: name,
+                category,
+                quantity: amount,
+                unit: applyShoppingUnitPlural(amount, unitKey),
                 status: 'done',
                 rawInput: trimmed,
                 checked: false,
@@ -195,20 +203,19 @@ function processSmartInput(
               currentItems = [...currentItems, newItem];
               onItemDone?.(newItem.text);
             }
-          }
-          return prev.map((l) => (l.id !== listId ? l : { ...l, items: currentItems }));
-        });
-      } else {
-        addFallbackItems(trimmed, listId, setLists, onItemDone);
+            return prev.map((l) => (l.id !== listId ? l : { ...l, items: currentItems }));
+          });
+        } else {
+          addFallbackItems(c, listId, setLists, onItemDone);
+        }
+      } catch (error) {
+        console.warn('parseSingleItem abgebrochen, Fallback:', error);
+        addFallbackItems(c, listId, setLists, onItemDone);
       }
-    })
-    .catch((error) => {
-      console.warn('Netzwerkfehler oder Action-Crash abgefangen. Nutze Fallback:', error);
-      addFallbackItems(trimmed, listId, setLists, onItemDone);
-    })
-    .finally(() => {
-      onAiProcessing?.(false);
-    });
+    }
+  } finally {
+    onAiProcessing?.(false);
+  }
 }
 
 function capitalizeLabel(s: string): string {
@@ -288,7 +295,6 @@ export default function ShoppingListPage() {
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(false);
   const [isSmartMergeProcessing, setIsSmartMergeProcessing] = useState(false);
-  const [isOptimizing, setIsOptimizing] = useState(false);
   const smartMergeInflightRef = useRef(0);
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -655,112 +661,6 @@ export default function ShoppingListPage() {
     );
   };
 
-  /** Smart Liste: Server Action `optimizeSmartCart` (OpenAI / gpt-4o-mini), kein separater REST-Pfad. */
-  const handleOptimizeList = useCallback(async () => {
-    if (!activeListId || !activeList || isOptimizing || isSmartMergeProcessing || storeMode) {
-      console.warn('[Smart Liste] Abbruch – Voraussetzungen nicht erfüllt', {
-        activeListId,
-        hasActiveList: !!activeList,
-        isOptimizing,
-        isSmartMergeProcessing,
-        storeMode,
-      });
-      return;
-    }
-
-    const openItems = activeList.items.filter((i) => !i.checked);
-    const toOptimize = openItems.filter((i) => i.status !== 'analyzing');
-    if (toOptimize.length === 0) {
-      console.warn('[Smart Liste] Abbruch – keine optimierbaren offenen Artikel', {
-        offenGesamt: openItems.length,
-        listId: activeListId,
-      });
-      setToast('Keine offenen Artikel zum Optimieren.');
-      if (toastRef.current) clearTimeout(toastRef.current);
-      toastRef.current = setTimeout(() => {
-        toastRef.current = null;
-        setToast(null);
-      }, 2800);
-      return;
-    }
-
-    const payload = toOptimize.map((i) => ({
-      text: i.text,
-      quantity: i.quantity ?? null,
-      unit: i.unit ?? null,
-      category: i.category,
-      subtext: i.recipeSubtext ?? null,
-    }));
-
-    setIsOptimizing(true);
-    try {
-      console.log('🚀 Starte KI-Optimierung für Items:', payload);
-
-      const res = await optimizeSmartCart(payload);
-      console.log('✅ KI hat geantwortet:', res);
-
-      if (res.error) {
-        const msg =
-          res.error === 'PREMIUM_REQUIRED'
-            ? 'Smart Liste ist ein Premium-Feature.'
-            : res.error;
-        setToast(msg);
-        if (toastRef.current) clearTimeout(toastRef.current);
-        toastRef.current = setTimeout(() => {
-          toastRef.current = null;
-          setToast(null);
-        }, 4000);
-        return;
-      }
-
-      const lines = res.data!;
-
-      setLists((prev) =>
-        prev.map((l) => {
-          if (l.id !== activeListId) return l;
-          const checked = l.items.filter((i) => i.checked);
-          const analyzing = l.items.filter((i) => !i.checked && i.status === 'analyzing');
-          const newOpen: ShoppingItem[] = lines.map((line) => ({
-            id: generateId(),
-            text: line.name,
-            checked: false,
-            category: line.category,
-            quantity: line.quantity,
-            unit: line.unit,
-            status: 'done' as const,
-            ...(line.recipeSubtext ? { recipeSubtext: line.recipeSubtext } : {}),
-          }));
-          return { ...l, items: [...newOpen, ...analyzing, ...checked] };
-        })
-      );
-
-      setToast('Liste mit KI optimiert.');
-      if (toastRef.current) clearTimeout(toastRef.current);
-      toastRef.current = setTimeout(() => {
-        toastRef.current = null;
-        setToast(null);
-      }, 2200);
-    } catch (error) {
-      console.error('❌ Optimierung fehlgeschlagen:', error);
-      setToast(
-        error instanceof Error ? error.message : 'Smart Liste: unbekannter Fehler.'
-      );
-      if (toastRef.current) clearTimeout(toastRef.current);
-      toastRef.current = setTimeout(() => {
-        toastRef.current = null;
-        setToast(null);
-      }, 4000);
-    } finally {
-      setIsOptimizing(false);
-    }
-  }, [
-    activeList,
-    activeListId,
-    isOptimizing,
-    isSmartMergeProcessing,
-    storeMode,
-  ]);
-
   const shareList = useCallback(async () => {
     if (!activeList) return;
     const items = activeList.items.filter((i) => !i.checked);
@@ -871,45 +771,16 @@ export default function ShoppingListPage() {
                 <ShoppingCart className="h-3.5 w-3.5" />
                 {(activeList?.items.filter((i) => !i.checked).length ?? 0)} Offen
               </div>
+              {/* Smart Liste (Batch-Optimierung) vorübergehend deaktiviert — Echtzeit-Parser ersetzt die alte Pipeline */}
+              {/*
               <button
                 type="button"
                 onClick={() => void handleOptimizeList()}
-                disabled={
-                  isOptimizing ||
-                  isSmartMergeProcessing ||
-                  storeMode ||
-                  !activeList ||
-                  activeList.items.filter((i) => !i.checked && i.status !== 'analyzing').length === 0
-                }
-                title={
-                  !activeList
-                    ? 'Keine aktive Liste'
-                    : storeMode
-                      ? 'Im Einkaufsmodus nicht verfügbar'
-                      : isSmartMergeProcessing
-                        ? 'Warte, bis die Smart-Eingabe fertig ist'
-                        : isOptimizing
-                          ? 'Optimiere …'
-                          : activeList.items.filter((i) => !i.checked && i.status !== 'analyzing')
-                                .length === 0
-                            ? 'Keine offenen Artikel (nur erledigt oder „Analysiere …“)'
-                            : 'Liste mit KI zusammenfassen (Gebinde & Einheiten)'
-                }
-                aria-busy={isOptimizing}
-                className={cn(
-                  'relative z-50 pointer-events-auto flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all',
-                  isOptimizing
-                    ? 'border-fuchsia-500/40 bg-fuchsia-500/15 text-white shadow-[0_0_16px_rgba(217,70,239,0.25)]'
-                    : 'border-white/10 bg-white/[0.05] text-white hover:border-white/20 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45'
-                )}
+                disabled={...}
               >
-                {isOptimizing ? (
-                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-fuchsia-200" aria-hidden />
-                ) : (
-                  <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                )}
-                {isOptimizing ? 'Optimiere...' : '✨ Smart Liste'}
+                ✨ Smart Liste
               </button>
+              */}
             </div>
           </div>
         }
@@ -1058,6 +929,8 @@ export default function ShoppingListPage() {
                         <input
                           type="text"
                           value={newItemInput}
+                          disabled={isSmartMergeProcessing}
+                          aria-busy={isSmartMergeProcessing}
                           onChange={(e) => setNewItemInput(e.target.value)}
                           onFocus={() => { setInputFocused(true); if (!newItemInput.trim()) loadFrequentItems(); }}
                           onBlur={() => { setTimeout(() => { setInputFocused(false); setTypeAheadOpen(false); }, 180); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
@@ -1128,9 +1001,14 @@ export default function ShoppingListPage() {
                         onClick={submitSmartInput}
                         disabled={!newItemInput.trim() || isSmartMergeProcessing}
                         className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-40"
-                        title="Hinzufügen"
+                        title={isSmartMergeProcessing ? 'Wird geparst…' : 'Hinzufügen'}
+                        aria-busy={isSmartMergeProcessing}
                       >
-                        <Plus className="w-5 h-5" />
+                        {isSmartMergeProcessing ? (
+                          <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+                        ) : (
+                          <Plus className="w-5 h-5" aria-hidden />
+                        )}
                       </button>
                     </div>
                   }

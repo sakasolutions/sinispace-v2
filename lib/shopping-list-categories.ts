@@ -69,6 +69,8 @@ export function normalizeSmartCartCategory(raw: string | undefined | null): Shop
     gewuerze: 'haushalt',
     konserven: 'haushalt',
     vorrat: 'haushalt',
+    vorratsschrank: 'haushalt',
+    vorratschrank: 'haushalt',
     drinks: 'getraenke',
     drink: 'getraenke',
     getraenk: 'getraenke',
