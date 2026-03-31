@@ -17,13 +17,22 @@ import {
   LogOut,
   ChevronRight,
   Zap,
+  Lightbulb,
 } from 'lucide-react';
+
+const cardClass =
+  'bg-[#1A1A1D] border border-white/10 rounded-2xl overflow-hidden';
+
+const rowInteractiveClass =
+  'flex w-full items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors cursor-pointer text-left';
+
+const supportMailto = `mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'support@sinispace.app'}?subject=${encodeURIComponent('Feedback SiniSpace')}&body=${encodeURIComponent('')}`;
 
 type UserData = {
   id: string;
   email: string | null;
   name: string | null;
-  subscriptionEnd: string | null; // ISO date from server
+  subscriptionEnd: string | null;
 };
 
 type SettingsContentProps = {
@@ -41,122 +50,67 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
   const displayName = user?.name || userEmail;
 
   return (
-    <div className="max-w-2xl w-full pt-24 px-6 pb-40">
-      {/* Alerts */}
+    <div className="max-w-2xl w-full pt-24 px-6 pb-40 text-zinc-100">
       {params.success && (
-        <div className="mb-6 rounded-2xl border border-green-200/80 bg-green-50/80 backdrop-blur-sm p-4 sm:p-5 text-green-800 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 sm:p-5 text-emerald-100 shadow-sm">
           <strong>Erfolg!</strong> Dein Account wird in Kürze freigeschaltet.
         </div>
       )}
       {params.canceled && (
-        <div className="mb-6 rounded-2xl border border-amber-200/80 bg-amber-50/80 backdrop-blur-sm p-4 sm:p-5 text-amber-800 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5 text-amber-100 shadow-sm">
           Der Kaufvorgang wurde abgebrochen.
         </div>
       )}
 
-      {/* Profile Hero */}
-      <div className="w-full p-6 mb-8 rounded-[32px] bg-white/60 backdrop-blur-xl border border-white/50 shadow-lg">
-        <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-[24px] border-4 border-white bg-gray-100 flex items-center justify-center text-3xl shrink-0 overflow-hidden shadow-inner">
-            👤
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xl font-bold text-gray-900 truncate">{displayName}</p>
-            <p className="text-sm text-gray-500 truncate">{userEmail}</p>
-          </div>
-          <Link
-            href="/settings?edit=profile"
-            className="w-10 h-10 rounded-full bg-white/50 backdrop-blur-sm flex items-center justify-center shadow-sm border border-white/60 shrink-0 hover:bg-white/70 transition-colors"
-            aria-label="Profil bearbeiten"
-          >
-            <Pencil className="w-5 h-5 text-gray-600" />
-          </Link>
-        </div>
-      </div>
-
-      {/* Token & Stats (Pro) – aufklappbar */}
-      {isPro && (
-        <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[24px] overflow-hidden mb-6">
-          <button
-            type="button"
-            onClick={() => setExpandedUsage(!expandedUsage)}
-            className="w-full flex items-center px-4 py-4 hover:bg-white/40 transition-colors text-left"
-          >
-            <div className="w-10 h-10 rounded-[12px] flex items-center justify-center mr-4 shrink-0 bg-gradient-to-br from-amber-400 to-orange-500">
-              <Zap className="w-5 h-5 text-white" />
+      {/* Sektion 1: Account & Tarif */}
+      <div className={`${cardClass} mb-6`}>
+        <div className="p-6 border-b border-white/5">
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-2xl border border-white/10 bg-zinc-800/80 flex items-center justify-center text-3xl shrink-0 overflow-hidden">
+              👤
             </div>
-            <span className="font-medium text-gray-800 flex-1">Token-Usage & Kosten</span>
-            <ChevronRight
-              className={`w-5 h-5 text-gray-400 shrink-0 transition-transform duration-200 ${expandedUsage ? 'rotate-90' : ''}`}
-            />
-          </button>
-          {expandedUsage && (
-            <div className="px-4 pb-4 pt-0 border-t border-white/30">
-              <UsageDashboard />
+            <div className="min-w-0 flex-1">
+              <p className="text-xl font-semibold text-white truncate">{displayName}</p>
+              <p className="text-sm text-zinc-400 truncate">{userEmail}</p>
             </div>
-          )}
+            <Link
+              href="/settings?edit=profile"
+              className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center shrink-0 hover:bg-white/10 transition-colors border border-white/10"
+              aria-label="Profil bearbeiten"
+            >
+              <Pencil className="w-5 h-5 text-zinc-300" />
+            </Link>
+          </div>
         </div>
-      )}
 
-      {/* Island: Account */}
-      <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[24px] overflow-hidden mb-6">
-        <button
-          type="button"
-          onClick={() => setExpandedAccount(expandedAccount === 'name' ? null : 'name')}
-          className="w-full flex items-center px-4 py-4 hover:bg-white/40 transition-colors text-left"
-        >
-          <div className="w-10 h-10 rounded-[12px] flex items-center justify-center mr-4 shrink-0 bg-gradient-to-br from-blue-400 to-cyan-500">
-            <User className="w-5 h-5 text-white" />
-          </div>
-          <span className="font-medium text-gray-800 flex-1">Nutzernamen ändern</span>
-          <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
-        </button>
-        {expandedAccount === 'name' && (
-          <div className="px-4 pb-4 pt-0 border-t border-white/30">
-            <ChangeName embedded />
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setExpandedAccount(expandedAccount === 'password' ? null : 'password')}
-          className="w-full flex items-center px-4 py-4 hover:bg-white/40 transition-colors text-left border-t border-white/30"
-        >
-          <div className="w-10 h-10 rounded-[12px] flex items-center justify-center mr-4 shrink-0 bg-gradient-to-br from-violet-400 to-purple-500">
-            <Lock className="w-5 h-5 text-white" />
-          </div>
-          <span className="font-medium text-gray-800 flex-1">Passwort ändern</span>
-          <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
-        </button>
-        {expandedAccount === 'password' && (
-          <div className="px-4 pb-4 pt-0 border-t border-white/30">
-            <ChangePassword embedded />
-          </div>
-        )}
-      </div>
-
-      {/* Island: Mein Tarif */}
-      <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[24px] overflow-hidden mb-6">
-        <div className="px-4 py-4 flex items-center">
-          <div className="w-10 h-10 rounded-[12px] flex items-center justify-center mr-4 shrink-0 bg-gradient-to-br from-amber-400 to-orange-500">
-            <CreditCard className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-gray-800">Mein Tarif</p>
-            <p className={`text-sm font-bold ${isPro ? 'bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent' : 'text-gray-600'}`}>
-              {isPro ? 'Premium Aktiv' : 'Kostenloser Account'}
-            </p>
-            {isPro && user?.subscriptionEnd && (
-              <p className="text-xs text-gray-500 mt-0.5">
-                Läuft ab: {new Date(user.subscriptionEnd).toLocaleDateString('de-DE')}
-              </p>
-            )}
+        <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-500 to-orange-600">
+              <CreditCard className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-white">Mein Tarif</p>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                {isPro ? (
+                  <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs px-2 py-1 rounded-md font-medium">
+                    Premium Aktiv
+                  </span>
+                ) : (
+                  <span className="text-sm text-zinc-400">Kostenloser Account</span>
+                )}
+              </div>
+              {isPro && user?.subscriptionEnd && (
+                <p className="text-xs text-zinc-500 mt-1.5">
+                  Läuft ab: {new Date(user.subscriptionEnd).toLocaleDateString('de-DE')}
+                </p>
+              )}
+            </div>
           </div>
           {!isPro && (
-            <form action={createCheckoutSession} className="shrink-0">
+            <form action={createCheckoutSession} className="shrink-0 w-full sm:w-auto">
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/30 transition-all"
+                className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all"
               >
                 Upgraden
               </button>
@@ -165,36 +119,130 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
         </div>
       </div>
 
-      {/* Island: Rechtliches */}
-      <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[24px] overflow-hidden mb-6">
+      {/* Token & Stats (Pro) */}
+      {isPro && (
+        <div className={`${cardClass} mb-6`}>
+          <button
+            type="button"
+            onClick={() => setExpandedUsage(!expandedUsage)}
+            className={rowInteractiveClass}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-amber-400 to-orange-500">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-medium text-white">Token-Usage & Kosten</span>
+            </div>
+            <ChevronRight
+              className={`w-5 h-5 text-zinc-500 shrink-0 transition-transform duration-200 ${expandedUsage ? 'rotate-90' : ''}`}
+            />
+          </button>
+          {expandedUsage && (
+            <div className="border-t border-white/5 bg-zinc-950/40 p-4">
+              <UsageDashboard />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Account: Name & Passwort */}
+      <div className={`${cardClass} mb-6`}>
         <button
           type="button"
-          onClick={() => setExpandedLegal(!expandedLegal)}
-          className="w-full flex items-center px-4 py-4 hover:bg-white/40 transition-colors text-left"
+          onClick={() => setExpandedAccount(expandedAccount === 'name' ? null : 'name')}
+          className={rowInteractiveClass}
         >
-          <div className="w-10 h-10 rounded-[12px] flex items-center justify-center mr-4 shrink-0 bg-gradient-to-br from-red-400 to-rose-500">
-            <ShieldAlert className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-sky-500 to-cyan-600">
+              <User className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-medium text-white">Nutzernamen ändern</span>
           </div>
-          <span className="font-medium text-gray-800 flex-1">Konto endgültig löschen</span>
-          <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
+          <ChevronRight className="w-5 h-5 text-zinc-500 shrink-0" />
         </button>
-        {expandedLegal && (
-          <div className="px-4 pb-4 pt-0 border-t border-white/30">
-            <DeleteAccount embedded />
+        {expandedAccount === 'name' && (
+          <div className="border-t border-white/5 bg-zinc-950/40 px-4 py-4">
+            <ChangeName embedded />
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setExpandedAccount(expandedAccount === 'password' ? null : 'password')}
+          className={rowInteractiveClass}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-zinc-600 to-zinc-700">
+              <Lock className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-medium text-white">Passwort ändern</span>
+          </div>
+          <ChevronRight className="w-5 h-5 text-zinc-500 shrink-0" />
+        </button>
+        {expandedAccount === 'password' && (
+          <div className="border-t border-white/5 bg-zinc-950/40 px-4 py-4">
+            <ChangePassword embedded />
           </div>
         )}
       </div>
 
-      {/* Water Drop Logout */}
+      {/* Sektion 2: Support & Feedback */}
+      <div className="mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2 px-1">
+          Support & Feedback
+        </h2>
+        <div className={cardClass}>
+          <a
+            href={supportMailto}
+            className="flex items-center justify-between gap-4 p-4 hover:bg-white/5 transition-colors group"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/15 border border-amber-500/30 shadow-[0_0_24px_-4px_rgba(251,191,36,0.35)] group-hover:shadow-[0_0_28px_-2px_rgba(251,191,36,0.45)] transition-shadow">
+                <Lightbulb className="w-5 h-5 text-amber-400" />
+              </div>
+              <div className="min-w-0">
+                <span className="font-medium text-white block">💡 Feedback oder Fehler melden</span>
+                <span className="text-xs text-zinc-500">Schreib uns direkt per E-Mail</span>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-zinc-500 shrink-0 group-hover:text-zinc-300 transition-colors" />
+          </a>
+        </div>
+      </div>
+
+      {/* Sektion 3: Danger Zone */}
+      <div className="mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-red-400/80 mb-2 px-1">
+          Gefahrenbereich
+        </h2>
+        <div className={cardClass}>
+          <button
+            type="button"
+            onClick={() => setExpandedLegal(!expandedLegal)}
+            className={`${rowInteractiveClass} text-red-400 hover:text-red-300 hover:bg-red-500/10`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-red-500/15 border border-red-500/25">
+                <ShieldAlert className="w-5 h-5 text-red-400" />
+              </div>
+              <span className="font-medium">Konto endgültig löschen</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-red-400/70 shrink-0" />
+          </button>
+          {expandedLegal && (
+            <div className="border-t border-white/5 bg-zinc-950/40 px-4 py-4">
+              <DeleteAccount embedded />
+            </div>
+          )}
+        </div>
+      </div>
+
       <form action={signOutAction}>
         <button
           type="submit"
-          className="w-full py-4 mt-8 rounded-[24px] flex items-center justify-center gap-2 bg-red-50/30 backdrop-blur-md border border-red-100/50 text-red-600 font-bold transition-colors hover:bg-red-50/50"
-          style={{
-            boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.8), 0 4px 10px rgba(220,38,38,0.05)',
-          }}
+          className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 bg-zinc-800/80 border border-white/10 text-zinc-200 font-medium transition-colors hover:bg-zinc-800 hover:border-white/15"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-5 h-5 text-zinc-400" />
           Abmelden
         </button>
       </form>
