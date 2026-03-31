@@ -83,6 +83,54 @@ const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   Snowflake,
 };
 
+const CATEGORY_ORDER = [
+  'Obst & Gemüse',
+  'Kühlregal',
+  'Fleisch & Fisch',
+  'Brot & Backwaren',
+  'Vorratsschrank',
+  'Getränke',
+  'Haushalt',
+  'Sonstiges',
+] as const;
+
+function labelForCategorySort(catKey: string): string {
+  const raw = getCategoryTheme(catKey).label;
+  if (raw === 'Getränke & Party') return 'Getränke';
+  if (raw === 'Vorrat') return 'Vorratsschrank';
+  return raw;
+}
+
+function getCategorySortIndex(catKey: string): number {
+  const label = labelForCategorySort(catKey);
+  const idx = CATEGORY_ORDER.indexOf(label as (typeof CATEGORY_ORDER)[number]);
+  if (idx >= 0) return idx;
+  const sonst = CATEGORY_ORDER.indexOf('Sonstiges');
+  return sonst >= 0 ? sonst : 999;
+}
+
+function getPackSuggestion(name: string, sources: ItemSource[]): string {
+  const n = (name ?? '').toLowerCase();
+  const totalsByUnit: Record<string, number> = {};
+  for (const s of sources) {
+    const u = String(s.originalUnit ?? '').trim().toLowerCase();
+    totalsByUnit[u] = (totalsByUnit[u] ?? 0) + (s.amount ?? 0);
+  }
+
+  const gTotal = totalsByUnit.g ?? 0;
+  const mlTotal = totalsByUnit.ml ?? 0;
+
+  if (gTotal > 0 && (n.includes('haferflocken') || n.includes('nudeln') || n.includes('reis'))) {
+    const pck = Math.ceil(gTotal / 500);
+    return pck > 0 ? `(ca. ${pck} Pck.)` : '';
+  }
+  if (mlTotal > 0 && (n.includes('milch') || n.includes('saft'))) {
+    const liters = Math.ceil(mlTotal / 1000);
+    return liters > 0 ? `(ca. ${liters} L)` : '';
+  }
+  return '';
+}
+
 /** Teilt Rohtext in Zeilen/Chunks (für lokalen Fallback bei KI-Fehler). */
 function splitInput(raw: string): string[] {
   return raw
@@ -792,7 +840,12 @@ export default function ShoppingListPage() {
     return acc;
   }, {});
 
-  const sortedCategories = sortCategoriesBySupermarktRoute(Object.keys(grouped));
+  const sortedCategories = Object.keys(grouped).sort((a, b) => {
+    const ia = getCategorySortIndex(a);
+    const ib = getCategorySortIndex(b);
+    if (ia !== ib) return ia - ib;
+    return labelForCategorySort(a).localeCompare(labelForCategorySort(b), 'de');
+  });
 
   if (!hydrated) {
     return (
@@ -1174,10 +1227,12 @@ export default function ShoppingListPage() {
                           <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} className={index === 0 ? 'pt-0' : undefined} />
                           {items.map((item) => {
                             const qtyDisplay = formatQtyDisplay(item);
+                            const packHint = getPackSuggestion(item.name, item.sources);
+                            const qtyLabel = packHint ? `${qtyDisplay} ${packHint}` : qtyDisplay;
                             const hasQty = qtyDisplay.length > 0;
                             const isEditingQty = !storeMode && editingQtyItemId === item.id;
                             const isEditingText = editingItemId === item.id;
-                            const displayLabel = `${item.name} (${qtyDisplay})`;
+                            const displayLabel = `${item.name} (${qtyLabel})`;
                             const isStriking = checkingId === item.id;
                             const showActions = !storeMode && !isEditingText;
                             const useStoreRow = storeMode && !isEditingText;
@@ -1301,7 +1356,7 @@ export default function ShoppingListPage() {
                                   </>
                                 ) : storeMode ? (
                                   <>
-                                    {hasQty && <StoreQtyPill label={qtyDisplay} />}
+                                    {hasQty && <StoreQtyPill label={qtyLabel} />}
                                     <div className="min-w-0 flex-1">
                                       <ShoppingItemNameStack
                                         name={item.name}
@@ -1326,7 +1381,7 @@ export default function ShoppingListPage() {
                                   <>
                                     {hasQty && (
                                       <UnifiedQuantityBadge
-                                        label={qtyDisplay}
+                                        label={qtyLabel}
                                         onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(qtyDisplay); }}
                                       />
                                     )}
