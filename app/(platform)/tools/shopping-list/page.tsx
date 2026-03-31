@@ -151,8 +151,8 @@ function labelForCategorySort(catKey: string): string {
   return raw;
 }
 
-function categoryAnchorId(categoryLabel: string): string {
-  return `category-${encodeURIComponent(categoryLabel)}`;
+function categoryAnchorId(categoryName: string): string {
+  return `category-${categoryName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
 }
 
 function getCategorySortIndex(catKey: string): number {
@@ -462,7 +462,8 @@ export default function ShoppingListPage() {
 
   const activeList = lists.find((l) => l.id === activeListId);
   const scrollToCategory = useCallback((categoryLabel: string) => {
-    const element = document.getElementById(categoryAnchorId(categoryLabel));
+    const safeId = categoryAnchorId(categoryLabel);
+    const element = document.getElementById(safeId);
     if (element) {
       const y = element.getBoundingClientRect().top + window.scrollY - 140;
       window.scrollTo({ top: y, behavior: 'smooth' });

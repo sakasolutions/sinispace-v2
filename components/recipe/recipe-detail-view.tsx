@@ -26,6 +26,10 @@ import {
   AddToShoppingListModal,
   type AddToShoppingListSuccessPayload,
 } from '@/components/recipe/add-to-shopping-list-modal';
+import {
+  PreFlightModal,
+  type RecipeIngredient,
+} from '@/components/recipe/pre-flight-modal';
 import { scheduleSingleRecipe } from '@/actions/calendar-actions';
 import { cn } from '@/lib/utils';
 import { parseIngredient, formatIngredientDisplay } from '@/lib/format-ingredient';
@@ -227,6 +231,8 @@ export function RecipeDetailView({
   const originalServings = 2;
   const [servings, setServings] = useState(originalServings);
   const [isAddToListOpen, setIsAddToListOpen] = useState(false);
+  const [isPreFlightOpen, setIsPreFlightOpen] = useState(false);
+  const [preflightIngredients, setPreflightIngredients] = useState<RecipeIngredient[]>([]);
   /** Welche Zutaten im „Einkaufen“-Modal angezeigt werden: alle (vom Einkaufen-Button) oder nur fehlende (vom Auf Einkaufsliste-Button). */
   const [addToListIngredients, setAddToListIngredients] = useState<string[]>([]);
   /** Alle Zutaten mit `isAvailable` (true = Vorhanden, false = Fehlt noch / isMissing); SmartCart nutzt nur „Fehlt noch“. */
@@ -787,16 +793,25 @@ export function RecipeDetailView({
         <button
           type="button"
           onClick={() => {
-            const missing = missingIngredients.map((r) => r.name);
-            if (missing.length === 0) {
+            if (missingIngredients.length === 0) {
               setToast({
                 message:
                   'Alles als vorhanden markiert – tippe Zutaten an, die du noch einkaufen musst, oder schiebe sie nach „Fehlt noch“.',
               });
               return;
             }
-            setAddToListIngredients(missing);
-            setIsAddToListOpen(true);
+            const rows: RecipeIngredient[] = missingIngredients.map((r) => {
+              const p = parseIngredient(r.name);
+              return {
+                id: r.id,
+                name: p.name,
+                amount: p.amount,
+                unit: p.unit ? p.unit : null,
+                rawLine: r.name,
+              };
+            });
+            setPreflightIngredients(rows);
+            setIsPreFlightOpen(true);
           }}
           className="flex min-h-[3.5rem] flex-1 items-center justify-center gap-2 rounded-full bg-rose-500 px-4 py-4 text-center text-base font-bold text-white shadow-glow-rose transition-all hover:bg-rose-600 active:scale-[0.98]"
         >
@@ -804,6 +819,17 @@ export function RecipeDetailView({
           Einkaufen
         </button>
       </div>
+
+      <PreFlightModal
+        isOpen={isPreFlightOpen}
+        ingredients={preflightIngredients}
+        onCancel={() => setIsPreFlightOpen(false)}
+        onConfirm={(selected) => {
+          setAddToListIngredients(selected.map((s) => s.rawLine));
+          setIsPreFlightOpen(false);
+          setIsAddToListOpen(true);
+        }}
+      />
 
       {/* Auf Einkaufsliste setzen – Modal + Toast */}
       <AddToShoppingListModal
