@@ -163,28 +163,6 @@ function getCategorySortIndex(catKey: string): number {
   return sonst >= 0 ? sonst : 999;
 }
 
-function getPackSuggestion(name: string, sources: ItemSource[]): string {
-  const n = (name ?? '').toLowerCase();
-  const totalsByUnit: Record<string, number> = {};
-  for (const s of sources) {
-    const u = String(s.originalUnit ?? '').trim().toLowerCase();
-    totalsByUnit[u] = (totalsByUnit[u] ?? 0) + (s.amount ?? 0);
-  }
-
-  const gTotal = totalsByUnit.g ?? 0;
-  const mlTotal = totalsByUnit.ml ?? 0;
-
-  if (gTotal > 0 && (n.includes('haferflocken') || n.includes('nudeln') || n.includes('reis'))) {
-    const pck = Math.ceil(gTotal / 500);
-    return pck > 0 ? `(ca. ${pck} Pck.)` : '';
-  }
-  if (mlTotal > 0 && (n.includes('milch') || n.includes('saft'))) {
-    const liters = Math.ceil(mlTotal / 1000);
-    return liters > 0 ? `(ca. ${liters} L)` : '';
-  }
-  return '';
-}
-
 /** Teilt Rohtext in Zeilen/Chunks (für lokalen Fallback bei KI-Fehler). */
 function splitInput(raw: string): string[] {
   return raw
@@ -1352,12 +1330,10 @@ export default function ShoppingListPage() {
                           </div>
                           {items.map((item) => {
                             const qtyDisplay = formatQtyDisplay(item);
-                            const packHint = getPackSuggestion(item.name, item.sources);
-                            const qtyLabel = packHint ? `${qtyDisplay} ${packHint}` : qtyDisplay;
                             const hasQty = qtyDisplay.length > 0;
                             const isEditingQty = !storeMode && editingQtyItemId === item.id;
                             const isEditingText = editingItemId === item.id;
-                            const displayLabel = `${item.name} (${qtyLabel})`;
+                            const displayLabel = `${item.name} (${qtyDisplay})`;
                             const isStriking = checkingId === item.id;
                             const showActions = !storeMode && !isEditingText;
                             const useStoreRow = storeMode && !isEditingText;
@@ -1481,7 +1457,7 @@ export default function ShoppingListPage() {
                                   </>
                                 ) : storeMode ? (
                                   <>
-                                    {hasQty && <StoreQtyPill label={qtyLabel} />}
+                                    {hasQty && <StoreQtyPill label={qtyDisplay} />}
                                     <div className="min-w-0 flex-1 overflow-hidden">
                                       <ShoppingItemNameStack
                                         name={item.name}
@@ -1506,7 +1482,7 @@ export default function ShoppingListPage() {
                                   <>
                                     {hasQty && (
                                       <UnifiedQuantityBadge
-                                        label={qtyLabel}
+                                        label={qtyDisplay}
                                         onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(qtyDisplay); }}
                                       />
                                     )}
