@@ -115,7 +115,7 @@ export function getDynamicTotal(sources: ItemSource[]): string {
     const keys = Object.keys(byUnit);
     if (keys.length === 1) {
       const u = keys[0]!;
-      return `${formatAmount(byUnit[u]!, u)} ℹ️`;
+      return `${formatAmount(byUnit[u]!, u)}`;
     }
     return 'Gemischt';
   }
@@ -132,7 +132,7 @@ export function getDynamicTotal(sources: ItemSource[]): string {
     const keys = Object.keys(byUnit);
     if (keys.length === 1) {
       const u = keys[0]!;
-      return `${formatAmount(byUnit[u]!, u)} ℹ️`;
+      return `${formatAmount(byUnit[u]!, u)}`;
     }
     return 'Gemischt';
   }
