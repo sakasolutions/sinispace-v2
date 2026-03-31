@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { ArrowLeft, Users, TrendingUp, Crown, MessageSquare, FileText, Activity, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { AdminTabs } from '@/components/platform/admin-tabs';
-import { migrateAdminFlag } from '@/actions/admin-actions';
+import { PlatformInsetLayout, PLATFORM_INSET_CARD_CLASS } from '@/components/platform/platform-inset-layout';
 
 export default async function AdminPage() {
   // SICHERHEIT: The Bouncer 🚪
@@ -217,10 +217,12 @@ export default async function AdminPage() {
   };
 
 
+  const kpiCard = `${PLATFORM_INSET_CARD_CLASS} p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.24)]`;
+
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
+    <PlatformInsetLayout variant="admin" className="text-zinc-100">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
             Mission Control 🚀
@@ -231,7 +233,7 @@ export default async function AdminPage() {
         </div>
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white transition-all text-sm font-medium"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white transition-all text-sm font-medium shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
           Zurück zur App
@@ -239,9 +241,9 @@ export default async function AdminPage() {
       </div>
 
       {/* KPI CARDS (Grid, 2 Rows) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Gesamt User */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <div className={kpiCard}>
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
               <Users className="w-6 h-6 text-blue-400" />
@@ -252,7 +254,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Neu (7 Tage) */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <div className={kpiCard}>
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-green-400" />
@@ -263,7 +265,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Premium Users */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <div className={kpiCard}>
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-yellow-500/20 flex items-center justify-center">
               <Crown className="w-6 h-6 text-yellow-400" />
@@ -274,7 +276,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Total Chats */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <div className={kpiCard}>
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
               <MessageSquare className="w-6 h-6 text-purple-400" />
@@ -285,7 +287,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Total Messages */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <div className={kpiCard}>
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-indigo-500/20 flex items-center justify-center">
               <FileText className="w-6 h-6 text-indigo-400" />
@@ -296,7 +298,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Active Sessions */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <div className={kpiCard}>
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
               <Activity className="w-6 h-6 text-emerald-400" />
@@ -307,7 +309,7 @@ export default async function AdminPage() {
         </div>
 
         {/* Status */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]">
+        <div className={kpiCard}>
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
               <CheckCircle2 className="w-6 h-6 text-green-400" />
@@ -322,21 +324,21 @@ export default async function AdminPage() {
       </div>
 
       {/* TABS MIT DATEN */}
-      <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] overflow-hidden">
-        <div className="p-4 sm:p-6 border-b border-white/10">
+      <div className={`${PLATFORM_INSET_CARD_CLASS} shadow-[0_8px_32px_0_rgba(0,0,0,0.24)]`}>
+        <div className="px-4 sm:px-6 py-4 border-b border-white/10">
           <h2 className="text-lg font-semibold text-white">Datenbank-Übersicht</h2>
           <p className="text-sm text-zinc-400 mt-1">Vollständige Einsicht in alle gespeicherten Daten</p>
         </div>
-        
-        <div className="p-4 sm:p-6">
-          <AdminTabs 
-            users={recentUsers} 
+
+        <div className="p-4 sm:p-6 min-w-0 overflow-x-auto">
+          <AdminTabs
+            users={recentUsers}
             chats={recentChats}
             documents={recentDocuments}
             stats={stats}
           />
         </div>
       </div>
-    </div>
+    </PlatformInsetLayout>
   );
 }

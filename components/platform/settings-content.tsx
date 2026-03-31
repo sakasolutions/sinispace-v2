@@ -8,6 +8,7 @@ import { ChangeName } from './change-name';
 import { ChangePassword } from './change-password';
 import { DeleteAccount } from './delete-account';
 import { UsageDashboard } from './usage-dashboard';
+import { PLATFORM_INSET_CARD_CLASS } from '@/components/platform/platform-inset-layout';
 import {
   Pencil,
   User,
@@ -20,8 +21,7 @@ import {
   Lightbulb,
 } from 'lucide-react';
 
-const cardClass =
-  'bg-[#1A1A1D] border border-white/10 rounded-2xl overflow-hidden';
+const cardClass = PLATFORM_INSET_CARD_CLASS;
 
 const rowInteractiveClass =
   'flex w-full items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors cursor-pointer text-left';
@@ -50,20 +50,20 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
   const displayName = user?.name || userEmail;
 
   return (
-    <div className="max-w-2xl mx-auto w-full px-4 md:px-6 pt-24 pb-40 text-zinc-100">
+    <div className="w-full space-y-6">
       {params.success && (
-        <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 sm:p-5 text-emerald-100 shadow-sm">
+        <div className="w-full rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 sm:p-5 text-emerald-100 shadow-sm">
           <strong>Erfolg!</strong> Dein Account wird in Kürze freigeschaltet.
         </div>
       )}
       {params.canceled && (
-        <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5 text-amber-100 shadow-sm">
+        <div className="w-full rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5 text-amber-100 shadow-sm">
           Der Kaufvorgang wurde abgebrochen.
         </div>
       )}
 
       {/* Sektion 1: Account & Tarif */}
-      <div className={`${cardClass} mb-6`}>
+      <div className={cardClass}>
         <div className="p-6 border-b border-white/5">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-2xl border border-white/10 bg-zinc-800/80 flex items-center justify-center text-3xl shrink-0 overflow-hidden">
@@ -121,7 +121,7 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
 
       {/* Token & Stats (Pro) */}
       {isPro && (
-        <div className={`${cardClass} mb-6`}>
+        <div className={cardClass}>
           <button
             type="button"
             onClick={() => setExpandedUsage(!expandedUsage)}
@@ -146,7 +146,7 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
       )}
 
       {/* Account: Name & Passwort */}
-      <div className={`${cardClass} mb-6`}>
+      <div className={cardClass}>
         <button
           type="button"
           onClick={() => setExpandedAccount(expandedAccount === 'name' ? null : 'name')}
@@ -187,8 +187,8 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
       </div>
 
       {/* Sektion 2: Support & Feedback */}
-      <div className="mb-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2 px-1">
+      <div className="w-full space-y-2">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 px-1">
           Support & Feedback
         </h2>
         <div className={cardClass}>
@@ -211,8 +211,8 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
       </div>
 
       {/* Sektion 3: Danger Zone */}
-      <div className="mb-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-red-400/80 mb-2 px-1">
+      <div className="w-full space-y-2">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-red-400/80 px-1">
           Gefahrenbereich
         </h2>
         <div className={cardClass}>
@@ -237,7 +237,7 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
         </div>
       </div>
 
-      <form action={signOutAction}>
+      <form action={signOutAction} className="w-full">
         <button
           type="submit"
           className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 bg-zinc-800/80 border border-white/10 text-zinc-200 font-medium transition-colors hover:bg-zinc-800 hover:border-white/15"

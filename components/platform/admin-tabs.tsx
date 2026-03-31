@@ -33,9 +33,9 @@ export function AdminTabs({ users, chats, documents, stats }: AdminTabsProps) {
   ];
 
   return (
-    <div>
+    <div className="w-full min-w-0">
       {/* TABS */}
-      <div className="flex flex-wrap gap-2 mb-6 border-b border-white/10">
+      <div className="flex flex-wrap gap-2 mb-4 sm:mb-6 border-b border-white/5 pb-3">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -43,13 +43,13 @@ export function AdminTabs({ users, chats, documents, stats }: AdminTabsProps) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-t-lg border-b-2 transition-all flex items-center gap-2 text-sm font-medium ${
+              className={`px-3 sm:px-4 py-2 rounded-lg border transition-all flex items-center gap-2 text-sm font-medium ${
                 isActive
-                  ? 'border-blue-500 text-blue-400 bg-blue-500/10'
+                  ? 'border-white/15 text-blue-300 bg-blue-500/15 shadow-sm'
                   : 'border-transparent text-zinc-400 hover:text-zinc-300 hover:bg-white/5'
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4 shrink-0" />
               {tab.label}
             </button>
           );
@@ -57,7 +57,7 @@ export function AdminTabs({ users, chats, documents, stats }: AdminTabsProps) {
       </div>
 
       {/* TAB CONTENT */}
-      <div>
+      <div className="min-w-0 pt-1">
         {activeTab === 'users' && <AdminUserTable users={users} />}
         {activeTab === 'chats' && <AdminChatsView chats={chats} />}
         {activeTab === 'documents' && <AdminDocumentsView documents={documents} />}

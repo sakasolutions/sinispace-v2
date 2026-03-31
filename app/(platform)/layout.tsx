@@ -24,6 +24,8 @@ export default async function PlatformLayout({
     redirect('/login');
   }
 
+  // Kein globales horizontales Padding hier: Scroll-Area setzt pro Route gezielt px-0 (Mobile).
+  // Einstellungs-ähnliche Seiten nutzen PlatformInsetLayout + data-no-padding am Wrapper.
   return (
     <PlatformLayoutContent>
       {children}

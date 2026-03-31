@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { SettingsContent } from '@/components/platform/settings-content';
+import { PlatformInsetLayout } from '@/components/platform/platform-inset-layout';
 
 export default async function SettingsPage({
   searchParams,
@@ -34,14 +35,16 @@ export default async function SettingsPage({
     : null;
 
   return (
-    <SettingsContent
-      user={userForClient}
-      userEmail={userEmail}
-      isPro={isPro}
-      params={{
-        success: typeof params.success === 'string' ? params.success : undefined,
-        canceled: typeof params.canceled === 'string' ? params.canceled : undefined,
-      }}
-    />
+    <PlatformInsetLayout variant="settings" className="text-zinc-100">
+      <SettingsContent
+        user={userForClient}
+        userEmail={userEmail}
+        isPro={isPro}
+        params={{
+          success: typeof params.success === 'string' ? params.success : undefined,
+          canceled: typeof params.canceled === 'string' ? params.canceled : undefined,
+        }}
+      />
+    </PlatformInsetLayout>
   );
 }
