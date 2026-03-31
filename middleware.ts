@@ -94,7 +94,24 @@ export default auth((req) => {
   const userIsNull = req.auth?.user === null;
   const isAuthenticated = hasUserId && !userIsNull;
 
-  // Geschützte Routen
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  if (isAdminRoute) {
+    if (!isAuthenticated) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const userEmail = req.auth?.user?.email?.trim().toLowerCase();
+    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+
+    if (!userEmail || userEmail !== adminEmail) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+  }
+
+  // Geschützte Routen (/admin ist oben separat und strenger abgesichert — nicht hier eintragen)
   const protectedRoutes = ["/dashboard", "/chat", "/settings", "/actions"];
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 

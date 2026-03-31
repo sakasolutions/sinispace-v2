@@ -40,6 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 updatedAt: true,
                 subscriptionEnd: true,
                 stripeCustomerId: true,
+                isAdmin: true,
               },
             });
           } catch (prismaError: any) {
@@ -56,8 +57,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 updatedAt: Date;
                 subscriptionEnd: Date | null;
                 stripeCustomerId: string | null;
+                isAdmin: boolean;
               }>>(
-                `SELECT id, email, password, name, image, "emailVerified", "createdAt", "updatedAt", "subscriptionEnd", "stripeCustomerId" FROM "User" WHERE email = $1 LIMIT 1`,
+                `SELECT id, email, password, name, image, "emailVerified", "createdAt", "updatedAt", "subscriptionEnd", "stripeCustomerId", "isAdmin" FROM "User" WHERE email = $1 LIMIT 1`,
                 email
               );
               user = result[0] || null;
@@ -89,7 +91,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
 
           console.log(`[AUTH] ✅ Login erfolgreich für: ${email}`);
-          
+
           // Last Login aktualisieren
           try {
             await prisma.user.update({
@@ -101,8 +103,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           } catch {
             // Silent fail - sollte nicht die App crashen
           }
-          
-          return user;
+
+          return {
+            ...user,
+            isAdmin: user.isAdmin ?? false,
+          };
         } catch (error) {
           // Datenbank-Fehler loggen
           if (error instanceof Error && error.message.includes('Prisma')) {
@@ -122,48 +127,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // WICHTIG: session() Callback kann im Edge Runtime laufen (z.B. in Middleware)
       // Prisma funktioniert NICHT im Edge Runtime → KEINE DB-Queries hier!
       // Wir vertrauen auf das JWT-Token - wenn es gültig ist, ist die Session gültig
-      
-      // Wenn userId (sub) fehlt im Token, Session ungültig machen
+
       if (!token.sub) {
         return {
           ...session,
           user: null,
         } as any;
       }
-      
-      // Session existiert und ist gültig → user.id setzen
+
       if (token.sub && session.user) {
-        session.user.id = token.sub;
+        const u = session.user as {
+          id: string;
+          name?: string | null;
+          email?: string | null;
+          image?: string | null;
+          isAdmin?: boolean;
+        };
+        u.id = token.sub;
+        if (token.email !== undefined) {
+          u.email = token.email;
+        }
+        if (token.isAdmin !== undefined) {
+          u.isAdmin = Boolean(token.isAdmin);
+        }
       }
-      
+
       return session;
     },
-    async jwt({ token, user, trigger }) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/33892122-4b78-4cba-bba4-a59e8a7bb458',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth.ts:jwt:entry',message:'JWT callback entered',data:{hasUser:!!user,hasTokenSub:!!token.sub,trigger},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
-      
-      // WICHTIG: JWT-Callback läuft auch im Edge Runtime (z.B. Middleware)
-      // Prisma funktioniert NICHT im Edge Runtime → KEINE DB-Queries hier!
-      
-      // Beim ersten Login: Nur userId speichern, KEINE sessionId hier
-      // Die sessionId wird NICHT im JWT-Token gespeichert (Edge Runtime Problem)
-      // Stattdessen: Session-Validation im session() Callback basiert auf userId
+    async jwt({ token, user }) {
+      // JWT-Callback läuft auch im Edge Runtime (Middleware) → keine Prisma-Aufrufe
       if (user) {
         token.sub = user.id;
-        // WICHTIG: KEINE Prisma-Aufrufe hier! (Edge Runtime inkompatibel)
-        // sessionId wird NICHT im Token gespeichert
-        // Die Session-Validation erfolgt im session() Callback basierend auf userId
-        // Setze invalidated Flag zurück beim neuen Login
+        token.email = user.email;
+        token.isAdmin = user.isAdmin ?? false;
         delete token.invalidated;
       }
-      
-      // WICHTIG: KEINE Session-Validation hier im JWT-Callback!
-      // Prisma funktioniert nicht im Edge Runtime (Middleware nutzt JWT-Callback)
-      // Die Validation erfolgt im session() Callback (nur Server Runtime)
-      // Wenn das Token invalidiert wurde (durch session() Callback), entferne sub
-      // Das führt dazu, dass die Middleware das Token als ungültig erkennt
-      
+
       return token;
     },
     // Session in DB speichern nach erfolgreichem Login
