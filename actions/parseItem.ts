@@ -40,6 +40,7 @@ const OutputSchema = z.object({
   suggestedMergeTarget: z
     .string()
     .optional()
+    .nullable()
     .transform((s) => (s == null ? '' : String(s).trim())),
 });
 

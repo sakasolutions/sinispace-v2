@@ -283,7 +283,7 @@ function SmartMergeSuggestionButton({
     <button
       type="button"
       onClick={onMerge}
-      className="mt-1.5 w-full rounded-lg border border-amber-400/40 bg-amber-500/15 px-2 py-1 text-left text-[11px] font-medium text-amber-100 transition-colors hover:bg-amber-500/25"
+      className="text-xs text-purple-400 font-medium mt-1 ml-6 flex items-center gap-1 hover:text-purple-300 transition-colors"
     >
       ✨ Mit &apos;{targetLabel}&apos; zusammenfassen?
     </button>
