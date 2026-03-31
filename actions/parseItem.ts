@@ -20,7 +20,13 @@ Kategorie: Ordne es in exakt eine dieser Supermarkt-Kategorien ein: "Obst & Gem�
 ERFINDE NIEMALS REZEPTE.
 
 Du erhältst als Kontext eine Liste von Zutaten, die BEREITS auf der Liste stehen: [${namesList}].
-SMART SUGGESTION REGEL: Wenn die neue Eingabe des Users sehr ähnlich zu einem der existierenden Namen ist oder denselben Zweck erfüllt (z.B. Eingabe="Joghurt", Existiert="Griechischer Joghurt"), dann MUSST du den exakten existierenden Namen in das Feld "suggestedMergeTarget" schreiben. Wenn es keine Ähnlichkeit gibt, lass das Feld leer ("").
+SMART SUGGESTION REGEL (WICHTIG):
+1. Der "name" MUSS immer exakt das abbilden, was der User eingegeben hat (bereinigt). Ändere NIEMALS den "name", nur weil er einem existierenden Item ähnelt! (Wenn der User "Griechischer Joghurt" eingibt, bleibt der name "Griechischer Joghurt").
+2. WENN es eine Ähnlichkeit gibt (z.B. User tippt "Griechischer Joghurt", es existiert aber "Joghurt"), dann fülle das Feld "suggestedMergeTarget" mit dem exakten existierenden Namen (z.B. "Joghurt").
+3. Wenn es keine Ähnlichkeit gibt, lass "suggestedMergeTarget" leer ("").
+
+Beispiel-Ausgabe für Eingabe "Griechischer Joghurt" (wenn "Joghurt" schon existiert):
+{ "name": "Griechischer Joghurt", "amount": 1, "unit": "x", "category": "Kühlregal", "suggestedMergeTarget": "Joghurt" }
 
 Antworte AUSSCHLIESSLICH als JSON:
 { "name": "Joghurt", "amount": 2, "unit": "x", "category": "Kühlregal", "suggestedMergeTarget": "Griechischer Joghurt" }`;
