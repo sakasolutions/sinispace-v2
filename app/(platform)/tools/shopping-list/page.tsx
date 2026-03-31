@@ -83,6 +83,19 @@ const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   Snowflake,
 };
 
+const CATEGORY_ICONS: Record<string, string> = {
+  'Obst & Gemüse': '🥦',
+  Kühlregal: '🥛',
+  'Fleisch & Fisch': '🥩',
+  'Brot & Backwaren': '🍞',
+  Vorratsschrank: '🥫',
+  Vorrat: '🥫',
+  Getränke: '🧃',
+  Haushalt: '🧻',
+  'Basics (Oft im Haus)': '🧂',
+  Sonstiges: '🛒',
+};
+
 const CATEGORY_ORDER = [
   'Obst & Gemüse',
   'Kühlregal',
@@ -120,6 +133,10 @@ function labelForCategorySort(catKey: string): string {
   if (raw === 'Getränke & Party') return 'Getränke';
   if (raw === 'Vorrat') return 'Vorratsschrank';
   return raw;
+}
+
+function categoryAnchorId(categoryLabel: string): string {
+  return `category-${encodeURIComponent(categoryLabel)}`;
 }
 
 function getCategorySortIndex(catKey: string): number {
@@ -428,6 +445,13 @@ export default function ShoppingListPage() {
   }, [modalRename]);
 
   const activeList = lists.find((l) => l.id === activeListId);
+  const scrollToCategory = useCallback((categoryLabel: string) => {
+    const element = document.getElementById(categoryAnchorId(categoryLabel));
+    if (element) {
+      const y = element.getBoundingClientRect().top + window.scrollY - 140;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }, []);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasInitiallyLoaded = useRef(false);
@@ -872,6 +896,23 @@ export default function ShoppingListPage() {
     return labelForCategorySort(a).localeCompare(labelForCategorySort(b), 'de');
   });
 
+  const allActiveCategories = (() => {
+    const labelsInOrder: string[] = [];
+    for (const key of sortedCategories) labelsInOrder.push(labelForCategorySort(key));
+    // De-dupe while preserving order (z.B. brot/backwaren → gleiches Label)
+    const seen = new Set<string>();
+    const unique = labelsInOrder.filter((l) => {
+      if (seen.has(l)) return false;
+      seen.add(l);
+      return true;
+    });
+    // Fallback: Kategorien, die evtl. außerhalb von CATEGORY_ORDER liegen
+    const otherActiveCats = Array.from(new Set(unchecked.map((i) => (i.category ?? 'Sonstiges')))).filter(
+      (c) => !CATEGORY_ORDER.includes(c as any) && !seen.has(c)
+    );
+    return [...unique, ...otherActiveCats];
+  })();
+
   if (!hydrated) {
     return (
       <div className="relative flex min-h-[100dvh] w-full flex-col bg-[#0A0A0A]">
@@ -1203,6 +1244,24 @@ export default function ShoppingListPage() {
               </div>
             )}
 
+            {activeList && allActiveCategories.length > 0 && (
+              <div className="sticky top-0 z-10 mb-4 -mx-4 overflow-x-auto border-b border-white/5 bg-[#0b0b0f]/80 px-4 py-3 backdrop-blur-md no-scrollbar">
+                <div className="flex w-max gap-2">
+                  {allActiveCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => scrollToCategory(cat)}
+                      className="whitespace-nowrap rounded-full bg-white/5 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:bg-white/10"
+                    >
+                      <span className="mr-1.5">{CATEGORY_ICONS[cat] || '🛒'}</span>
+                      <span>{cat}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
         {saveErrorMessage && (
           <div className="rounded-2xl border border-red-500/30 bg-red-950/40 p-4 text-sm text-red-200 shadow-sm backdrop-blur-md">
             <div className="mb-1 font-medium text-red-100">Sync fehlgeschlagen.</div>
@@ -1250,7 +1309,9 @@ export default function ShoppingListPage() {
                       const title = labelForCategorySort(cat);
                       return (
                         <Fragment key={cat}>
-                          <StickyCategoryHeader title={title} count={items.length} theme={theme} className={index === 0 ? 'pt-0' : undefined} />
+                          <div id={categoryAnchorId(title)}>
+                            <StickyCategoryHeader title={title} count={items.length} theme={theme} className={index === 0 ? 'pt-0' : undefined} />
+                          </div>
                           {items.map((item) => {
                             const qtyDisplay = formatQtyDisplay(item);
                             const packHint = getPackSuggestion(item.name, item.sources);
