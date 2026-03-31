@@ -376,15 +376,30 @@ function ShoppingItemNameStack({
 }
 
 function ShoppingItemSourcesSublist({ sources }: { sources: ItemSource[] }) {
-  if (!sources.length) return null;
+  const displaySources = sources.filter(
+    (s) => s.type !== 'manual' && s.recipeName !== 'Zusätzlich'
+  );
+  if (displaySources.length === 0) return null;
+
   return (
     <div className="mt-1 space-y-0.5 pl-2">
-      {sources.map((s) => (
-        <div key={s.id} className="text-[11px] leading-snug text-gray-500">
-          ↳ {formatItemSourceLine(s)} (
-          {s.type === 'manual' ? 'Zusätzlich' : s.recipeName ? `Für ${s.recipeName}` : 'Rezept'})
-        </div>
-      ))}
+      {displaySources.map((s) => {
+        const suffix = s.recipeName ? `Für ${s.recipeName}` : 'Rezept';
+        const line = `${formatItemSourceLine(s)} (${suffix})`;
+        return (
+          <div
+            key={s.id}
+            className="mt-1 flex w-full max-w-full items-center gap-1.5 text-xs leading-snug text-gray-400 sm:max-w-[85%]"
+          >
+            <span className="shrink-0" aria-hidden>
+              ↳
+            </span>
+            <span className="min-w-0 flex-1 truncate" title={line}>
+              {formatItemSourceLine(s)} ({suffix})
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1381,7 +1396,7 @@ export default function ShoppingListPage() {
                                 }
                                 actions={
                                   showActions ? (
-                                    <>
+                                    <div className="flex shrink-0 items-center gap-2">
                                       <button
                                         type="button"
                                         onClick={(e) => {
@@ -1408,7 +1423,7 @@ export default function ShoppingListPage() {
                                       >
                                         <Trash2 className="h-4 w-4" />
                                       </button>
-                                    </>
+                                    </div>
                                   ) : null
                                 }
                               >
@@ -1447,7 +1462,7 @@ export default function ShoppingListPage() {
                                       className="w-24 shrink-0 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/40"
                                       autoFocus
                                     />
-                                    <div className="min-w-0 flex-1">
+                                    <div className="min-w-0 flex-1 overflow-hidden">
                                       <ShoppingItemNameStack
                                         name={item.name}
                                         nameClassName={cn('font-medium capitalize text-white', isStriking && 'line-through')}
@@ -1467,7 +1482,7 @@ export default function ShoppingListPage() {
                                 ) : storeMode ? (
                                   <>
                                     {hasQty && <StoreQtyPill label={qtyLabel} />}
-                                    <div className="min-w-0 flex-1">
+                                    <div className="min-w-0 flex-1 overflow-hidden">
                                       <ShoppingItemNameStack
                                         name={item.name}
                                         nameClassName={cn(
@@ -1498,7 +1513,7 @@ export default function ShoppingListPage() {
                                     {!hasQty && (
                                       <UnifiedQuantityBadge label="+ Menge" onClick={() => { setEditingQtyItemId(item.id); setEditingQtyValue(''); }} />
                                     )}
-                                    <div className="min-w-0 flex-1">
+                                    <div className="min-w-0 flex-1 overflow-hidden">
                                       <ShoppingItemNameStack
                                         name={item.name}
                                         nameClassName={cn('font-medium capitalize text-white', isStriking && 'text-white/35 line-through')}
@@ -1592,7 +1607,7 @@ export default function ShoppingListPage() {
                         }
                         actions={
                           showActions ? (
-                            <>
+                            <div className="flex shrink-0 items-center gap-2">
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -1619,7 +1634,7 @@ export default function ShoppingListPage() {
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
-                            </>
+                            </div>
                           ) : null
                         }
                       >
@@ -1652,7 +1667,7 @@ export default function ShoppingListPage() {
                         ) : storeMode ? (
                           <>
                             {hasQty && <StoreQtyPill label={qtyD} dimmed />}
-                            <div className="min-w-0 flex-1">
+                            <div className="min-w-0 flex-1 overflow-hidden">
                               <ShoppingItemNameStack
                                 name={item.name}
                                 nameClassName="text-lg font-medium capitalize text-gray-600 line-through"
@@ -1662,7 +1677,7 @@ export default function ShoppingListPage() {
                             </div>
                           </>
                         ) : (
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 flex-1 overflow-hidden">
                             <ShoppingItemNameStack
                               name={erledigtLabel}
                               nameClassName="line-through capitalize text-white/40"
