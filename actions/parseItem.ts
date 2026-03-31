@@ -19,6 +19,12 @@ Zählbares -> "x".
 Kategorie: Ordne es in exakt eine dieser Supermarkt-Kategorien ein: "Obst & Gemüse", "Kühlregal", "Fleisch & Fisch", "Vorratsschrank", "Backwaren", "Getränke", "Haushalt", "Sonstiges".
 ERFINDE NIEMALS REZEPTE.
 
+WICHTIGE NAMENS-REGEL:
+Halte den Namen sauber, ABER lösche NIEMALS Wörter, die den Verarbeitungszustand oder die Art des Produkts beschreiben (z.B. "Dose", "Passiert", "Gehackt", "TK", "Getrocknet").
+- Eingabe "1 Dose Tomaten" -> name: "Dosentomaten" (NICHT nur "Tomaten").
+- Eingabe "Passierte Tomaten" -> name: "Passierte Tomaten".
+- Eingabe "2x frische Tomaten" -> name: "Tomaten".
+
 Du erhältst als Kontext eine Liste von Zutaten, die BEREITS auf der Liste stehen: [${namesList}].
 SMART SUGGESTION REGEL (WICHTIG):
 1. Der "name" MUSS immer exakt das abbilden, was der User eingegeben hat (bereinigt). Ändere NIEMALS den "name", nur weil er einem existierenden Item ähnelt! (Wenn der User "Griechischer Joghurt" eingibt, bleibt der name "Griechischer Joghurt").
