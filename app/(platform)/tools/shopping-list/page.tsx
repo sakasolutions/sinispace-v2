@@ -164,6 +164,7 @@ async function processSmartInput(
         if (res.data) {
           const { name, amount, unit, category, suggestedMergeTarget: rawSuggestion } = res.data;
           const nameTrim = name.trim();
+          const unitTrim = String(unit ?? '').trim() || 'x';
           const suggestion = (rawSuggestion ?? '').trim();
           const suggestionMatchesExisting =
             suggestion.length > 0 &&
@@ -173,11 +174,15 @@ async function processSmartInput(
           const suggestedMergeTarget =
             suggestionMatchesExisting && suggestionDiffersFromNew ? suggestion : undefined;
 
+          const baseUnit: ShoppingItem['baseUnit'] =
+            unitTrim === 'g' ? 'g' : unitTrim === 'ml' ? 'ml' : 'x';
+
           const inc: ShoppingItem = {
             id: generateId(),
             name: nameTrim,
             totalAmount: amount,
-            baseUnit: unit,
+            baseUnit,
+            unit: unitTrim,
             category,
             isChecked: false,
             sources: [
@@ -185,7 +190,7 @@ async function processSmartInput(
                 id: generateId(),
                 type: 'manual',
                 amount,
-                originalUnit: unit,
+                originalUnit: unitTrim,
               },
             ],
             ...(suggestedMergeTarget ? { suggestedMergeTarget } : {}),

@@ -24,6 +24,8 @@ export type ShoppingItem = {
   name: string;
   totalAmount: number;
   baseUnit: 'g' | 'ml' | 'x';
+  /** Primäre Einheits-Label dieses Containers (z. B. "g", "x", "Dose"). */
+  unit: string;
   category: string;
   isChecked: boolean;
   sources: ItemSource[];
@@ -101,7 +103,10 @@ function originalUnitSuffixForDisplay(q: number | null, u: string | null, baseUn
 }
 
 function mergeKeysMatch(a: ShoppingItem, b: ShoppingItem): boolean {
-  return normalizeItemName(a.name) === normalizeItemName(b.name);
+  return (
+    normalizeItemName(a.name) === normalizeItemName(b.name) &&
+    (a.unit ?? '').trim() === (b.unit ?? '').trim()
+  );
 }
 
 /**
@@ -166,6 +171,7 @@ function buildShoppingItemFromStructured(i: StructuredShoppingAppendItem): Shopp
     name,
     totalAmount,
     baseUnit,
+    unit: source.originalUnit,
     category: cat,
     isChecked: false,
     sources: [source],
@@ -184,7 +190,15 @@ export function migrateShoppingItemFromLegacy(legacyRow: unknown): ShoppingItem 
     Array.isArray((o as Partial<ShoppingItem>).sources) &&
     ((o as Partial<ShoppingItem>).sources?.length ?? 0) > 0
   ) {
-    return o as unknown as ShoppingItem;
+    const cast = o as unknown as ShoppingItem;
+    // Backfill für alte Shapes ohne `unit`
+    if (typeof (cast as any).unit !== 'string' || !(cast as any).unit.trim()) {
+      const firstUnit =
+        (cast.sources?.[0]?.originalUnit != null ? String(cast.sources[0].originalUnit) : '') ||
+        cast.baseUnit;
+      return { ...cast, unit: firstUnit };
+    }
+    return cast;
   }
 
   const legacyText = String(o.text ?? o.name ?? '');
@@ -216,6 +230,7 @@ export function migrateShoppingItemFromLegacy(legacyRow: unknown): ShoppingItem 
     name,
     totalAmount,
     baseUnit,
+    unit: source.originalUnit,
     category,
     isChecked: Boolean(o.checked ?? o.isChecked),
     sources: [source],
@@ -314,6 +329,7 @@ export function appendToList(
           name: nameClean,
           totalAmount: 1,
           baseUnit: 'x' as const,
+          unit: src.originalUnit,
           category: 'sonstiges',
           isChecked: false,
           sources: [src],
@@ -336,6 +352,7 @@ export function appendToList(
       name: nameClean,
       totalAmount: 1,
       baseUnit: 'x',
+      unit: 'x',
       category: 'sonstiges',
       isChecked: false,
       sources: [
@@ -382,6 +399,7 @@ export function createManualShoppingItemFromParts(
     name: n,
     totalAmount,
     baseUnit,
+    unit: source.originalUnit,
     category: cat,
     isChecked: false,
     sources: [source],

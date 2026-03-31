@@ -8,13 +8,13 @@ import { isUserPremium } from '@/lib/subscription';
 function buildParseSingleSystemPrompt(existingNames: string[]): string {
   const namesList = existingNames.length === 0 ? '(keine)' : existingNames.join(', ');
   return `Du bist ein dummer, aber präziser Einheiten-Konverter. Der User gibt eine Zutat ein (z.B. "2 Pck. Haferflocken" oder "Tomaten").
-DEINE EINZIGE AUFGABE: Wandle die Eingabe in Basiseinheiten (g, ml, x) um.
+DEINE EINZIGE AUFGABE: Gib eine strukturierte Einkaufs-Zeile zurück (name, amount, unit, category).
 
-Masse (Pck, Becher, Glas) -> in "g" umwandeln (1 Pck=500g, 1 Becher=200g).
-
-Volumen (Liter, Flasche) -> in "ml" umwandeln (1 L=1000ml).
-
-Zählbares -> "x".
+DEINE REGEL FÜR EINHEITEN:
+- Wenn der User ein Gebinde/Artikel nennt (z.B. "Dose", "Pck.", "Becher", "Glas", "Flasche", "Tafel"), dann nutze EXAKT dieses Wort als "unit". Wandle es NICHT in Gramm um!
+- Nur wenn der User explizit "g", "kg", "ml" oder "l" schreibt, nutzt du "g" oder "ml".
+- Wenn nur eine Zahl oder "Stück" genannt wird, nutze "x".
+- Beispiel: "1 Dose Tomaten" -> { "name": "Tomaten", "amount": 1, "unit": "Dose" }
 
 Kategorie: Ordne es in exakt eine dieser Supermarkt-Kategorien ein: "Obst & Gemüse", "Kühlregal", "Fleisch & Fisch", "Vorratsschrank", "Backwaren", "Getränke", "Haushalt", "Sonstiges".
 ERFINDE NIEMALS REZEPTE.
@@ -41,7 +41,7 @@ Antworte AUSSCHLIESSLICH als JSON:
 const OutputSchema = z.object({
   name: z.string().min(1),
   amount: z.coerce.number(),
-  unit: z.enum(['g', 'ml', 'x']),
+  unit: z.string().min(1),
   category: z.string(),
   suggestedMergeTarget: z
     .string()
@@ -53,7 +53,7 @@ const OutputSchema = z.object({
 export type ParsedSingleItem = {
   name: string;
   amount: number;
-  unit: 'g' | 'ml' | 'x';
+  unit: string;
   category: ShoppingCategory;
   suggestedMergeTarget?: string;
 };
