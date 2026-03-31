@@ -70,19 +70,74 @@ export function formatItemSourceLine(s: ItemSource): string {
   return formatAmount(s.amount, s.originalUnit);
 }
 
+function trimOriginalUnit(u: string | undefined): string {
+  return String(u ?? '').trim();
+}
+
+/** Zähl-/Gebinde-Einheiten (physischer Einkauf), nicht reine g/ml-Mengen von Rezepten. */
+function isPhysicalOrCountUnit(originalUnit: string): boolean {
+  const t = trimOriginalUnit(originalUnit).toLowerCase().replace(/\.$/, '');
+  if (!t) return false;
+  if (t === 'x') return true;
+  if (t === 'g' || t === 'ml') return false;
+  return ['dose', 'pck', 'glas', 'flasche', 'tube', 'becher', 'tafel', 'packung', 'stk', 'stück'].some(
+    (w) => t === w || t.startsWith(w) || t.includes(w)
+  );
+}
+
 /**
- * Badge-Text aus allen Quellen (z. B. "200g + 4x"), gruppiert nach `originalUnit`.
+ * Badge-Text für die Hauptmenge: bei einer Einheit normal summieren; bei gemischten Einheiten
+ * wird das manuelle / physische Gebinde priorisiert (Rezept-g/ml nur in den Unterzeilen).
  */
 export function getDynamicTotal(sources: ItemSource[]): string {
   if (!sources.length) return '';
-  const totalsByUnit: Record<string, number> = {};
-  for (const s of sources) {
-    const unit = s.originalUnit ?? '';
-    totalsByUnit[unit] = (totalsByUnit[unit] ?? 0) + s.amount;
+
+  const unitKeys = Array.from(new Set(sources.map((s) => trimOriginalUnit(s.originalUnit)))).filter(
+    Boolean
+  );
+
+  // Fall A: nur eine Einheit → wie bisher addieren
+  if (unitKeys.length === 1) {
+    const unit = unitKeys[0]!;
+    const total = sources.reduce((sum, s) => sum + s.amount, 0);
+    return formatAmount(total, unit);
   }
-  return Object.entries(totalsByUnit)
-    .map(([unit, amount]) => formatAmount(amount, unit))
-    .join(' + ');
+
+  // Fall B: gemischte Einheiten — zuerst echte manuelle Quellen
+  const manualOnly = sources.filter((s) => s.type === 'manual');
+  if (manualOnly.length > 0) {
+    const byUnit: Record<string, number> = {};
+    for (const s of manualOnly) {
+      const u = trimOriginalUnit(s.originalUnit);
+      if (!u) continue;
+      byUnit[u] = (byUnit[u] ?? 0) + s.amount;
+    }
+    const keys = Object.keys(byUnit);
+    if (keys.length === 1) {
+      const u = keys[0]!;
+      return `${formatAmount(byUnit[u]!, u)} ℹ️`;
+    }
+    return 'Gemischt';
+  }
+
+  // Ohne manuelle Zeile: physische/zählbare Quelle (z. B. Rezept „2x“, „1 Dose“)
+  const physical = sources.filter((s) => isPhysicalOrCountUnit(s.originalUnit));
+  if (physical.length > 0) {
+    const byUnit: Record<string, number> = {};
+    for (const s of physical) {
+      const u = trimOriginalUnit(s.originalUnit);
+      if (!u) continue;
+      byUnit[u] = (byUnit[u] ?? 0) + s.amount;
+    }
+    const keys = Object.keys(byUnit);
+    if (keys.length === 1) {
+      const u = keys[0]!;
+      return `${formatAmount(byUnit[u]!, u)} ℹ️`;
+    }
+    return 'Gemischt';
+  }
+
+  return 'Gemischt';
 }
 
 export function formatContainerTotalLabel(item: ShoppingItem): string {
