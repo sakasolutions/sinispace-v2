@@ -127,6 +127,22 @@ function shouldAutoCategorizeAsStaple(name: string): boolean {
   return PANTRY_STAPLES.some((staple) => n.includes(staple));
 }
 
+const normalizeCategory = (rawCat: string): string => {
+  if (!rawCat) return 'Sonstiges';
+  const lowerCat = rawCat.toLowerCase();
+
+  if (lowerCat.includes('obst') || lowerCat.includes('gemüse') || lowerCat.includes('gemuese')) return 'Obst & Gemüse';
+  if (lowerCat.includes('vorrat')) return 'Vorratsschrank';
+  if (lowerCat.includes('kühl') || lowerCat.includes('kuehl')) return 'Kühlregal';
+  if (lowerCat.includes('fleisch') || lowerCat.includes('fisch')) return 'Fleisch & Fisch';
+  if (lowerCat.includes('brot') || lowerCat.includes('back')) return 'Brot & Backwaren';
+  if (lowerCat.includes('getränke') || lowerCat.includes('getraenke')) return 'Getränke';
+  if (lowerCat.includes('haushalt')) return 'Haushalt';
+  if (lowerCat.includes('basic') || lowerCat.includes('haus')) return 'Basics (Oft im Haus)';
+
+  return 'Sonstiges';
+};
+
 function labelForCategorySort(catKey: string): string {
   if (catKey === 'Basics (Oft im Haus)') return catKey;
   const raw = getCategoryTheme(catKey).label;
@@ -140,7 +156,7 @@ function categoryAnchorId(categoryLabel: string): string {
 }
 
 function getCategorySortIndex(catKey: string): number {
-  const label = labelForCategorySort(catKey);
+  const label = normalizeCategory(labelForCategorySort(catKey));
   const idx = CATEGORY_ORDER.indexOf(label as (typeof CATEGORY_ORDER)[number]);
   if (idx >= 0) return idx;
   const sonst = CATEGORY_ORDER.indexOf('Sonstiges');
@@ -883,35 +899,25 @@ export default function ShoppingListPage() {
   const checked = activeList?.items.filter((i) => i.isChecked) ?? [];
 
   const grouped = unchecked.reduce<Record<string, ShoppingItem[]>>((acc, it) => {
-    const cat = it.category ?? 'sonstiges';
+    const cat = normalizeCategory(it.category ?? '');
     if (!acc[cat]) acc[cat] = [];
     acc[cat]!.push(it);
     return acc;
   }, {});
 
   const sortedCategories = Object.keys(grouped).sort((a, b) => {
-    const ia = getCategorySortIndex(a);
-    const ib = getCategorySortIndex(b);
-    if (ia !== ib) return ia - ib;
-    return labelForCategorySort(a).localeCompare(labelForCategorySort(b), 'de');
+    const ia = CATEGORY_ORDER.indexOf(a as any);
+    const ib = CATEGORY_ORDER.indexOf(b as any);
+    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
   });
 
-  const allActiveCategories = (() => {
-    const labelsInOrder: string[] = [];
-    for (const key of sortedCategories) labelsInOrder.push(labelForCategorySort(key));
-    // De-dupe while preserving order (z.B. brot/backwaren → gleiches Label)
-    const seen = new Set<string>();
-    const unique = labelsInOrder.filter((l) => {
-      if (seen.has(l)) return false;
-      seen.add(l);
-      return true;
-    });
-    // Fallback: Kategorien, die evtl. außerhalb von CATEGORY_ORDER liegen
-    const otherActiveCats = Array.from(new Set(unchecked.map((i) => (i.category ?? 'Sonstiges')))).filter(
-      (c) => !CATEGORY_ORDER.includes(c as any) && !seen.has(c)
-    );
-    return [...unique, ...otherActiveCats];
-  })();
+  const allActiveCategories = Array.from(
+    new Set(unchecked.map((item) => normalizeCategory(item.category ?? '')))
+  ).sort((a, b) => {
+    const indexA = CATEGORY_ORDER.indexOf(a as any);
+    const indexB = CATEGORY_ORDER.indexOf(b as any);
+    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+  });
 
   if (!hydrated) {
     return (
@@ -1305,8 +1311,24 @@ export default function ShoppingListPage() {
                     {sortedCategories.map((cat, index) => {
                       const items = grouped[cat] ?? [];
                       if (items.length === 0) return null;
-                      const theme = getCategoryTheme(cat);
-                      const title = labelForCategorySort(cat);
+                      const title = normalizeCategory(cat);
+                      const theme = getCategoryTheme(
+                        title === 'Obst & Gemüse'
+                          ? 'obst_gemuese'
+                          : title === 'Kühlregal'
+                            ? 'kuhlregal'
+                            : title === 'Fleisch & Fisch'
+                              ? 'fleisch'
+                              : title === 'Brot & Backwaren'
+                                ? 'brot'
+                                : title === 'Vorratsschrank'
+                                  ? 'vorrat'
+                                  : title === 'Getränke'
+                                    ? 'getraenke'
+                                    : title === 'Haushalt'
+                                      ? 'haushalt'
+                                      : 'sonstiges'
+                      );
                       return (
                         <Fragment key={cat}>
                           <div id={categoryAnchorId(title)}>
