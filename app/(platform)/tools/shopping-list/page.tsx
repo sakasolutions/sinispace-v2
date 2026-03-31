@@ -140,7 +140,7 @@ async function processSmartInput(
   setLists: React.Dispatch<React.SetStateAction<ShoppingList[]>>,
   onItemDone?: (displayText: string) => void,
   onAiProcessing?: (loading: boolean) => void,
-  initialItems: ShoppingItem[] = []
+  itemsByListIdRef?: React.MutableRefObject<Record<string, ShoppingItem[]>>
 ): Promise<void> {
   const trimmed = rawInput.trim();
   if (!trimmed || !listId) return;
@@ -148,18 +148,13 @@ async function processSmartInput(
   const chunks = splitInput(trimmed);
   if (chunks.length === 0) return;
 
-  let workingItems = initialItems.map((it) => ({
-    ...it,
-    sources: [...it.sources],
-  }));
-
   onAiProcessing?.(true);
   try {
     for (const chunk of chunks) {
       const c = chunk.trim();
       if (!c) continue;
       try {
-        const existingNames = workingItems.map((i) => i.name);
+        const existingNames = (itemsByListIdRef?.current?.[listId] ?? []).map((i) => i.name);
         const res = await parseSingleItem(c, existingNames);
         if (res.data) {
           const { name, amount, unit, category, suggestedMergeTarget: rawSuggestion } = res.data;
@@ -168,7 +163,9 @@ async function processSmartInput(
           const suggestion = (rawSuggestion ?? '').trim();
           const suggestionMatchesExisting =
             suggestion.length > 0 &&
-            workingItems.some((i) => normalizeItemName(i.name) === normalizeItemName(suggestion));
+            (itemsByListIdRef?.current?.[listId] ?? []).some(
+              (i) => normalizeItemName(i.name) === normalizeItemName(suggestion)
+            );
           const suggestionDiffersFromNew =
             suggestion.length > 0 && normalizeItemName(suggestion) !== normalizeItemName(nameTrim);
           const suggestedMergeTarget =
@@ -195,25 +192,34 @@ async function processSmartInput(
             ],
             ...(suggestedMergeTarget ? { suggestedMergeTarget } : {}),
           };
-          workingItems = mergeShoppingItemContainers(workingItems, [inc]);
           setLists((prev) =>
             prev.map((l) => {
               if (l.id !== listId) return l;
+              const nextItems = mergeShoppingItemContainers(l.items, [inc]);
+              if (itemsByListIdRef) itemsByListIdRef.current[listId] = nextItems;
               onItemDone?.(inc.name);
-              return { ...l, items: workingItems };
+              return { ...l, items: nextItems };
             })
           );
         } else {
-          workingItems = mergeFallbackChunkIntoItems(workingItems, c, onItemDone);
           setLists((prev) =>
-            prev.map((l) => (l.id === listId ? { ...l, items: workingItems } : l))
+            prev.map((l) => {
+              if (l.id !== listId) return l;
+              const nextItems = mergeFallbackChunkIntoItems(l.items, c, onItemDone);
+              if (itemsByListIdRef) itemsByListIdRef.current[listId] = nextItems;
+              return { ...l, items: nextItems };
+            })
           );
         }
       } catch (error) {
         console.warn('parseSingleItem abgebrochen, Fallback:', error);
-        workingItems = mergeFallbackChunkIntoItems(workingItems, c, onItemDone);
         setLists((prev) =>
-          prev.map((l) => (l.id === listId ? { ...l, items: workingItems } : l))
+          prev.map((l) => {
+            if (l.id !== listId) return l;
+            const nextItems = mergeFallbackChunkIntoItems(l.items, c, onItemDone);
+            if (itemsByListIdRef) itemsByListIdRef.current[listId] = nextItems;
+            return { ...l, items: nextItems };
+          })
         );
       }
     }
@@ -284,13 +290,16 @@ function SmartMergeSuggestionButton({
   targetLabel: string;
   onMerge: () => void;
 }) {
+  const targetName = targetLabel
+    ? targetLabel.charAt(0).toUpperCase() + targetLabel.slice(1)
+    : targetLabel;
   return (
     <button
       type="button"
       onClick={onMerge}
       className="text-xs text-purple-400 font-medium mt-1 ml-6 flex items-center gap-1 hover:text-purple-300 transition-colors"
     >
-      ✨ Mit &apos;{targetLabel}&apos; zusammenfassen?
+      ✨ Mit &apos;{targetName}&apos; zusammenfassen?
     </button>
   );
 }
@@ -352,9 +361,17 @@ export default function ShoppingListPage() {
   const refetchGenRef = useRef(0);
   const listsRef = useRef<ShoppingList[]>([]);
   listsRef.current = lists;
+  const itemsByListIdRef = useRef<Record<string, ShoppingItem[]>>({});
   const activeListIdRef = useRef<string | null>(null);
   const typeAheadDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
+
+  // Keep latest items per list for async parsing (avoid stale closures/race overwrites).
+  useEffect(() => {
+    const map: Record<string, ShoppingItem[]> = {};
+    for (const l of lists) map[l.id] = l.items;
+    itemsByListIdRef.current = map;
+  }, [lists]);
 
   useEffect(() => {
     let cancelled = false;
@@ -538,18 +555,17 @@ export default function ShoppingListPage() {
     const raw = newItemInput.trim();
     if (!raw || !activeListId || isSmartMergeProcessing) return;
     setTypeAheadOpen(false);
-    const list = lists.find((l) => l.id === activeListId);
     void processSmartInput(
       raw,
       activeListId,
       setLists,
       (text) => recordFrequentItem(text),
       setSmartMergeProcessingGate,
-      list?.items ?? []
+      itemsByListIdRef
     ).finally(() => {
       setNewItemInput('');
     });
-  }, [newItemInput, activeListId, isSmartMergeProcessing, setSmartMergeProcessingGate, lists]);
+  }, [newItemInput, activeListId, isSmartMergeProcessing, setSmartMergeProcessingGate]);
 
   const toggleItem = (listId: string, itemId: string) => {
     setLists((prev) =>
@@ -1007,7 +1023,8 @@ export default function ShoppingListPage() {
                                   activeList.id,
                                   setLists,
                                   (t) => recordFrequentItem(t),
-                                  setSmartMergeProcessingGate
+                                  setSmartMergeProcessingGate,
+                                  itemsByListIdRef
                                 ).finally(() => setNewItemInput(''));
                                 return;
                               }
@@ -1026,7 +1043,8 @@ export default function ShoppingListPage() {
                                 activeListId,
                                 setLists,
                                 (text) => recordFrequentItem(text),
-                                setSmartMergeProcessingGate
+                                setSmartMergeProcessingGate,
+                                itemsByListIdRef
                               ).finally(() => setNewItemInput(''));
                             }
                           }}
@@ -1048,7 +1066,8 @@ export default function ShoppingListPage() {
                                     activeList.id,
                                     setLists,
                                     (t) => recordFrequentItem(t),
-                                    setSmartMergeProcessingGate
+                                    setSmartMergeProcessingGate,
+                                    itemsByListIdRef
                                   ).finally(() => setNewItemInput(''));
                                 }}
                               >
@@ -1089,7 +1108,8 @@ export default function ShoppingListPage() {
                                 activeList.id,
                                 setLists,
                                 (t) => recordFrequentItem(t),
-                                setSmartMergeProcessingGate
+                                setSmartMergeProcessingGate,
+                                itemsByListIdRef
                               ).finally(() => setNewItemInput(''));
                               loadFrequentItems();
                             }}

@@ -43,8 +43,15 @@ export type StructuredShoppingAppendItem = {
   recipeName?: string | null;
 };
 
+export function formatAmount(amount: number, unit: string): string {
+  const u = String(unit ?? '').trim();
+  const normalized = u.toLowerCase();
+  const needsSpace = normalized.length > 0 && !['x', 'g', 'ml'].includes(normalized);
+  return `${formatQuantityGerman(amount)}${needsSpace ? ' ' : ''}${u}`;
+}
+
 export function formatItemSourceLine(s: ItemSource): string {
-  return `${formatQuantityGerman(s.amount)}${s.originalUnit}`;
+  return formatAmount(s.amount, s.originalUnit);
 }
 
 /**
@@ -58,7 +65,7 @@ export function getDynamicTotal(sources: ItemSource[]): string {
     totalsByUnit[unit] = (totalsByUnit[unit] ?? 0) + s.amount;
   }
   return Object.entries(totalsByUnit)
-    .map(([unit, amount]) => `${formatQuantityGerman(amount)}${unit}`)
+    .map(([unit, amount]) => formatAmount(amount, unit))
     .join(' + ');
 }
 
