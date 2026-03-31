@@ -116,6 +116,28 @@ function mergeKeysMatch(a: ShoppingItem, b: ShoppingItem): boolean {
   );
 }
 
+function findSimilarItemForSuggestion(existing: ShoppingItem[], newItem: ShoppingItem): ShoppingItem | undefined {
+  const nameB = (newItem.name ?? '').toLowerCase().trim();
+  if (!nameB) return undefined;
+  const baseB = nameB.replace(/[nse]$/, '');
+
+  return existing.find((e) => {
+    if (e.isChecked) return false;
+    const nameA = (e.name ?? '').toLowerCase().trim();
+    if (!nameA) return false;
+
+    // 1) Exakter Name (aber andere Einheit) → Suggestion anbieten
+    if (nameA === nameB) return true;
+
+    // 2) Simpler Singular/Plural Check (ignoriere 'n', 's', 'e' am Ende)
+    const baseA = nameA.replace(/[nse]$/, '');
+    if (baseA.length > 3 && baseB.length > 3 && (baseA.includes(baseB) || baseB.includes(baseA))) {
+      return true;
+    }
+    return false;
+  });
+}
+
 /**
  * Verschmilzt neue Container-Items mit offenen Zeilen (nur gleicher Name, case-insensitive).
  * Kategorie und Basiseinheit des bestehenden Containers bleiben erhalten; neue Quellen werden angehängt.
@@ -142,9 +164,14 @@ export function mergeShoppingItemContainers(existingItems: ShoppingItem[], incom
         suggestedMergeTarget: undefined,
       };
     } else {
-      result.push({
+      const cleaned: ShoppingItem = {
         ...inc,
         name: cleanIngredientNameForMerge(inc.name),
+      };
+      const similar = !cleaned.suggestedMergeTarget ? findSimilarItemForSuggestion(result, cleaned) : undefined;
+      result.push({
+        ...cleaned,
+        ...(similar ? { suggestedMergeTarget: similar.name } : {}),
       });
     }
   }

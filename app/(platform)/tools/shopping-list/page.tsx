@@ -619,7 +619,7 @@ export default function ShoppingListPage() {
         if (l.id !== listId) return l;
         const source = l.items.find((i) => i.id === sourceItemId);
         const target = l.items.find(
-          (i) => normalizeItemName(i.name) === normalizeItemName(targetName)
+          (i) => i.id !== sourceItemId && normalizeItemName(i.name) === normalizeItemName(targetName)
         );
         if (!source || !target || source.id === target.id) return l;
         const mergedSources = [...target.sources, ...source.sources];
