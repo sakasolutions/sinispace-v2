@@ -315,6 +315,31 @@ export async function getUserUsage(userId: string, days: number = 30) {
 }
 
 /**
+ * Gesamt-Tokens seit Monatsanfang (Kalendermonat, lokale Zeitzone des Servers).
+ * Nur für kompakte User-Settings-Anzeige; keine Kosten-/Tool-Daten.
+ */
+export async function getUserUsageCalendarMonth(userId: string): Promise<{ monthTokens: number }> {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+  try {
+    const agg = await prisma.tokenUsage.aggregate({
+      where: {
+        userId,
+        createdAt: { gte: startOfMonth },
+      },
+      _sum: { totalTokens: true },
+    });
+    return { monthTokens: agg._sum.totalTokens || 0 };
+  } catch (error: any) {
+    if (error.code === 'P2021' || error.message?.includes('does not exist') || error.message?.includes('TokenUsage')) {
+      return { monthTokens: 0 };
+    }
+    console.error('[USAGE] getUserUsageCalendarMonth:', error);
+    return { monthTokens: 0 };
+  }
+}
+
+/**
  * Holt globale Usage-Statistiken für Admin-Panel
  */
 export async function getGlobalUsage(days: number = 30) {
