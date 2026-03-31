@@ -50,7 +50,7 @@ export function SettingsContent({ user, userEmail, isPro, params }: SettingsCont
   const displayName = user?.name || userEmail;
 
   return (
-    <div className="max-w-2xl w-full pt-24 px-6 pb-40 text-zinc-100">
+    <div className="max-w-2xl mx-auto w-full px-4 md:px-6 pt-24 pb-40 text-zinc-100">
       {params.success && (
         <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 sm:p-5 text-emerald-100 shadow-sm">
           <strong>Erfolg!</strong> Dein Account wird in Kürze freigeschaltet.
