@@ -92,9 +92,30 @@ const CATEGORY_ORDER = [
   'Getränke',
   'Haushalt',
   'Sonstiges',
+  'Basics (Oft im Haus)',
 ] as const;
 
+const PANTRY_STAPLES = [
+  'salz',
+  'pfeffer',
+  'wasser',
+  'olivenöl',
+  'rapsöl',
+  'sonnenblumenöl',
+  'zucker',
+  'mehl',
+  'essig',
+  'brühe',
+  'gemüsebrühe',
+] as const;
+
+function shouldAutoCategorizeAsStaple(name: string): boolean {
+  const n = (name ?? '').toLowerCase();
+  return PANTRY_STAPLES.some((staple) => n.includes(staple));
+}
+
 function labelForCategorySort(catKey: string): string {
+  if (catKey === 'Basics (Oft im Haus)') return catKey;
   const raw = getCategoryTheme(catKey).label;
   if (raw === 'Getränke & Party') return 'Getränke';
   if (raw === 'Vorrat') return 'Vorratsschrank';
@@ -222,13 +243,17 @@ async function processSmartInput(
           const baseUnit: ShoppingItem['baseUnit'] =
             unitTrim === 'g' ? 'g' : unitTrim === 'ml' ? 'ml' : 'x';
 
+          const normalizedCategory = shouldAutoCategorizeAsStaple(nameTrim)
+            ? 'Basics (Oft im Haus)'
+            : category;
+
           const inc: ShoppingItem = {
             id: generateId(),
             name: nameTrim,
             totalAmount: amount,
             baseUnit,
             unit: unitTrim,
-            category,
+            category: normalizedCategory,
             isChecked: false,
             sources: [
               {
@@ -1222,9 +1247,10 @@ export default function ShoppingListPage() {
                       const items = grouped[cat] ?? [];
                       if (items.length === 0) return null;
                       const theme = getCategoryTheme(cat);
+                      const title = labelForCategorySort(cat);
                       return (
                         <Fragment key={cat}>
-                          <StickyCategoryHeader title={theme.label} count={items.length} theme={theme} className={index === 0 ? 'pt-0' : undefined} />
+                          <StickyCategoryHeader title={title} count={items.length} theme={theme} className={index === 0 ? 'pt-0' : undefined} />
                           {items.map((item) => {
                             const qtyDisplay = formatQtyDisplay(item);
                             const packHint = getPackSuggestion(item.name, item.sources);

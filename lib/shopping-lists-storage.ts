@@ -9,6 +9,22 @@ import { singleRawItemToBase, type RawItem } from '@/lib/smartList/preProcessor'
 
 export const SHOPPING_LISTS_STORAGE_KEY = 'sinispace-shopping-lists';
 
+export const PANTRY_STAPLES = [
+  'salz',
+  'pfeffer',
+  'wasser',
+  'olivenöl',
+  'rapsöl',
+  'sonnenblumenöl',
+  'zucker',
+  'mehl',
+  'essig',
+  'brühe',
+  'gemüsebrühe',
+] as const;
+
+export const BASICS_CATEGORY_LABEL = 'Basics (Oft im Haus)';
+
 /** Einzelne Mengen-Herkunft (manuell oder aus Rezept). */
 export type ItemSource = {
   id: string;
@@ -149,24 +165,29 @@ export function mergeShoppingItemContainers(existingItems: ShoppingItem[], incom
   }));
 
   for (const inc of incoming) {
+    const isStaple = PANTRY_STAPLES.some((staple) =>
+      (inc.name ?? '').toLowerCase().includes(staple)
+    );
+    const incWithStapleCat: ShoppingItem = isStaple ? { ...inc, category: BASICS_CATEGORY_LABEL } : inc;
+
     const matchIdx = result.findIndex(
-      (e) => !e.isChecked && mergeKeysMatch(e, inc)
+      (e) => !e.isChecked && mergeKeysMatch(e, incWithStapleCat)
     );
 
     if (matchIdx >= 0) {
       const e = result[matchIdx]!;
-      const mergedSources = [...e.sources, ...inc.sources];
-      const sameBase = e.baseUnit === inc.baseUnit;
+      const mergedSources = [...e.sources, ...incWithStapleCat.sources];
+      const sameBase = e.baseUnit === incWithStapleCat.baseUnit;
       result[matchIdx] = {
         ...e,
-        totalAmount: sameBase ? e.totalAmount + inc.totalAmount : e.totalAmount,
+        totalAmount: sameBase ? e.totalAmount + incWithStapleCat.totalAmount : e.totalAmount,
         sources: mergedSources,
         suggestedMergeTarget: undefined,
       };
     } else {
       const cleaned: ShoppingItem = {
-        ...inc,
-        name: cleanIngredientNameForMerge(inc.name),
+        ...incWithStapleCat,
+        name: cleanIngredientNameForMerge(incWithStapleCat.name),
       };
       const similar = !cleaned.suggestedMergeTarget ? findSimilarItemForSuggestion(result, cleaned) : undefined;
       result.push({
