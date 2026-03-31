@@ -154,25 +154,33 @@ export function AdminChatsView({ chats }: AdminChatsViewProps) {
                           key={message.id}
                           className={`p-3 rounded-lg ${
                             message.role === 'user'
-                              ? 'bg-blue-500/10 border border-blue-500/20'
-                              : 'bg-zinc-800/50 border border-white/10'
+                              ? 'bg-white/5 border border-white/10'
+                              : 'bg-slate-800/50 border border-white/10'
                           }`}
                         >
                           <div className="flex items-start gap-3">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${
-                              message.role === 'user'
-                                ? 'bg-blue-500/20 text-blue-400'
-                                : 'bg-purple-500/20 text-purple-400'
-                            }`}>
+                            <div
+                              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${
+                                message.role === 'user'
+                                  ? 'bg-white/10 text-slate-200'
+                                  : 'bg-purple-500/20 text-purple-300'
+                              }`}
+                            >
                               {message.role === 'user' ? '👤' : '🤖'}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-xs text-zinc-500 mb-1">
+                              <div className="text-xs text-slate-400 mb-1.5">
                                 {message.role === 'user' ? 'User' : 'Assistant'} • {formatDate(message.createdAt)}
                               </div>
-                              <div className="text-sm text-white prose prose-invert max-w-none">
-                                <MarkdownRenderer content={message.content} />
-                              </div>
+                              {message.role === 'user' ? (
+                                <MarkdownRenderer
+                                  darkSurface
+                                  content={message.content}
+                                  className="[&_p]:text-slate-200 [&_li]:text-slate-200 [&_strong]:text-slate-100 [&_a]:text-sky-400"
+                                />
+                              ) : (
+                                <MarkdownRenderer darkSurface content={message.content} />
+                              )}
                             </div>
                           </div>
                         </div>
