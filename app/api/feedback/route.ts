@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { toolId, toolName, resultId, type } = body;
+    const { toolId, toolName, resultId, type, metadata: rawMetadata, messageId } = body;
 
     if (!toolId || !toolName || !type || !['positive', 'negative'].includes(type)) {
       return NextResponse.json(
@@ -19,6 +19,26 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const meta: Record<string, unknown> = {};
+    if (rawMetadata != null) {
+      if (typeof rawMetadata === 'string') {
+        try {
+          const parsed = JSON.parse(rawMetadata) as Record<string, unknown>;
+          Object.assign(meta, parsed);
+        } catch {
+          /* ignore invalid JSON */
+        }
+      } else if (typeof rawMetadata === 'object' && !Array.isArray(rawMetadata)) {
+        Object.assign(meta, rawMetadata as Record<string, unknown>);
+      }
+    }
+    if (typeof messageId === 'string' && messageId.length > 0) {
+      meta.messageId = messageId;
+    }
+
+    const metadataJson =
+      Object.keys(meta).length > 0 ? JSON.stringify(meta) : null;
 
     // Prüfe ob Feedback-Tabelle existiert
     try {
@@ -29,6 +49,7 @@ export async function POST(request: Request) {
           toolName,
           resultId: resultId || null,
           type,
+          metadata: metadataJson,
         },
       });
 

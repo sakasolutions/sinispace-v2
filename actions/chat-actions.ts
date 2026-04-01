@@ -139,6 +139,7 @@ export async function getChat(chatId: string) {
       id: chat.id,
       title: chat.title,
       messages: chat.messages.map((msg) => ({
+        id: msg.id,
         role: msg.role as 'user' | 'assistant',
         content: msg.content,
       })),
@@ -150,7 +151,11 @@ export async function getChat(chatId: string) {
 }
 
 // Neue Nachricht in der DB speichern
-export async function saveMessage(chatId: string, role: 'user' | 'assistant', content: string) {
+export async function saveMessage(
+  chatId: string,
+  role: 'user' | 'assistant',
+  content: string
+): Promise<{ success: true; messageId: string } | { success: false; error: string }> {
   const session = await auth();
   
   // WICHTIG: Auth-Check
@@ -171,22 +176,21 @@ export async function saveMessage(chatId: string, role: 'user' | 'assistant', co
       return { success: false, error: 'Chat nicht gefunden oder keine Berechtigung' };
     }
 
-    // Nachricht speichern
-    await prisma.message.create({
+    const created = await prisma.message.create({
       data: {
         chatId: chatId,
         role: role,
         content: content,
       },
+      select: { id: true },
     });
 
-    // Chat updatedAt aktualisieren (für Sortierung in Sidebar)
     await prisma.chat.update({
       where: { id: chatId },
       data: { updatedAt: new Date() },
     });
 
-    return { success: true };
+    return { success: true, messageId: created.id };
   } catch (error) {
     console.error('Error saving message:', error);
     return { success: false, error: 'Fehler beim Speichern der Nachricht' };

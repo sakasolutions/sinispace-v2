@@ -9,7 +9,7 @@ import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { SuggestedActions } from '@/components/suggested-actions';
 import { CopyButton } from '@/components/ui/copy-button';
-import { FeedbackButton } from '@/components/ui/feedback-button';
+import { AssistantMessageFeedback } from '@/components/ui/assistant-message-feedback';
 import { triggerHaptic } from '@/lib/haptic-feedback';
 import { Copy, RefreshCw, X, Menu, Upload, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getChats, deleteChat, updateChatTitle } from '@/actions/chat-actions';
@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 type Message = {
+  id?: string;
   role: 'user' | 'assistant';
   content: string;
 };
@@ -324,6 +325,19 @@ export default function ChatDetailPage() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
+  function patchLastMessageIdForRole(role: 'user' | 'assistant', messageId: string) {
+    setMessages((prev) => {
+      const next = [...prev];
+      for (let i = next.length - 1; i >= 0; i--) {
+        if (next[i].role === role) {
+          next[i] = { ...next[i], id: messageId };
+          break;
+        }
+      }
+      return next;
+    });
+  }
+
   function formatFileName(fileName: string, maxLength: number = 20): string {
     if (fileName.length <= maxLength) return fileName;
     const lastDotIndex = fileName.lastIndexOf('.');
@@ -348,7 +362,8 @@ export default function ChatDetailPage() {
     setInput('');
     setIsLoading(true);
 
-    await saveMessage(chatId, 'user', messageContent);
+    const userSave = await saveMessage(chatId, 'user', messageContent);
+    if (userSave.success) patchLastMessageIdForRole('user', userSave.messageId);
 
     try {
       const response = await fetch('/api/chat/stream', {
@@ -377,7 +392,8 @@ export default function ChatDetailPage() {
           fullContent += chunk;
           setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
         }
-        await saveMessage(chatId, 'assistant', fullContent);
+        const asstSave = await saveMessage(chatId, 'assistant', fullContent);
+        if (asstSave.success) patchLastMessageIdForRole('assistant', asstSave.messageId);
       }
     } catch (error: any) {
       console.error('Stream error:', error);
@@ -411,7 +427,8 @@ export default function ChatDetailPage() {
     setInput('');
     setIsLoading(true);
 
-    await saveMessage(chatId, 'user', messageContent);
+    const userSaveSubmit = await saveMessage(chatId, 'user', messageContent);
+    if (userSaveSubmit.success) patchLastMessageIdForRole('user', userSaveSubmit.messageId);
 
     const docFileIds = documents.length > 0 
       ? documents.map(doc => doc.openaiFileId).filter((id): id is string => id !== null)
@@ -427,7 +444,8 @@ export default function ChatDetailPage() {
       if (response.result) {
         const assistantMessage: Message = { role: 'assistant', content: response.result };
         setMessages([...newHistory, assistantMessage]);
-        await saveMessage(chatId, 'assistant', response.result);
+        const asstSaveDoc = await saveMessage(chatId, 'assistant', response.result);
+        if (asstSaveDoc.success) patchLastMessageIdForRole('assistant', asstSaveDoc.messageId);
       } else {
         setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
       }
@@ -464,7 +482,8 @@ export default function ChatDetailPage() {
             fullContent += chunk;
             setMessages([...newHistory, { role: 'assistant', content: fullContent }]);
           }
-          await saveMessage(chatId, 'assistant', fullContent);
+          const asstSaveStream = await saveMessage(chatId, 'assistant', fullContent);
+          if (asstSaveStream.success) patchLastMessageIdForRole('assistant', asstSaveStream.messageId);
         }
       } catch (error: any) {
         console.error('Stream error:', error);
@@ -800,7 +819,7 @@ export default function ChatDetailPage() {
 
               return (
                 <div
-                  key={i}
+                  key={msg.id ?? `m-${i}`}
                   className="w-full relative mb-6"
                   style={{
                     transform: isSwiping ? `translateX(${swipeOffset}px)` : 'none',
@@ -850,6 +869,7 @@ export default function ChatDetailPage() {
                         <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-gray-800 prose-pre:bg-gray-50">
                           <MarkdownRenderer content={msg.content} />
                         </div>
+                        {msg.id ? <AssistantMessageFeedback messageId={msg.id} /> : null}
                       </div>
                     </div>
                   )}
@@ -860,15 +880,6 @@ export default function ChatDetailPage() {
                       <SuggestedActions 
                         content={msg.content} 
                         onActionClick={(prompt) => sendMessage(prompt)}
-                      />
-                    </div>
-                  )}
-                  {msg.role === 'assistant' && i === messages.length - 1 && !isLoading && (
-                    <div className="ml-11 mt-3">
-                      <FeedbackButton
-                        toolId="chat"
-                        toolName="SiniChat"
-                        resultId={msg.content ? `chat-${i}-${Date.now()}` : undefined}
                       />
                     </div>
                   )}

@@ -9,11 +9,13 @@ import { getChatDocuments, deleteDocument } from '@/actions/document-actions';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { SuggestedActions } from '@/components/suggested-actions';
 import { CopyButton } from '@/components/ui/copy-button';
+import { AssistantMessageFeedback } from '@/components/ui/assistant-message-feedback';
 import { Pencil, Trash2, X, Check, Menu, Upload, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 type Message = {
+  id?: string;
   role: 'user' | 'assistant';
   content: string;
 };
@@ -292,6 +294,19 @@ export default function ChatPage() {
     }
   }
 
+  function patchLastMessageIdForRole(role: 'user' | 'assistant', messageId: string) {
+    setMessages((prev) => {
+      const next = [...prev];
+      for (let i = next.length - 1; i >= 0; i--) {
+        if (next[i].role === role) {
+          next[i] = { ...next[i], id: messageId };
+          break;
+        }
+      }
+      return next;
+    });
+  }
+
   async function sendMessage(messageContent?: string) {
     const content = messageContent || input.trim();
     if (!content && documents.length === 0) return;
@@ -309,7 +324,8 @@ export default function ChatPage() {
         chatIdToUse = chatResult.chatId;
         setCurrentChatId(chatIdToUse);
         
-        await saveMessage(chatIdToUse, 'user', content);
+        const userSave = await saveMessage(chatIdToUse, 'user', content);
+        if (userSave.success) patchLastMessageIdForRole('user', userSave.messageId);
         
         const docFileIds = documents.length > 0 
           ? documents.map(doc => doc.openaiFileId).filter((id): id is string => id !== null)
@@ -323,7 +339,8 @@ export default function ChatPage() {
         if (response.result) {
           const assistantMessage: Message = { role: 'assistant', content: response.result };
           setMessages([...newHistory, assistantMessage]);
-          await saveMessage(chatIdToUse, 'assistant', response.result);
+          const asstSave = await saveMessage(chatIdToUse, 'assistant', response.result);
+          if (asstSave.success) patchLastMessageIdForRole('assistant', asstSave.messageId);
         } else {
           setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
         }
@@ -338,7 +355,8 @@ export default function ChatPage() {
     }
 
     if (chatIdToUse) {
-      await saveMessage(chatIdToUse, 'user', content);
+      const userSave = await saveMessage(chatIdToUse, 'user', content);
+      if (userSave.success) patchLastMessageIdForRole('user', userSave.messageId);
     }
 
     const docFileIds = documents.length > 0 
@@ -355,7 +373,8 @@ export default function ChatPage() {
       setMessages([...newHistory, assistantMessage]);
       
       if (chatIdToUse) {
-        await saveMessage(chatIdToUse, 'assistant', response.result);
+        const asstSave = await saveMessage(chatIdToUse, 'assistant', response.result);
+        if (asstSave.success) patchLastMessageIdForRole('assistant', asstSave.messageId);
       }
     } else {
       setMessages([...newHistory, { role: 'assistant', content: "⚠️ Fehler: " + response.error }]);
@@ -603,7 +622,7 @@ export default function ChatPage() {
             )}
 
             {messages.map((msg, i) => (
-              <div key={i} className="w-full mb-6">
+              <div key={msg.id ?? `m-${i}`} className="w-full mb-6">
                 {msg.role === 'user' ? (
                   /* USER MESSAGE: Card rechtsbündig */
                   <div className="flex w-full justify-end items-start gap-3">
@@ -634,6 +653,7 @@ export default function ChatPage() {
                       <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-gray-800 prose-pre:bg-gray-50">
                         <MarkdownRenderer content={msg.content} />
                       </div>
+                      {msg.id ? <AssistantMessageFeedback messageId={msg.id} /> : null}
                     </div>
                   </div>
                 )}
