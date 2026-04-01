@@ -9,7 +9,12 @@ interface MarkdownRendererProps {
   content: string;
   /** Dunkle Flächen (z. B. Admin-Chat): `prose-invert`, helle Schrift, keine grau-900-Defaults */
   darkSurface?: boolean;
-  /** Zusätzliche Klassen am Prose-Container (z. B. User-Bubble: `[&_p]:text-slate-200`) */
+  /**
+   * Admin-Chat: nur Typografie-Spacing (`prose`), keine Prose-Farben – Textfarben kommen vom Eltern-Container
+   * (`[&_*]:!text-gray-…`), damit keine hellen/dunkelblauen Defaults durchschlagen.
+   */
+  inheritParentColors?: boolean;
+  /** Zusätzliche Klassen am Prose-Container */
   className?: string;
 }
 
@@ -133,10 +138,18 @@ const darkProseClass =
   'prose-ul:my-4 prose-ol:my-4 prose-li:my-1.5 ' +
   '[&>h1]:text-white [&>h2]:text-white [&>h3]:text-white [&>h4]:text-white';
 
-function createMarkdownComponents(darkSurface: boolean) {
-  const inlineCodeClass = darkSurface
-    ? 'bg-white/10 px-1.5 py-0.5 rounded text-xs font-mono text-orange-300 border border-white/15'
-    : 'bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono text-orange-600 border border-gray-200';
+/** Nur Struktur/Abstände, keine Typography-Farben (Eltern erzwingt !text-*) */
+const inheritParentProseClass =
+  'prose prose-sm max-w-none ' +
+  'prose-ul:my-4 prose-ol:my-4 prose-li:my-1.5 ' +
+  'prose-headings:font-bold prose-strong:font-semibold';
+
+function createMarkdownComponents(darkSurface: boolean, inheritParentColors: boolean) {
+  const inlineCodeClass = inheritParentColors
+    ? 'bg-white/10 px-1.5 py-0.5 rounded text-xs font-mono !text-orange-300 border border-white/15'
+    : darkSurface
+      ? 'bg-white/10 px-1.5 py-0.5 rounded text-xs font-mono text-orange-300 border border-white/15'
+      : 'bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono text-orange-600 border border-gray-200';
 
   return {
     code({ node, inline, className, children, ...props }: any) {
@@ -144,7 +157,7 @@ function createMarkdownComponents(darkSurface: boolean) {
 
       if (!inline && match) {
         return (
-          <CodeBlock language={match[1]} variant={darkSurface ? 'dark' : 'light'}>
+          <CodeBlock language={match[1]} variant={darkSurface || inheritParentColors ? 'dark' : 'light'}>
             {String(children)}
           </CodeBlock>
         );
@@ -163,11 +176,26 @@ function createMarkdownComponents(darkSurface: boolean) {
  * MarkdownRenderer - Perfektes Markdown-Rendering wie ChatGPT/Gemini
  *
  * `darkSurface`: für Admin / dunkle Panels; erzwingt `prose-invert` und helle Typografie.
+ * `inheritParentColors`: Admin-Chat mit Brute-Force-Farben am Wrapper – keine Prose-Farb-Utilities.
  */
-export function MarkdownRenderer({ content, darkSurface = false, className }: MarkdownRendererProps) {
+export function MarkdownRenderer({
+  content,
+  darkSurface = false,
+  inheritParentColors = false,
+  className,
+}: MarkdownRendererProps) {
+  const rootClass = inheritParentColors
+    ? inheritParentProseClass
+    : darkSurface
+      ? darkProseClass
+      : lightProseClass;
+
   return (
-    <div className={cn(darkSurface ? darkProseClass : lightProseClass, className)}>
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={createMarkdownComponents(darkSurface)}>
+    <div className={cn(rootClass, className)}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={createMarkdownComponents(darkSurface, inheritParentColors)}
+      >
         {content}
       </ReactMarkdown>
     </div>

@@ -149,42 +149,37 @@ export function AdminChatsView({ chats }: AdminChatsViewProps) {
                     </div>
                   ) : (
                     <div className="space-y-4 max-h-96 overflow-y-auto">
-                      {chatMessages.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`p-3 rounded-lg ${
-                            message.role === 'user'
-                              ? 'bg-white/5 border border-white/10'
-                              : 'bg-slate-800/50 border border-white/10'
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
+                      {chatMessages.map((message) => {
+                        const isUser = message.role === 'user';
+                        const bubbleClass = isUser
+                          ? 'p-3 rounded-lg border border-white/10 bg-white/5 text-gray-200 [&_*]:!text-gray-200'
+                          : 'p-3 rounded-lg border border-white/10 bg-transparent text-gray-300 [&_*]:!text-gray-300 [&_h1]:!text-white [&_h2]:!text-white [&_h3]:!text-white [&_strong]:!text-white [&_a]:!text-blue-400';
+
+                        return (
+                          <div key={message.id} className="flex items-start gap-3">
                             <div
                               className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${
-                                message.role === 'user'
-                                  ? 'bg-white/10 text-slate-200'
-                                  : 'bg-purple-500/20 text-purple-300'
+                                isUser
+                                  ? 'bg-white/10 !text-gray-200'
+                                  : 'bg-purple-500/20 !text-purple-300'
                               }`}
                             >
-                              {message.role === 'user' ? '👤' : '🤖'}
+                              {isUser ? '👤' : '🤖'}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-xs text-slate-400 mb-1.5">
-                                {message.role === 'user' ? 'User' : 'Assistant'} • {formatDate(message.createdAt)}
+                              <div className="text-xs !text-slate-400 mb-1.5">
+                                {isUser ? 'User' : 'Assistant'} • {formatDate(message.createdAt)}
                               </div>
-                              {message.role === 'user' ? (
+                              <div className={bubbleClass}>
                                 <MarkdownRenderer
-                                  darkSurface
                                   content={message.content}
-                                  className="[&_p]:text-slate-200 [&_li]:text-slate-200 [&_strong]:text-slate-100 [&_a]:text-sky-400"
+                                  inheritParentColors
                                 />
-                              ) : (
-                                <MarkdownRenderer darkSurface content={message.content} />
-                              )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
