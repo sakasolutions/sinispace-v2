@@ -1,27 +1,33 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TrendingUp, Users, Activity, Zap, BarChart3, Target, ArrowUpRight, ArrowDownRight, User } from 'lucide-react';
+import { Users, Activity, Sparkles, BarChart3, User } from 'lucide-react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { UserAnalytics } from './user-analytics';
+import { PLATFORM_INSET_CARD_CLASS } from '@/components/platform/platform-inset-layout';
 
 type AnalyticsData = {
-  activities: Array<{
-    action: string;
-    page: string | null;
-    feature: string | null;
-    createdAt: Date;
-  }>;
-  features: Array<{
-    feature: string;
-    category: string | null;
-    success: boolean;
-    createdAt: Date;
-  }>;
-  totalUsers: number;
-  activeUsers: number;
-  usersWithLogins: number;
-  recentLogins: number;
+  bi?: {
+    config: {
+      championActions7dThreshold: number;
+    };
+    northStar: {
+      activeChampions: number;
+      ahaMomentRate: number;
+      avgFeatureLatencySec: number | null;
+      returningUsers7d: number;
+    };
+    funnel: {
+      steps: Array<{ id: string; label: string; users: number }>;
+    };
+    leaderboard: Array<{
+      rank: number;
+      userId: string;
+      email: string | null;
+      actions7d: number;
+      lastLoginAt: Date | null;
+    }>;
+  };
 };
 
 export function AnalyticsDashboard() {
@@ -45,7 +51,7 @@ export function AnalyticsDashboard() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6">
+      <div className={`${PLATFORM_INSET_CARD_CLASS} p-6`}>
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-zinc-700/50 rounded w-1/3"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -60,37 +66,26 @@ export function AnalyticsDashboard() {
 
   if (!data) {
     return (
-      <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6">
+      <div className={`${PLATFORM_INSET_CARD_CLASS} p-6`}>
         <p className="text-zinc-400">Analytics-Daten konnten nicht geladen werden.</p>
       </div>
     );
   }
 
-  // Berechne Statistiken
-  const pageViews = data.activities.filter(a => a.action === 'page_view').length;
-  const featureUses = data.features.length;
-  const successfulFeatures = data.features.filter(f => f.success).length;
-  const successRate = featureUses > 0 ? ((successfulFeatures / featureUses) * 100).toFixed(1) : '0';
+  const bi = data.bi;
+  if (!bi) {
+    return (
+      <div className={`${PLATFORM_INSET_CARD_CLASS} p-6`}>
+        <p className="text-zinc-400">BI-Daten konnten nicht geladen werden.</p>
+      </div>
+    );
+  }
 
-  // Top Features
-  const featureCounts: Record<string, number> = {};
-  data.features.forEach(f => {
-    featureCounts[f.feature] = (featureCounts[f.feature] || 0) + 1;
-  });
-  const topFeatures = Object.entries(featureCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5);
+  const formatPct = (v: number) => `${Math.round(v * 10) / 10}%`;
+  const formatSec = (v: number) =>
+    v >= 60 ? `${Math.round((v / 60) * 10) / 10} Min` : `${Math.round(v)} s`;
 
-  // Top Pages
-  const pageCounts: Record<string, number> = {};
-  data.activities
-    .filter(a => a.page)
-    .forEach(a => {
-      pageCounts[a.page!] = (pageCounts[a.page!] || 0) + 1;
-    });
-  const topPages = Object.entries(pageCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5);
+  const funnelMax = Math.max(...bi.funnel.steps.map((s) => s.users), 1);
 
   return (
     <div className="space-y-6">
@@ -99,9 +94,9 @@ export function AnalyticsDashboard() {
         <div>
           <h2 className="text-xl font-semibold text-white flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-blue-400" />
-            Analytics & Insights
+            BI Dashboard
           </h2>
-          <p className="text-sm text-zinc-400 mt-1">Automatische Datenauswertung für App-Optimierung</p>
+          <p className="text-sm text-zinc-400 mt-1">North Stars, Funnel & Champions – Fokus auf Verhalten statt Vanity.</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -135,162 +130,121 @@ export function AnalyticsDashboard() {
       {/* Standard Analytics View */}
       {!showUserAnalytics && (
         <>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-400 mb-1">Aktive User (7d)</p>
-              <p className="text-2xl font-bold text-white">{data.activeUsers}</p>
-            </div>
-            <Users className="w-8 h-8 text-blue-400 opacity-50" />
+      {/* Sektion 1: North Star KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`${PLATFORM_INSET_CARD_CLASS} p-6`}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-zinc-400">Aktive Champions (7d)</p>
+            <Users className="w-5 h-5 text-amber-400/80" />
           </div>
+          <p className="text-3xl font-semibold text-white tabular-nums">{bi.northStar.activeChampions}</p>
+          <p className="text-xs text-zinc-500 mt-2">
+            &gt;{bi.config.championActions7dThreshold} Aktionen in 7 Tagen
+          </p>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-400 mb-1">Logins ({timeRange}d)</p>
-              <p className="text-2xl font-bold text-white">{data.recentLogins || 0}</p>
-            </div>
-            <Activity className="w-8 h-8 text-green-400 opacity-50" />
+        <div className={`${PLATFORM_INSET_CARD_CLASS} p-6`}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-zinc-400">Aha-Moment Rate</p>
+            <Sparkles className="w-5 h-5 text-orange-400/80" />
           </div>
+          <p className="text-3xl font-semibold text-white tabular-nums">{formatPct(bi.northStar.ahaMomentRate)}</p>
+          <p className="text-xs text-zinc-500 mt-2">
+            Rezept → Einkaufsliste (Proxy: Update ≤ 24h)
+          </p>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-400 mb-1">Feature-Nutzung</p>
-              <p className="text-2xl font-bold text-white">{featureUses}</p>
-            </div>
-            <Zap className="w-8 h-8 text-yellow-400 opacity-50" />
+        <div className={`${PLATFORM_INSET_CARD_CLASS} p-6`}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-zinc-400">
+              {bi.northStar.avgFeatureLatencySec ? 'Ø Feature-Latenz (7d)' : 'Wiederkehrende User (7d)'}
+            </p>
+            <Activity className="w-5 h-5 text-sky-400/80" />
           </div>
-        </div>
-
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-400 mb-1">Erfolgsrate</p>
-              <p className="text-2xl font-bold text-white">{successRate}%</p>
-            </div>
-            <Target className="w-8 h-8 text-purple-400 opacity-50" />
-          </div>
+          <p className="text-3xl font-semibold text-white tabular-nums">
+            {bi.northStar.avgFeatureLatencySec ? formatSec(bi.northStar.avgFeatureLatencySec) : bi.northStar.returningUsers7d}
+          </p>
+          <p className="text-xs text-zinc-500 mt-2">
+            {bi.northStar.avgFeatureLatencySec
+              ? 'Aus FeatureUsage.duration (falls vorhanden)'
+              : 'Aktiv in den letzten 7d UND in den 7d davor'}
+          </p>
         </div>
       </div>
 
-      {/* Top Features & Pages */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Top Features */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-green-400" />
-            Beliebte Features
-          </h3>
-          {topFeatures.length > 0 ? (
-            <div className="space-y-3">
-              {topFeatures.map(([feature, count], index) => (
-                <div key={feature} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-zinc-500 text-sm font-mono w-6">{index + 1}.</span>
-                    <span className="text-white text-sm">{feature}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-zinc-400 text-sm">{count}x</span>
-                    <ArrowUpRight className="w-4 h-4 text-green-400" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-zinc-400 text-sm">Noch keine Feature-Nutzung getrackt.</p>
-          )}
+      {/* Sektion 2: Funnel */}
+      <div className={`${PLATFORM_INSET_CARD_CLASS} p-6`}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">Conversion Funnel</h3>
+          <p className="text-xs text-zinc-500">7 Tage</p>
         </div>
-
-        {/* Top Pages */}
-        <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-400" />
-            Beliebte Seiten
-          </h3>
-          {topPages.length > 0 ? (
-            <div className="space-y-3">
-              {topPages.map(([page, count], index) => (
-                <div key={page} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-zinc-500 text-sm font-mono w-6">{index + 1}.</span>
-                    <span className="text-white text-sm truncate">{page}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-zinc-400 text-sm">{count}x</span>
-                    <ArrowUpRight className="w-4 h-4 text-blue-400" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-zinc-400 text-sm">Noch keine Seitenaufrufe getrackt.</p>
-          )}
-        </div>
-      </div>
-
-      {/* Automatische Insights */}
-      <div className="rounded-xl border border-white/10 bg-gradient-to-b from-zinc-800/30 to-zinc-900/30 backdrop-blur-xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <Target className="w-5 h-5 text-purple-400" />
-          Automatische Insights
-        </h3>
         <div className="space-y-3">
-          {topFeatures.length > 0 && (
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-              <ArrowUpRight className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-green-400">Top Feature</p>
-                <p className="text-xs text-zinc-400 mt-1">
-                  <strong>{topFeatures[0][0]}</strong> wird am häufigsten genutzt ({topFeatures[0][1]}x). 
-                  Erwäge, dieses Feature zu bewerben oder zu erweitern.
-                </p>
+          {bi.funnel.steps.map((step) => {
+            const pct = Math.round((step.users / funnelMax) * 1000) / 10;
+            return (
+              <div key={step.id} className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-zinc-300">{step.label}</span>
+                  <span className="text-zinc-400 tabular-nums">
+                    {step.users} User <span className="text-zinc-600">({pct}%)</span>
+                  </span>
+                </div>
+                <div className="h-2.5 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-500/80 to-amber-500/80"
+                    style={{ width: `${Math.max(2, (step.users / funnelMax) * 100)}%` }}
+                  />
+                </div>
               </div>
-            </div>
+            );
+          })}
+          {bi.funnel.steps.length === 0 && (
+            <p className="text-sm text-zinc-400">Noch keine Funnel-Daten verfügbar.</p>
           )}
-          
-          {successRate && Number(successRate) < 80 && (
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-              <ArrowDownRight className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-yellow-400">Niedrige Erfolgsrate</p>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Die Erfolgsrate liegt bei {successRate}%. Prüfe, ob Features zu komplex sind oder Fehler auftreten.
-                </p>
-              </div>
-            </div>
-          )}
+        </div>
+      </div>
 
-          {data.activeUsers > 0 && data.totalUsers > 0 && (
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <TrendingUp className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-blue-400">User-Engagement</p>
-                <p className="text-xs text-zinc-400 mt-1">
-                  {((data.activeUsers / data.totalUsers) * 100).toFixed(1)}% der User waren in den letzten 7 Tagen aktiv.
-                  {data.activeUsers / data.totalUsers < 0.3 && ' Erwäge, Retention-Strategien zu implementieren.'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {data.recentLogins > 0 && (
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-              <Activity className="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-indigo-400">Login-Aktivität</p>
-                <p className="text-xs text-zinc-400 mt-1">
-                  <strong>{data.recentLogins}</strong> Logins in den letzten {timeRange} Tagen.
-                  {data.usersWithLogins > 0 && ` ${data.usersWithLogins} User haben sich bereits eingeloggt.`}
-                </p>
-              </div>
-            </div>
-          )}
+      {/* Sektion 3: Power-User Leaderboard */}
+      <div className={PLATFORM_INSET_CARD_CLASS}>
+        <div className="px-4 sm:px-6 py-4 border-b border-white/10">
+          <h3 className="text-lg font-semibold text-white">Champions Leaderboard</h3>
+          <p className="text-xs text-zinc-500 mt-1">Rang nach Aktionen (7 Tage) – inkl. E-Mail</p>
+        </div>
+        <div className="p-4 sm:p-6 overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
+            <thead>
+              <tr className="text-left text-xs text-zinc-500">
+                <th className="py-2 pr-4 font-medium">Rang</th>
+                <th className="py-2 pr-4 font-medium">E-Mail</th>
+                <th className="py-2 pr-4 font-medium">Aktionen (7d)</th>
+                <th className="py-2 pr-0 font-medium">Letzter Login</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bi.leaderboard.map((row) => (
+                <tr
+                  key={row.userId}
+                  className="border-t border-white/5 hover:bg-white/5 transition-colors"
+                >
+                  <td className="py-3 pr-4 text-zinc-400 tabular-nums">{row.rank}</td>
+                  <td className="py-3 pr-4 text-white">
+                    {row.email ?? <span className="text-zinc-500">Unbekannt</span>}
+                  </td>
+                  <td className="py-3 pr-4 text-zinc-200 tabular-nums">{row.actions7d}</td>
+                  <td className="py-3 pr-0 text-zinc-400 tabular-nums">
+                    {row.lastLoginAt ? new Date(row.lastLoginAt).toLocaleString('de-DE') : '—'}
+                  </td>
+                </tr>
+              ))}
+              {bi.leaderboard.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="py-6 text-center text-zinc-500">
+                    Noch keine Aktivität im Zeitraum.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
         </>
